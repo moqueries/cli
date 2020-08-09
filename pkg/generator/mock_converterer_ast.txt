@@ -1,0 +1,3139 @@
+     0  *ast.File {
+     1  .  Package: ./mock_converterer_test.go:3:1
+     2  .  Name: *ast.Ident {
+     3  .  .  NamePos: ./mock_converterer_test.go:3:9
+     4  .  .  Name: "generator_test"
+     5  .  }
+     6  .  Decls: []ast.Decl (len = 18) {
+     7  .  .  0: *ast.GenDecl {
+     8  .  .  .  TokPos: ./mock_converterer_test.go:5:1
+     9  .  .  .  Tok: import
+    10  .  .  .  Lparen: ./mock_converterer_test.go:5:8
+    11  .  .  .  Specs: []ast.Spec (len = 3) {
+    12  .  .  .  .  0: *ast.ImportSpec {
+    13  .  .  .  .  .  Path: *ast.BasicLit {
+    14  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:6:2
+    15  .  .  .  .  .  .  Kind: STRING
+    16  .  .  .  .  .  .  Value: "\"github.com/dave/dst\""
+    17  .  .  .  .  .  }
+    18  .  .  .  .  .  EndPos: -
+    19  .  .  .  .  }
+    20  .  .  .  .  1: *ast.ImportSpec {
+    21  .  .  .  .  .  Path: *ast.BasicLit {
+    22  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:7:2
+    23  .  .  .  .  .  .  Kind: STRING
+    24  .  .  .  .  .  .  Value: "\"github.com/myshkin5/moqueries/pkg/generator\""
+    25  .  .  .  .  .  }
+    26  .  .  .  .  .  EndPos: -
+    27  .  .  .  .  }
+    28  .  .  .  .  2: *ast.ImportSpec {
+    29  .  .  .  .  .  Path: *ast.BasicLit {
+    30  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:8:2
+    31  .  .  .  .  .  .  Kind: STRING
+    32  .  .  .  .  .  .  Value: "\"github.com/myshkin5/moqueries/pkg/hash\""
+    33  .  .  .  .  .  }
+    34  .  .  .  .  .  EndPos: -
+    35  .  .  .  .  }
+    36  .  .  .  }
+    37  .  .  .  Rparen: ./mock_converterer_test.go:9:1
+    38  .  .  }
+    39  .  .  1: *ast.GenDecl {
+    40  .  .  .  Doc: *ast.CommentGroup {
+    41  .  .  .  .  List: []*ast.Comment (len = 1) {
+    42  .  .  .  .  .  0: *ast.Comment {
+    43  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:11:1
+    44  .  .  .  .  .  .  Text: "// mockConverterer holds the state of a mock of the Converterer type"
+    45  .  .  .  .  .  }
+    46  .  .  .  .  }
+    47  .  .  .  }
+    48  .  .  .  TokPos: ./mock_converterer_test.go:12:1
+    49  .  .  .  Tok: type
+    50  .  .  .  Lparen: -
+    51  .  .  .  Specs: []ast.Spec (len = 1) {
+    52  .  .  .  .  0: *ast.TypeSpec {
+    53  .  .  .  .  .  Name: *ast.Ident {
+    54  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:12:6
+    55  .  .  .  .  .  .  Name: "mockConverterer"
+    56  .  .  .  .  .  .  Obj: *ast.Object {
+    57  .  .  .  .  .  .  .  Kind: type
+    58  .  .  .  .  .  .  .  Name: "mockConverterer"
+    59  .  .  .  .  .  .  .  Decl: *(obj @ 52)
+    60  .  .  .  .  .  .  }
+    61  .  .  .  .  .  }
+    62  .  .  .  .  .  Assign: -
+    63  .  .  .  .  .  Type: *ast.StructType {
+    64  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:12:22
+    65  .  .  .  .  .  .  Fields: *ast.FieldList {
+    66  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:12:29
+    67  .  .  .  .  .  .  .  List: []*ast.Field (len = 10) {
+    68  .  .  .  .  .  .  .  .  0: *ast.Field {
+    69  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+    70  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+    71  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:13:2
+    72  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_BaseStruct"
+    73  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+    74  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+    75  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_BaseStruct"
+    76  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 68)
+    77  .  .  .  .  .  .  .  .  .  .  .  }
+    78  .  .  .  .  .  .  .  .  .  .  }
+    79  .  .  .  .  .  .  .  .  .  }
+    80  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+    81  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:13:36
+    82  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+    83  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:13:40
+    84  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+    85  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+    86  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+    87  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+    88  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+    89  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+    90  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:26:6
+    91  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+    92  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 85)
+    93  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+    94  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+    95  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+    96  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:26:40
+    97  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+    98  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:26:47
+    99  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 2) {
+   100  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   101  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   102  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   103  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:27:2
+   104  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+   105  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   106  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   107  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+   108  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 100)
+   109  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   110  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   111  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   112  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   113  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:27:11
+   114  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   115  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   116  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:27:12
+   117  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   118  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   119  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   120  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:27:16
+   121  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+   122  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   123  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   124  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   125  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   126  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
+   127  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   128  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   129  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:28:2
+   130  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+   131  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   132  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   133  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+   134  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 126)
+   135  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   136  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   137  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   138  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+   139  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   140  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:28:11
+   141  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "hash"
+   142  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   143  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   144  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:28:16
+   145  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "Hash"
+   146  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   147  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   148  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   149  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   150  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:29:1
+   151  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   152  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   153  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   154  .  .  .  .  .  .  .  .  .  .  .  .  }
+   155  .  .  .  .  .  .  .  .  .  .  .  }
+   156  .  .  .  .  .  .  .  .  .  .  }
+   157  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   158  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:13:74
+   159  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_results"
+   160  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   161  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   162  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_results"
+   163  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   164  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   165  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:32:6
+   166  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_results"
+   167  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 160)
+   168  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   169  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   170  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   171  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:32:41
+   172  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   173  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:32:47
+   174  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   175  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   176  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   177  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   178  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:32:49
+   179  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+   180  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   181  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   182  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+   183  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 175)
+   184  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   185  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   186  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   187  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   188  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:32:60
+   189  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   190  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   191  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:32:61
+   192  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   193  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   194  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   195  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:32:65
+   196  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "GenDecl"
+   197  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   198  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   199  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   200  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   201  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   202  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:32:73
+   203  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   204  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   205  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   206  .  .  .  .  .  .  .  .  .  .  .  .  }
+   207  .  .  .  .  .  .  .  .  .  .  .  }
+   208  .  .  .  .  .  .  .  .  .  .  }
+   209  .  .  .  .  .  .  .  .  .  }
+   210  .  .  .  .  .  .  .  .  }
+   211  .  .  .  .  .  .  .  .  1: *ast.Field {
+   212  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   213  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   214  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:14:2
+   215  .  .  .  .  .  .  .  .  .  .  .  Name: "params_BaseStruct"
+   216  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   217  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   218  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_BaseStruct"
+   219  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 211)
+   220  .  .  .  .  .  .  .  .  .  .  .  }
+   221  .  .  .  .  .  .  .  .  .  .  }
+   222  .  .  .  .  .  .  .  .  .  }
+   223  .  .  .  .  .  .  .  .  .  Type: *ast.ChanType {
+   224  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:14:36
+   225  .  .  .  .  .  .  .  .  .  .  Arrow: -
+   226  .  .  .  .  .  .  .  .  .  .  Dir: 3
+   227  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   228  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:14:41
+   229  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+   230  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 85)
+   231  .  .  .  .  .  .  .  .  .  .  }
+   232  .  .  .  .  .  .  .  .  .  }
+   233  .  .  .  .  .  .  .  .  }
+   234  .  .  .  .  .  .  .  .  2: *ast.Field {
+   235  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   236  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   237  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:15:2
+   238  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_ParamResultStruct"
+   239  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   240  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   241  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_ParamResultStruct"
+   242  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 234)
+   243  .  .  .  .  .  .  .  .  .  .  .  }
+   244  .  .  .  .  .  .  .  .  .  .  }
+   245  .  .  .  .  .  .  .  .  .  }
+   246  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+   247  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:15:36
+   248  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   249  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:15:40
+   250  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+   251  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   252  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   253  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+   254  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   255  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   256  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:35:6
+   257  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+   258  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 251)
+   259  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   260  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   261  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   262  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:35:47
+   263  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   264  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:35:54
+   265  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 3) {
+   266  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   267  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 3) {
+   268  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   269  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:36:2
+   270  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+   271  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   272  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   273  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+   274  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 266)
+   275  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   276  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   277  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Ident {
+   278  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:36:12
+   279  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "prefix"
+   280  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   281  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   282  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "prefix"
+   283  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 266)
+   284  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   285  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   286  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  2: *ast.Ident {
+   287  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:36:20
+   288  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "label"
+   289  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   290  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   291  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "label"
+   292  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 266)
+   293  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   294  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   295  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   296  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   297  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:36:26
+   298  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
+   299  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   300  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   301  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
+   302  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   303  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   304  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:37:2
+   305  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fieldList"
+   306  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   307  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   308  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fieldList"
+   309  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 301)
+   310  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   311  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   312  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   313  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   314  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:37:26
+   315  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   316  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   317  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:37:27
+   318  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   319  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   320  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   321  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:37:31
+   322  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "FieldList"
+   323  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   324  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   325  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   326  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   327  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  2: *ast.Field {
+   328  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   329  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   330  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:38:2
+   331  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "comparable"
+   332  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   333  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   334  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "comparable"
+   335  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 327)
+   336  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   337  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   338  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   339  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   340  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:38:26
+   341  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "bool"
+   342  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   343  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   344  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   345  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:39:1
+   346  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   347  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   348  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   349  .  .  .  .  .  .  .  .  .  .  .  .  }
+   350  .  .  .  .  .  .  .  .  .  .  .  }
+   351  .  .  .  .  .  .  .  .  .  .  }
+   352  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   353  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:15:81
+   354  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_results"
+   355  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   356  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   357  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_results"
+   358  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   359  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   360  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:42:6
+   361  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_results"
+   362  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 355)
+   363  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   364  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   365  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   366  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:42:48
+   367  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   368  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:42:54
+   369  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   370  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   371  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   372  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   373  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:42:56
+   374  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+   375  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   376  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   377  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+   378  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 370)
+   379  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   380  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   381  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   382  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   383  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:42:67
+   384  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   385  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   386  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:42:68
+   387  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   388  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   389  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   390  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:42:72
+   391  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "GenDecl"
+   392  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   393  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   394  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   395  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   396  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   397  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:42:80
+   398  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   399  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   400  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   401  .  .  .  .  .  .  .  .  .  .  .  .  }
+   402  .  .  .  .  .  .  .  .  .  .  .  }
+   403  .  .  .  .  .  .  .  .  .  .  }
+   404  .  .  .  .  .  .  .  .  .  }
+   405  .  .  .  .  .  .  .  .  }
+   406  .  .  .  .  .  .  .  .  3: *ast.Field {
+   407  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   408  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   409  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:16:2
+   410  .  .  .  .  .  .  .  .  .  .  .  Name: "params_ParamResultStruct"
+   411  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   412  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   413  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_ParamResultStruct"
+   414  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 406)
+   415  .  .  .  .  .  .  .  .  .  .  .  }
+   416  .  .  .  .  .  .  .  .  .  .  }
+   417  .  .  .  .  .  .  .  .  .  }
+   418  .  .  .  .  .  .  .  .  .  Type: *ast.ChanType {
+   419  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:16:36
+   420  .  .  .  .  .  .  .  .  .  .  Arrow: -
+   421  .  .  .  .  .  .  .  .  .  .  Dir: 3
+   422  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   423  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:16:41
+   424  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+   425  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 251)
+   426  .  .  .  .  .  .  .  .  .  .  }
+   427  .  .  .  .  .  .  .  .  .  }
+   428  .  .  .  .  .  .  .  .  }
+   429  .  .  .  .  .  .  .  .  4: *ast.Field {
+   430  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   431  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   432  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:17:2
+   433  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_NewMockFn"
+   434  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   435  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   436  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_NewMockFn"
+   437  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 429)
+   438  .  .  .  .  .  .  .  .  .  .  .  }
+   439  .  .  .  .  .  .  .  .  .  .  }
+   440  .  .  .  .  .  .  .  .  .  }
+   441  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+   442  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:17:36
+   443  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   444  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:17:40
+   445  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+   446  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   447  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   448  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+   449  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   450  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   451  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:45:6
+   452  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+   453  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 446)
+   454  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   455  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   456  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   457  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:45:39
+   458  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   459  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:45:46
+   460  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 2) {
+   461  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   462  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   463  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   464  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:46:2
+   465  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+   466  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   467  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   468  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+   469  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 461)
+   470  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   471  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   472  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   473  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   474  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:46:11
+   475  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   476  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   477  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:46:12
+   478  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   479  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   480  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   481  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:46:16
+   482  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+   483  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   484  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   485  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   486  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   487  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
+   488  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   489  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   490  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:47:2
+   491  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+   492  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   493  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   494  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+   495  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 487)
+   496  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   497  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   498  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   499  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+   500  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   501  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:47:11
+   502  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "hash"
+   503  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   504  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   505  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:47:16
+   506  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "Hash"
+   507  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   508  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   509  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   510  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   511  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:48:1
+   512  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   513  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   514  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   515  .  .  .  .  .  .  .  .  .  .  .  .  }
+   516  .  .  .  .  .  .  .  .  .  .  .  }
+   517  .  .  .  .  .  .  .  .  .  .  }
+   518  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   519  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:17:73
+   520  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_results"
+   521  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   522  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   523  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_results"
+   524  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   525  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   526  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:51:6
+   527  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_results"
+   528  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 521)
+   529  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   530  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   531  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   532  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:51:40
+   533  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   534  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:51:46
+   535  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   536  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   537  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   538  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   539  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:51:48
+   540  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+   541  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   542  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   543  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+   544  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 536)
+   545  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   546  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   547  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   548  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   549  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:51:57
+   550  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   551  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   552  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:51:58
+   553  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   554  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   555  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   556  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:51:62
+   557  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "FuncDecl"
+   558  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   559  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   560  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   561  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   562  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   563  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:51:71
+   564  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   565  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   566  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   567  .  .  .  .  .  .  .  .  .  .  .  .  }
+   568  .  .  .  .  .  .  .  .  .  .  .  }
+   569  .  .  .  .  .  .  .  .  .  .  }
+   570  .  .  .  .  .  .  .  .  .  }
+   571  .  .  .  .  .  .  .  .  }
+   572  .  .  .  .  .  .  .  .  5: *ast.Field {
+   573  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   574  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   575  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:18:2
+   576  .  .  .  .  .  .  .  .  .  .  .  Name: "params_NewMockFn"
+   577  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   578  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   579  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_NewMockFn"
+   580  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 572)
+   581  .  .  .  .  .  .  .  .  .  .  .  }
+   582  .  .  .  .  .  .  .  .  .  .  }
+   583  .  .  .  .  .  .  .  .  .  }
+   584  .  .  .  .  .  .  .  .  .  Type: *ast.ChanType {
+   585  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:18:36
+   586  .  .  .  .  .  .  .  .  .  .  Arrow: -
+   587  .  .  .  .  .  .  .  .  .  .  Dir: 3
+   588  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   589  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:18:41
+   590  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+   591  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 446)
+   592  .  .  .  .  .  .  .  .  .  .  }
+   593  .  .  .  .  .  .  .  .  .  }
+   594  .  .  .  .  .  .  .  .  }
+   595  .  .  .  .  .  .  .  .  6: *ast.Field {
+   596  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   597  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   598  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:19:2
+   599  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_Method"
+   600  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   601  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   602  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_Method"
+   603  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 595)
+   604  .  .  .  .  .  .  .  .  .  .  .  }
+   605  .  .  .  .  .  .  .  .  .  .  }
+   606  .  .  .  .  .  .  .  .  .  }
+   607  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+   608  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:19:36
+   609  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   610  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:19:40
+   611  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+   612  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   613  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   614  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+   615  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   616  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   617  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:54:6
+   618  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+   619  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 612)
+   620  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   621  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   622  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   623  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:54:36
+   624  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   625  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:54:43
+   626  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 2) {
+   627  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   628  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   629  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   630  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:55:2
+   631  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+   632  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   633  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   634  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+   635  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 627)
+   636  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   637  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   638  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   639  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   640  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:55:11
+   641  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
+   642  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   643  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   644  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
+   645  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   646  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   647  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:56:2
+   648  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+   649  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   650  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   651  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+   652  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 644)
+   653  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   654  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   655  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   656  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+   657  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   658  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:56:11
+   659  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "generator"
+   660  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   661  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   662  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:56:21
+   663  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "Func"
+   664  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   665  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   666  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   667  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   668  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:57:1
+   669  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   670  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   671  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   672  .  .  .  .  .  .  .  .  .  .  .  .  }
+   673  .  .  .  .  .  .  .  .  .  .  .  }
+   674  .  .  .  .  .  .  .  .  .  .  }
+   675  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   676  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:19:70
+   677  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_results"
+   678  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   679  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   680  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_results"
+   681  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   682  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   683  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:60:6
+   684  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_results"
+   685  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 678)
+   686  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   687  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   688  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   689  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:60:37
+   690  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   691  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:60:43
+   692  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   693  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   694  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   695  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   696  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:60:45
+   697  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+   698  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   699  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   700  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+   701  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 693)
+   702  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   703  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   704  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   705  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   706  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:60:54
+   707  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   708  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   709  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:60:55
+   710  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   711  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   712  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   713  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:60:59
+   714  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "FuncDecl"
+   715  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   716  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   717  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   718  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   719  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   720  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:60:68
+   721  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   722  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   723  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   724  .  .  .  .  .  .  .  .  .  .  .  .  }
+   725  .  .  .  .  .  .  .  .  .  .  .  }
+   726  .  .  .  .  .  .  .  .  .  .  }
+   727  .  .  .  .  .  .  .  .  .  }
+   728  .  .  .  .  .  .  .  .  }
+   729  .  .  .  .  .  .  .  .  7: *ast.Field {
+   730  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   731  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   732  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:20:2
+   733  .  .  .  .  .  .  .  .  .  .  .  Name: "params_Method"
+   734  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   735  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   736  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_Method"
+   737  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 729)
+   738  .  .  .  .  .  .  .  .  .  .  .  }
+   739  .  .  .  .  .  .  .  .  .  .  }
+   740  .  .  .  .  .  .  .  .  .  }
+   741  .  .  .  .  .  .  .  .  .  Type: *ast.ChanType {
+   742  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:20:36
+   743  .  .  .  .  .  .  .  .  .  .  Arrow: -
+   744  .  .  .  .  .  .  .  .  .  .  Dir: 3
+   745  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   746  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:20:41
+   747  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+   748  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 612)
+   749  .  .  .  .  .  .  .  .  .  .  }
+   750  .  .  .  .  .  .  .  .  .  }
+   751  .  .  .  .  .  .  .  .  }
+   752  .  .  .  .  .  .  .  .  8: *ast.Field {
+   753  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   754  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   755  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:21:2
+   756  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_FuncClosure"
+   757  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   758  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   759  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_FuncClosure"
+   760  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 752)
+   761  .  .  .  .  .  .  .  .  .  .  .  }
+   762  .  .  .  .  .  .  .  .  .  .  }
+   763  .  .  .  .  .  .  .  .  .  }
+   764  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+   765  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:21:36
+   766  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   767  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:21:40
+   768  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+   769  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   770  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   771  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+   772  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   773  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   774  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:63:6
+   775  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+   776  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 769)
+   777  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   778  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   779  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   780  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:63:41
+   781  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   782  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:63:48
+   783  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 2) {
+   784  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   785  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 2) {
+   786  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   787  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:64:2
+   788  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+   789  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   790  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   791  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+   792  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 784)
+   793  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   794  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   795  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Ident {
+   796  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:64:12
+   797  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+   798  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   799  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   800  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+   801  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 784)
+   802  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   803  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   804  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   805  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   806  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:64:20
+   807  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
+   808  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   809  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   810  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
+   811  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   812  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   813  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:65:2
+   814  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+   815  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   816  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   817  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+   818  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 810)
+   819  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   820  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   821  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   822  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+   823  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   824  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:65:20
+   825  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "generator"
+   826  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   827  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   828  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:65:30
+   829  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "Func"
+   830  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   831  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   832  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   833  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   834  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:66:1
+   835  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   836  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   837  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   838  .  .  .  .  .  .  .  .  .  .  .  .  }
+   839  .  .  .  .  .  .  .  .  .  .  .  }
+   840  .  .  .  .  .  .  .  .  .  .  }
+   841  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   842  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:21:75
+   843  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_results"
+   844  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   845  .  .  .  .  .  .  .  .  .  .  .  .  Kind: type
+   846  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_results"
+   847  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
+   848  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
+   849  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:69:6
+   850  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_results"
+   851  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 844)
+   852  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   853  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
+   854  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
+   855  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_converterer_test.go:69:42
+   856  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
+   857  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_converterer_test.go:69:48
+   858  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   859  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   860  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   861  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   862  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:69:50
+   863  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+   864  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   865  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   866  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+   867  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 859)
+   868  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   869  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   870  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   871  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   872  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:69:59
+   873  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   874  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   875  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:69:60
+   876  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   877  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   878  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   879  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:69:64
+   880  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "FuncDecl"
+   881  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   882  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   883  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   884  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   885  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   886  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:69:73
+   887  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   888  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   889  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   890  .  .  .  .  .  .  .  .  .  .  .  .  }
+   891  .  .  .  .  .  .  .  .  .  .  .  }
+   892  .  .  .  .  .  .  .  .  .  .  }
+   893  .  .  .  .  .  .  .  .  .  }
+   894  .  .  .  .  .  .  .  .  }
+   895  .  .  .  .  .  .  .  .  9: *ast.Field {
+   896  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   897  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   898  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:22:2
+   899  .  .  .  .  .  .  .  .  .  .  .  Name: "params_FuncClosure"
+   900  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   901  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   902  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_FuncClosure"
+   903  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 895)
+   904  .  .  .  .  .  .  .  .  .  .  .  }
+   905  .  .  .  .  .  .  .  .  .  .  }
+   906  .  .  .  .  .  .  .  .  .  }
+   907  .  .  .  .  .  .  .  .  .  Type: *ast.ChanType {
+   908  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:22:36
+   909  .  .  .  .  .  .  .  .  .  .  Arrow: -
+   910  .  .  .  .  .  .  .  .  .  .  Dir: 3
+   911  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   912  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:22:41
+   913  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+   914  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 769)
+   915  .  .  .  .  .  .  .  .  .  .  }
+   916  .  .  .  .  .  .  .  .  .  }
+   917  .  .  .  .  .  .  .  .  }
+   918  .  .  .  .  .  .  .  }
+   919  .  .  .  .  .  .  .  Closing: ./mock_converterer_test.go:23:1
+   920  .  .  .  .  .  .  }
+   921  .  .  .  .  .  .  Incomplete: false
+   922  .  .  .  .  .  }
+   923  .  .  .  .  }
+   924  .  .  .  }
+   925  .  .  .  Rparen: -
+   926  .  .  }
+   927  .  .  2: *ast.GenDecl {
+   928  .  .  .  Doc: *ast.CommentGroup {
+   929  .  .  .  .  List: []*ast.Comment (len = 1) {
+   930  .  .  .  .  .  0: *ast.Comment {
+   931  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:25:1
+   932  .  .  .  .  .  .  Text: "// mockConverterer_BaseStruct_params holds the params of the Converterer type"
+   933  .  .  .  .  .  }
+   934  .  .  .  .  }
+   935  .  .  .  }
+   936  .  .  .  TokPos: ./mock_converterer_test.go:26:1
+   937  .  .  .  Tok: type
+   938  .  .  .  Lparen: -
+   939  .  .  .  Specs: []ast.Spec (len = 1) {
+   940  .  .  .  .  0: *(obj @ 88)
+   941  .  .  .  }
+   942  .  .  .  Rparen: -
+   943  .  .  }
+   944  .  .  3: *ast.GenDecl {
+   945  .  .  .  Doc: *ast.CommentGroup {
+   946  .  .  .  .  List: []*ast.Comment (len = 1) {
+   947  .  .  .  .  .  0: *ast.Comment {
+   948  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:31:1
+   949  .  .  .  .  .  .  Text: "// mockConverterer_BaseStruct_results holds the results of the Converterer type"
+   950  .  .  .  .  .  }
+   951  .  .  .  .  }
+   952  .  .  .  }
+   953  .  .  .  TokPos: ./mock_converterer_test.go:32:1
+   954  .  .  .  Tok: type
+   955  .  .  .  Lparen: -
+   956  .  .  .  Specs: []ast.Spec (len = 1) {
+   957  .  .  .  .  0: *(obj @ 163)
+   958  .  .  .  }
+   959  .  .  .  Rparen: -
+   960  .  .  }
+   961  .  .  4: *ast.GenDecl {
+   962  .  .  .  Doc: *ast.CommentGroup {
+   963  .  .  .  .  List: []*ast.Comment (len = 1) {
+   964  .  .  .  .  .  0: *ast.Comment {
+   965  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:34:1
+   966  .  .  .  .  .  .  Text: "// mockConverterer_ParamResultStruct_params holds the params of the Converterer type"
+   967  .  .  .  .  .  }
+   968  .  .  .  .  }
+   969  .  .  .  }
+   970  .  .  .  TokPos: ./mock_converterer_test.go:35:1
+   971  .  .  .  Tok: type
+   972  .  .  .  Lparen: -
+   973  .  .  .  Specs: []ast.Spec (len = 1) {
+   974  .  .  .  .  0: *(obj @ 254)
+   975  .  .  .  }
+   976  .  .  .  Rparen: -
+   977  .  .  }
+   978  .  .  5: *ast.GenDecl {
+   979  .  .  .  Doc: *ast.CommentGroup {
+   980  .  .  .  .  List: []*ast.Comment (len = 1) {
+   981  .  .  .  .  .  0: *ast.Comment {
+   982  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:41:1
+   983  .  .  .  .  .  .  Text: "// mockConverterer_ParamResultStruct_results holds the results of the Converterer type"
+   984  .  .  .  .  .  }
+   985  .  .  .  .  }
+   986  .  .  .  }
+   987  .  .  .  TokPos: ./mock_converterer_test.go:42:1
+   988  .  .  .  Tok: type
+   989  .  .  .  Lparen: -
+   990  .  .  .  Specs: []ast.Spec (len = 1) {
+   991  .  .  .  .  0: *(obj @ 358)
+   992  .  .  .  }
+   993  .  .  .  Rparen: -
+   994  .  .  }
+   995  .  .  6: *ast.GenDecl {
+   996  .  .  .  Doc: *ast.CommentGroup {
+   997  .  .  .  .  List: []*ast.Comment (len = 1) {
+   998  .  .  .  .  .  0: *ast.Comment {
+   999  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:44:1
+  1000  .  .  .  .  .  .  Text: "// mockConverterer_NewMockFn_params holds the params of the Converterer type"
+  1001  .  .  .  .  .  }
+  1002  .  .  .  .  }
+  1003  .  .  .  }
+  1004  .  .  .  TokPos: ./mock_converterer_test.go:45:1
+  1005  .  .  .  Tok: type
+  1006  .  .  .  Lparen: -
+  1007  .  .  .  Specs: []ast.Spec (len = 1) {
+  1008  .  .  .  .  0: *(obj @ 449)
+  1009  .  .  .  }
+  1010  .  .  .  Rparen: -
+  1011  .  .  }
+  1012  .  .  7: *ast.GenDecl {
+  1013  .  .  .  Doc: *ast.CommentGroup {
+  1014  .  .  .  .  List: []*ast.Comment (len = 1) {
+  1015  .  .  .  .  .  0: *ast.Comment {
+  1016  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:50:1
+  1017  .  .  .  .  .  .  Text: "// mockConverterer_NewMockFn_results holds the results of the Converterer type"
+  1018  .  .  .  .  .  }
+  1019  .  .  .  .  }
+  1020  .  .  .  }
+  1021  .  .  .  TokPos: ./mock_converterer_test.go:51:1
+  1022  .  .  .  Tok: type
+  1023  .  .  .  Lparen: -
+  1024  .  .  .  Specs: []ast.Spec (len = 1) {
+  1025  .  .  .  .  0: *(obj @ 524)
+  1026  .  .  .  }
+  1027  .  .  .  Rparen: -
+  1028  .  .  }
+  1029  .  .  8: *ast.GenDecl {
+  1030  .  .  .  Doc: *ast.CommentGroup {
+  1031  .  .  .  .  List: []*ast.Comment (len = 1) {
+  1032  .  .  .  .  .  0: *ast.Comment {
+  1033  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:53:1
+  1034  .  .  .  .  .  .  Text: "// mockConverterer_Method_params holds the params of the Converterer type"
+  1035  .  .  .  .  .  }
+  1036  .  .  .  .  }
+  1037  .  .  .  }
+  1038  .  .  .  TokPos: ./mock_converterer_test.go:54:1
+  1039  .  .  .  Tok: type
+  1040  .  .  .  Lparen: -
+  1041  .  .  .  Specs: []ast.Spec (len = 1) {
+  1042  .  .  .  .  0: *(obj @ 615)
+  1043  .  .  .  }
+  1044  .  .  .  Rparen: -
+  1045  .  .  }
+  1046  .  .  9: *ast.GenDecl {
+  1047  .  .  .  Doc: *ast.CommentGroup {
+  1048  .  .  .  .  List: []*ast.Comment (len = 1) {
+  1049  .  .  .  .  .  0: *ast.Comment {
+  1050  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:59:1
+  1051  .  .  .  .  .  .  Text: "// mockConverterer_Method_results holds the results of the Converterer type"
+  1052  .  .  .  .  .  }
+  1053  .  .  .  .  }
+  1054  .  .  .  }
+  1055  .  .  .  TokPos: ./mock_converterer_test.go:60:1
+  1056  .  .  .  Tok: type
+  1057  .  .  .  Lparen: -
+  1058  .  .  .  Specs: []ast.Spec (len = 1) {
+  1059  .  .  .  .  0: *(obj @ 681)
+  1060  .  .  .  }
+  1061  .  .  .  Rparen: -
+  1062  .  .  }
+  1063  .  .  10: *ast.GenDecl {
+  1064  .  .  .  Doc: *ast.CommentGroup {
+  1065  .  .  .  .  List: []*ast.Comment (len = 1) {
+  1066  .  .  .  .  .  0: *ast.Comment {
+  1067  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:62:1
+  1068  .  .  .  .  .  .  Text: "// mockConverterer_FuncClosure_params holds the params of the Converterer type"
+  1069  .  .  .  .  .  }
+  1070  .  .  .  .  }
+  1071  .  .  .  }
+  1072  .  .  .  TokPos: ./mock_converterer_test.go:63:1
+  1073  .  .  .  Tok: type
+  1074  .  .  .  Lparen: -
+  1075  .  .  .  Specs: []ast.Spec (len = 1) {
+  1076  .  .  .  .  0: *(obj @ 772)
+  1077  .  .  .  }
+  1078  .  .  .  Rparen: -
+  1079  .  .  }
+  1080  .  .  11: *ast.GenDecl {
+  1081  .  .  .  Doc: *ast.CommentGroup {
+  1082  .  .  .  .  List: []*ast.Comment (len = 1) {
+  1083  .  .  .  .  .  0: *ast.Comment {
+  1084  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:68:1
+  1085  .  .  .  .  .  .  Text: "// mockConverterer_FuncClosure_results holds the results of the Converterer type"
+  1086  .  .  .  .  .  }
+  1087  .  .  .  .  }
+  1088  .  .  .  }
+  1089  .  .  .  TokPos: ./mock_converterer_test.go:69:1
+  1090  .  .  .  Tok: type
+  1091  .  .  .  Lparen: -
+  1092  .  .  .  Specs: []ast.Spec (len = 1) {
+  1093  .  .  .  .  0: *(obj @ 847)
+  1094  .  .  .  }
+  1095  .  .  .  Rparen: -
+  1096  .  .  }
+  1097  .  .  12: *ast.FuncDecl {
+  1098  .  .  .  Doc: *ast.CommentGroup {
+  1099  .  .  .  .  List: []*ast.Comment (len = 1) {
+  1100  .  .  .  .  .  0: *ast.Comment {
+  1101  .  .  .  .  .  .  Slash: ./mock_converterer_test.go:71:1
+  1102  .  .  .  .  .  .  Text: "// newMockConverterer creates a new mock of the Converterer type"
+  1103  .  .  .  .  .  }
+  1104  .  .  .  .  }
+  1105  .  .  .  }
+  1106  .  .  .  Name: *ast.Ident {
+  1107  .  .  .  .  NamePos: ./mock_converterer_test.go:72:6
+  1108  .  .  .  .  Name: "newMockConverterer"
+  1109  .  .  .  .  Obj: *ast.Object {
+  1110  .  .  .  .  .  Kind: func
+  1111  .  .  .  .  .  Name: "newMockConverterer"
+  1112  .  .  .  .  .  Decl: *(obj @ 1097)
+  1113  .  .  .  .  }
+  1114  .  .  .  }
+  1115  .  .  .  Type: *ast.FuncType {
+  1116  .  .  .  .  Func: ./mock_converterer_test.go:72:1
+  1117  .  .  .  .  Params: *ast.FieldList {
+  1118  .  .  .  .  .  Opening: ./mock_converterer_test.go:72:24
+  1119  .  .  .  .  .  Closing: ./mock_converterer_test.go:72:25
+  1120  .  .  .  .  }
+  1121  .  .  .  .  Results: *ast.FieldList {
+  1122  .  .  .  .  .  Opening: -
+  1123  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  1124  .  .  .  .  .  .  0: *ast.Field {
+  1125  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1126  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:72:27
+  1127  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1128  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:72:28
+  1129  .  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  1130  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  1131  .  .  .  .  .  .  .  .  }
+  1132  .  .  .  .  .  .  .  }
+  1133  .  .  .  .  .  .  }
+  1134  .  .  .  .  .  }
+  1135  .  .  .  .  .  Closing: -
+  1136  .  .  .  .  }
+  1137  .  .  .  }
+  1138  .  .  .  Body: *ast.BlockStmt {
+  1139  .  .  .  .  Lbrace: ./mock_converterer_test.go:72:44
+  1140  .  .  .  .  List: []ast.Stmt (len = 1) {
+  1141  .  .  .  .  .  0: *ast.ReturnStmt {
+  1142  .  .  .  .  .  .  Return: ./mock_converterer_test.go:73:2
+  1143  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  1144  .  .  .  .  .  .  .  0: *ast.UnaryExpr {
+  1145  .  .  .  .  .  .  .  .  OpPos: ./mock_converterer_test.go:73:9
+  1146  .  .  .  .  .  .  .  .  Op: &
+  1147  .  .  .  .  .  .  .  .  X: *ast.CompositeLit {
+  1148  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1149  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:73:10
+  1150  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  1151  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  1152  .  .  .  .  .  .  .  .  .  }
+  1153  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:73:25
+  1154  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 10) {
+  1155  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1156  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1157  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:74:3
+  1158  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_BaseStruct"
+  1159  .  .  .  .  .  .  .  .  .  .  .  }
+  1160  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:74:29
+  1161  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+  1162  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+  1163  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:74:38
+  1164  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1165  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:74:42
+  1166  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+  1167  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 85)
+  1168  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1169  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1170  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:74:76
+  1171  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_results"
+  1172  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 160)
+  1173  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1174  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1175  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:74:110
+  1176  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:74:111
+  1177  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1178  .  .  .  .  .  .  .  .  .  .  .  }
+  1179  .  .  .  .  .  .  .  .  .  .  }
+  1180  .  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  1181  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1182  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:75:3
+  1183  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_BaseStruct"
+  1184  .  .  .  .  .  .  .  .  .  .  .  }
+  1185  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:75:20
+  1186  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  1187  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
+  1188  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:75:38
+  1189  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
+  1190  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1191  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:75:42
+  1192  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
+  1193  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
+  1194  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:75:43
+  1195  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
+  1196  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
+  1197  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1198  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:75:48
+  1199  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+  1200  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 85)
+  1201  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1202  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1203  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
+  1204  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:75:83
+  1205  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
+  1206  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
+  1207  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1208  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1209  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  1210  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:75:86
+  1211  .  .  .  .  .  .  .  .  .  .  .  }
+  1212  .  .  .  .  .  .  .  .  .  .  }
+  1213  .  .  .  .  .  .  .  .  .  .  2: *ast.KeyValueExpr {
+  1214  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1215  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:76:3
+  1216  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_ParamResultStruct"
+  1217  .  .  .  .  .  .  .  .  .  .  .  }
+  1218  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:76:36
+  1219  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+  1220  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+  1221  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:76:38
+  1222  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1223  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:76:42
+  1224  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+  1225  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 251)
+  1226  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1227  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1228  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:76:83
+  1229  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_results"
+  1230  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 355)
+  1231  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1232  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1233  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:76:124
+  1234  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:76:125
+  1235  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1236  .  .  .  .  .  .  .  .  .  .  .  }
+  1237  .  .  .  .  .  .  .  .  .  .  }
+  1238  .  .  .  .  .  .  .  .  .  .  3: *ast.KeyValueExpr {
+  1239  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1240  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:77:3
+  1241  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_ParamResultStruct"
+  1242  .  .  .  .  .  .  .  .  .  .  .  }
+  1243  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:77:27
+  1244  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  1245  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
+  1246  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:77:38
+  1247  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
+  1248  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1249  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:77:42
+  1250  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
+  1251  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
+  1252  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:77:43
+  1253  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
+  1254  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
+  1255  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1256  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:77:48
+  1257  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+  1258  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 251)
+  1259  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1260  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1261  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
+  1262  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:77:90
+  1263  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
+  1264  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
+  1265  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1266  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1267  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  1268  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:77:93
+  1269  .  .  .  .  .  .  .  .  .  .  .  }
+  1270  .  .  .  .  .  .  .  .  .  .  }
+  1271  .  .  .  .  .  .  .  .  .  .  4: *ast.KeyValueExpr {
+  1272  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1273  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:78:3
+  1274  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_NewMockFn"
+  1275  .  .  .  .  .  .  .  .  .  .  .  }
+  1276  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:78:28
+  1277  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+  1278  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+  1279  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:78:38
+  1280  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1281  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:78:42
+  1282  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+  1283  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 446)
+  1284  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1285  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1286  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:78:75
+  1287  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_results"
+  1288  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 521)
+  1289  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1290  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1291  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:78:108
+  1292  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:78:109
+  1293  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1294  .  .  .  .  .  .  .  .  .  .  .  }
+  1295  .  .  .  .  .  .  .  .  .  .  }
+  1296  .  .  .  .  .  .  .  .  .  .  5: *ast.KeyValueExpr {
+  1297  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1298  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:79:3
+  1299  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_NewMockFn"
+  1300  .  .  .  .  .  .  .  .  .  .  .  }
+  1301  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:79:19
+  1302  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  1303  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
+  1304  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:79:38
+  1305  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
+  1306  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1307  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:79:42
+  1308  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
+  1309  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
+  1310  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:79:43
+  1311  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
+  1312  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
+  1313  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1314  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:79:48
+  1315  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+  1316  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 446)
+  1317  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1318  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1319  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
+  1320  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:79:82
+  1321  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
+  1322  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
+  1323  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1324  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1325  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  1326  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:79:85
+  1327  .  .  .  .  .  .  .  .  .  .  .  }
+  1328  .  .  .  .  .  .  .  .  .  .  }
+  1329  .  .  .  .  .  .  .  .  .  .  6: *ast.KeyValueExpr {
+  1330  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1331  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:80:3
+  1332  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_Method"
+  1333  .  .  .  .  .  .  .  .  .  .  .  }
+  1334  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:80:25
+  1335  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+  1336  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+  1337  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:80:38
+  1338  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1339  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:80:42
+  1340  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+  1341  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 612)
+  1342  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1343  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1344  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:80:72
+  1345  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_results"
+  1346  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 678)
+  1347  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1348  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1349  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:80:102
+  1350  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:80:103
+  1351  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1352  .  .  .  .  .  .  .  .  .  .  .  }
+  1353  .  .  .  .  .  .  .  .  .  .  }
+  1354  .  .  .  .  .  .  .  .  .  .  7: *ast.KeyValueExpr {
+  1355  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1356  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:81:3
+  1357  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_Method"
+  1358  .  .  .  .  .  .  .  .  .  .  .  }
+  1359  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:81:16
+  1360  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  1361  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
+  1362  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:81:38
+  1363  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
+  1364  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1365  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:81:42
+  1366  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
+  1367  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
+  1368  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:81:43
+  1369  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
+  1370  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
+  1371  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1372  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:81:48
+  1373  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+  1374  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 612)
+  1375  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1376  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1377  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
+  1378  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:81:79
+  1379  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
+  1380  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
+  1381  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1382  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1383  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  1384  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:81:82
+  1385  .  .  .  .  .  .  .  .  .  .  .  }
+  1386  .  .  .  .  .  .  .  .  .  .  }
+  1387  .  .  .  .  .  .  .  .  .  .  8: *ast.KeyValueExpr {
+  1388  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1389  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:82:3
+  1390  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_FuncClosure"
+  1391  .  .  .  .  .  .  .  .  .  .  .  }
+  1392  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:82:30
+  1393  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+  1394  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+  1395  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_converterer_test.go:82:38
+  1396  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1397  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:82:42
+  1398  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+  1399  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 769)
+  1400  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1401  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1402  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:82:77
+  1403  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_results"
+  1404  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 844)
+  1405  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1406  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1407  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:82:112
+  1408  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:82:113
+  1409  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1410  .  .  .  .  .  .  .  .  .  .  .  }
+  1411  .  .  .  .  .  .  .  .  .  .  }
+  1412  .  .  .  .  .  .  .  .  .  .  9: *ast.KeyValueExpr {
+  1413  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1414  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:83:3
+  1415  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params_FuncClosure"
+  1416  .  .  .  .  .  .  .  .  .  .  .  }
+  1417  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:83:21
+  1418  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  1419  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
+  1420  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:83:38
+  1421  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
+  1422  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1423  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:83:42
+  1424  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
+  1425  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
+  1426  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_converterer_test.go:83:43
+  1427  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
+  1428  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
+  1429  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1430  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:83:48
+  1431  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+  1432  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 769)
+  1433  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1434  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1435  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
+  1436  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_converterer_test.go:83:84
+  1437  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
+  1438  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
+  1439  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1440  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1441  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  1442  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:83:87
+  1443  .  .  .  .  .  .  .  .  .  .  .  }
+  1444  .  .  .  .  .  .  .  .  .  .  }
+  1445  .  .  .  .  .  .  .  .  .  }
+  1446  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:84:2
+  1447  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1448  .  .  .  .  .  .  .  .  }
+  1449  .  .  .  .  .  .  .  }
+  1450  .  .  .  .  .  .  }
+  1451  .  .  .  .  .  }
+  1452  .  .  .  .  }
+  1453  .  .  .  .  Rbrace: ./mock_converterer_test.go:85:1
+  1454  .  .  .  }
+  1455  .  .  }
+  1456  .  .  13: *ast.FuncDecl {
+  1457  .  .  .  Recv: *ast.FieldList {
+  1458  .  .  .  .  Opening: ./mock_converterer_test.go:87:6
+  1459  .  .  .  .  List: []*ast.Field (len = 1) {
+  1460  .  .  .  .  .  0: *ast.Field {
+  1461  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1462  .  .  .  .  .  .  .  0: *ast.Ident {
+  1463  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:7
+  1464  .  .  .  .  .  .  .  .  Name: "m"
+  1465  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1466  .  .  .  .  .  .  .  .  .  Kind: var
+  1467  .  .  .  .  .  .  .  .  .  Name: "m"
+  1468  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1460)
+  1469  .  .  .  .  .  .  .  .  }
+  1470  .  .  .  .  .  .  .  }
+  1471  .  .  .  .  .  .  }
+  1472  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1473  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:87:9
+  1474  .  .  .  .  .  .  .  X: *ast.Ident {
+  1475  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:10
+  1476  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  1477  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  1478  .  .  .  .  .  .  .  }
+  1479  .  .  .  .  .  .  }
+  1480  .  .  .  .  .  }
+  1481  .  .  .  .  }
+  1482  .  .  .  .  Closing: ./mock_converterer_test.go:87:25
+  1483  .  .  .  }
+  1484  .  .  .  Name: *ast.Ident {
+  1485  .  .  .  .  NamePos: ./mock_converterer_test.go:87:27
+  1486  .  .  .  .  Name: "BaseStruct"
+  1487  .  .  .  }
+  1488  .  .  .  Type: *ast.FuncType {
+  1489  .  .  .  .  Func: ./mock_converterer_test.go:87:1
+  1490  .  .  .  .  Params: *ast.FieldList {
+  1491  .  .  .  .  .  Opening: ./mock_converterer_test.go:87:37
+  1492  .  .  .  .  .  List: []*ast.Field (len = 2) {
+  1493  .  .  .  .  .  .  0: *ast.Field {
+  1494  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1495  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1496  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:38
+  1497  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  1498  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1499  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1500  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  1501  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1493)
+  1502  .  .  .  .  .  .  .  .  .  }
+  1503  .  .  .  .  .  .  .  .  }
+  1504  .  .  .  .  .  .  .  }
+  1505  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1506  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:87:47
+  1507  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1508  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1509  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:48
+  1510  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  1511  .  .  .  .  .  .  .  .  .  }
+  1512  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1513  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:52
+  1514  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+  1515  .  .  .  .  .  .  .  .  .  }
+  1516  .  .  .  .  .  .  .  .  }
+  1517  .  .  .  .  .  .  .  }
+  1518  .  .  .  .  .  .  }
+  1519  .  .  .  .  .  .  1: *ast.Field {
+  1520  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1521  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1522  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:62
+  1523  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  1524  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1525  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1526  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  1527  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1519)
+  1528  .  .  .  .  .  .  .  .  .  }
+  1529  .  .  .  .  .  .  .  .  }
+  1530  .  .  .  .  .  .  .  }
+  1531  .  .  .  .  .  .  .  Type: *ast.ArrayType {
+  1532  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:87:68
+  1533  .  .  .  .  .  .  .  .  Elt: *ast.SelectorExpr {
+  1534  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1535  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:70
+  1536  .  .  .  .  .  .  .  .  .  .  Name: "generator"
+  1537  .  .  .  .  .  .  .  .  .  }
+  1538  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1539  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:80
+  1540  .  .  .  .  .  .  .  .  .  .  Name: "Func"
+  1541  .  .  .  .  .  .  .  .  .  }
+  1542  .  .  .  .  .  .  .  .  }
+  1543  .  .  .  .  .  .  .  }
+  1544  .  .  .  .  .  .  }
+  1545  .  .  .  .  .  }
+  1546  .  .  .  .  .  Closing: ./mock_converterer_test.go:87:84
+  1547  .  .  .  .  }
+  1548  .  .  .  .  Results: *ast.FieldList {
+  1549  .  .  .  .  .  Opening: ./mock_converterer_test.go:87:86
+  1550  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  1551  .  .  .  .  .  .  0: *ast.Field {
+  1552  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1553  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1554  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:87
+  1555  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1556  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1557  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1558  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1559  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1551)
+  1560  .  .  .  .  .  .  .  .  .  }
+  1561  .  .  .  .  .  .  .  .  }
+  1562  .  .  .  .  .  .  .  }
+  1563  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1564  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:87:98
+  1565  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1566  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1567  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:99
+  1568  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  1569  .  .  .  .  .  .  .  .  .  }
+  1570  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1571  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:87:103
+  1572  .  .  .  .  .  .  .  .  .  .  Name: "GenDecl"
+  1573  .  .  .  .  .  .  .  .  .  }
+  1574  .  .  .  .  .  .  .  .  }
+  1575  .  .  .  .  .  .  .  }
+  1576  .  .  .  .  .  .  }
+  1577  .  .  .  .  .  }
+  1578  .  .  .  .  .  Closing: ./mock_converterer_test.go:87:110
+  1579  .  .  .  .  }
+  1580  .  .  .  }
+  1581  .  .  .  Body: *ast.BlockStmt {
+  1582  .  .  .  .  Lbrace: ./mock_converterer_test.go:87:112
+  1583  .  .  .  .  List: []ast.Stmt (len = 5) {
+  1584  .  .  .  .  .  0: *ast.AssignStmt {
+  1585  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1586  .  .  .  .  .  .  .  0: *ast.Ident {
+  1587  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:88:2
+  1588  .  .  .  .  .  .  .  .  Name: "params"
+  1589  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1590  .  .  .  .  .  .  .  .  .  Kind: var
+  1591  .  .  .  .  .  .  .  .  .  Name: "params"
+  1592  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1584)
+  1593  .  .  .  .  .  .  .  .  }
+  1594  .  .  .  .  .  .  .  }
+  1595  .  .  .  .  .  .  }
+  1596  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:88:9
+  1597  .  .  .  .  .  .  Tok: :=
+  1598  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1599  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+  1600  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1601  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:88:12
+  1602  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_BaseStruct_params"
+  1603  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 85)
+  1604  .  .  .  .  .  .  .  .  }
+  1605  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:88:45
+  1606  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 2) {
+  1607  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1608  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1609  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:89:3
+  1610  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  1611  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1498)
+  1612  .  .  .  .  .  .  .  .  .  .  }
+  1613  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:89:11
+  1614  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1615  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:89:13
+  1616  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  1617  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1498)
+  1618  .  .  .  .  .  .  .  .  .  .  }
+  1619  .  .  .  .  .  .  .  .  .  }
+  1620  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  1621  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1622  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:90:3
+  1623  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  1624  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1524)
+  1625  .  .  .  .  .  .  .  .  .  .  }
+  1626  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:90:8
+  1627  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  1628  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.SelectorExpr {
+  1629  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1630  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:90:13
+  1631  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "hash"
+  1632  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1633  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1634  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:90:18
+  1635  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "DeepHash"
+  1636  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1637  .  .  .  .  .  .  .  .  .  .  .  }
+  1638  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:90:26
+  1639  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 1) {
+  1640  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1641  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:90:27
+  1642  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  1643  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1524)
+  1644  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1645  .  .  .  .  .  .  .  .  .  .  .  }
+  1646  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  1647  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:90:32
+  1648  .  .  .  .  .  .  .  .  .  .  }
+  1649  .  .  .  .  .  .  .  .  .  }
+  1650  .  .  .  .  .  .  .  .  }
+  1651  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:91:2
+  1652  .  .  .  .  .  .  .  .  Incomplete: false
+  1653  .  .  .  .  .  .  .  }
+  1654  .  .  .  .  .  .  }
+  1655  .  .  .  .  .  }
+  1656  .  .  .  .  .  1: *ast.SendStmt {
+  1657  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
+  1658  .  .  .  .  .  .  .  X: *ast.Ident {
+  1659  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:92:2
+  1660  .  .  .  .  .  .  .  .  Name: "m"
+  1661  .  .  .  .  .  .  .  .  Obj: *(obj @ 1465)
+  1662  .  .  .  .  .  .  .  }
+  1663  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1664  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:92:4
+  1665  .  .  .  .  .  .  .  .  Name: "params_BaseStruct"
+  1666  .  .  .  .  .  .  .  }
+  1667  .  .  .  .  .  .  }
+  1668  .  .  .  .  .  .  Arrow: ./mock_converterer_test.go:92:22
+  1669  .  .  .  .  .  .  Value: *ast.Ident {
+  1670  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:92:25
+  1671  .  .  .  .  .  .  .  Name: "params"
+  1672  .  .  .  .  .  .  .  Obj: *(obj @ 1589)
+  1673  .  .  .  .  .  .  }
+  1674  .  .  .  .  .  }
+  1675  .  .  .  .  .  2: *ast.AssignStmt {
+  1676  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
+  1677  .  .  .  .  .  .  .  0: *ast.Ident {
+  1678  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:93:2
+  1679  .  .  .  .  .  .  .  .  Name: "results"
+  1680  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1681  .  .  .  .  .  .  .  .  .  Kind: var
+  1682  .  .  .  .  .  .  .  .  .  Name: "results"
+  1683  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1675)
+  1684  .  .  .  .  .  .  .  .  }
+  1685  .  .  .  .  .  .  .  }
+  1686  .  .  .  .  .  .  .  1: *ast.Ident {
+  1687  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:93:11
+  1688  .  .  .  .  .  .  .  .  Name: "ok"
+  1689  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1690  .  .  .  .  .  .  .  .  .  Kind: var
+  1691  .  .  .  .  .  .  .  .  .  Name: "ok"
+  1692  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1675)
+  1693  .  .  .  .  .  .  .  .  }
+  1694  .  .  .  .  .  .  .  }
+  1695  .  .  .  .  .  .  }
+  1696  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:93:14
+  1697  .  .  .  .  .  .  Tok: :=
+  1698  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1699  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  1700  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1701  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1702  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:93:17
+  1703  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  1704  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1465)
+  1705  .  .  .  .  .  .  .  .  .  }
+  1706  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1707  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:93:19
+  1708  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_BaseStruct"
+  1709  .  .  .  .  .  .  .  .  .  }
+  1710  .  .  .  .  .  .  .  .  }
+  1711  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:93:45
+  1712  .  .  .  .  .  .  .  .  Index: *ast.Ident {
+  1713  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:93:46
+  1714  .  .  .  .  .  .  .  .  .  Name: "params"
+  1715  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1589)
+  1716  .  .  .  .  .  .  .  .  }
+  1717  .  .  .  .  .  .  .  .  Rbrack: ./mock_converterer_test.go:93:52
+  1718  .  .  .  .  .  .  .  }
+  1719  .  .  .  .  .  .  }
+  1720  .  .  .  .  .  }
+  1721  .  .  .  .  .  3: *ast.IfStmt {
+  1722  .  .  .  .  .  .  If: ./mock_converterer_test.go:94:2
+  1723  .  .  .  .  .  .  Cond: *ast.Ident {
+  1724  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:94:5
+  1725  .  .  .  .  .  .  .  Name: "ok"
+  1726  .  .  .  .  .  .  .  Obj: *(obj @ 1689)
+  1727  .  .  .  .  .  .  }
+  1728  .  .  .  .  .  .  Body: *ast.BlockStmt {
+  1729  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:94:8
+  1730  .  .  .  .  .  .  .  List: []ast.Stmt (len = 1) {
+  1731  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+  1732  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1733  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1734  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:95:3
+  1735  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1736  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1556)
+  1737  .  .  .  .  .  .  .  .  .  .  }
+  1738  .  .  .  .  .  .  .  .  .  }
+  1739  .  .  .  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:95:14
+  1740  .  .  .  .  .  .  .  .  .  Tok: =
+  1741  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1742  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  1743  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1744  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:95:16
+  1745  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  1746  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1680)
+  1747  .  .  .  .  .  .  .  .  .  .  .  }
+  1748  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1749  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:95:24
+  1750  .  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1751  .  .  .  .  .  .  .  .  .  .  .  }
+  1752  .  .  .  .  .  .  .  .  .  .  }
+  1753  .  .  .  .  .  .  .  .  .  }
+  1754  .  .  .  .  .  .  .  .  }
+  1755  .  .  .  .  .  .  .  }
+  1756  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:96:2
+  1757  .  .  .  .  .  .  }
+  1758  .  .  .  .  .  }
+  1759  .  .  .  .  .  4: *ast.ReturnStmt {
+  1760  .  .  .  .  .  .  Return: ./mock_converterer_test.go:97:2
+  1761  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  1762  .  .  .  .  .  .  .  0: *ast.Ident {
+  1763  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:97:9
+  1764  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1765  .  .  .  .  .  .  .  .  Obj: *(obj @ 1556)
+  1766  .  .  .  .  .  .  .  }
+  1767  .  .  .  .  .  .  }
+  1768  .  .  .  .  .  }
+  1769  .  .  .  .  }
+  1770  .  .  .  .  Rbrace: ./mock_converterer_test.go:98:1
+  1771  .  .  .  }
+  1772  .  .  }
+  1773  .  .  14: *ast.FuncDecl {
+  1774  .  .  .  Recv: *ast.FieldList {
+  1775  .  .  .  .  Opening: ./mock_converterer_test.go:100:6
+  1776  .  .  .  .  List: []*ast.Field (len = 1) {
+  1777  .  .  .  .  .  0: *ast.Field {
+  1778  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1779  .  .  .  .  .  .  .  0: *ast.Ident {
+  1780  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:100:7
+  1781  .  .  .  .  .  .  .  .  Name: "m"
+  1782  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1783  .  .  .  .  .  .  .  .  .  Kind: var
+  1784  .  .  .  .  .  .  .  .  .  Name: "m"
+  1785  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1777)
+  1786  .  .  .  .  .  .  .  .  }
+  1787  .  .  .  .  .  .  .  }
+  1788  .  .  .  .  .  .  }
+  1789  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1790  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:100:9
+  1791  .  .  .  .  .  .  .  X: *ast.Ident {
+  1792  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:100:10
+  1793  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  1794  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  1795  .  .  .  .  .  .  .  }
+  1796  .  .  .  .  .  .  }
+  1797  .  .  .  .  .  }
+  1798  .  .  .  .  }
+  1799  .  .  .  .  Closing: ./mock_converterer_test.go:100:25
+  1800  .  .  .  }
+  1801  .  .  .  Name: *ast.Ident {
+  1802  .  .  .  .  NamePos: ./mock_converterer_test.go:100:27
+  1803  .  .  .  .  Name: "ParamResultStruct"
+  1804  .  .  .  }
+  1805  .  .  .  Type: *ast.FuncType {
+  1806  .  .  .  .  Func: ./mock_converterer_test.go:100:1
+  1807  .  .  .  .  Params: *ast.FieldList {
+  1808  .  .  .  .  .  Opening: ./mock_converterer_test.go:100:44
+  1809  .  .  .  .  .  List: []*ast.Field (len = 3) {
+  1810  .  .  .  .  .  .  0: *ast.Field {
+  1811  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 3) {
+  1812  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1813  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:2
+  1814  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  1815  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1816  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1817  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  1818  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1810)
+  1819  .  .  .  .  .  .  .  .  .  }
+  1820  .  .  .  .  .  .  .  .  }
+  1821  .  .  .  .  .  .  .  .  1: *ast.Ident {
+  1822  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:12
+  1823  .  .  .  .  .  .  .  .  .  Name: "prefix"
+  1824  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1825  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1826  .  .  .  .  .  .  .  .  .  .  Name: "prefix"
+  1827  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1810)
+  1828  .  .  .  .  .  .  .  .  .  }
+  1829  .  .  .  .  .  .  .  .  }
+  1830  .  .  .  .  .  .  .  .  2: *ast.Ident {
+  1831  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:20
+  1832  .  .  .  .  .  .  .  .  .  Name: "label"
+  1833  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1834  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1835  .  .  .  .  .  .  .  .  .  .  Name: "label"
+  1836  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1810)
+  1837  .  .  .  .  .  .  .  .  .  }
+  1838  .  .  .  .  .  .  .  .  }
+  1839  .  .  .  .  .  .  .  }
+  1840  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1841  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:26
+  1842  .  .  .  .  .  .  .  .  Name: "string"
+  1843  .  .  .  .  .  .  .  }
+  1844  .  .  .  .  .  .  }
+  1845  .  .  .  .  .  .  1: *ast.Field {
+  1846  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1847  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1848  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:34
+  1849  .  .  .  .  .  .  .  .  .  Name: "fieldList"
+  1850  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1851  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1852  .  .  .  .  .  .  .  .  .  .  Name: "fieldList"
+  1853  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1845)
+  1854  .  .  .  .  .  .  .  .  .  }
+  1855  .  .  .  .  .  .  .  .  }
+  1856  .  .  .  .  .  .  .  }
+  1857  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1858  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:101:44
+  1859  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1860  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1861  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:45
+  1862  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  1863  .  .  .  .  .  .  .  .  .  }
+  1864  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1865  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:49
+  1866  .  .  .  .  .  .  .  .  .  .  Name: "FieldList"
+  1867  .  .  .  .  .  .  .  .  .  }
+  1868  .  .  .  .  .  .  .  .  }
+  1869  .  .  .  .  .  .  .  }
+  1870  .  .  .  .  .  .  }
+  1871  .  .  .  .  .  .  2: *ast.Field {
+  1872  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1873  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1874  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:60
+  1875  .  .  .  .  .  .  .  .  .  Name: "comparable"
+  1876  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1877  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1878  .  .  .  .  .  .  .  .  .  .  Name: "comparable"
+  1879  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1871)
+  1880  .  .  .  .  .  .  .  .  .  }
+  1881  .  .  .  .  .  .  .  .  }
+  1882  .  .  .  .  .  .  .  }
+  1883  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1884  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:71
+  1885  .  .  .  .  .  .  .  .  Name: "bool"
+  1886  .  .  .  .  .  .  .  }
+  1887  .  .  .  .  .  .  }
+  1888  .  .  .  .  .  }
+  1889  .  .  .  .  .  Closing: ./mock_converterer_test.go:101:75
+  1890  .  .  .  .  }
+  1891  .  .  .  .  Results: *ast.FieldList {
+  1892  .  .  .  .  .  Opening: ./mock_converterer_test.go:101:77
+  1893  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  1894  .  .  .  .  .  .  0: *ast.Field {
+  1895  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1896  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1897  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:78
+  1898  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1899  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1900  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1901  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  1902  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1894)
+  1903  .  .  .  .  .  .  .  .  .  }
+  1904  .  .  .  .  .  .  .  .  }
+  1905  .  .  .  .  .  .  .  }
+  1906  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1907  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:101:89
+  1908  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1909  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1910  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:90
+  1911  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  1912  .  .  .  .  .  .  .  .  .  }
+  1913  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1914  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:101:94
+  1915  .  .  .  .  .  .  .  .  .  .  Name: "GenDecl"
+  1916  .  .  .  .  .  .  .  .  .  }
+  1917  .  .  .  .  .  .  .  .  }
+  1918  .  .  .  .  .  .  .  }
+  1919  .  .  .  .  .  .  }
+  1920  .  .  .  .  .  }
+  1921  .  .  .  .  .  Closing: ./mock_converterer_test.go:101:101
+  1922  .  .  .  .  }
+  1923  .  .  .  }
+  1924  .  .  .  Body: *ast.BlockStmt {
+  1925  .  .  .  .  Lbrace: ./mock_converterer_test.go:101:103
+  1926  .  .  .  .  List: []ast.Stmt (len = 5) {
+  1927  .  .  .  .  .  0: *ast.AssignStmt {
+  1928  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1929  .  .  .  .  .  .  .  0: *ast.Ident {
+  1930  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:102:2
+  1931  .  .  .  .  .  .  .  .  Name: "params"
+  1932  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1933  .  .  .  .  .  .  .  .  .  Kind: var
+  1934  .  .  .  .  .  .  .  .  .  Name: "params"
+  1935  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1927)
+  1936  .  .  .  .  .  .  .  .  }
+  1937  .  .  .  .  .  .  .  }
+  1938  .  .  .  .  .  .  }
+  1939  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:102:9
+  1940  .  .  .  .  .  .  Tok: :=
+  1941  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1942  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+  1943  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1944  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:102:12
+  1945  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_ParamResultStruct_params"
+  1946  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 251)
+  1947  .  .  .  .  .  .  .  .  }
+  1948  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:102:52
+  1949  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 5) {
+  1950  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1951  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1952  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:103:3
+  1953  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  1954  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1815)
+  1955  .  .  .  .  .  .  .  .  .  .  }
+  1956  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:103:11
+  1957  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1958  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:103:15
+  1959  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  1960  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1815)
+  1961  .  .  .  .  .  .  .  .  .  .  }
+  1962  .  .  .  .  .  .  .  .  .  }
+  1963  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  1964  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1965  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:104:3
+  1966  .  .  .  .  .  .  .  .  .  .  .  Name: "prefix"
+  1967  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1824)
+  1968  .  .  .  .  .  .  .  .  .  .  }
+  1969  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:104:9
+  1970  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1971  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:104:15
+  1972  .  .  .  .  .  .  .  .  .  .  .  Name: "prefix"
+  1973  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1824)
+  1974  .  .  .  .  .  .  .  .  .  .  }
+  1975  .  .  .  .  .  .  .  .  .  }
+  1976  .  .  .  .  .  .  .  .  .  2: *ast.KeyValueExpr {
+  1977  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1978  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:105:3
+  1979  .  .  .  .  .  .  .  .  .  .  .  Name: "label"
+  1980  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1833)
+  1981  .  .  .  .  .  .  .  .  .  .  }
+  1982  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:105:8
+  1983  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1984  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:105:15
+  1985  .  .  .  .  .  .  .  .  .  .  .  Name: "label"
+  1986  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1833)
+  1987  .  .  .  .  .  .  .  .  .  .  }
+  1988  .  .  .  .  .  .  .  .  .  }
+  1989  .  .  .  .  .  .  .  .  .  3: *ast.KeyValueExpr {
+  1990  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1991  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:106:3
+  1992  .  .  .  .  .  .  .  .  .  .  .  Name: "fieldList"
+  1993  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1850)
+  1994  .  .  .  .  .  .  .  .  .  .  }
+  1995  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:106:12
+  1996  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1997  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:106:15
+  1998  .  .  .  .  .  .  .  .  .  .  .  Name: "fieldList"
+  1999  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1850)
+  2000  .  .  .  .  .  .  .  .  .  .  }
+  2001  .  .  .  .  .  .  .  .  .  }
+  2002  .  .  .  .  .  .  .  .  .  4: *ast.KeyValueExpr {
+  2003  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2004  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:107:3
+  2005  .  .  .  .  .  .  .  .  .  .  .  Name: "comparable"
+  2006  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1876)
+  2007  .  .  .  .  .  .  .  .  .  .  }
+  2008  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:107:13
+  2009  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2010  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:107:15
+  2011  .  .  .  .  .  .  .  .  .  .  .  Name: "comparable"
+  2012  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1876)
+  2013  .  .  .  .  .  .  .  .  .  .  }
+  2014  .  .  .  .  .  .  .  .  .  }
+  2015  .  .  .  .  .  .  .  .  }
+  2016  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:108:2
+  2017  .  .  .  .  .  .  .  .  Incomplete: false
+  2018  .  .  .  .  .  .  .  }
+  2019  .  .  .  .  .  .  }
+  2020  .  .  .  .  .  }
+  2021  .  .  .  .  .  1: *ast.SendStmt {
+  2022  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
+  2023  .  .  .  .  .  .  .  X: *ast.Ident {
+  2024  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:109:2
+  2025  .  .  .  .  .  .  .  .  Name: "m"
+  2026  .  .  .  .  .  .  .  .  Obj: *(obj @ 1782)
+  2027  .  .  .  .  .  .  .  }
+  2028  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2029  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:109:4
+  2030  .  .  .  .  .  .  .  .  Name: "params_ParamResultStruct"
+  2031  .  .  .  .  .  .  .  }
+  2032  .  .  .  .  .  .  }
+  2033  .  .  .  .  .  .  Arrow: ./mock_converterer_test.go:109:29
+  2034  .  .  .  .  .  .  Value: *ast.Ident {
+  2035  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:109:32
+  2036  .  .  .  .  .  .  .  Name: "params"
+  2037  .  .  .  .  .  .  .  Obj: *(obj @ 1932)
+  2038  .  .  .  .  .  .  }
+  2039  .  .  .  .  .  }
+  2040  .  .  .  .  .  2: *ast.AssignStmt {
+  2041  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
+  2042  .  .  .  .  .  .  .  0: *ast.Ident {
+  2043  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:110:2
+  2044  .  .  .  .  .  .  .  .  Name: "results"
+  2045  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2046  .  .  .  .  .  .  .  .  .  Kind: var
+  2047  .  .  .  .  .  .  .  .  .  Name: "results"
+  2048  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2040)
+  2049  .  .  .  .  .  .  .  .  }
+  2050  .  .  .  .  .  .  .  }
+  2051  .  .  .  .  .  .  .  1: *ast.Ident {
+  2052  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:110:11
+  2053  .  .  .  .  .  .  .  .  Name: "ok"
+  2054  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2055  .  .  .  .  .  .  .  .  .  Kind: var
+  2056  .  .  .  .  .  .  .  .  .  Name: "ok"
+  2057  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2040)
+  2058  .  .  .  .  .  .  .  .  }
+  2059  .  .  .  .  .  .  .  }
+  2060  .  .  .  .  .  .  }
+  2061  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:110:14
+  2062  .  .  .  .  .  .  Tok: :=
+  2063  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2064  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  2065  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2066  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2067  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:110:17
+  2068  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  2069  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1782)
+  2070  .  .  .  .  .  .  .  .  .  }
+  2071  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2072  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:110:19
+  2073  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_ParamResultStruct"
+  2074  .  .  .  .  .  .  .  .  .  }
+  2075  .  .  .  .  .  .  .  .  }
+  2076  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:110:52
+  2077  .  .  .  .  .  .  .  .  Index: *ast.Ident {
+  2078  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:110:53
+  2079  .  .  .  .  .  .  .  .  .  Name: "params"
+  2080  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1932)
+  2081  .  .  .  .  .  .  .  .  }
+  2082  .  .  .  .  .  .  .  .  Rbrack: ./mock_converterer_test.go:110:59
+  2083  .  .  .  .  .  .  .  }
+  2084  .  .  .  .  .  .  }
+  2085  .  .  .  .  .  }
+  2086  .  .  .  .  .  3: *ast.IfStmt {
+  2087  .  .  .  .  .  .  If: ./mock_converterer_test.go:111:2
+  2088  .  .  .  .  .  .  Cond: *ast.Ident {
+  2089  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:111:5
+  2090  .  .  .  .  .  .  .  Name: "ok"
+  2091  .  .  .  .  .  .  .  Obj: *(obj @ 2054)
+  2092  .  .  .  .  .  .  }
+  2093  .  .  .  .  .  .  Body: *ast.BlockStmt {
+  2094  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:111:8
+  2095  .  .  .  .  .  .  .  List: []ast.Stmt (len = 1) {
+  2096  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+  2097  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  2098  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2099  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:112:3
+  2100  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  2101  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1899)
+  2102  .  .  .  .  .  .  .  .  .  .  }
+  2103  .  .  .  .  .  .  .  .  .  }
+  2104  .  .  .  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:112:14
+  2105  .  .  .  .  .  .  .  .  .  Tok: =
+  2106  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2107  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  2108  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2109  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:112:16
+  2110  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  2111  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2045)
+  2112  .  .  .  .  .  .  .  .  .  .  .  }
+  2113  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2114  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:112:24
+  2115  .  .  .  .  .  .  .  .  .  .  .  .  Name: "structDecl"
+  2116  .  .  .  .  .  .  .  .  .  .  .  }
+  2117  .  .  .  .  .  .  .  .  .  .  }
+  2118  .  .  .  .  .  .  .  .  .  }
+  2119  .  .  .  .  .  .  .  .  }
+  2120  .  .  .  .  .  .  .  }
+  2121  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:113:2
+  2122  .  .  .  .  .  .  }
+  2123  .  .  .  .  .  }
+  2124  .  .  .  .  .  4: *ast.ReturnStmt {
+  2125  .  .  .  .  .  .  Return: ./mock_converterer_test.go:114:2
+  2126  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  2127  .  .  .  .  .  .  .  0: *ast.Ident {
+  2128  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:114:9
+  2129  .  .  .  .  .  .  .  .  Name: "structDecl"
+  2130  .  .  .  .  .  .  .  .  Obj: *(obj @ 1899)
+  2131  .  .  .  .  .  .  .  }
+  2132  .  .  .  .  .  .  }
+  2133  .  .  .  .  .  }
+  2134  .  .  .  .  }
+  2135  .  .  .  .  Rbrace: ./mock_converterer_test.go:115:1
+  2136  .  .  .  }
+  2137  .  .  }
+  2138  .  .  15: *ast.FuncDecl {
+  2139  .  .  .  Recv: *ast.FieldList {
+  2140  .  .  .  .  Opening: ./mock_converterer_test.go:117:6
+  2141  .  .  .  .  List: []*ast.Field (len = 1) {
+  2142  .  .  .  .  .  0: *ast.Field {
+  2143  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2144  .  .  .  .  .  .  .  0: *ast.Ident {
+  2145  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:7
+  2146  .  .  .  .  .  .  .  .  Name: "m"
+  2147  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2148  .  .  .  .  .  .  .  .  .  Kind: var
+  2149  .  .  .  .  .  .  .  .  .  Name: "m"
+  2150  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2142)
+  2151  .  .  .  .  .  .  .  .  }
+  2152  .  .  .  .  .  .  .  }
+  2153  .  .  .  .  .  .  }
+  2154  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2155  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:117:9
+  2156  .  .  .  .  .  .  .  X: *ast.Ident {
+  2157  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:10
+  2158  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  2159  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  2160  .  .  .  .  .  .  .  }
+  2161  .  .  .  .  .  .  }
+  2162  .  .  .  .  .  }
+  2163  .  .  .  .  }
+  2164  .  .  .  .  Closing: ./mock_converterer_test.go:117:25
+  2165  .  .  .  }
+  2166  .  .  .  Name: *ast.Ident {
+  2167  .  .  .  .  NamePos: ./mock_converterer_test.go:117:27
+  2168  .  .  .  .  Name: "NewMockFn"
+  2169  .  .  .  }
+  2170  .  .  .  Type: *ast.FuncType {
+  2171  .  .  .  .  Func: ./mock_converterer_test.go:117:1
+  2172  .  .  .  .  Params: *ast.FieldList {
+  2173  .  .  .  .  .  Opening: ./mock_converterer_test.go:117:36
+  2174  .  .  .  .  .  List: []*ast.Field (len = 2) {
+  2175  .  .  .  .  .  .  0: *ast.Field {
+  2176  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2177  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2178  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:37
+  2179  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  2180  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2181  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2182  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  2183  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2175)
+  2184  .  .  .  .  .  .  .  .  .  }
+  2185  .  .  .  .  .  .  .  .  }
+  2186  .  .  .  .  .  .  .  }
+  2187  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2188  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:117:46
+  2189  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2190  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2191  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:47
+  2192  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  2193  .  .  .  .  .  .  .  .  .  }
+  2194  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2195  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:51
+  2196  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+  2197  .  .  .  .  .  .  .  .  .  }
+  2198  .  .  .  .  .  .  .  .  }
+  2199  .  .  .  .  .  .  .  }
+  2200  .  .  .  .  .  .  }
+  2201  .  .  .  .  .  .  1: *ast.Field {
+  2202  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2203  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2204  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:61
+  2205  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  2206  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2207  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2208  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  2209  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2201)
+  2210  .  .  .  .  .  .  .  .  .  }
+  2211  .  .  .  .  .  .  .  .  }
+  2212  .  .  .  .  .  .  .  }
+  2213  .  .  .  .  .  .  .  Type: *ast.ArrayType {
+  2214  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:117:67
+  2215  .  .  .  .  .  .  .  .  Elt: *ast.SelectorExpr {
+  2216  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2217  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:69
+  2218  .  .  .  .  .  .  .  .  .  .  Name: "generator"
+  2219  .  .  .  .  .  .  .  .  .  }
+  2220  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2221  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:79
+  2222  .  .  .  .  .  .  .  .  .  .  Name: "Func"
+  2223  .  .  .  .  .  .  .  .  .  }
+  2224  .  .  .  .  .  .  .  .  }
+  2225  .  .  .  .  .  .  .  }
+  2226  .  .  .  .  .  .  }
+  2227  .  .  .  .  .  }
+  2228  .  .  .  .  .  Closing: ./mock_converterer_test.go:117:83
+  2229  .  .  .  .  }
+  2230  .  .  .  .  Results: *ast.FieldList {
+  2231  .  .  .  .  .  Opening: ./mock_converterer_test.go:117:85
+  2232  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  2233  .  .  .  .  .  .  0: *ast.Field {
+  2234  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2235  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2236  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:86
+  2237  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2238  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2239  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2240  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2241  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2233)
+  2242  .  .  .  .  .  .  .  .  .  }
+  2243  .  .  .  .  .  .  .  .  }
+  2244  .  .  .  .  .  .  .  }
+  2245  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2246  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:117:95
+  2247  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2248  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2249  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:96
+  2250  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  2251  .  .  .  .  .  .  .  .  .  }
+  2252  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2253  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:117:100
+  2254  .  .  .  .  .  .  .  .  .  .  Name: "FuncDecl"
+  2255  .  .  .  .  .  .  .  .  .  }
+  2256  .  .  .  .  .  .  .  .  }
+  2257  .  .  .  .  .  .  .  }
+  2258  .  .  .  .  .  .  }
+  2259  .  .  .  .  .  }
+  2260  .  .  .  .  .  Closing: ./mock_converterer_test.go:117:108
+  2261  .  .  .  .  }
+  2262  .  .  .  }
+  2263  .  .  .  Body: *ast.BlockStmt {
+  2264  .  .  .  .  Lbrace: ./mock_converterer_test.go:117:110
+  2265  .  .  .  .  List: []ast.Stmt (len = 5) {
+  2266  .  .  .  .  .  0: *ast.AssignStmt {
+  2267  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  2268  .  .  .  .  .  .  .  0: *ast.Ident {
+  2269  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:118:2
+  2270  .  .  .  .  .  .  .  .  Name: "params"
+  2271  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2272  .  .  .  .  .  .  .  .  .  Kind: var
+  2273  .  .  .  .  .  .  .  .  .  Name: "params"
+  2274  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2266)
+  2275  .  .  .  .  .  .  .  .  }
+  2276  .  .  .  .  .  .  .  }
+  2277  .  .  .  .  .  .  }
+  2278  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:118:9
+  2279  .  .  .  .  .  .  Tok: :=
+  2280  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2281  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+  2282  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  2283  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:118:12
+  2284  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_NewMockFn_params"
+  2285  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 446)
+  2286  .  .  .  .  .  .  .  .  }
+  2287  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:118:44
+  2288  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 2) {
+  2289  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  2290  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2291  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:119:3
+  2292  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  2293  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2180)
+  2294  .  .  .  .  .  .  .  .  .  .  }
+  2295  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:119:11
+  2296  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2297  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:119:13
+  2298  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpec"
+  2299  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2180)
+  2300  .  .  .  .  .  .  .  .  .  .  }
+  2301  .  .  .  .  .  .  .  .  .  }
+  2302  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  2303  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2304  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:120:3
+  2305  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  2306  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2206)
+  2307  .  .  .  .  .  .  .  .  .  .  }
+  2308  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:120:8
+  2309  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+  2310  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.SelectorExpr {
+  2311  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2312  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:120:13
+  2313  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "hash"
+  2314  .  .  .  .  .  .  .  .  .  .  .  .  }
+  2315  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2316  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:120:18
+  2317  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "DeepHash"
+  2318  .  .  .  .  .  .  .  .  .  .  .  .  }
+  2319  .  .  .  .  .  .  .  .  .  .  .  }
+  2320  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_converterer_test.go:120:26
+  2321  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 1) {
+  2322  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2323  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:120:27
+  2324  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcs"
+  2325  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2206)
+  2326  .  .  .  .  .  .  .  .  .  .  .  .  }
+  2327  .  .  .  .  .  .  .  .  .  .  .  }
+  2328  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+  2329  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_converterer_test.go:120:32
+  2330  .  .  .  .  .  .  .  .  .  .  }
+  2331  .  .  .  .  .  .  .  .  .  }
+  2332  .  .  .  .  .  .  .  .  }
+  2333  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:121:2
+  2334  .  .  .  .  .  .  .  .  Incomplete: false
+  2335  .  .  .  .  .  .  .  }
+  2336  .  .  .  .  .  .  }
+  2337  .  .  .  .  .  }
+  2338  .  .  .  .  .  1: *ast.SendStmt {
+  2339  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
+  2340  .  .  .  .  .  .  .  X: *ast.Ident {
+  2341  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:122:2
+  2342  .  .  .  .  .  .  .  .  Name: "m"
+  2343  .  .  .  .  .  .  .  .  Obj: *(obj @ 2147)
+  2344  .  .  .  .  .  .  .  }
+  2345  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2346  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:122:4
+  2347  .  .  .  .  .  .  .  .  Name: "params_NewMockFn"
+  2348  .  .  .  .  .  .  .  }
+  2349  .  .  .  .  .  .  }
+  2350  .  .  .  .  .  .  Arrow: ./mock_converterer_test.go:122:21
+  2351  .  .  .  .  .  .  Value: *ast.Ident {
+  2352  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:122:24
+  2353  .  .  .  .  .  .  .  Name: "params"
+  2354  .  .  .  .  .  .  .  Obj: *(obj @ 2271)
+  2355  .  .  .  .  .  .  }
+  2356  .  .  .  .  .  }
+  2357  .  .  .  .  .  2: *ast.AssignStmt {
+  2358  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
+  2359  .  .  .  .  .  .  .  0: *ast.Ident {
+  2360  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:123:2
+  2361  .  .  .  .  .  .  .  .  Name: "results"
+  2362  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2363  .  .  .  .  .  .  .  .  .  Kind: var
+  2364  .  .  .  .  .  .  .  .  .  Name: "results"
+  2365  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2357)
+  2366  .  .  .  .  .  .  .  .  }
+  2367  .  .  .  .  .  .  .  }
+  2368  .  .  .  .  .  .  .  1: *ast.Ident {
+  2369  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:123:11
+  2370  .  .  .  .  .  .  .  .  Name: "ok"
+  2371  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2372  .  .  .  .  .  .  .  .  .  Kind: var
+  2373  .  .  .  .  .  .  .  .  .  Name: "ok"
+  2374  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2357)
+  2375  .  .  .  .  .  .  .  .  }
+  2376  .  .  .  .  .  .  .  }
+  2377  .  .  .  .  .  .  }
+  2378  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:123:14
+  2379  .  .  .  .  .  .  Tok: :=
+  2380  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2381  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  2382  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2383  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2384  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:123:17
+  2385  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  2386  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2147)
+  2387  .  .  .  .  .  .  .  .  .  }
+  2388  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2389  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:123:19
+  2390  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_NewMockFn"
+  2391  .  .  .  .  .  .  .  .  .  }
+  2392  .  .  .  .  .  .  .  .  }
+  2393  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:123:44
+  2394  .  .  .  .  .  .  .  .  Index: *ast.Ident {
+  2395  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:123:45
+  2396  .  .  .  .  .  .  .  .  .  Name: "params"
+  2397  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2271)
+  2398  .  .  .  .  .  .  .  .  }
+  2399  .  .  .  .  .  .  .  .  Rbrack: ./mock_converterer_test.go:123:51
+  2400  .  .  .  .  .  .  .  }
+  2401  .  .  .  .  .  .  }
+  2402  .  .  .  .  .  }
+  2403  .  .  .  .  .  3: *ast.IfStmt {
+  2404  .  .  .  .  .  .  If: ./mock_converterer_test.go:124:2
+  2405  .  .  .  .  .  .  Cond: *ast.Ident {
+  2406  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:124:5
+  2407  .  .  .  .  .  .  .  Name: "ok"
+  2408  .  .  .  .  .  .  .  Obj: *(obj @ 2371)
+  2409  .  .  .  .  .  .  }
+  2410  .  .  .  .  .  .  Body: *ast.BlockStmt {
+  2411  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:124:8
+  2412  .  .  .  .  .  .  .  List: []ast.Stmt (len = 1) {
+  2413  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+  2414  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  2415  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2416  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:125:3
+  2417  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2418  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2238)
+  2419  .  .  .  .  .  .  .  .  .  .  }
+  2420  .  .  .  .  .  .  .  .  .  }
+  2421  .  .  .  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:125:12
+  2422  .  .  .  .  .  .  .  .  .  Tok: =
+  2423  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2424  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  2425  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2426  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:125:14
+  2427  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  2428  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2362)
+  2429  .  .  .  .  .  .  .  .  .  .  .  }
+  2430  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2431  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:125:22
+  2432  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2433  .  .  .  .  .  .  .  .  .  .  .  }
+  2434  .  .  .  .  .  .  .  .  .  .  }
+  2435  .  .  .  .  .  .  .  .  .  }
+  2436  .  .  .  .  .  .  .  .  }
+  2437  .  .  .  .  .  .  .  }
+  2438  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:126:2
+  2439  .  .  .  .  .  .  }
+  2440  .  .  .  .  .  }
+  2441  .  .  .  .  .  4: *ast.ReturnStmt {
+  2442  .  .  .  .  .  .  Return: ./mock_converterer_test.go:127:2
+  2443  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  2444  .  .  .  .  .  .  .  0: *ast.Ident {
+  2445  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:127:9
+  2446  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2447  .  .  .  .  .  .  .  .  Obj: *(obj @ 2238)
+  2448  .  .  .  .  .  .  .  }
+  2449  .  .  .  .  .  .  }
+  2450  .  .  .  .  .  }
+  2451  .  .  .  .  }
+  2452  .  .  .  .  Rbrace: ./mock_converterer_test.go:128:1
+  2453  .  .  .  }
+  2454  .  .  }
+  2455  .  .  16: *ast.FuncDecl {
+  2456  .  .  .  Recv: *ast.FieldList {
+  2457  .  .  .  .  Opening: ./mock_converterer_test.go:130:6
+  2458  .  .  .  .  List: []*ast.Field (len = 1) {
+  2459  .  .  .  .  .  0: *ast.Field {
+  2460  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2461  .  .  .  .  .  .  .  0: *ast.Ident {
+  2462  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:7
+  2463  .  .  .  .  .  .  .  .  Name: "m"
+  2464  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2465  .  .  .  .  .  .  .  .  .  Kind: var
+  2466  .  .  .  .  .  .  .  .  .  Name: "m"
+  2467  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2459)
+  2468  .  .  .  .  .  .  .  .  }
+  2469  .  .  .  .  .  .  .  }
+  2470  .  .  .  .  .  .  }
+  2471  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2472  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:130:9
+  2473  .  .  .  .  .  .  .  X: *ast.Ident {
+  2474  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:10
+  2475  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  2476  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  2477  .  .  .  .  .  .  .  }
+  2478  .  .  .  .  .  .  }
+  2479  .  .  .  .  .  }
+  2480  .  .  .  .  }
+  2481  .  .  .  .  Closing: ./mock_converterer_test.go:130:25
+  2482  .  .  .  }
+  2483  .  .  .  Name: *ast.Ident {
+  2484  .  .  .  .  NamePos: ./mock_converterer_test.go:130:27
+  2485  .  .  .  .  Name: "Method"
+  2486  .  .  .  }
+  2487  .  .  .  Type: *ast.FuncType {
+  2488  .  .  .  .  Func: ./mock_converterer_test.go:130:1
+  2489  .  .  .  .  Params: *ast.FieldList {
+  2490  .  .  .  .  .  Opening: ./mock_converterer_test.go:130:33
+  2491  .  .  .  .  .  List: []*ast.Field (len = 2) {
+  2492  .  .  .  .  .  .  0: *ast.Field {
+  2493  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2494  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2495  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:34
+  2496  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2497  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2498  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2499  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2500  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2492)
+  2501  .  .  .  .  .  .  .  .  .  }
+  2502  .  .  .  .  .  .  .  .  }
+  2503  .  .  .  .  .  .  .  }
+  2504  .  .  .  .  .  .  .  Type: *ast.Ident {
+  2505  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:43
+  2506  .  .  .  .  .  .  .  .  Name: "string"
+  2507  .  .  .  .  .  .  .  }
+  2508  .  .  .  .  .  .  }
+  2509  .  .  .  .  .  .  1: *ast.Field {
+  2510  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2511  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2512  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:51
+  2513  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2514  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2515  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2516  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2517  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2509)
+  2518  .  .  .  .  .  .  .  .  .  }
+  2519  .  .  .  .  .  .  .  .  }
+  2520  .  .  .  .  .  .  .  }
+  2521  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+  2522  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2523  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:54
+  2524  .  .  .  .  .  .  .  .  .  Name: "generator"
+  2525  .  .  .  .  .  .  .  .  }
+  2526  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2527  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:64
+  2528  .  .  .  .  .  .  .  .  .  Name: "Func"
+  2529  .  .  .  .  .  .  .  .  }
+  2530  .  .  .  .  .  .  .  }
+  2531  .  .  .  .  .  .  }
+  2532  .  .  .  .  .  }
+  2533  .  .  .  .  .  Closing: ./mock_converterer_test.go:130:68
+  2534  .  .  .  .  }
+  2535  .  .  .  .  Results: *ast.FieldList {
+  2536  .  .  .  .  .  Opening: ./mock_converterer_test.go:130:70
+  2537  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  2538  .  .  .  .  .  .  0: *ast.Field {
+  2539  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2540  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2541  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:71
+  2542  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2543  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2544  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2545  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2546  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2538)
+  2547  .  .  .  .  .  .  .  .  .  }
+  2548  .  .  .  .  .  .  .  .  }
+  2549  .  .  .  .  .  .  .  }
+  2550  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2551  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:130:80
+  2552  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2553  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2554  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:81
+  2555  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  2556  .  .  .  .  .  .  .  .  .  }
+  2557  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2558  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:130:85
+  2559  .  .  .  .  .  .  .  .  .  .  Name: "FuncDecl"
+  2560  .  .  .  .  .  .  .  .  .  }
+  2561  .  .  .  .  .  .  .  .  }
+  2562  .  .  .  .  .  .  .  }
+  2563  .  .  .  .  .  .  }
+  2564  .  .  .  .  .  }
+  2565  .  .  .  .  .  Closing: ./mock_converterer_test.go:130:93
+  2566  .  .  .  .  }
+  2567  .  .  .  }
+  2568  .  .  .  Body: *ast.BlockStmt {
+  2569  .  .  .  .  Lbrace: ./mock_converterer_test.go:130:95
+  2570  .  .  .  .  List: []ast.Stmt (len = 5) {
+  2571  .  .  .  .  .  0: *ast.AssignStmt {
+  2572  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  2573  .  .  .  .  .  .  .  0: *ast.Ident {
+  2574  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:131:2
+  2575  .  .  .  .  .  .  .  .  Name: "params"
+  2576  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2577  .  .  .  .  .  .  .  .  .  Kind: var
+  2578  .  .  .  .  .  .  .  .  .  Name: "params"
+  2579  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2571)
+  2580  .  .  .  .  .  .  .  .  }
+  2581  .  .  .  .  .  .  .  }
+  2582  .  .  .  .  .  .  }
+  2583  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:131:9
+  2584  .  .  .  .  .  .  Tok: :=
+  2585  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2586  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+  2587  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  2588  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:131:12
+  2589  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_Method_params"
+  2590  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 612)
+  2591  .  .  .  .  .  .  .  .  }
+  2592  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:131:41
+  2593  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 2) {
+  2594  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  2595  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2596  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:132:3
+  2597  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2598  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2497)
+  2599  .  .  .  .  .  .  .  .  .  .  }
+  2600  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:132:11
+  2601  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2602  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:132:13
+  2603  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2604  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2497)
+  2605  .  .  .  .  .  .  .  .  .  .  }
+  2606  .  .  .  .  .  .  .  .  .  }
+  2607  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  2608  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2609  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:133:3
+  2610  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2611  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2514)
+  2612  .  .  .  .  .  .  .  .  .  .  }
+  2613  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:133:5
+  2614  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2615  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:133:13
+  2616  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2617  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2514)
+  2618  .  .  .  .  .  .  .  .  .  .  }
+  2619  .  .  .  .  .  .  .  .  .  }
+  2620  .  .  .  .  .  .  .  .  }
+  2621  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:134:2
+  2622  .  .  .  .  .  .  .  .  Incomplete: false
+  2623  .  .  .  .  .  .  .  }
+  2624  .  .  .  .  .  .  }
+  2625  .  .  .  .  .  }
+  2626  .  .  .  .  .  1: *ast.SendStmt {
+  2627  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
+  2628  .  .  .  .  .  .  .  X: *ast.Ident {
+  2629  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:135:2
+  2630  .  .  .  .  .  .  .  .  Name: "m"
+  2631  .  .  .  .  .  .  .  .  Obj: *(obj @ 2464)
+  2632  .  .  .  .  .  .  .  }
+  2633  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2634  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:135:4
+  2635  .  .  .  .  .  .  .  .  Name: "params_Method"
+  2636  .  .  .  .  .  .  .  }
+  2637  .  .  .  .  .  .  }
+  2638  .  .  .  .  .  .  Arrow: ./mock_converterer_test.go:135:18
+  2639  .  .  .  .  .  .  Value: *ast.Ident {
+  2640  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:135:21
+  2641  .  .  .  .  .  .  .  Name: "params"
+  2642  .  .  .  .  .  .  .  Obj: *(obj @ 2576)
+  2643  .  .  .  .  .  .  }
+  2644  .  .  .  .  .  }
+  2645  .  .  .  .  .  2: *ast.AssignStmt {
+  2646  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
+  2647  .  .  .  .  .  .  .  0: *ast.Ident {
+  2648  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:136:2
+  2649  .  .  .  .  .  .  .  .  Name: "results"
+  2650  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2651  .  .  .  .  .  .  .  .  .  Kind: var
+  2652  .  .  .  .  .  .  .  .  .  Name: "results"
+  2653  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2645)
+  2654  .  .  .  .  .  .  .  .  }
+  2655  .  .  .  .  .  .  .  }
+  2656  .  .  .  .  .  .  .  1: *ast.Ident {
+  2657  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:136:11
+  2658  .  .  .  .  .  .  .  .  Name: "ok"
+  2659  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2660  .  .  .  .  .  .  .  .  .  Kind: var
+  2661  .  .  .  .  .  .  .  .  .  Name: "ok"
+  2662  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2645)
+  2663  .  .  .  .  .  .  .  .  }
+  2664  .  .  .  .  .  .  .  }
+  2665  .  .  .  .  .  .  }
+  2666  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:136:14
+  2667  .  .  .  .  .  .  Tok: :=
+  2668  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2669  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  2670  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2671  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2672  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:136:17
+  2673  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  2674  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2464)
+  2675  .  .  .  .  .  .  .  .  .  }
+  2676  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2677  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:136:19
+  2678  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_Method"
+  2679  .  .  .  .  .  .  .  .  .  }
+  2680  .  .  .  .  .  .  .  .  }
+  2681  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:136:41
+  2682  .  .  .  .  .  .  .  .  Index: *ast.Ident {
+  2683  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:136:42
+  2684  .  .  .  .  .  .  .  .  .  Name: "params"
+  2685  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2576)
+  2686  .  .  .  .  .  .  .  .  }
+  2687  .  .  .  .  .  .  .  .  Rbrack: ./mock_converterer_test.go:136:48
+  2688  .  .  .  .  .  .  .  }
+  2689  .  .  .  .  .  .  }
+  2690  .  .  .  .  .  }
+  2691  .  .  .  .  .  3: *ast.IfStmt {
+  2692  .  .  .  .  .  .  If: ./mock_converterer_test.go:137:2
+  2693  .  .  .  .  .  .  Cond: *ast.Ident {
+  2694  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:137:5
+  2695  .  .  .  .  .  .  .  Name: "ok"
+  2696  .  .  .  .  .  .  .  Obj: *(obj @ 2659)
+  2697  .  .  .  .  .  .  }
+  2698  .  .  .  .  .  .  Body: *ast.BlockStmt {
+  2699  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:137:8
+  2700  .  .  .  .  .  .  .  List: []ast.Stmt (len = 1) {
+  2701  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+  2702  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  2703  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2704  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:138:3
+  2705  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2706  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2543)
+  2707  .  .  .  .  .  .  .  .  .  .  }
+  2708  .  .  .  .  .  .  .  .  .  }
+  2709  .  .  .  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:138:12
+  2710  .  .  .  .  .  .  .  .  .  Tok: =
+  2711  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2712  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  2713  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2714  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:138:14
+  2715  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  2716  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2650)
+  2717  .  .  .  .  .  .  .  .  .  .  .  }
+  2718  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2719  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:138:22
+  2720  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2721  .  .  .  .  .  .  .  .  .  .  .  }
+  2722  .  .  .  .  .  .  .  .  .  .  }
+  2723  .  .  .  .  .  .  .  .  .  }
+  2724  .  .  .  .  .  .  .  .  }
+  2725  .  .  .  .  .  .  .  }
+  2726  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:139:2
+  2727  .  .  .  .  .  .  }
+  2728  .  .  .  .  .  }
+  2729  .  .  .  .  .  4: *ast.ReturnStmt {
+  2730  .  .  .  .  .  .  Return: ./mock_converterer_test.go:140:2
+  2731  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  2732  .  .  .  .  .  .  .  0: *ast.Ident {
+  2733  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:140:9
+  2734  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2735  .  .  .  .  .  .  .  .  Obj: *(obj @ 2543)
+  2736  .  .  .  .  .  .  .  }
+  2737  .  .  .  .  .  .  }
+  2738  .  .  .  .  .  }
+  2739  .  .  .  .  }
+  2740  .  .  .  .  Rbrace: ./mock_converterer_test.go:141:1
+  2741  .  .  .  }
+  2742  .  .  }
+  2743  .  .  17: *ast.FuncDecl {
+  2744  .  .  .  Recv: *ast.FieldList {
+  2745  .  .  .  .  Opening: ./mock_converterer_test.go:143:6
+  2746  .  .  .  .  List: []*ast.Field (len = 1) {
+  2747  .  .  .  .  .  0: *ast.Field {
+  2748  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2749  .  .  .  .  .  .  .  0: *ast.Ident {
+  2750  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:7
+  2751  .  .  .  .  .  .  .  .  Name: "m"
+  2752  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2753  .  .  .  .  .  .  .  .  .  Kind: var
+  2754  .  .  .  .  .  .  .  .  .  Name: "m"
+  2755  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2747)
+  2756  .  .  .  .  .  .  .  .  }
+  2757  .  .  .  .  .  .  .  }
+  2758  .  .  .  .  .  .  }
+  2759  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2760  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:143:9
+  2761  .  .  .  .  .  .  .  X: *ast.Ident {
+  2762  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:10
+  2763  .  .  .  .  .  .  .  .  Name: "mockConverterer"
+  2764  .  .  .  .  .  .  .  .  Obj: *(obj @ 56)
+  2765  .  .  .  .  .  .  .  }
+  2766  .  .  .  .  .  .  }
+  2767  .  .  .  .  .  }
+  2768  .  .  .  .  }
+  2769  .  .  .  .  Closing: ./mock_converterer_test.go:143:25
+  2770  .  .  .  }
+  2771  .  .  .  Name: *ast.Ident {
+  2772  .  .  .  .  NamePos: ./mock_converterer_test.go:143:27
+  2773  .  .  .  .  Name: "FuncClosure"
+  2774  .  .  .  }
+  2775  .  .  .  Type: *ast.FuncType {
+  2776  .  .  .  .  Func: ./mock_converterer_test.go:143:1
+  2777  .  .  .  .  Params: *ast.FieldList {
+  2778  .  .  .  .  .  Opening: ./mock_converterer_test.go:143:38
+  2779  .  .  .  .  .  List: []*ast.Field (len = 2) {
+  2780  .  .  .  .  .  .  0: *ast.Field {
+  2781  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 2) {
+  2782  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2783  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:39
+  2784  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2785  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2786  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2787  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2788  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2780)
+  2789  .  .  .  .  .  .  .  .  .  }
+  2790  .  .  .  .  .  .  .  .  }
+  2791  .  .  .  .  .  .  .  .  1: *ast.Ident {
+  2792  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:49
+  2793  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  2794  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2795  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2796  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  2797  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2780)
+  2798  .  .  .  .  .  .  .  .  .  }
+  2799  .  .  .  .  .  .  .  .  }
+  2800  .  .  .  .  .  .  .  }
+  2801  .  .  .  .  .  .  .  Type: *ast.Ident {
+  2802  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:57
+  2803  .  .  .  .  .  .  .  .  Name: "string"
+  2804  .  .  .  .  .  .  .  }
+  2805  .  .  .  .  .  .  }
+  2806  .  .  .  .  .  .  1: *ast.Field {
+  2807  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2808  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2809  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:65
+  2810  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2811  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2812  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2813  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2814  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2806)
+  2815  .  .  .  .  .  .  .  .  .  }
+  2816  .  .  .  .  .  .  .  .  }
+  2817  .  .  .  .  .  .  .  }
+  2818  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+  2819  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2820  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:68
+  2821  .  .  .  .  .  .  .  .  .  Name: "generator"
+  2822  .  .  .  .  .  .  .  .  }
+  2823  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2824  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:78
+  2825  .  .  .  .  .  .  .  .  .  Name: "Func"
+  2826  .  .  .  .  .  .  .  .  }
+  2827  .  .  .  .  .  .  .  }
+  2828  .  .  .  .  .  .  }
+  2829  .  .  .  .  .  }
+  2830  .  .  .  .  .  Closing: ./mock_converterer_test.go:143:82
+  2831  .  .  .  .  }
+  2832  .  .  .  .  Results: *ast.FieldList {
+  2833  .  .  .  .  .  Opening: ./mock_converterer_test.go:143:84
+  2834  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  2835  .  .  .  .  .  .  0: *ast.Field {
+  2836  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  2837  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  2838  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:85
+  2839  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2840  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2841  .  .  .  .  .  .  .  .  .  .  Kind: var
+  2842  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  2843  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2835)
+  2844  .  .  .  .  .  .  .  .  .  }
+  2845  .  .  .  .  .  .  .  .  }
+  2846  .  .  .  .  .  .  .  }
+  2847  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  2848  .  .  .  .  .  .  .  .  Star: ./mock_converterer_test.go:143:94
+  2849  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2850  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2851  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:95
+  2852  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  2853  .  .  .  .  .  .  .  .  .  }
+  2854  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2855  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:143:99
+  2856  .  .  .  .  .  .  .  .  .  .  Name: "FuncDecl"
+  2857  .  .  .  .  .  .  .  .  .  }
+  2858  .  .  .  .  .  .  .  .  }
+  2859  .  .  .  .  .  .  .  }
+  2860  .  .  .  .  .  .  }
+  2861  .  .  .  .  .  }
+  2862  .  .  .  .  .  Closing: ./mock_converterer_test.go:143:107
+  2863  .  .  .  .  }
+  2864  .  .  .  }
+  2865  .  .  .  Body: *ast.BlockStmt {
+  2866  .  .  .  .  Lbrace: ./mock_converterer_test.go:143:109
+  2867  .  .  .  .  List: []ast.Stmt (len = 5) {
+  2868  .  .  .  .  .  0: *ast.AssignStmt {
+  2869  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  2870  .  .  .  .  .  .  .  0: *ast.Ident {
+  2871  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:144:2
+  2872  .  .  .  .  .  .  .  .  Name: "params"
+  2873  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2874  .  .  .  .  .  .  .  .  .  Kind: var
+  2875  .  .  .  .  .  .  .  .  .  Name: "params"
+  2876  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2868)
+  2877  .  .  .  .  .  .  .  .  }
+  2878  .  .  .  .  .  .  .  }
+  2879  .  .  .  .  .  .  }
+  2880  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:144:9
+  2881  .  .  .  .  .  .  Tok: :=
+  2882  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2883  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+  2884  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  2885  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:144:12
+  2886  .  .  .  .  .  .  .  .  .  Name: "mockConverterer_FuncClosure_params"
+  2887  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 769)
+  2888  .  .  .  .  .  .  .  .  }
+  2889  .  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:144:46
+  2890  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 3) {
+  2891  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  2892  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2893  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:145:3
+  2894  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2895  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2785)
+  2896  .  .  .  .  .  .  .  .  .  .  }
+  2897  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:145:11
+  2898  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2899  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:145:13
+  2900  .  .  .  .  .  .  .  .  .  .  .  Name: "typeName"
+  2901  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2785)
+  2902  .  .  .  .  .  .  .  .  .  .  }
+  2903  .  .  .  .  .  .  .  .  .  }
+  2904  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  2905  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2906  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:146:3
+  2907  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  2908  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2794)
+  2909  .  .  .  .  .  .  .  .  .  .  }
+  2910  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:146:10
+  2911  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2912  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:146:13
+  2913  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  2914  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2794)
+  2915  .  .  .  .  .  .  .  .  .  .  }
+  2916  .  .  .  .  .  .  .  .  .  }
+  2917  .  .  .  .  .  .  .  .  .  2: *ast.KeyValueExpr {
+  2918  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  2919  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:147:3
+  2920  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2921  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2811)
+  2922  .  .  .  .  .  .  .  .  .  .  }
+  2923  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_converterer_test.go:147:5
+  2924  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  2925  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:147:13
+  2926  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+  2927  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2811)
+  2928  .  .  .  .  .  .  .  .  .  .  }
+  2929  .  .  .  .  .  .  .  .  .  }
+  2930  .  .  .  .  .  .  .  .  }
+  2931  .  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:148:2
+  2932  .  .  .  .  .  .  .  .  Incomplete: false
+  2933  .  .  .  .  .  .  .  }
+  2934  .  .  .  .  .  .  }
+  2935  .  .  .  .  .  }
+  2936  .  .  .  .  .  1: *ast.SendStmt {
+  2937  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
+  2938  .  .  .  .  .  .  .  X: *ast.Ident {
+  2939  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:149:2
+  2940  .  .  .  .  .  .  .  .  Name: "m"
+  2941  .  .  .  .  .  .  .  .  Obj: *(obj @ 2752)
+  2942  .  .  .  .  .  .  .  }
+  2943  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2944  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:149:4
+  2945  .  .  .  .  .  .  .  .  Name: "params_FuncClosure"
+  2946  .  .  .  .  .  .  .  }
+  2947  .  .  .  .  .  .  }
+  2948  .  .  .  .  .  .  Arrow: ./mock_converterer_test.go:149:23
+  2949  .  .  .  .  .  .  Value: *ast.Ident {
+  2950  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:149:26
+  2951  .  .  .  .  .  .  .  Name: "params"
+  2952  .  .  .  .  .  .  .  Obj: *(obj @ 2873)
+  2953  .  .  .  .  .  .  }
+  2954  .  .  .  .  .  }
+  2955  .  .  .  .  .  2: *ast.AssignStmt {
+  2956  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
+  2957  .  .  .  .  .  .  .  0: *ast.Ident {
+  2958  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:150:2
+  2959  .  .  .  .  .  .  .  .  Name: "results"
+  2960  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2961  .  .  .  .  .  .  .  .  .  Kind: var
+  2962  .  .  .  .  .  .  .  .  .  Name: "results"
+  2963  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2955)
+  2964  .  .  .  .  .  .  .  .  }
+  2965  .  .  .  .  .  .  .  }
+  2966  .  .  .  .  .  .  .  1: *ast.Ident {
+  2967  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:150:11
+  2968  .  .  .  .  .  .  .  .  Name: "ok"
+  2969  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  2970  .  .  .  .  .  .  .  .  .  Kind: var
+  2971  .  .  .  .  .  .  .  .  .  Name: "ok"
+  2972  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 2955)
+  2973  .  .  .  .  .  .  .  .  }
+  2974  .  .  .  .  .  .  .  }
+  2975  .  .  .  .  .  .  }
+  2976  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:150:14
+  2977  .  .  .  .  .  .  Tok: :=
+  2978  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  2979  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  2980  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  2981  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  2982  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:150:17
+  2983  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  2984  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2752)
+  2985  .  .  .  .  .  .  .  .  .  }
+  2986  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  2987  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:150:19
+  2988  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams_FuncClosure"
+  2989  .  .  .  .  .  .  .  .  .  }
+  2990  .  .  .  .  .  .  .  .  }
+  2991  .  .  .  .  .  .  .  .  Lbrack: ./mock_converterer_test.go:150:46
+  2992  .  .  .  .  .  .  .  .  Index: *ast.Ident {
+  2993  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:150:47
+  2994  .  .  .  .  .  .  .  .  .  Name: "params"
+  2995  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2873)
+  2996  .  .  .  .  .  .  .  .  }
+  2997  .  .  .  .  .  .  .  .  Rbrack: ./mock_converterer_test.go:150:53
+  2998  .  .  .  .  .  .  .  }
+  2999  .  .  .  .  .  .  }
+  3000  .  .  .  .  .  }
+  3001  .  .  .  .  .  3: *ast.IfStmt {
+  3002  .  .  .  .  .  .  If: ./mock_converterer_test.go:151:2
+  3003  .  .  .  .  .  .  Cond: *ast.Ident {
+  3004  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:151:5
+  3005  .  .  .  .  .  .  .  Name: "ok"
+  3006  .  .  .  .  .  .  .  Obj: *(obj @ 2969)
+  3007  .  .  .  .  .  .  }
+  3008  .  .  .  .  .  .  Body: *ast.BlockStmt {
+  3009  .  .  .  .  .  .  .  Lbrace: ./mock_converterer_test.go:151:8
+  3010  .  .  .  .  .  .  .  List: []ast.Stmt (len = 1) {
+  3011  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+  3012  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  3013  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  3014  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:152:3
+  3015  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  3016  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2840)
+  3017  .  .  .  .  .  .  .  .  .  .  }
+  3018  .  .  .  .  .  .  .  .  .  }
+  3019  .  .  .  .  .  .  .  .  .  TokPos: ./mock_converterer_test.go:152:12
+  3020  .  .  .  .  .  .  .  .  .  Tok: =
+  3021  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  3022  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  3023  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  3024  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:152:14
+  3025  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  3026  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 2960)
+  3027  .  .  .  .  .  .  .  .  .  .  .  }
+  3028  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  3029  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:152:22
+  3030  .  .  .  .  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  3031  .  .  .  .  .  .  .  .  .  .  .  }
+  3032  .  .  .  .  .  .  .  .  .  .  }
+  3033  .  .  .  .  .  .  .  .  .  }
+  3034  .  .  .  .  .  .  .  .  }
+  3035  .  .  .  .  .  .  .  }
+  3036  .  .  .  .  .  .  .  Rbrace: ./mock_converterer_test.go:153:2
+  3037  .  .  .  .  .  .  }
+  3038  .  .  .  .  .  }
+  3039  .  .  .  .  .  4: *ast.ReturnStmt {
+  3040  .  .  .  .  .  .  Return: ./mock_converterer_test.go:154:2
+  3041  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  3042  .  .  .  .  .  .  .  0: *ast.Ident {
+  3043  .  .  .  .  .  .  .  .  NamePos: ./mock_converterer_test.go:154:9
+  3044  .  .  .  .  .  .  .  .  Name: "funcDecl"
+  3045  .  .  .  .  .  .  .  .  Obj: *(obj @ 2840)
+  3046  .  .  .  .  .  .  .  }
+  3047  .  .  .  .  .  .  }
+  3048  .  .  .  .  .  }
+  3049  .  .  .  .  }
+  3050  .  .  .  .  Rbrace: ./mock_converterer_test.go:155:1
+  3051  .  .  .  }
+  3052  .  .  }
+  3053  .  }
+  3054  .  Scope: *ast.Scope {
+  3055  .  .  Objects: map[string]*ast.Object (len = 12) {
+  3056  .  .  .  "mockConverterer_FuncClosure_results": *(obj @ 844)
+  3057  .  .  .  "newMockConverterer": *(obj @ 1109)
+  3058  .  .  .  "mockConverterer_BaseStruct_params": *(obj @ 85)
+  3059  .  .  .  "mockConverterer_BaseStruct_results": *(obj @ 160)
+  3060  .  .  .  "mockConverterer_NewMockFn_params": *(obj @ 446)
+  3061  .  .  .  "mockConverterer_NewMockFn_results": *(obj @ 521)
+  3062  .  .  .  "mockConverterer_Method_results": *(obj @ 678)
+  3063  .  .  .  "mockConverterer_FuncClosure_params": *(obj @ 769)
+  3064  .  .  .  "mockConverterer": *(obj @ 56)
+  3065  .  .  .  "mockConverterer_ParamResultStruct_params": *(obj @ 251)
+  3066  .  .  .  "mockConverterer_ParamResultStruct_results": *(obj @ 355)
+  3067  .  .  .  "mockConverterer_Method_params": *(obj @ 612)
+  3068  .  .  }
+  3069  .  }
+  3070  .  Imports: []*ast.ImportSpec (len = 3) {
+  3071  .  .  0: *(obj @ 12)
+  3072  .  .  1: *(obj @ 20)
+  3073  .  .  2: *(obj @ 28)
+  3074  .  }
+  3075  .  Unresolved: []*ast.Ident (len = 39) {
+  3076  .  .  0: *(obj @ 115)
+  3077  .  .  1: *(obj @ 139)
+  3078  .  .  2: *(obj @ 190)
+  3079  .  .  3: *(obj @ 296)
+  3080  .  .  4: *(obj @ 316)
+  3081  .  .  5: *(obj @ 339)
+  3082  .  .  6: *(obj @ 385)
+  3083  .  .  7: *(obj @ 476)
+  3084  .  .  8: *(obj @ 500)
+  3085  .  .  9: *(obj @ 551)
+  3086  .  .  10: *(obj @ 639)
+  3087  .  .  11: *(obj @ 657)
+  3088  .  .  12: *(obj @ 708)
+  3089  .  .  13: *(obj @ 805)
+  3090  .  .  14: *(obj @ 823)
+  3091  .  .  15: *(obj @ 874)
+  3092  .  .  16: *(obj @ 1187)
+  3093  .  .  17: *(obj @ 1245)
+  3094  .  .  18: *(obj @ 1303)
+  3095  .  .  19: *(obj @ 1361)
+  3096  .  .  20: *(obj @ 1419)
+  3097  .  .  21: *(obj @ 1508)
+  3098  .  .  22: *(obj @ 1534)
+  3099  .  .  23: *(obj @ 1566)
+  3100  .  .  24: *(obj @ 1629)
+  3101  .  .  25: *(obj @ 1840)
+  3102  .  .  26: *(obj @ 1860)
+  3103  .  .  27: *(obj @ 1883)
+  3104  .  .  28: *(obj @ 1909)
+  3105  .  .  29: *(obj @ 2190)
+  3106  .  .  30: *(obj @ 2216)
+  3107  .  .  31: *(obj @ 2248)
+  3108  .  .  32: *(obj @ 2311)
+  3109  .  .  33: *(obj @ 2504)
+  3110  .  .  34: *(obj @ 2522)
+  3111  .  .  35: *(obj @ 2553)
+  3112  .  .  36: *(obj @ 2801)
+  3113  .  .  37: *(obj @ 2819)
+  3114  .  .  38: *(obj @ 2850)
+  3115  .  }
+  3116  .  Comments: []*ast.CommentGroup (len = 13) {
+  3117  .  .  0: *ast.CommentGroup {
+  3118  .  .  .  List: []*ast.Comment (len = 1) {
+  3119  .  .  .  .  0: *ast.Comment {
+  3120  .  .  .  .  .  Slash: ./mock_converterer_test.go:1:1
+  3121  .  .  .  .  .  Text: "// Code generated by Moqueries - https://github.com/myshkin5/moqueries - DO NOT EDIT!"
+  3122  .  .  .  .  }
+  3123  .  .  .  }
+  3124  .  .  }
+  3125  .  .  1: *(obj @ 40)
+  3126  .  .  2: *(obj @ 928)
+  3127  .  .  3: *(obj @ 945)
+  3128  .  .  4: *(obj @ 962)
+  3129  .  .  5: *(obj @ 979)
+  3130  .  .  6: *(obj @ 996)
+  3131  .  .  7: *(obj @ 1013)
+  3132  .  .  8: *(obj @ 1030)
+  3133  .  .  9: *(obj @ 1047)
+  3134  .  .  10: *(obj @ 1064)
+  3135  .  .  11: *(obj @ 1081)
+  3136  .  .  12: *(obj @ 1098)
+  3137  .  }
+  3138  }
