@@ -4,7 +4,7 @@
      3  .  .  NamePos: ./mock_loadtypesfn_test.go:3:9
      4  .  .  Name: "generator_test"
      5  .  }
-     6  .  Decls: []ast.Decl (len = 6) {
+     6  .  Decls: []ast.Decl (len = 12) {
      7  .  .  0: *ast.GenDecl {
      8  .  .  .  TokPos: ./mock_loadtypesfn_test.go:5:1
      9  .  .  .  Tok: import
@@ -80,20 +80,20 @@
     79  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
     80  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
     81  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
-    82  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:17:6
+    82  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:27:6
     83  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
     84  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
     85  .  .  .  .  .  .  .  .  .  .  .  .  .  }
     86  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
     87  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
-    88  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:17:29
+    88  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:27:29
     89  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
-    90  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:17:35
+    90  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:27:35
     91  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
     92  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
     93  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
     94  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-    95  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:17:37
+    95  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:27:37
     96  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
     97  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
     98  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
@@ -103,12 +103,12 @@
    102  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    103  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    104  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   105  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:17:41
+   105  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:27:41
    106  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
    107  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    108  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    109  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   110  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:17:48
+   110  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:27:48
    111  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    112  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
    113  .  .  .  .  .  .  .  .  .  .  .  .  .  }
@@ -123,20 +123,20 @@
    122  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_results"
    123  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *ast.TypeSpec {
    124  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: *ast.Ident {
-   125  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:20:6
+   125  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:30:6
    126  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_results"
    127  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 120)
    128  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    129  .  .  .  .  .  .  .  .  .  .  .  .  .  Assign: -
    130  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.StructType {
-   131  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:20:30
+   131  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:30:30
    132  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Fields: *ast.FieldList {
-   133  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:20:37
+   133  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:30:37
    134  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 3) {
    135  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
    136  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
    137  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   138  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:21:2
+   138  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:31:2
    139  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
    140  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
    141  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
@@ -146,16 +146,16 @@
    145  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    146  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    147  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.ArrayType {
-   148  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:21:12
+   148  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:31:12
    149  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Elt: *ast.StarExpr {
-   150  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:21:14
+   150  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:31:14
    151  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
    152  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   153  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:21:15
+   153  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:31:15
    154  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
    155  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    156  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   157  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:21:19
+   157  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:31:19
    158  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
    159  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    160  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
@@ -165,7 +165,7 @@
    164  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
    165  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
    166  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   167  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:22:2
+   167  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:32:2
    168  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
    169  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
    170  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
@@ -175,14 +175,14 @@
    174  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    175  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    176  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   177  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:22:12
+   177  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:32:12
    178  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
    179  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    180  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    181  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  2: *ast.Field {
    182  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
    183  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   184  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:23:2
+   184  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:33:2
    185  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
    186  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
    187  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
@@ -192,12 +192,12 @@
    191  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    192  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    193  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   194  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:23:12
+   194  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:33:12
    195  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "error"
    196  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    197  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    198  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   199  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:24:1
+   199  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:34:1
    200  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
    201  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
    202  .  .  .  .  .  .  .  .  .  .  .  .  .  }
@@ -243,7 +243,7 @@
    242  .  .  .  .  List: []*ast.Comment (len = 1) {
    243  .  .  .  .  .  0: *ast.Comment {
    244  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:16:1
-   245  .  .  .  .  .  .  Text: "// mockLoadTypesFn_params holds the params of the LoadTypesFn type"
+   245  .  .  .  .  .  .  Text: "// mockLoadTypesFn_mock isolates the mock interface of the LoadTypesFn type"
    246  .  .  .  .  .  }
    247  .  .  .  .  }
    248  .  .  .  }
@@ -251,576 +251,1361 @@
    250  .  .  .  Tok: type
    251  .  .  .  Lparen: -
    252  .  .  .  Specs: []ast.Spec (len = 1) {
-   253  .  .  .  .  0: *(obj @ 80)
-   254  .  .  .  }
-   255  .  .  .  Rparen: -
-   256  .  .  }
-   257  .  .  3: *ast.GenDecl {
-   258  .  .  .  Doc: *ast.CommentGroup {
-   259  .  .  .  .  List: []*ast.Comment (len = 1) {
-   260  .  .  .  .  .  0: *ast.Comment {
-   261  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:19:1
-   262  .  .  .  .  .  .  Text: "// mockLoadTypesFn_results holds the results of the LoadTypesFn type"
-   263  .  .  .  .  .  }
-   264  .  .  .  .  }
-   265  .  .  .  }
-   266  .  .  .  TokPos: ./mock_loadtypesfn_test.go:20:1
-   267  .  .  .  Tok: type
-   268  .  .  .  Lparen: -
-   269  .  .  .  Specs: []ast.Spec (len = 1) {
-   270  .  .  .  .  0: *(obj @ 123)
-   271  .  .  .  }
-   272  .  .  .  Rparen: -
-   273  .  .  }
-   274  .  .  4: *ast.FuncDecl {
-   275  .  .  .  Doc: *ast.CommentGroup {
-   276  .  .  .  .  List: []*ast.Comment (len = 1) {
-   277  .  .  .  .  .  0: *ast.Comment {
-   278  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:26:1
-   279  .  .  .  .  .  .  Text: "// newMockLoadTypesFn creates a new mock of the LoadTypesFn type"
-   280  .  .  .  .  .  }
-   281  .  .  .  .  }
-   282  .  .  .  }
-   283  .  .  .  Name: *ast.Ident {
-   284  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:27:6
-   285  .  .  .  .  Name: "newMockLoadTypesFn"
-   286  .  .  .  .  Obj: *ast.Object {
-   287  .  .  .  .  .  Kind: func
-   288  .  .  .  .  .  Name: "newMockLoadTypesFn"
-   289  .  .  .  .  .  Decl: *(obj @ 274)
-   290  .  .  .  .  }
-   291  .  .  .  }
-   292  .  .  .  Type: *ast.FuncType {
-   293  .  .  .  .  Func: ./mock_loadtypesfn_test.go:27:1
-   294  .  .  .  .  Params: *ast.FieldList {
-   295  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:27:24
-   296  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:27:25
-   297  .  .  .  .  }
-   298  .  .  .  .  Results: *ast.FieldList {
-   299  .  .  .  .  .  Opening: -
-   300  .  .  .  .  .  List: []*ast.Field (len = 1) {
-   301  .  .  .  .  .  .  0: *ast.Field {
-   302  .  .  .  .  .  .  .  Type: *ast.StarExpr {
-   303  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:27:27
-   304  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   305  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:27:28
-   306  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
-   307  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
-   308  .  .  .  .  .  .  .  .  }
-   309  .  .  .  .  .  .  .  }
-   310  .  .  .  .  .  .  }
-   311  .  .  .  .  .  }
-   312  .  .  .  .  .  Closing: -
-   313  .  .  .  .  }
-   314  .  .  .  }
-   315  .  .  .  Body: *ast.BlockStmt {
-   316  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:27:44
-   317  .  .  .  .  List: []ast.Stmt (len = 1) {
-   318  .  .  .  .  .  0: *ast.ReturnStmt {
-   319  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:28:2
-   320  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
-   321  .  .  .  .  .  .  .  0: *ast.UnaryExpr {
-   322  .  .  .  .  .  .  .  .  OpPos: ./mock_loadtypesfn_test.go:28:9
-   323  .  .  .  .  .  .  .  .  Op: &
-   324  .  .  .  .  .  .  .  .  X: *ast.CompositeLit {
-   325  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   326  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:28:10
-   327  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
-   328  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
-   329  .  .  .  .  .  .  .  .  .  }
-   330  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:28:25
-   331  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 2) {
-   332  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
-   333  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
-   334  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:29:3
-   335  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams"
-   336  .  .  .  .  .  .  .  .  .  .  .  }
-   337  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:29:18
-   338  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
-   339  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
-   340  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_loadtypesfn_test.go:29:20
-   341  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
-   342  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:29:24
-   343  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
-   344  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
-   345  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   346  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
-   347  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:29:47
-   348  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_results"
-   349  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 120)
-   350  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   351  .  .  .  .  .  .  .  .  .  .  .  .  }
-   352  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:29:70
-   353  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:29:71
-   354  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
-   355  .  .  .  .  .  .  .  .  .  .  .  }
-   356  .  .  .  .  .  .  .  .  .  .  }
-   357  .  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
-   358  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
-   359  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:30:3
-   360  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
-   361  .  .  .  .  .  .  .  .  .  .  .  }
-   362  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:30:9
-   363  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
-   364  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
-   365  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:30:20
-   366  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
-   367  .  .  .  .  .  .  .  .  .  .  .  .  }
-   368  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_loadtypesfn_test.go:30:24
-   369  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
-   370  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
-   371  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_loadtypesfn_test.go:30:25
-   372  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
-   373  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
-   374  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
-   375  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:30:30
-   376  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
-   377  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
-   378  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   379  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   380  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
-   381  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_loadtypesfn_test.go:30:54
-   382  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
-   383  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
-   384  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   385  .  .  .  .  .  .  .  .  .  .  .  .  }
-   386  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
-   387  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_loadtypesfn_test.go:30:57
-   388  .  .  .  .  .  .  .  .  .  .  .  }
-   389  .  .  .  .  .  .  .  .  .  .  }
-   390  .  .  .  .  .  .  .  .  .  }
-   391  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:31:2
-   392  .  .  .  .  .  .  .  .  .  Incomplete: false
-   393  .  .  .  .  .  .  .  .  }
-   394  .  .  .  .  .  .  .  }
-   395  .  .  .  .  .  .  }
-   396  .  .  .  .  .  }
-   397  .  .  .  .  }
-   398  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:32:1
-   399  .  .  .  }
-   400  .  .  }
-   401  .  .  5: *ast.FuncDecl {
-   402  .  .  .  Recv: *ast.FieldList {
-   403  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:34:6
-   404  .  .  .  .  List: []*ast.Field (len = 1) {
-   405  .  .  .  .  .  0: *ast.Field {
-   406  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
-   407  .  .  .  .  .  .  .  0: *ast.Ident {
-   408  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:34:7
-   409  .  .  .  .  .  .  .  .  Name: "m"
-   410  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   411  .  .  .  .  .  .  .  .  .  Kind: var
-   412  .  .  .  .  .  .  .  .  .  Name: "m"
-   413  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 405)
-   414  .  .  .  .  .  .  .  .  }
-   415  .  .  .  .  .  .  .  }
-   416  .  .  .  .  .  .  }
-   417  .  .  .  .  .  .  Type: *ast.StarExpr {
-   418  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:34:9
-   419  .  .  .  .  .  .  .  X: *ast.Ident {
-   420  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:34:10
-   421  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
-   422  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
-   423  .  .  .  .  .  .  .  }
-   424  .  .  .  .  .  .  }
-   425  .  .  .  .  .  }
-   426  .  .  .  .  }
-   427  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:34:25
-   428  .  .  .  }
-   429  .  .  .  Name: *ast.Ident {
-   430  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:34:27
-   431  .  .  .  .  Name: "fn"
-   432  .  .  .  }
-   433  .  .  .  Type: *ast.FuncType {
-   434  .  .  .  .  Func: ./mock_loadtypesfn_test.go:34:1
-   435  .  .  .  .  Params: *ast.FieldList {
-   436  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:34:29
-   437  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:34:30
-   438  .  .  .  .  }
-   439  .  .  .  .  Results: *ast.FieldList {
-   440  .  .  .  .  .  Opening: -
-   441  .  .  .  .  .  List: []*ast.Field (len = 1) {
-   442  .  .  .  .  .  .  0: *ast.Field {
-   443  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
-   444  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   445  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:34:32
-   446  .  .  .  .  .  .  .  .  .  Name: "generator"
-   447  .  .  .  .  .  .  .  .  }
-   448  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   449  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:34:42
-   450  .  .  .  .  .  .  .  .  .  Name: "LoadTypesFn"
-   451  .  .  .  .  .  .  .  .  }
-   452  .  .  .  .  .  .  .  }
-   453  .  .  .  .  .  .  }
-   454  .  .  .  .  .  }
-   455  .  .  .  .  .  Closing: -
-   456  .  .  .  .  }
-   457  .  .  .  }
-   458  .  .  .  Body: *ast.BlockStmt {
-   459  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:34:54
-   460  .  .  .  .  List: []ast.Stmt (len = 1) {
-   461  .  .  .  .  .  0: *ast.ReturnStmt {
-   462  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:35:2
-   463  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
-   464  .  .  .  .  .  .  .  0: *ast.FuncLit {
-   465  .  .  .  .  .  .  .  .  Type: *ast.FuncType {
-   466  .  .  .  .  .  .  .  .  .  Func: ./mock_loadtypesfn_test.go:35:9
-   467  .  .  .  .  .  .  .  .  .  Params: *ast.FieldList {
-   468  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:35:13
-   469  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
-   470  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
-   471  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
-   472  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   473  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:14
-   474  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
-   475  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   476  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   477  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
-   478  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 470)
-   479  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   480  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   481  .  .  .  .  .  .  .  .  .  .  .  .  }
-   482  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   483  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:18
-   484  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
-   485  .  .  .  .  .  .  .  .  .  .  .  .  }
-   486  .  .  .  .  .  .  .  .  .  .  .  }
-   487  .  .  .  .  .  .  .  .  .  .  }
-   488  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:35:24
-   489  .  .  .  .  .  .  .  .  .  }
-   490  .  .  .  .  .  .  .  .  .  Results: *ast.FieldList {
-   491  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:35:26
-   492  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 3) {
-   493  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
-   494  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
-   495  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   496  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:27
-   497  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
-   498  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   499  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   500  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
-   501  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 493)
-   502  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   503  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   504  .  .  .  .  .  .  .  .  .  .  .  .  }
-   505  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.ArrayType {
-   506  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:35:37
-   507  .  .  .  .  .  .  .  .  .  .  .  .  .  Elt: *ast.StarExpr {
-   508  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:35:39
-   509  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
-   510  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   511  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:40
-   512  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
-   513  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   514  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   515  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:44
-   516  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
-   517  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   518  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   519  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   520  .  .  .  .  .  .  .  .  .  .  .  .  }
-   521  .  .  .  .  .  .  .  .  .  .  .  }
-   522  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
-   523  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
-   524  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   525  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:54
-   526  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
-   527  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   528  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   529  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
-   530  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 522)
-   531  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   532  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   533  .  .  .  .  .  .  .  .  .  .  .  .  }
-   534  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   535  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:62
-   536  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
-   537  .  .  .  .  .  .  .  .  .  .  .  .  }
-   538  .  .  .  .  .  .  .  .  .  .  .  }
-   539  .  .  .  .  .  .  .  .  .  .  .  2: *ast.Field {
-   540  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
-   541  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   542  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:70
-   543  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
-   544  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   545  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   546  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
-   547  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 539)
-   548  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   549  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   550  .  .  .  .  .  .  .  .  .  .  .  .  }
-   551  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   552  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:35:74
-   553  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "error"
-   554  .  .  .  .  .  .  .  .  .  .  .  .  }
-   555  .  .  .  .  .  .  .  .  .  .  .  }
-   556  .  .  .  .  .  .  .  .  .  .  }
-   557  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:35:79
-   558  .  .  .  .  .  .  .  .  .  }
-   559  .  .  .  .  .  .  .  .  }
-   560  .  .  .  .  .  .  .  .  Body: *ast.BlockStmt {
-   561  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:35:81
-   562  .  .  .  .  .  .  .  .  .  List: []ast.Stmt (len = 5) {
-   563  .  .  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
-   564  .  .  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
-   565  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   566  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:36:3
-   567  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
-   568  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   569  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   570  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
-   571  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 563)
-   572  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   573  .  .  .  .  .  .  .  .  .  .  .  .  }
-   574  .  .  .  .  .  .  .  .  .  .  .  }
-   575  .  .  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:36:10
-   576  .  .  .  .  .  .  .  .  .  .  .  Tok: :=
-   577  .  .  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
-   578  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.CompositeLit {
-   579  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
-   580  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:36:13
-   581  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
-   582  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
-   583  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   584  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:36:35
-   585  .  .  .  .  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 1) {
-   586  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
-   587  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
-   588  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:37:4
-   589  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
-   590  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 475)
-   591  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   592  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:37:7
-   593  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
-   594  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:37:9
-   595  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
-   596  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 475)
-   597  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   598  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   599  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   600  .  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:38:3
-   601  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
-   602  .  .  .  .  .  .  .  .  .  .  .  .  }
-   603  .  .  .  .  .  .  .  .  .  .  .  }
-   604  .  .  .  .  .  .  .  .  .  .  }
-   605  .  .  .  .  .  .  .  .  .  .  1: *ast.SendStmt {
-   606  .  .  .  .  .  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
-   607  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   608  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:39:3
-   609  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "m"
-   610  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 410)
-   611  .  .  .  .  .  .  .  .  .  .  .  .  }
-   612  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   613  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:39:5
-   614  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
-   615  .  .  .  .  .  .  .  .  .  .  .  .  }
-   616  .  .  .  .  .  .  .  .  .  .  .  }
-   617  .  .  .  .  .  .  .  .  .  .  .  Arrow: ./mock_loadtypesfn_test.go:39:12
-   618  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
-   619  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:39:15
-   620  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
-   621  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 568)
-   622  .  .  .  .  .  .  .  .  .  .  .  }
-   623  .  .  .  .  .  .  .  .  .  .  }
-   624  .  .  .  .  .  .  .  .  .  .  2: *ast.AssignStmt {
-   625  .  .  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
-   626  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   627  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:40:3
-   628  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
-   629  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   630  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   631  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
-   632  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 624)
-   633  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   634  .  .  .  .  .  .  .  .  .  .  .  .  }
-   635  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Ident {
-   636  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:40:12
-   637  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "ok"
-   638  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
-   639  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
-   640  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "ok"
-   641  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 624)
-   642  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   643  .  .  .  .  .  .  .  .  .  .  .  .  }
-   644  .  .  .  .  .  .  .  .  .  .  .  }
-   645  .  .  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:40:15
-   646  .  .  .  .  .  .  .  .  .  .  .  Tok: :=
-   647  .  .  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
-   648  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.IndexExpr {
-   649  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
-   650  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   651  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:40:18
-   652  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "m"
-   653  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 410)
-   654  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   655  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   656  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:40:20
-   657  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams"
-   658  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   659  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   660  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:40:35
-   661  .  .  .  .  .  .  .  .  .  .  .  .  .  Index: *ast.Ident {
-   662  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:40:36
-   663  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
-   664  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 568)
-   665  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   666  .  .  .  .  .  .  .  .  .  .  .  .  .  Rbrack: ./mock_loadtypesfn_test.go:40:42
-   667  .  .  .  .  .  .  .  .  .  .  .  .  }
-   668  .  .  .  .  .  .  .  .  .  .  .  }
-   669  .  .  .  .  .  .  .  .  .  .  }
-   670  .  .  .  .  .  .  .  .  .  .  3: *ast.IfStmt {
-   671  .  .  .  .  .  .  .  .  .  .  .  If: ./mock_loadtypesfn_test.go:41:3
-   672  .  .  .  .  .  .  .  .  .  .  .  Cond: *ast.Ident {
-   673  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:41:6
-   674  .  .  .  .  .  .  .  .  .  .  .  .  Name: "ok"
-   675  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 638)
-   676  .  .  .  .  .  .  .  .  .  .  .  }
-   677  .  .  .  .  .  .  .  .  .  .  .  Body: *ast.BlockStmt {
-   678  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:41:9
-   679  .  .  .  .  .  .  .  .  .  .  .  .  List: []ast.Stmt (len = 3) {
-   680  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
-   681  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
-   682  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   683  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:42:4
-   684  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
-   685  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 498)
-   686  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   687  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   688  .  .  .  .  .  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:42:14
-   689  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Tok: =
-   690  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
-   691  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
-   692  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   693  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:42:16
-   694  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
-   695  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 629)
-   696  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   697  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   698  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:42:24
-   699  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
-   700  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   701  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   702  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   703  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   704  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.AssignStmt {
-   705  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
-   706  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   707  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:43:4
-   708  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
-   709  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 527)
-   710  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   711  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   712  .  .  .  .  .  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:43:12
-   713  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Tok: =
-   714  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
-   715  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
-   716  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   717  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:43:14
-   718  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
-   719  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 629)
-   720  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   721  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   722  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:43:22
-   723  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
-   724  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   725  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   726  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   727  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   728  .  .  .  .  .  .  .  .  .  .  .  .  .  2: *ast.AssignStmt {
-   729  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
-   730  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   731  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:44:4
-   732  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
-   733  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 544)
-   734  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   735  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   736  .  .  .  .  .  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:44:8
-   737  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Tok: =
-   738  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
-   739  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
-   740  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
-   741  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:44:10
-   742  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
-   743  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 629)
-   744  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   745  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
-   746  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:44:18
-   747  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
-   748  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   749  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   750  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   751  .  .  .  .  .  .  .  .  .  .  .  .  .  }
-   752  .  .  .  .  .  .  .  .  .  .  .  .  }
-   753  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:45:3
-   754  .  .  .  .  .  .  .  .  .  .  .  }
-   755  .  .  .  .  .  .  .  .  .  .  }
-   756  .  .  .  .  .  .  .  .  .  .  4: *ast.ReturnStmt {
-   757  .  .  .  .  .  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:46:3
-   758  .  .  .  .  .  .  .  .  .  .  .  Results: []ast.Expr (len = 3) {
-   759  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
-   760  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:46:10
-   761  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
-   762  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 498)
-   763  .  .  .  .  .  .  .  .  .  .  .  .  }
-   764  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Ident {
-   765  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:46:21
-   766  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
-   767  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 527)
-   768  .  .  .  .  .  .  .  .  .  .  .  .  }
-   769  .  .  .  .  .  .  .  .  .  .  .  .  2: *ast.Ident {
-   770  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:46:30
-   771  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
-   772  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 544)
-   773  .  .  .  .  .  .  .  .  .  .  .  .  }
-   774  .  .  .  .  .  .  .  .  .  .  .  }
-   775  .  .  .  .  .  .  .  .  .  .  }
-   776  .  .  .  .  .  .  .  .  .  }
-   777  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:47:2
-   778  .  .  .  .  .  .  .  .  }
-   779  .  .  .  .  .  .  .  }
-   780  .  .  .  .  .  .  }
-   781  .  .  .  .  .  }
-   782  .  .  .  .  }
-   783  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:48:1
-   784  .  .  .  }
-   785  .  .  }
-   786  .  }
-   787  .  Scope: *ast.Scope {
-   788  .  .  Objects: map[string]*ast.Object (len = 4) {
-   789  .  .  .  "mockLoadTypesFn": *(obj @ 48)
-   790  .  .  .  "mockLoadTypesFn_params": *(obj @ 77)
-   791  .  .  .  "mockLoadTypesFn_results": *(obj @ 120)
-   792  .  .  .  "newMockLoadTypesFn": *(obj @ 286)
-   793  .  .  }
-   794  .  }
-   795  .  Imports: []*ast.ImportSpec (len = 2) {
-   796  .  .  0: *(obj @ 12)
-   797  .  .  1: *(obj @ 20)
-   798  .  }
-   799  .  Unresolved: []*ast.Ident (len = 10) {
-   800  .  .  0: *(obj @ 104)
-   801  .  .  1: *(obj @ 152)
-   802  .  .  2: *(obj @ 176)
-   803  .  .  3: *(obj @ 193)
-   804  .  .  4: *(obj @ 364)
-   805  .  .  5: *(obj @ 444)
-   806  .  .  6: *(obj @ 482)
-   807  .  .  7: *(obj @ 510)
-   808  .  .  8: *(obj @ 534)
-   809  .  .  9: *(obj @ 551)
-   810  .  }
-   811  .  Comments: []*ast.CommentGroup (len = 5) {
-   812  .  .  0: *ast.CommentGroup {
-   813  .  .  .  List: []*ast.Comment (len = 1) {
-   814  .  .  .  .  0: *ast.Comment {
-   815  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:1:1
-   816  .  .  .  .  .  Text: "// Code generated by Moqueries - https://github.com/myshkin5/moqueries - DO NOT EDIT!"
-   817  .  .  .  .  }
-   818  .  .  .  }
-   819  .  .  }
-   820  .  .  1: *(obj @ 32)
-   821  .  .  2: *(obj @ 241)
-   822  .  .  3: *(obj @ 258)
-   823  .  .  4: *(obj @ 275)
-   824  .  }
-   825  }
+   253  .  .  .  .  0: *ast.TypeSpec {
+   254  .  .  .  .  .  Name: *ast.Ident {
+   255  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:17:6
+   256  .  .  .  .  .  .  Name: "mockLoadTypesFn_mock"
+   257  .  .  .  .  .  .  Obj: *ast.Object {
+   258  .  .  .  .  .  .  .  Kind: type
+   259  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_mock"
+   260  .  .  .  .  .  .  .  Decl: *(obj @ 253)
+   261  .  .  .  .  .  .  }
+   262  .  .  .  .  .  }
+   263  .  .  .  .  .  Assign: -
+   264  .  .  .  .  .  Type: *ast.StructType {
+   265  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:17:27
+   266  .  .  .  .  .  .  Fields: *ast.FieldList {
+   267  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:17:34
+   268  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   269  .  .  .  .  .  .  .  .  0: *ast.Field {
+   270  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   271  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   272  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:18:2
+   273  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   274  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   275  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   276  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   277  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 269)
+   278  .  .  .  .  .  .  .  .  .  .  .  }
+   279  .  .  .  .  .  .  .  .  .  .  }
+   280  .  .  .  .  .  .  .  .  .  }
+   281  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   282  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:18:7
+   283  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   284  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:18:8
+   285  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+   286  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+   287  .  .  .  .  .  .  .  .  .  .  }
+   288  .  .  .  .  .  .  .  .  .  }
+   289  .  .  .  .  .  .  .  .  }
+   290  .  .  .  .  .  .  .  }
+   291  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:19:1
+   292  .  .  .  .  .  .  }
+   293  .  .  .  .  .  .  Incomplete: false
+   294  .  .  .  .  .  }
+   295  .  .  .  .  }
+   296  .  .  .  }
+   297  .  .  .  Rparen: -
+   298  .  .  }
+   299  .  .  3: *ast.GenDecl {
+   300  .  .  .  Doc: *ast.CommentGroup {
+   301  .  .  .  .  List: []*ast.Comment (len = 1) {
+   302  .  .  .  .  .  0: *ast.Comment {
+   303  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:21:1
+   304  .  .  .  .  .  .  Text: "// mockLoadTypesFn_recorder isolates the recorder interface of the LoadTypesFn type"
+   305  .  .  .  .  .  }
+   306  .  .  .  .  }
+   307  .  .  .  }
+   308  .  .  .  TokPos: ./mock_loadtypesfn_test.go:22:1
+   309  .  .  .  Tok: type
+   310  .  .  .  Lparen: -
+   311  .  .  .  Specs: []ast.Spec (len = 1) {
+   312  .  .  .  .  0: *ast.TypeSpec {
+   313  .  .  .  .  .  Name: *ast.Ident {
+   314  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:22:6
+   315  .  .  .  .  .  .  Name: "mockLoadTypesFn_recorder"
+   316  .  .  .  .  .  .  Obj: *ast.Object {
+   317  .  .  .  .  .  .  .  Kind: type
+   318  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_recorder"
+   319  .  .  .  .  .  .  .  Decl: *(obj @ 312)
+   320  .  .  .  .  .  .  }
+   321  .  .  .  .  .  }
+   322  .  .  .  .  .  Assign: -
+   323  .  .  .  .  .  Type: *ast.StructType {
+   324  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:22:31
+   325  .  .  .  .  .  .  Fields: *ast.FieldList {
+   326  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:22:38
+   327  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   328  .  .  .  .  .  .  .  .  0: *ast.Field {
+   329  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   330  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   331  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:23:2
+   332  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   333  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   334  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   335  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   336  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 328)
+   337  .  .  .  .  .  .  .  .  .  .  .  }
+   338  .  .  .  .  .  .  .  .  .  .  }
+   339  .  .  .  .  .  .  .  .  .  }
+   340  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   341  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:23:7
+   342  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   343  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:23:8
+   344  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+   345  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+   346  .  .  .  .  .  .  .  .  .  .  }
+   347  .  .  .  .  .  .  .  .  .  }
+   348  .  .  .  .  .  .  .  .  }
+   349  .  .  .  .  .  .  .  }
+   350  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:24:1
+   351  .  .  .  .  .  .  }
+   352  .  .  .  .  .  .  Incomplete: false
+   353  .  .  .  .  .  }
+   354  .  .  .  .  }
+   355  .  .  .  }
+   356  .  .  .  Rparen: -
+   357  .  .  }
+   358  .  .  4: *ast.GenDecl {
+   359  .  .  .  Doc: *ast.CommentGroup {
+   360  .  .  .  .  List: []*ast.Comment (len = 1) {
+   361  .  .  .  .  .  0: *ast.Comment {
+   362  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:26:1
+   363  .  .  .  .  .  .  Text: "// mockLoadTypesFn_params holds the params of the LoadTypesFn type"
+   364  .  .  .  .  .  }
+   365  .  .  .  .  }
+   366  .  .  .  }
+   367  .  .  .  TokPos: ./mock_loadtypesfn_test.go:27:1
+   368  .  .  .  Tok: type
+   369  .  .  .  Lparen: -
+   370  .  .  .  Specs: []ast.Spec (len = 1) {
+   371  .  .  .  .  0: *(obj @ 80)
+   372  .  .  .  }
+   373  .  .  .  Rparen: -
+   374  .  .  }
+   375  .  .  5: *ast.GenDecl {
+   376  .  .  .  Doc: *ast.CommentGroup {
+   377  .  .  .  .  List: []*ast.Comment (len = 1) {
+   378  .  .  .  .  .  0: *ast.Comment {
+   379  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:29:1
+   380  .  .  .  .  .  .  Text: "// mockLoadTypesFn_results holds the results of the LoadTypesFn type"
+   381  .  .  .  .  .  }
+   382  .  .  .  .  }
+   383  .  .  .  }
+   384  .  .  .  TokPos: ./mock_loadtypesfn_test.go:30:1
+   385  .  .  .  Tok: type
+   386  .  .  .  Lparen: -
+   387  .  .  .  Specs: []ast.Spec (len = 1) {
+   388  .  .  .  .  0: *(obj @ 123)
+   389  .  .  .  }
+   390  .  .  .  Rparen: -
+   391  .  .  }
+   392  .  .  6: *ast.GenDecl {
+   393  .  .  .  Doc: *ast.CommentGroup {
+   394  .  .  .  .  List: []*ast.Comment (len = 1) {
+   395  .  .  .  .  .  0: *ast.Comment {
+   396  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:36:1
+   397  .  .  .  .  .  .  Text: "// mockLoadTypesFn_fnRecorder routes recorded function calls to the mockLoadTypesFn mock"
+   398  .  .  .  .  .  }
+   399  .  .  .  .  }
+   400  .  .  .  }
+   401  .  .  .  TokPos: ./mock_loadtypesfn_test.go:37:1
+   402  .  .  .  Tok: type
+   403  .  .  .  Lparen: -
+   404  .  .  .  Specs: []ast.Spec (len = 1) {
+   405  .  .  .  .  0: *ast.TypeSpec {
+   406  .  .  .  .  .  Name: *ast.Ident {
+   407  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:37:6
+   408  .  .  .  .  .  .  Name: "mockLoadTypesFn_fnRecorder"
+   409  .  .  .  .  .  .  Obj: *ast.Object {
+   410  .  .  .  .  .  .  .  Kind: type
+   411  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_fnRecorder"
+   412  .  .  .  .  .  .  .  Decl: *(obj @ 405)
+   413  .  .  .  .  .  .  }
+   414  .  .  .  .  .  }
+   415  .  .  .  .  .  Assign: -
+   416  .  .  .  .  .  Type: *ast.StructType {
+   417  .  .  .  .  .  .  Struct: ./mock_loadtypesfn_test.go:37:33
+   418  .  .  .  .  .  .  Fields: *ast.FieldList {
+   419  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:37:40
+   420  .  .  .  .  .  .  .  List: []*ast.Field (len = 2) {
+   421  .  .  .  .  .  .  .  .  0: *ast.Field {
+   422  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   423  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   424  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:38:2
+   425  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
+   426  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   427  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   428  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
+   429  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 421)
+   430  .  .  .  .  .  .  .  .  .  .  .  }
+   431  .  .  .  .  .  .  .  .  .  .  }
+   432  .  .  .  .  .  .  .  .  .  }
+   433  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   434  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:38:9
+   435  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
+   436  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
+   437  .  .  .  .  .  .  .  .  .  }
+   438  .  .  .  .  .  .  .  .  }
+   439  .  .  .  .  .  .  .  .  1: *ast.Field {
+   440  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   441  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   442  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:39:2
+   443  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   444  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   445  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   446  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   447  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 439)
+   448  .  .  .  .  .  .  .  .  .  .  .  }
+   449  .  .  .  .  .  .  .  .  .  .  }
+   450  .  .  .  .  .  .  .  .  .  }
+   451  .  .  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   452  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:39:9
+   453  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   454  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:39:10
+   455  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+   456  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+   457  .  .  .  .  .  .  .  .  .  .  }
+   458  .  .  .  .  .  .  .  .  .  }
+   459  .  .  .  .  .  .  .  .  }
+   460  .  .  .  .  .  .  .  }
+   461  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:40:1
+   462  .  .  .  .  .  .  }
+   463  .  .  .  .  .  .  Incomplete: false
+   464  .  .  .  .  .  }
+   465  .  .  .  .  }
+   466  .  .  .  }
+   467  .  .  .  Rparen: -
+   468  .  .  }
+   469  .  .  7: *ast.FuncDecl {
+   470  .  .  .  Doc: *ast.CommentGroup {
+   471  .  .  .  .  List: []*ast.Comment (len = 1) {
+   472  .  .  .  .  .  0: *ast.Comment {
+   473  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:42:1
+   474  .  .  .  .  .  .  Text: "// newMockLoadTypesFn creates a new mock of the LoadTypesFn type"
+   475  .  .  .  .  .  }
+   476  .  .  .  .  }
+   477  .  .  .  }
+   478  .  .  .  Name: *ast.Ident {
+   479  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:43:6
+   480  .  .  .  .  Name: "newMockLoadTypesFn"
+   481  .  .  .  .  Obj: *ast.Object {
+   482  .  .  .  .  .  Kind: func
+   483  .  .  .  .  .  Name: "newMockLoadTypesFn"
+   484  .  .  .  .  .  Decl: *(obj @ 469)
+   485  .  .  .  .  }
+   486  .  .  .  }
+   487  .  .  .  Type: *ast.FuncType {
+   488  .  .  .  .  Func: ./mock_loadtypesfn_test.go:43:1
+   489  .  .  .  .  Params: *ast.FieldList {
+   490  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:43:24
+   491  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:43:25
+   492  .  .  .  .  }
+   493  .  .  .  .  Results: *ast.FieldList {
+   494  .  .  .  .  .  Opening: -
+   495  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   496  .  .  .  .  .  .  0: *ast.Field {
+   497  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+   498  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:43:27
+   499  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   500  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:43:28
+   501  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+   502  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+   503  .  .  .  .  .  .  .  .  }
+   504  .  .  .  .  .  .  .  }
+   505  .  .  .  .  .  .  }
+   506  .  .  .  .  .  }
+   507  .  .  .  .  .  Closing: -
+   508  .  .  .  .  }
+   509  .  .  .  }
+   510  .  .  .  Body: *ast.BlockStmt {
+   511  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:43:44
+   512  .  .  .  .  List: []ast.Stmt (len = 1) {
+   513  .  .  .  .  .  0: *ast.ReturnStmt {
+   514  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:44:2
+   515  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+   516  .  .  .  .  .  .  .  0: *ast.UnaryExpr {
+   517  .  .  .  .  .  .  .  .  OpPos: ./mock_loadtypesfn_test.go:44:9
+   518  .  .  .  .  .  .  .  .  Op: &
+   519  .  .  .  .  .  .  .  .  X: *ast.CompositeLit {
+   520  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   521  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:44:10
+   522  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+   523  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+   524  .  .  .  .  .  .  .  .  .  }
+   525  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:44:25
+   526  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 2) {
+   527  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+   528  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   529  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:45:3
+   530  .  .  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams"
+   531  .  .  .  .  .  .  .  .  .  .  .  }
+   532  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:45:18
+   533  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+   534  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.MapType {
+   535  .  .  .  .  .  .  .  .  .  .  .  .  .  Map: ./mock_loadtypesfn_test.go:45:20
+   536  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   537  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:45:24
+   538  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
+   539  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
+   540  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   541  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   542  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:45:47
+   543  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_results"
+   544  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 120)
+   545  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   546  .  .  .  .  .  .  .  .  .  .  .  .  }
+   547  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:45:70
+   548  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:45:71
+   549  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   550  .  .  .  .  .  .  .  .  .  .  .  }
+   551  .  .  .  .  .  .  .  .  .  .  }
+   552  .  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+   553  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   554  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:46:3
+   555  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
+   556  .  .  .  .  .  .  .  .  .  .  .  }
+   557  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:46:9
+   558  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CallExpr {
+   559  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.Ident {
+   560  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:46:20
+   561  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "make"
+   562  .  .  .  .  .  .  .  .  .  .  .  .  }
+   563  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_loadtypesfn_test.go:46:24
+   564  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 2) {
+   565  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.ChanType {
+   566  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Begin: ./mock_loadtypesfn_test.go:46:25
+   567  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Arrow: -
+   568  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Dir: 3
+   569  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   570  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:46:30
+   571  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
+   572  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
+   573  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   574  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   575  .  .  .  .  .  .  .  .  .  .  .  .  .  1: *ast.BasicLit {
+   576  .  .  .  .  .  .  .  .  .  .  .  .  .  .  ValuePos: ./mock_loadtypesfn_test.go:46:54
+   577  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: INT
+   578  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: "100"
+   579  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   580  .  .  .  .  .  .  .  .  .  .  .  .  }
+   581  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+   582  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_loadtypesfn_test.go:46:57
+   583  .  .  .  .  .  .  .  .  .  .  .  }
+   584  .  .  .  .  .  .  .  .  .  .  }
+   585  .  .  .  .  .  .  .  .  .  }
+   586  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:47:2
+   587  .  .  .  .  .  .  .  .  .  Incomplete: false
+   588  .  .  .  .  .  .  .  .  }
+   589  .  .  .  .  .  .  .  }
+   590  .  .  .  .  .  .  }
+   591  .  .  .  .  .  }
+   592  .  .  .  .  }
+   593  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:48:1
+   594  .  .  .  }
+   595  .  .  }
+   596  .  .  8: *ast.FuncDecl {
+   597  .  .  .  Doc: *ast.CommentGroup {
+   598  .  .  .  .  List: []*ast.Comment (len = 1) {
+   599  .  .  .  .  .  0: *ast.Comment {
+   600  .  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:50:1
+   601  .  .  .  .  .  .  Text: "// mock returns the mock implementation of the LoadTypesFn type"
+   602  .  .  .  .  .  }
+   603  .  .  .  .  }
+   604  .  .  .  }
+   605  .  .  .  Recv: *ast.FieldList {
+   606  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:51:6
+   607  .  .  .  .  List: []*ast.Field (len = 1) {
+   608  .  .  .  .  .  0: *ast.Field {
+   609  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   610  .  .  .  .  .  .  .  0: *ast.Ident {
+   611  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:51:7
+   612  .  .  .  .  .  .  .  .  Name: "m"
+   613  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   614  .  .  .  .  .  .  .  .  .  Kind: var
+   615  .  .  .  .  .  .  .  .  .  Name: "m"
+   616  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 608)
+   617  .  .  .  .  .  .  .  .  }
+   618  .  .  .  .  .  .  .  }
+   619  .  .  .  .  .  .  }
+   620  .  .  .  .  .  .  Type: *ast.StarExpr {
+   621  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:51:9
+   622  .  .  .  .  .  .  .  X: *ast.Ident {
+   623  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:51:10
+   624  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+   625  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+   626  .  .  .  .  .  .  .  }
+   627  .  .  .  .  .  .  }
+   628  .  .  .  .  .  }
+   629  .  .  .  .  }
+   630  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:51:25
+   631  .  .  .  }
+   632  .  .  .  Name: *ast.Ident {
+   633  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:51:27
+   634  .  .  .  .  Name: "mock"
+   635  .  .  .  }
+   636  .  .  .  Type: *ast.FuncType {
+   637  .  .  .  .  Func: ./mock_loadtypesfn_test.go:51:1
+   638  .  .  .  .  Params: *ast.FieldList {
+   639  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:51:31
+   640  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:51:32
+   641  .  .  .  .  }
+   642  .  .  .  .  Results: *ast.FieldList {
+   643  .  .  .  .  .  Opening: -
+   644  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   645  .  .  .  .  .  .  0: *ast.Field {
+   646  .  .  .  .  .  .  .  Type: *ast.SelectorExpr {
+   647  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   648  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:51:34
+   649  .  .  .  .  .  .  .  .  .  Name: "generator"
+   650  .  .  .  .  .  .  .  .  }
+   651  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   652  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:51:44
+   653  .  .  .  .  .  .  .  .  .  Name: "LoadTypesFn"
+   654  .  .  .  .  .  .  .  .  }
+   655  .  .  .  .  .  .  .  }
+   656  .  .  .  .  .  .  }
+   657  .  .  .  .  .  }
+   658  .  .  .  .  .  Closing: -
+   659  .  .  .  .  }
+   660  .  .  .  }
+   661  .  .  .  Body: *ast.BlockStmt {
+   662  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:51:56
+   663  .  .  .  .  List: []ast.Stmt (len = 1) {
+   664  .  .  .  .  .  0: *ast.ReturnStmt {
+   665  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:52:2
+   666  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+   667  .  .  .  .  .  .  .  0: *ast.FuncLit {
+   668  .  .  .  .  .  .  .  .  Type: *ast.FuncType {
+   669  .  .  .  .  .  .  .  .  .  Func: ./mock_loadtypesfn_test.go:52:9
+   670  .  .  .  .  .  .  .  .  .  Params: *ast.FieldList {
+   671  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:52:13
+   672  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   673  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   674  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   675  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   676  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:14
+   677  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+   678  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   679  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   680  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+   681  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 673)
+   682  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   683  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   684  .  .  .  .  .  .  .  .  .  .  .  .  }
+   685  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   686  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:18
+   687  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
+   688  .  .  .  .  .  .  .  .  .  .  .  .  }
+   689  .  .  .  .  .  .  .  .  .  .  .  }
+   690  .  .  .  .  .  .  .  .  .  .  }
+   691  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:52:24
+   692  .  .  .  .  .  .  .  .  .  }
+   693  .  .  .  .  .  .  .  .  .  Results: *ast.FieldList {
+   694  .  .  .  .  .  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:52:26
+   695  .  .  .  .  .  .  .  .  .  .  List: []*ast.Field (len = 3) {
+   696  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Field {
+   697  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   698  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   699  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:27
+   700  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+   701  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   702  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   703  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+   704  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 696)
+   705  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   706  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   707  .  .  .  .  .  .  .  .  .  .  .  .  }
+   708  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.ArrayType {
+   709  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:52:37
+   710  .  .  .  .  .  .  .  .  .  .  .  .  .  Elt: *ast.StarExpr {
+   711  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:52:39
+   712  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   713  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   714  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:40
+   715  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   716  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   717  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   718  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:44
+   719  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+   720  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   721  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   722  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   723  .  .  .  .  .  .  .  .  .  .  .  .  }
+   724  .  .  .  .  .  .  .  .  .  .  .  }
+   725  .  .  .  .  .  .  .  .  .  .  .  1: *ast.Field {
+   726  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   727  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   728  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:54
+   729  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+   730  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   731  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   732  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+   733  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 725)
+   734  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   735  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   736  .  .  .  .  .  .  .  .  .  .  .  .  }
+   737  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   738  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:62
+   739  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "string"
+   740  .  .  .  .  .  .  .  .  .  .  .  .  }
+   741  .  .  .  .  .  .  .  .  .  .  .  }
+   742  .  .  .  .  .  .  .  .  .  .  .  2: *ast.Field {
+   743  .  .  .  .  .  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   744  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   745  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:70
+   746  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
+   747  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   748  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   749  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
+   750  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 742)
+   751  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   752  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   753  .  .  .  .  .  .  .  .  .  .  .  .  }
+   754  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   755  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:52:74
+   756  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "error"
+   757  .  .  .  .  .  .  .  .  .  .  .  .  }
+   758  .  .  .  .  .  .  .  .  .  .  .  }
+   759  .  .  .  .  .  .  .  .  .  .  }
+   760  .  .  .  .  .  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:52:79
+   761  .  .  .  .  .  .  .  .  .  }
+   762  .  .  .  .  .  .  .  .  }
+   763  .  .  .  .  .  .  .  .  Body: *ast.BlockStmt {
+   764  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:52:81
+   765  .  .  .  .  .  .  .  .  .  List: []ast.Stmt (len = 2) {
+   766  .  .  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+   767  .  .  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+   768  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   769  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:53:3
+   770  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   771  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   772  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Kind: var
+   773  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   774  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 766)
+   775  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   776  .  .  .  .  .  .  .  .  .  .  .  .  }
+   777  .  .  .  .  .  .  .  .  .  .  .  }
+   778  .  .  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:53:8
+   779  .  .  .  .  .  .  .  .  .  .  .  Tok: :=
+   780  .  .  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+   781  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.UnaryExpr {
+   782  .  .  .  .  .  .  .  .  .  .  .  .  .  OpPos: ./mock_loadtypesfn_test.go:53:11
+   783  .  .  .  .  .  .  .  .  .  .  .  .  .  Op: &
+   784  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.CompositeLit {
+   785  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   786  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:53:12
+   787  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_mock"
+   788  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 257)
+   789  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   790  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:53:32
+   791  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 1) {
+   792  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+   793  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+   794  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:53:33
+   795  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   796  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   797  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:53:37
+   798  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+   799  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:53:39
+   800  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "m"
+   801  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 613)
+   802  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   803  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   804  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   805  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:53:40
+   806  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+   807  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   808  .  .  .  .  .  .  .  .  .  .  .  .  }
+   809  .  .  .  .  .  .  .  .  .  .  .  }
+   810  .  .  .  .  .  .  .  .  .  .  }
+   811  .  .  .  .  .  .  .  .  .  .  1: *ast.ReturnStmt {
+   812  .  .  .  .  .  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:54:3
+   813  .  .  .  .  .  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+   814  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.CallExpr {
+   815  .  .  .  .  .  .  .  .  .  .  .  .  .  Fun: *ast.SelectorExpr {
+   816  .  .  .  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   817  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:54:10
+   818  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+   819  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 771)
+   820  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   821  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   822  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:54:15
+   823  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "fn"
+   824  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   825  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   826  .  .  .  .  .  .  .  .  .  .  .  .  .  Lparen: ./mock_loadtypesfn_test.go:54:17
+   827  .  .  .  .  .  .  .  .  .  .  .  .  .  Args: []ast.Expr (len = 1) {
+   828  .  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   829  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:54:18
+   830  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+   831  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 678)
+   832  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   833  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+   834  .  .  .  .  .  .  .  .  .  .  .  .  .  Ellipsis: -
+   835  .  .  .  .  .  .  .  .  .  .  .  .  .  Rparen: ./mock_loadtypesfn_test.go:54:21
+   836  .  .  .  .  .  .  .  .  .  .  .  .  }
+   837  .  .  .  .  .  .  .  .  .  .  .  }
+   838  .  .  .  .  .  .  .  .  .  .  }
+   839  .  .  .  .  .  .  .  .  .  }
+   840  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:55:2
+   841  .  .  .  .  .  .  .  .  }
+   842  .  .  .  .  .  .  .  }
+   843  .  .  .  .  .  .  }
+   844  .  .  .  .  .  }
+   845  .  .  .  .  }
+   846  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:56:1
+   847  .  .  .  }
+   848  .  .  }
+   849  .  .  9: *ast.FuncDecl {
+   850  .  .  .  Recv: *ast.FieldList {
+   851  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:58:6
+   852  .  .  .  .  List: []*ast.Field (len = 1) {
+   853  .  .  .  .  .  0: *ast.Field {
+   854  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   855  .  .  .  .  .  .  .  0: *ast.Ident {
+   856  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:7
+   857  .  .  .  .  .  .  .  .  Name: "m"
+   858  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   859  .  .  .  .  .  .  .  .  .  Kind: var
+   860  .  .  .  .  .  .  .  .  .  Name: "m"
+   861  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 853)
+   862  .  .  .  .  .  .  .  .  }
+   863  .  .  .  .  .  .  .  }
+   864  .  .  .  .  .  .  }
+   865  .  .  .  .  .  .  Type: *ast.StarExpr {
+   866  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:58:9
+   867  .  .  .  .  .  .  .  X: *ast.Ident {
+   868  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:10
+   869  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_mock"
+   870  .  .  .  .  .  .  .  .  Obj: *(obj @ 257)
+   871  .  .  .  .  .  .  .  }
+   872  .  .  .  .  .  .  }
+   873  .  .  .  .  .  }
+   874  .  .  .  .  }
+   875  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:58:30
+   876  .  .  .  }
+   877  .  .  .  Name: *ast.Ident {
+   878  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:32
+   879  .  .  .  .  Name: "fn"
+   880  .  .  .  }
+   881  .  .  .  Type: *ast.FuncType {
+   882  .  .  .  .  Func: ./mock_loadtypesfn_test.go:58:1
+   883  .  .  .  .  Params: *ast.FieldList {
+   884  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:58:34
+   885  .  .  .  .  .  List: []*ast.Field (len = 1) {
+   886  .  .  .  .  .  .  0: *ast.Field {
+   887  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   888  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   889  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:35
+   890  .  .  .  .  .  .  .  .  .  Name: "pkg"
+   891  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   892  .  .  .  .  .  .  .  .  .  .  Kind: var
+   893  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+   894  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 886)
+   895  .  .  .  .  .  .  .  .  .  }
+   896  .  .  .  .  .  .  .  .  }
+   897  .  .  .  .  .  .  .  }
+   898  .  .  .  .  .  .  .  Type: *ast.Ident {
+   899  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:39
+   900  .  .  .  .  .  .  .  .  Name: "string"
+   901  .  .  .  .  .  .  .  }
+   902  .  .  .  .  .  .  }
+   903  .  .  .  .  .  }
+   904  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:58:45
+   905  .  .  .  .  }
+   906  .  .  .  .  Results: *ast.FieldList {
+   907  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:58:47
+   908  .  .  .  .  .  List: []*ast.Field (len = 3) {
+   909  .  .  .  .  .  .  0: *ast.Field {
+   910  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   911  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   912  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:48
+   913  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+   914  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   915  .  .  .  .  .  .  .  .  .  .  Kind: var
+   916  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+   917  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 909)
+   918  .  .  .  .  .  .  .  .  .  }
+   919  .  .  .  .  .  .  .  .  }
+   920  .  .  .  .  .  .  .  }
+   921  .  .  .  .  .  .  .  Type: *ast.ArrayType {
+   922  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:58:58
+   923  .  .  .  .  .  .  .  .  Elt: *ast.StarExpr {
+   924  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:58:60
+   925  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+   926  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+   927  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:61
+   928  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+   929  .  .  .  .  .  .  .  .  .  .  }
+   930  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+   931  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:65
+   932  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+   933  .  .  .  .  .  .  .  .  .  .  }
+   934  .  .  .  .  .  .  .  .  .  }
+   935  .  .  .  .  .  .  .  .  }
+   936  .  .  .  .  .  .  .  }
+   937  .  .  .  .  .  .  }
+   938  .  .  .  .  .  .  1: *ast.Field {
+   939  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   940  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   941  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:75
+   942  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+   943  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   944  .  .  .  .  .  .  .  .  .  .  Kind: var
+   945  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+   946  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 938)
+   947  .  .  .  .  .  .  .  .  .  }
+   948  .  .  .  .  .  .  .  .  }
+   949  .  .  .  .  .  .  .  }
+   950  .  .  .  .  .  .  .  Type: *ast.Ident {
+   951  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:83
+   952  .  .  .  .  .  .  .  .  Name: "string"
+   953  .  .  .  .  .  .  .  }
+   954  .  .  .  .  .  .  }
+   955  .  .  .  .  .  .  2: *ast.Field {
+   956  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+   957  .  .  .  .  .  .  .  .  0: *ast.Ident {
+   958  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:91
+   959  .  .  .  .  .  .  .  .  .  Name: "err"
+   960  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   961  .  .  .  .  .  .  .  .  .  .  Kind: var
+   962  .  .  .  .  .  .  .  .  .  .  Name: "err"
+   963  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 955)
+   964  .  .  .  .  .  .  .  .  .  }
+   965  .  .  .  .  .  .  .  .  }
+   966  .  .  .  .  .  .  .  }
+   967  .  .  .  .  .  .  .  Type: *ast.Ident {
+   968  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:58:95
+   969  .  .  .  .  .  .  .  .  Name: "error"
+   970  .  .  .  .  .  .  .  }
+   971  .  .  .  .  .  .  }
+   972  .  .  .  .  .  }
+   973  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:58:100
+   974  .  .  .  .  }
+   975  .  .  .  }
+   976  .  .  .  Body: *ast.BlockStmt {
+   977  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:58:102
+   978  .  .  .  .  List: []ast.Stmt (len = 5) {
+   979  .  .  .  .  .  0: *ast.AssignStmt {
+   980  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+   981  .  .  .  .  .  .  .  0: *ast.Ident {
+   982  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:59:2
+   983  .  .  .  .  .  .  .  .  Name: "params"
+   984  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+   985  .  .  .  .  .  .  .  .  .  Kind: var
+   986  .  .  .  .  .  .  .  .  .  Name: "params"
+   987  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 979)
+   988  .  .  .  .  .  .  .  .  }
+   989  .  .  .  .  .  .  .  }
+   990  .  .  .  .  .  .  }
+   991  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:59:9
+   992  .  .  .  .  .  .  Tok: :=
+   993  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+   994  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+   995  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+   996  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:59:12
+   997  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
+   998  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
+   999  .  .  .  .  .  .  .  .  }
+  1000  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:59:34
+  1001  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 1) {
+  1002  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1003  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1004  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:60:3
+  1005  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+  1006  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 891)
+  1007  .  .  .  .  .  .  .  .  .  .  }
+  1008  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:60:6
+  1009  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1010  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:60:8
+  1011  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+  1012  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 891)
+  1013  .  .  .  .  .  .  .  .  .  .  }
+  1014  .  .  .  .  .  .  .  .  .  }
+  1015  .  .  .  .  .  .  .  .  }
+  1016  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:61:2
+  1017  .  .  .  .  .  .  .  .  Incomplete: false
+  1018  .  .  .  .  .  .  .  }
+  1019  .  .  .  .  .  .  }
+  1020  .  .  .  .  .  }
+  1021  .  .  .  .  .  1: *ast.SendStmt {
+  1022  .  .  .  .  .  .  Chan: *ast.SelectorExpr {
+  1023  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1024  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1025  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:62:2
+  1026  .  .  .  .  .  .  .  .  .  Name: "m"
+  1027  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 858)
+  1028  .  .  .  .  .  .  .  .  }
+  1029  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1030  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:62:4
+  1031  .  .  .  .  .  .  .  .  .  Name: "mock"
+  1032  .  .  .  .  .  .  .  .  }
+  1033  .  .  .  .  .  .  .  }
+  1034  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1035  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:62:9
+  1036  .  .  .  .  .  .  .  .  Name: "params"
+  1037  .  .  .  .  .  .  .  }
+  1038  .  .  .  .  .  .  }
+  1039  .  .  .  .  .  .  Arrow: ./mock_loadtypesfn_test.go:62:16
+  1040  .  .  .  .  .  .  Value: *ast.Ident {
+  1041  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:62:19
+  1042  .  .  .  .  .  .  .  Name: "params"
+  1043  .  .  .  .  .  .  .  Obj: *(obj @ 984)
+  1044  .  .  .  .  .  .  }
+  1045  .  .  .  .  .  }
+  1046  .  .  .  .  .  2: *ast.AssignStmt {
+  1047  .  .  .  .  .  .  Lhs: []ast.Expr (len = 2) {
+  1048  .  .  .  .  .  .  .  0: *ast.Ident {
+  1049  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:63:2
+  1050  .  .  .  .  .  .  .  .  Name: "results"
+  1051  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1052  .  .  .  .  .  .  .  .  .  Kind: var
+  1053  .  .  .  .  .  .  .  .  .  Name: "results"
+  1054  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1046)
+  1055  .  .  .  .  .  .  .  .  }
+  1056  .  .  .  .  .  .  .  }
+  1057  .  .  .  .  .  .  .  1: *ast.Ident {
+  1058  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:63:11
+  1059  .  .  .  .  .  .  .  .  Name: "ok"
+  1060  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1061  .  .  .  .  .  .  .  .  .  Kind: var
+  1062  .  .  .  .  .  .  .  .  .  Name: "ok"
+  1063  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1046)
+  1064  .  .  .  .  .  .  .  .  }
+  1065  .  .  .  .  .  .  .  }
+  1066  .  .  .  .  .  .  }
+  1067  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:63:14
+  1068  .  .  .  .  .  .  Tok: :=
+  1069  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1070  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  1071  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1072  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1073  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1074  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:63:17
+  1075  .  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  1076  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 858)
+  1077  .  .  .  .  .  .  .  .  .  .  }
+  1078  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1079  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:63:19
+  1080  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+  1081  .  .  .  .  .  .  .  .  .  .  }
+  1082  .  .  .  .  .  .  .  .  .  }
+  1083  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1084  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:63:24
+  1085  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams"
+  1086  .  .  .  .  .  .  .  .  .  }
+  1087  .  .  .  .  .  .  .  .  }
+  1088  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:63:39
+  1089  .  .  .  .  .  .  .  .  Index: *ast.Ident {
+  1090  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:63:40
+  1091  .  .  .  .  .  .  .  .  .  Name: "params"
+  1092  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 984)
+  1093  .  .  .  .  .  .  .  .  }
+  1094  .  .  .  .  .  .  .  .  Rbrack: ./mock_loadtypesfn_test.go:63:46
+  1095  .  .  .  .  .  .  .  }
+  1096  .  .  .  .  .  .  }
+  1097  .  .  .  .  .  }
+  1098  .  .  .  .  .  3: *ast.IfStmt {
+  1099  .  .  .  .  .  .  If: ./mock_loadtypesfn_test.go:64:2
+  1100  .  .  .  .  .  .  Cond: *ast.Ident {
+  1101  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:64:5
+  1102  .  .  .  .  .  .  .  Name: "ok"
+  1103  .  .  .  .  .  .  .  Obj: *(obj @ 1060)
+  1104  .  .  .  .  .  .  }
+  1105  .  .  .  .  .  .  Body: *ast.BlockStmt {
+  1106  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:64:8
+  1107  .  .  .  .  .  .  .  List: []ast.Stmt (len = 3) {
+  1108  .  .  .  .  .  .  .  .  0: *ast.AssignStmt {
+  1109  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1110  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1111  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:65:3
+  1112  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1113  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 914)
+  1114  .  .  .  .  .  .  .  .  .  .  }
+  1115  .  .  .  .  .  .  .  .  .  }
+  1116  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:65:13
+  1117  .  .  .  .  .  .  .  .  .  Tok: =
+  1118  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1119  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  1120  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1121  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:65:15
+  1122  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  1123  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1051)
+  1124  .  .  .  .  .  .  .  .  .  .  .  }
+  1125  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1126  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:65:23
+  1127  .  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1128  .  .  .  .  .  .  .  .  .  .  .  }
+  1129  .  .  .  .  .  .  .  .  .  .  }
+  1130  .  .  .  .  .  .  .  .  .  }
+  1131  .  .  .  .  .  .  .  .  }
+  1132  .  .  .  .  .  .  .  .  1: *ast.AssignStmt {
+  1133  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1134  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1135  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:66:3
+  1136  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1137  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 943)
+  1138  .  .  .  .  .  .  .  .  .  .  }
+  1139  .  .  .  .  .  .  .  .  .  }
+  1140  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:66:11
+  1141  .  .  .  .  .  .  .  .  .  Tok: =
+  1142  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1143  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  1144  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1145  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:66:13
+  1146  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  1147  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1051)
+  1148  .  .  .  .  .  .  .  .  .  .  .  }
+  1149  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1150  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:66:21
+  1151  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1152  .  .  .  .  .  .  .  .  .  .  .  }
+  1153  .  .  .  .  .  .  .  .  .  .  }
+  1154  .  .  .  .  .  .  .  .  .  }
+  1155  .  .  .  .  .  .  .  .  }
+  1156  .  .  .  .  .  .  .  .  2: *ast.AssignStmt {
+  1157  .  .  .  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1158  .  .  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1159  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:67:3
+  1160  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
+  1161  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 960)
+  1162  .  .  .  .  .  .  .  .  .  .  }
+  1163  .  .  .  .  .  .  .  .  .  }
+  1164  .  .  .  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:67:7
+  1165  .  .  .  .  .  .  .  .  .  Tok: =
+  1166  .  .  .  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1167  .  .  .  .  .  .  .  .  .  .  0: *ast.SelectorExpr {
+  1168  .  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1169  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:67:9
+  1170  .  .  .  .  .  .  .  .  .  .  .  .  Name: "results"
+  1171  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1051)
+  1172  .  .  .  .  .  .  .  .  .  .  .  }
+  1173  .  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1174  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:67:17
+  1175  .  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
+  1176  .  .  .  .  .  .  .  .  .  .  .  }
+  1177  .  .  .  .  .  .  .  .  .  .  }
+  1178  .  .  .  .  .  .  .  .  .  }
+  1179  .  .  .  .  .  .  .  .  }
+  1180  .  .  .  .  .  .  .  }
+  1181  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:68:2
+  1182  .  .  .  .  .  .  }
+  1183  .  .  .  .  .  }
+  1184  .  .  .  .  .  4: *ast.ReturnStmt {
+  1185  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:69:2
+  1186  .  .  .  .  .  .  Results: []ast.Expr (len = 3) {
+  1187  .  .  .  .  .  .  .  0: *ast.Ident {
+  1188  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:69:9
+  1189  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1190  .  .  .  .  .  .  .  .  Obj: *(obj @ 914)
+  1191  .  .  .  .  .  .  .  }
+  1192  .  .  .  .  .  .  .  1: *ast.Ident {
+  1193  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:69:20
+  1194  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1195  .  .  .  .  .  .  .  .  Obj: *(obj @ 943)
+  1196  .  .  .  .  .  .  .  }
+  1197  .  .  .  .  .  .  .  2: *ast.Ident {
+  1198  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:69:29
+  1199  .  .  .  .  .  .  .  .  Name: "err"
+  1200  .  .  .  .  .  .  .  .  Obj: *(obj @ 960)
+  1201  .  .  .  .  .  .  .  }
+  1202  .  .  .  .  .  .  }
+  1203  .  .  .  .  .  }
+  1204  .  .  .  .  }
+  1205  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:70:1
+  1206  .  .  .  }
+  1207  .  .  }
+  1208  .  .  10: *ast.FuncDecl {
+  1209  .  .  .  Recv: *ast.FieldList {
+  1210  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:72:6
+  1211  .  .  .  .  List: []*ast.Field (len = 1) {
+  1212  .  .  .  .  .  0: *ast.Field {
+  1213  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1214  .  .  .  .  .  .  .  0: *ast.Ident {
+  1215  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:72:7
+  1216  .  .  .  .  .  .  .  .  Name: "m"
+  1217  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1218  .  .  .  .  .  .  .  .  .  Kind: var
+  1219  .  .  .  .  .  .  .  .  .  Name: "m"
+  1220  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1212)
+  1221  .  .  .  .  .  .  .  .  }
+  1222  .  .  .  .  .  .  .  }
+  1223  .  .  .  .  .  .  }
+  1224  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1225  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:72:9
+  1226  .  .  .  .  .  .  .  X: *ast.Ident {
+  1227  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:72:10
+  1228  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn"
+  1229  .  .  .  .  .  .  .  .  Obj: *(obj @ 48)
+  1230  .  .  .  .  .  .  .  }
+  1231  .  .  .  .  .  .  }
+  1232  .  .  .  .  .  }
+  1233  .  .  .  .  }
+  1234  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:72:25
+  1235  .  .  .  }
+  1236  .  .  .  Name: *ast.Ident {
+  1237  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:72:27
+  1238  .  .  .  .  Name: "onCall"
+  1239  .  .  .  }
+  1240  .  .  .  Type: *ast.FuncType {
+  1241  .  .  .  .  Func: ./mock_loadtypesfn_test.go:72:1
+  1242  .  .  .  .  Params: *ast.FieldList {
+  1243  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:72:33
+  1244  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  1245  .  .  .  .  .  .  0: *ast.Field {
+  1246  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1247  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1248  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:72:34
+  1249  .  .  .  .  .  .  .  .  .  Name: "pkg"
+  1250  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1251  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1252  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+  1253  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1245)
+  1254  .  .  .  .  .  .  .  .  .  }
+  1255  .  .  .  .  .  .  .  .  }
+  1256  .  .  .  .  .  .  .  }
+  1257  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1258  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:72:38
+  1259  .  .  .  .  .  .  .  .  Name: "string"
+  1260  .  .  .  .  .  .  .  }
+  1261  .  .  .  .  .  .  }
+  1262  .  .  .  .  .  }
+  1263  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:72:44
+  1264  .  .  .  .  }
+  1265  .  .  .  .  Results: *ast.FieldList {
+  1266  .  .  .  .  .  Opening: -
+  1267  .  .  .  .  .  List: []*ast.Field (len = 1) {
+  1268  .  .  .  .  .  .  0: *ast.Field {
+  1269  .  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1270  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:72:46
+  1271  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1272  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:72:47
+  1273  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_fnRecorder"
+  1274  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 409)
+  1275  .  .  .  .  .  .  .  .  }
+  1276  .  .  .  .  .  .  .  }
+  1277  .  .  .  .  .  .  }
+  1278  .  .  .  .  .  }
+  1279  .  .  .  .  .  Closing: -
+  1280  .  .  .  .  }
+  1281  .  .  .  }
+  1282  .  .  .  Body: *ast.BlockStmt {
+  1283  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:72:74
+  1284  .  .  .  .  List: []ast.Stmt (len = 1) {
+  1285  .  .  .  .  .  0: *ast.ReturnStmt {
+  1286  .  .  .  .  .  .  Return: ./mock_loadtypesfn_test.go:73:2
+  1287  .  .  .  .  .  .  Results: []ast.Expr (len = 1) {
+  1288  .  .  .  .  .  .  .  0: *ast.UnaryExpr {
+  1289  .  .  .  .  .  .  .  .  OpPos: ./mock_loadtypesfn_test.go:73:9
+  1290  .  .  .  .  .  .  .  .  Op: &
+  1291  .  .  .  .  .  .  .  .  X: *ast.CompositeLit {
+  1292  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1293  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:73:10
+  1294  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_fnRecorder"
+  1295  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 409)
+  1296  .  .  .  .  .  .  .  .  .  }
+  1297  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:73:36
+  1298  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 2) {
+  1299  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1300  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1301  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:74:3
+  1302  .  .  .  .  .  .  .  .  .  .  .  .  Name: "params"
+  1303  .  .  .  .  .  .  .  .  .  .  .  }
+  1304  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:74:9
+  1305  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.CompositeLit {
+  1306  .  .  .  .  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1307  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:74:11
+  1308  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_params"
+  1309  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 77)
+  1310  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1311  .  .  .  .  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:74:33
+  1312  .  .  .  .  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 1) {
+  1313  .  .  .  .  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1314  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1315  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:75:4
+  1316  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+  1317  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1250)
+  1318  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1319  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:75:7
+  1320  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1321  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:75:9
+  1322  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Name: "pkg"
+  1323  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1250)
+  1324  .  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1325  .  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1326  .  .  .  .  .  .  .  .  .  .  .  .  }
+  1327  .  .  .  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:76:3
+  1328  .  .  .  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1329  .  .  .  .  .  .  .  .  .  .  .  }
+  1330  .  .  .  .  .  .  .  .  .  .  }
+  1331  .  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  1332  .  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1333  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:77:3
+  1334  .  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+  1335  .  .  .  .  .  .  .  .  .  .  .  }
+  1336  .  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:77:7
+  1337  .  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1338  .  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:77:9
+  1339  .  .  .  .  .  .  .  .  .  .  .  .  Name: "m"
+  1340  .  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1217)
+  1341  .  .  .  .  .  .  .  .  .  .  .  }
+  1342  .  .  .  .  .  .  .  .  .  .  }
+  1343  .  .  .  .  .  .  .  .  .  }
+  1344  .  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:78:2
+  1345  .  .  .  .  .  .  .  .  .  Incomplete: false
+  1346  .  .  .  .  .  .  .  .  }
+  1347  .  .  .  .  .  .  .  }
+  1348  .  .  .  .  .  .  }
+  1349  .  .  .  .  .  }
+  1350  .  .  .  .  }
+  1351  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:79:1
+  1352  .  .  .  }
+  1353  .  .  }
+  1354  .  .  11: *ast.FuncDecl {
+  1355  .  .  .  Recv: *ast.FieldList {
+  1356  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:81:6
+  1357  .  .  .  .  List: []*ast.Field (len = 1) {
+  1358  .  .  .  .  .  0: *ast.Field {
+  1359  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1360  .  .  .  .  .  .  .  0: *ast.Ident {
+  1361  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:7
+  1362  .  .  .  .  .  .  .  .  Name: "r"
+  1363  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1364  .  .  .  .  .  .  .  .  .  Kind: var
+  1365  .  .  .  .  .  .  .  .  .  Name: "r"
+  1366  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1358)
+  1367  .  .  .  .  .  .  .  .  }
+  1368  .  .  .  .  .  .  .  }
+  1369  .  .  .  .  .  .  }
+  1370  .  .  .  .  .  .  Type: *ast.StarExpr {
+  1371  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:81:9
+  1372  .  .  .  .  .  .  .  X: *ast.Ident {
+  1373  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:10
+  1374  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_fnRecorder"
+  1375  .  .  .  .  .  .  .  .  Obj: *(obj @ 409)
+  1376  .  .  .  .  .  .  .  }
+  1377  .  .  .  .  .  .  }
+  1378  .  .  .  .  .  }
+  1379  .  .  .  .  }
+  1380  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:81:36
+  1381  .  .  .  }
+  1382  .  .  .  Name: *ast.Ident {
+  1383  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:38
+  1384  .  .  .  .  Name: "ret"
+  1385  .  .  .  }
+  1386  .  .  .  Type: *ast.FuncType {
+  1387  .  .  .  .  Func: ./mock_loadtypesfn_test.go:81:1
+  1388  .  .  .  .  Params: *ast.FieldList {
+  1389  .  .  .  .  .  Opening: ./mock_loadtypesfn_test.go:81:41
+  1390  .  .  .  .  .  List: []*ast.Field (len = 3) {
+  1391  .  .  .  .  .  .  0: *ast.Field {
+  1392  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1393  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1394  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:42
+  1395  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1396  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1397  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1398  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1399  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1391)
+  1400  .  .  .  .  .  .  .  .  .  }
+  1401  .  .  .  .  .  .  .  .  }
+  1402  .  .  .  .  .  .  .  }
+  1403  .  .  .  .  .  .  .  Type: *ast.ArrayType {
+  1404  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:81:52
+  1405  .  .  .  .  .  .  .  .  Elt: *ast.StarExpr {
+  1406  .  .  .  .  .  .  .  .  .  Star: ./mock_loadtypesfn_test.go:81:54
+  1407  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1408  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1409  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:55
+  1410  .  .  .  .  .  .  .  .  .  .  .  Name: "dst"
+  1411  .  .  .  .  .  .  .  .  .  .  }
+  1412  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1413  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:59
+  1414  .  .  .  .  .  .  .  .  .  .  .  Name: "TypeSpec"
+  1415  .  .  .  .  .  .  .  .  .  .  }
+  1416  .  .  .  .  .  .  .  .  .  }
+  1417  .  .  .  .  .  .  .  .  }
+  1418  .  .  .  .  .  .  .  }
+  1419  .  .  .  .  .  .  }
+  1420  .  .  .  .  .  .  1: *ast.Field {
+  1421  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1422  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1423  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:69
+  1424  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1425  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1426  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1427  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1428  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1420)
+  1429  .  .  .  .  .  .  .  .  .  }
+  1430  .  .  .  .  .  .  .  .  }
+  1431  .  .  .  .  .  .  .  }
+  1432  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1433  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:77
+  1434  .  .  .  .  .  .  .  .  Name: "string"
+  1435  .  .  .  .  .  .  .  }
+  1436  .  .  .  .  .  .  }
+  1437  .  .  .  .  .  .  2: *ast.Field {
+  1438  .  .  .  .  .  .  .  Names: []*ast.Ident (len = 1) {
+  1439  .  .  .  .  .  .  .  .  0: *ast.Ident {
+  1440  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:85
+  1441  .  .  .  .  .  .  .  .  .  Name: "err"
+  1442  .  .  .  .  .  .  .  .  .  Obj: *ast.Object {
+  1443  .  .  .  .  .  .  .  .  .  .  Kind: var
+  1444  .  .  .  .  .  .  .  .  .  .  Name: "err"
+  1445  .  .  .  .  .  .  .  .  .  .  Decl: *(obj @ 1437)
+  1446  .  .  .  .  .  .  .  .  .  }
+  1447  .  .  .  .  .  .  .  .  }
+  1448  .  .  .  .  .  .  .  }
+  1449  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1450  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:81:89
+  1451  .  .  .  .  .  .  .  .  Name: "error"
+  1452  .  .  .  .  .  .  .  }
+  1453  .  .  .  .  .  .  }
+  1454  .  .  .  .  .  }
+  1455  .  .  .  .  .  Closing: ./mock_loadtypesfn_test.go:81:94
+  1456  .  .  .  .  }
+  1457  .  .  .  }
+  1458  .  .  .  Body: *ast.BlockStmt {
+  1459  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:81:96
+  1460  .  .  .  .  List: []ast.Stmt (len = 1) {
+  1461  .  .  .  .  .  0: *ast.AssignStmt {
+  1462  .  .  .  .  .  .  Lhs: []ast.Expr (len = 1) {
+  1463  .  .  .  .  .  .  .  0: *ast.IndexExpr {
+  1464  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1465  .  .  .  .  .  .  .  .  .  X: *ast.SelectorExpr {
+  1466  .  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1467  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:82:2
+  1468  .  .  .  .  .  .  .  .  .  .  .  Name: "r"
+  1469  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1363)
+  1470  .  .  .  .  .  .  .  .  .  .  }
+  1471  .  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1472  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:82:4
+  1473  .  .  .  .  .  .  .  .  .  .  .  Name: "mock"
+  1474  .  .  .  .  .  .  .  .  .  .  }
+  1475  .  .  .  .  .  .  .  .  .  }
+  1476  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1477  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:82:9
+  1478  .  .  .  .  .  .  .  .  .  .  Name: "resultsByParams"
+  1479  .  .  .  .  .  .  .  .  .  }
+  1480  .  .  .  .  .  .  .  .  }
+  1481  .  .  .  .  .  .  .  .  Lbrack: ./mock_loadtypesfn_test.go:82:24
+  1482  .  .  .  .  .  .  .  .  Index: *ast.SelectorExpr {
+  1483  .  .  .  .  .  .  .  .  .  X: *ast.Ident {
+  1484  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:82:25
+  1485  .  .  .  .  .  .  .  .  .  .  Name: "r"
+  1486  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1363)
+  1487  .  .  .  .  .  .  .  .  .  }
+  1488  .  .  .  .  .  .  .  .  .  Sel: *ast.Ident {
+  1489  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:82:27
+  1490  .  .  .  .  .  .  .  .  .  .  Name: "params"
+  1491  .  .  .  .  .  .  .  .  .  }
+  1492  .  .  .  .  .  .  .  .  }
+  1493  .  .  .  .  .  .  .  .  Rbrack: ./mock_loadtypesfn_test.go:82:33
+  1494  .  .  .  .  .  .  .  }
+  1495  .  .  .  .  .  .  }
+  1496  .  .  .  .  .  .  TokPos: ./mock_loadtypesfn_test.go:82:35
+  1497  .  .  .  .  .  .  Tok: =
+  1498  .  .  .  .  .  .  Rhs: []ast.Expr (len = 1) {
+  1499  .  .  .  .  .  .  .  0: *ast.CompositeLit {
+  1500  .  .  .  .  .  .  .  .  Type: *ast.Ident {
+  1501  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:82:37
+  1502  .  .  .  .  .  .  .  .  .  Name: "mockLoadTypesFn_results"
+  1503  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 120)
+  1504  .  .  .  .  .  .  .  .  }
+  1505  .  .  .  .  .  .  .  .  Lbrace: ./mock_loadtypesfn_test.go:82:60
+  1506  .  .  .  .  .  .  .  .  Elts: []ast.Expr (len = 3) {
+  1507  .  .  .  .  .  .  .  .  .  0: *ast.KeyValueExpr {
+  1508  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1509  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:83:3
+  1510  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1511  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1396)
+  1512  .  .  .  .  .  .  .  .  .  .  }
+  1513  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:83:12
+  1514  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1515  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:83:14
+  1516  .  .  .  .  .  .  .  .  .  .  .  Name: "typeSpecs"
+  1517  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1396)
+  1518  .  .  .  .  .  .  .  .  .  .  }
+  1519  .  .  .  .  .  .  .  .  .  }
+  1520  .  .  .  .  .  .  .  .  .  1: *ast.KeyValueExpr {
+  1521  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1522  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:84:3
+  1523  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1524  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1425)
+  1525  .  .  .  .  .  .  .  .  .  .  }
+  1526  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:84:10
+  1527  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1528  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:84:14
+  1529  .  .  .  .  .  .  .  .  .  .  .  Name: "pkgPath"
+  1530  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1425)
+  1531  .  .  .  .  .  .  .  .  .  .  }
+  1532  .  .  .  .  .  .  .  .  .  }
+  1533  .  .  .  .  .  .  .  .  .  2: *ast.KeyValueExpr {
+  1534  .  .  .  .  .  .  .  .  .  .  Key: *ast.Ident {
+  1535  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:85:3
+  1536  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
+  1537  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1442)
+  1538  .  .  .  .  .  .  .  .  .  .  }
+  1539  .  .  .  .  .  .  .  .  .  .  Colon: ./mock_loadtypesfn_test.go:85:6
+  1540  .  .  .  .  .  .  .  .  .  .  Value: *ast.Ident {
+  1541  .  .  .  .  .  .  .  .  .  .  .  NamePos: ./mock_loadtypesfn_test.go:85:14
+  1542  .  .  .  .  .  .  .  .  .  .  .  Name: "err"
+  1543  .  .  .  .  .  .  .  .  .  .  .  Obj: *(obj @ 1442)
+  1544  .  .  .  .  .  .  .  .  .  .  }
+  1545  .  .  .  .  .  .  .  .  .  }
+  1546  .  .  .  .  .  .  .  .  }
+  1547  .  .  .  .  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:86:2
+  1548  .  .  .  .  .  .  .  .  Incomplete: false
+  1549  .  .  .  .  .  .  .  }
+  1550  .  .  .  .  .  .  }
+  1551  .  .  .  .  .  }
+  1552  .  .  .  .  }
+  1553  .  .  .  .  Rbrace: ./mock_loadtypesfn_test.go:87:1
+  1554  .  .  .  }
+  1555  .  .  }
+  1556  .  }
+  1557  .  Scope: *ast.Scope {
+  1558  .  .  Objects: map[string]*ast.Object (len = 7) {
+  1559  .  .  .  "newMockLoadTypesFn": *(obj @ 481)
+  1560  .  .  .  "mockLoadTypesFn": *(obj @ 48)
+  1561  .  .  .  "mockLoadTypesFn_mock": *(obj @ 257)
+  1562  .  .  .  "mockLoadTypesFn_recorder": *(obj @ 316)
+  1563  .  .  .  "mockLoadTypesFn_params": *(obj @ 77)
+  1564  .  .  .  "mockLoadTypesFn_results": *(obj @ 120)
+  1565  .  .  .  "mockLoadTypesFn_fnRecorder": *(obj @ 409)
+  1566  .  .  }
+  1567  .  }
+  1568  .  Imports: []*ast.ImportSpec (len = 2) {
+  1569  .  .  0: *(obj @ 12)
+  1570  .  .  1: *(obj @ 20)
+  1571  .  }
+  1572  .  Unresolved: []*ast.Ident (len = 18) {
+  1573  .  .  0: *(obj @ 104)
+  1574  .  .  1: *(obj @ 152)
+  1575  .  .  2: *(obj @ 176)
+  1576  .  .  3: *(obj @ 193)
+  1577  .  .  4: *(obj @ 559)
+  1578  .  .  5: *(obj @ 647)
+  1579  .  .  6: *(obj @ 685)
+  1580  .  .  7: *(obj @ 713)
+  1581  .  .  8: *(obj @ 737)
+  1582  .  .  9: *(obj @ 754)
+  1583  .  .  10: *(obj @ 898)
+  1584  .  .  11: *(obj @ 926)
+  1585  .  .  12: *(obj @ 950)
+  1586  .  .  13: *(obj @ 967)
+  1587  .  .  14: *(obj @ 1257)
+  1588  .  .  15: *(obj @ 1408)
+  1589  .  .  16: *(obj @ 1432)
+  1590  .  .  17: *(obj @ 1449)
+  1591  .  }
+  1592  .  Comments: []*ast.CommentGroup (len = 9) {
+  1593  .  .  0: *ast.CommentGroup {
+  1594  .  .  .  List: []*ast.Comment (len = 1) {
+  1595  .  .  .  .  0: *ast.Comment {
+  1596  .  .  .  .  .  Slash: ./mock_loadtypesfn_test.go:1:1
+  1597  .  .  .  .  .  Text: "// Code generated by Moqueries - https://github.com/myshkin5/moqueries - DO NOT EDIT!"
+  1598  .  .  .  .  }
+  1599  .  .  .  }
+  1600  .  .  }
+  1601  .  .  1: *(obj @ 32)
+  1602  .  .  2: *(obj @ 241)
+  1603  .  .  3: *(obj @ 300)
+  1604  .  .  4: *(obj @ 359)
+  1605  .  .  5: *(obj @ 376)
+  1606  .  .  6: *(obj @ 393)
+  1607  .  .  7: *(obj @ 470)
+  1608  .  .  8: *(obj @ 597)
+  1609  .  }
+  1610  }

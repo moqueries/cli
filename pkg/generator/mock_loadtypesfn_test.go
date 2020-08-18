@@ -13,6 +13,16 @@ type mockLoadTypesFn struct {
 	params          chan mockLoadTypesFn_params
 }
 
+// mockLoadTypesFn_mock isolates the mock interface of the LoadTypesFn type
+type mockLoadTypesFn_mock struct {
+	mock *mockLoadTypesFn
+}
+
+// mockLoadTypesFn_recorder isolates the recorder interface of the LoadTypesFn type
+type mockLoadTypesFn_recorder struct {
+	mock *mockLoadTypesFn
+}
+
 // mockLoadTypesFn_params holds the params of the LoadTypesFn type
 type mockLoadTypesFn_params struct{ pkg string }
 
@@ -23,6 +33,12 @@ type mockLoadTypesFn_results struct {
 	err       error
 }
 
+// mockLoadTypesFn_fnRecorder routes recorded function calls to the mockLoadTypesFn mock
+type mockLoadTypesFn_fnRecorder struct {
+	params mockLoadTypesFn_params
+	mock   *mockLoadTypesFn
+}
+
 // newMockLoadTypesFn creates a new mock of the LoadTypesFn type
 func newMockLoadTypesFn() *mockLoadTypesFn {
 	return &mockLoadTypesFn{
@@ -31,18 +47,41 @@ func newMockLoadTypesFn() *mockLoadTypesFn {
 	}
 }
 
-func (m *mockLoadTypesFn) fn() generator.LoadTypesFn {
+// mock returns the mock implementation of the LoadTypesFn type
+func (m *mockLoadTypesFn) mock() generator.LoadTypesFn {
 	return func(pkg string) (typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
-		params := mockLoadTypesFn_params{
+		mock := &mockLoadTypesFn_mock{mock: m}
+		return mock.fn(pkg)
+	}
+}
+
+func (m *mockLoadTypesFn_mock) fn(pkg string) (typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
+	params := mockLoadTypesFn_params{
+		pkg: pkg,
+	}
+	m.mock.params <- params
+	results, ok := m.mock.resultsByParams[params]
+	if ok {
+		typeSpecs = results.typeSpecs
+		pkgPath = results.pkgPath
+		err = results.err
+	}
+	return typeSpecs, pkgPath, err
+}
+
+func (m *mockLoadTypesFn) onCall(pkg string) *mockLoadTypesFn_fnRecorder {
+	return &mockLoadTypesFn_fnRecorder{
+		params: mockLoadTypesFn_params{
 			pkg: pkg,
-		}
-		m.params <- params
-		results, ok := m.resultsByParams[params]
-		if ok {
-			typeSpecs = results.typeSpecs
-			pkgPath = results.pkgPath
-			err = results.err
-		}
-		return typeSpecs, pkgPath, err
+		},
+		mock: m,
+	}
+}
+
+func (r *mockLoadTypesFn_fnRecorder) ret(typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
+	r.mock.resultsByParams[r.params] = mockLoadTypesFn_results{
+		typeSpecs: typeSpecs,
+		pkgPath:   pkgPath,
+		err:       err,
 	}
 }

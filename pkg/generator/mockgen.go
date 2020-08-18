@@ -22,11 +22,13 @@ const (
 // Converterer is the interface used by MockGenerator to invoke a Converter
 type Converterer interface {
 	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
-	ParamResultStruct(
-		typeName, prefix, label string, fieldList *dst.FieldList, comparable bool) (structDecl *dst.GenDecl)
-	NewMockFn(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
-	Method(typeName string, fn Func) (funcDecl *dst.FuncDecl)
+	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
+	MethodStructs(typeName, prefix string, fn Func) (structDecls []dst.Decl)
+	NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
+	IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
 	FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
+	MockMethod(typeName string, fn Func) (funcDecl *dst.FuncDecl)
+	RecorderMethods(typeName string, fn Func) (funcDecls []dst.Decl)
 }
 
 // MockGenerator generates mocks
@@ -84,19 +86,11 @@ func (g *MockGenerator) Generate(inTypes []string, imp string) (*token.FileSet, 
 			return nil, nil, tErr
 		}
 
-		iDecls, tErr := g.mockStructs(typeSpec, funcs)
-		if tErr != nil {
-			return nil, nil, tErr
-		}
-		decls = append(decls, iDecls...)
+		decls = append(decls, g.structs(typeSpec, funcs)...)
 
-		decls = append(decls, g.converter.NewMockFn(typeSpec, funcs))
+		decls = append(decls, g.converter.NewFunc(typeSpec, funcs))
 
-		mDecls, tErr := g.methods(typeSpec, pkgPath, funcs)
-		if tErr != nil {
-			return nil, nil, tErr
-		}
-		decls = append(decls, mDecls...)
+		decls = append(decls, g.methods(typeSpec, pkgPath, funcs)...)
 	}
 	file.Decls = decls
 
@@ -172,7 +166,6 @@ func (g *MockGenerator) findFuncs(
 	case *dst.FuncType:
 		return []Func{
 			{
-				Name:    typeSpec.Name.Name,
 				Params:  typ.Params,
 				Results: typ.Results,
 			},
@@ -222,36 +215,54 @@ func (g *MockGenerator) loadNestedInterfaces(
 	return funcs, nil
 }
 
-func (g *MockGenerator) mockStructs(typeSpec *dst.TypeSpec, funcs []Func) ([]dst.Decl, error) {
+func (g *MockGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl {
 	decls := []dst.Decl{
 		g.converter.BaseStruct(typeSpec, funcs),
 	}
+
+	decls = append(decls, g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent))
+	decls = append(decls, g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent))
 
 	for _, fn := range funcs {
 		prefix := mockName(typeSpec.Name.Name)
 		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
 			prefix = fmt.Sprintf("%s_%s", prefix, fn.Name)
 		}
-		decls = append(decls, g.converter.ParamResultStruct(typeSpec.Name.Name, prefix, "params", fn.Params, true))
-		decls = append(decls, g.converter.ParamResultStruct(typeSpec.Name.Name, prefix, "results", fn.Results, false))
+		decls = append(decls, g.converter.MethodStructs(typeSpec.Name.Name, prefix, fn)...)
 	}
 
-	return decls, nil
+	return decls
 }
 
-func (g *MockGenerator) methods(typeSpec *dst.TypeSpec, pkgPath string, funcs []Func) ([]dst.Decl, error) {
+func (g *MockGenerator) methods(typeSpec *dst.TypeSpec, pkgPath string, funcs []Func) []dst.Decl {
 	var decls []dst.Decl
 
-	for _, fn := range funcs {
-		switch typeSpec.Type.(type) {
-		case *dst.InterfaceType:
-			decls = append(decls, g.converter.Method(typeSpec.Name.Name, fn))
-		case *dst.FuncType:
-			decls = append(decls, g.converter.FuncClosure(typeSpec.Name.Name, pkgPath, fn))
-		default:
-			logs.Panicf("Unknown type: %v", typeSpec.Type)
+	switch typeSpec.Type.(type) {
+	case *dst.InterfaceType:
+		decls = append(decls, g.converter.IsolationAccessor(typeSpec.Name.Name, mockIdent, mockFnName))
+
+		for _, fn := range funcs {
+			decls = append(decls, g.converter.MockMethod(typeSpec.Name.Name, fn))
 		}
+
+		decls = append(decls, g.converter.IsolationAccessor(typeSpec.Name.Name, recorderIdent, onCallIdent))
+
+		for _, fn := range funcs {
+			decls = append(decls, g.converter.RecorderMethods(typeSpec.Name.Name, fn)...)
+		}
+	case *dst.FuncType:
+		if len(funcs) != 1 {
+			logs.Panicf("Function mocks should have just one function, found: %d", len(funcs))
+		}
+
+		decls = append(decls, g.converter.FuncClosure(typeSpec.Name.Name, pkgPath, funcs[0]))
+
+		decls = append(decls, g.converter.MockMethod(typeSpec.Name.Name, funcs[0]))
+
+		decls = append(decls, g.converter.RecorderMethods(typeSpec.Name.Name, funcs[0])...)
+	default:
+		logs.Panicf("Unknown type: %v", typeSpec.Type)
 	}
 
-	return decls, nil
+	return decls
 }

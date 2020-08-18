@@ -127,7 +127,7 @@ var _ = Describe("MockGen", func() {
 
 	It("always returns a header comment", func() {
 		// ASSEMBLE
-		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".")
@@ -142,7 +142,7 @@ var _ = Describe("MockGen", func() {
 
 	It("defaults the package when it isn't specified", func() {
 		// ASSEMBLE
-		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".")
@@ -154,7 +154,7 @@ var _ = Describe("MockGen", func() {
 
 	It("defaults the package to a name based on the current directory when it isn't specified", func() {
 		// ASSEMBLE
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".")
@@ -188,26 +188,30 @@ var _ = Describe("MockGen", func() {
 			typeSpec: ifaceSpec1,
 			funcs:    hash.DeepHash(ifaceFuncs),
 		}] = mockConverterer_BaseStruct_results{structDecl: pubDecl}
-		pubParamDecl := &dst.GenDecl{
-			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-param-decl")}},
+		pubMockDecl := &dst.GenDecl{
+			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-mock-decl")}},
 		}
-		converterMock.resultsByParams_ParamResultStruct[mockConverterer_ParamResultStruct_params{
-			typeName:   "PublicInterface",
-			prefix:     "mockPublicInterface_Func1",
-			label:      "params",
-			fieldList:  func1Params,
-			comparable: true,
-		}] = mockConverterer_ParamResultStruct_results{structDecl: pubParamDecl}
-		pubResultDecl := &dst.GenDecl{
-			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-result-decl")}},
+		converterMock.resultsByParams_IsolationStruct[mockConverterer_IsolationStruct_params{
+			typeName: "PublicInterface",
+			suffix:   "mock",
+		}] = mockConverterer_IsolationStruct_results{structDecl: pubMockDecl}
+		pubRecorderDecl := &dst.GenDecl{
+			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-rec-decl")}},
 		}
-		converterMock.resultsByParams_ParamResultStruct[mockConverterer_ParamResultStruct_params{
-			typeName:   "PublicInterface",
-			prefix:     "mockPublicInterface_Func1",
-			label:      "results",
-			fieldList:  nil,
-			comparable: false,
-		}] = mockConverterer_ParamResultStruct_results{structDecl: pubResultDecl}
+		converterMock.resultsByParams_IsolationStruct[mockConverterer_IsolationStruct_params{
+			typeName: "PublicInterface",
+			suffix:   "recorder",
+		}] = mockConverterer_IsolationStruct_results{structDecl: pubRecorderDecl}
+		pubStructDecls := []dst.Decl{
+			&dst.GenDecl{
+				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-struct-decl")}},
+			},
+		}
+		converterMock.resultsByParams_MethodStructs[mockConverterer_MethodStructs_params{
+			typeName: "PublicInterface",
+			prefix:   "mockPublicInterface_Func1",
+			fn:       ifaceFuncs[0],
+		}] = mockConverterer_MethodStructs_results{structDecls: pubStructDecls}
 
 		privateDecl := &dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("private-decl")}},
@@ -222,7 +226,6 @@ var _ = Describe("MockGen", func() {
 		}
 		fnFuncs := []generator.Func{
 			{
-				Name:   "PublicFn",
 				Params: func1Params,
 			},
 		}
@@ -230,40 +233,45 @@ var _ = Describe("MockGen", func() {
 			typeSpec: fnSpec,
 			funcs:    hash.DeepHash(fnFuncs),
 		}] = mockConverterer_BaseStruct_results{structDecl: fnDecl}
-		fnParamDecl := &dst.GenDecl{
-			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("fn-param-decl")}},
+		fnMockDecl := &dst.GenDecl{
+			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("fn-mock-decl")}},
 		}
-		converterMock.resultsByParams_ParamResultStruct[mockConverterer_ParamResultStruct_params{
-			typeName:   "PublicFn",
-			prefix:     "mockPublicFn",
-			fieldList:  func1Params,
-			label:      "params",
-			comparable: true,
-		}] = mockConverterer_ParamResultStruct_results{structDecl: fnParamDecl}
-		fnResultDecl := &dst.GenDecl{
-			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("fn-result-decl")}},
+		converterMock.resultsByParams_IsolationStruct[mockConverterer_IsolationStruct_params{
+			typeName: "PublicFn",
+			suffix:   "mock",
+		}] = mockConverterer_IsolationStruct_results{structDecl: fnMockDecl}
+		fnRecorderDecl := &dst.GenDecl{
+			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("fn-rec-decl")}},
 		}
-		converterMock.resultsByParams_ParamResultStruct[mockConverterer_ParamResultStruct_params{
-			typeName:   "PublicFn",
-			prefix:     "mockPublicFn",
-			fieldList:  nil,
-			label:      "results",
-			comparable: false,
-		}] = mockConverterer_ParamResultStruct_results{structDecl: fnResultDecl}
+		converterMock.resultsByParams_IsolationStruct[mockConverterer_IsolationStruct_params{
+			typeName: "PublicFn",
+			suffix:   "recorder",
+		}] = mockConverterer_IsolationStruct_results{structDecl: fnRecorderDecl}
+		fnStructDecls := []dst.Decl{
+			&dst.GenDecl{
+				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("fn-struct-decl")}},
+			},
+		}
+		converterMock.resultsByParams_MethodStructs[mockConverterer_MethodStructs_params{
+			typeName: "PublicFn",
+			prefix:   "mockPublicFn",
+			fn:       fnFuncs[0],
+		}] = mockConverterer_MethodStructs_results{structDecls: fnStructDecls}
 
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface", "privateInterface", "PublicFn"}, ".")
 
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(file.Decls)).To(BeNumerically(">", 3))
+		Expect(len(file.Decls)).To(BeNumerically(">", 8))
 		// Only looking at the first three structs for PublicInterface
-		Expect(file.Decls[:3]).To(Equal([]dst.Decl{
+		Expect(file.Decls[:4]).To(Equal([]dst.Decl{
 			pubDecl,
-			pubParamDecl,
-			pubResultDecl,
+			pubMockDecl,
+			pubRecorderDecl,
+			pubStructDecls[0],
 		}))
 
 		fnStart := -1
@@ -274,10 +282,11 @@ var _ = Describe("MockGen", func() {
 		}
 		Expect(fnStart).NotTo(Equal(-1))
 		// Only looking at the structs for PublicFn
-		Expect(file.Decls[fnStart : fnStart+3]).To(Equal([]dst.Decl{
+		Expect(file.Decls[fnStart : fnStart+4]).To(Equal([]dst.Decl{
 			fnDecl,
-			fnParamDecl,
-			fnResultDecl,
+			fnMockDecl,
+			fnRecorderDecl,
+			fnStructDecls[0],
 		}))
 		Expect(file.Decls).To(ContainElement(privateDecl))
 	})
@@ -318,7 +327,7 @@ var _ = Describe("MockGen", func() {
 			funcs:    hash.DeepHash([]generator.Func{}),
 		}] = mockConverterer_BaseStruct_results{structDecl: pubDecl}
 
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, _, err := gen.Generate([]string{"PublicInterface", "privateInterface"}, ".")
@@ -334,29 +343,63 @@ var _ = Describe("MockGen", func() {
 			pkgPath:   "github.com/myshkin5/moqueries/pkg/generator",
 			err:       nil,
 		}
-		newMockFn := &dst.FuncDecl{Name: dst.NewIdent("newMockFn")}
+		newFunc := &dst.FuncDecl{Name: dst.NewIdent("newMockFn")}
 		funcs := []generator.Func{
 			{
 				Name:   "Func1",
 				Params: func1Params,
 			},
 		}
-		converterMock.resultsByParams_NewMockFn[mockConverterer_NewMockFn_params{
+		converterMock.resultsByParams_NewFunc[mockConverterer_NewFunc_params{
 			typeSpec: ifaceSpec1,
 			funcs:    hash.DeepHash(funcs),
-		}] = mockConverterer_NewMockFn_results{funcDecl: newMockFn}
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		}] = mockConverterer_NewFunc_results{funcDecl: newFunc}
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".")
 
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
-		Expect(len(file.Decls)).To(BeNumerically(">", 3))
-		Expect(file.Decls[3]).To(Equal(newMockFn))
+		fnStart := -1
+		for n, decl := range file.Decls {
+			if decl == newFunc {
+				fnStart = n
+			}
+		}
+		Expect(fnStart).NotTo(Equal(-1))
 	})
 
-	It("creates functions for each method in the interface", func() {
+	It("creates a mock accessor", func() {
+		// ASSEMBLE
+		loadTypesFnMock.resultsByParams[mockLoadTypesFn_params{pkg: "."}] = mockLoadTypesFn_results{
+			typeSpecs: []*dst.TypeSpec{ifaceSpec1},
+			pkgPath:   "github.com/myshkin5/moqueries/pkg/generator",
+			err:       nil,
+		}
+		mockFn := &dst.FuncDecl{Name: dst.NewIdent("mock")}
+		converterMock.resultsByParams_IsolationAccessor[mockConverterer_IsolationAccessor_params{
+			typeName: "PublicInterface",
+			suffix:   "mock",
+			fnName:   "mock",
+		}] = mockConverterer_IsolationAccessor_results{funcDecl: mockFn}
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+
+		// ACT
+		_, file, err := gen.Generate([]string{"PublicInterface"}, ".")
+
+		// ASSERT
+		Expect(err).NotTo(HaveOccurred())
+		fnStart := -1
+		for n, decl := range file.Decls {
+			if decl == mockFn {
+				fnStart = n
+			}
+		}
+		Expect(fnStart).NotTo(Equal(-1))
+	})
+
+	It("creates mock functions for each method in the interface", func() {
 		// ASSEMBLE
 		loadTypesFnMock.resultsByParams[mockLoadTypesFn_params{pkg: "."}] = mockLoadTypesFn_results{
 			typeSpecs: []*dst.TypeSpec{ifaceSpec1},
@@ -364,14 +407,14 @@ var _ = Describe("MockGen", func() {
 			err:       nil,
 		}
 		methodFn := &dst.FuncDecl{Name: dst.NewIdent("Func1")}
-		converterMock.resultsByParams_Method[mockConverterer_Method_params{
+		converterMock.resultsByParams_MockMethod[mockConverterer_MockMethod_params{
 			typeName: "PublicInterface",
 			fn: generator.Func{
 				Name:   "Func1",
 				Params: func1Params,
 			},
-		}] = mockConverterer_Method_results{funcDecl: methodFn}
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		}] = mockConverterer_MockMethod_results{funcDecl: methodFn}
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".")
@@ -393,11 +436,10 @@ var _ = Describe("MockGen", func() {
 			typeName: "PublicFn",
 			pkgPath:  "github.com/myshkin5/moqueries/pkg/generator",
 			fn: generator.Func{
-				Name:   "PublicFn",
 				Params: func1Params,
 			},
 		}] = mockConverterer_FuncClosure_results{funcDecl: methodFn}
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicFn"}, ".")
@@ -405,6 +447,60 @@ var _ = Describe("MockGen", func() {
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
 		Expect(file.Decls).To(ContainElement(methodFn))
+	})
+
+	It("creates a recorder accessor", func() {
+		// ASSEMBLE
+		loadTypesFnMock.resultsByParams[mockLoadTypesFn_params{pkg: "."}] = mockLoadTypesFn_results{
+			typeSpecs: []*dst.TypeSpec{ifaceSpec1},
+			pkgPath:   "github.com/myshkin5/moqueries/pkg/generator",
+			err:       nil,
+		}
+		recFn := &dst.FuncDecl{Name: dst.NewIdent("onCall")}
+		converterMock.resultsByParams_IsolationAccessor[mockConverterer_IsolationAccessor_params{
+			typeName: "PublicInterface",
+			suffix:   "recorder",
+			fnName:   "onCall",
+		}] = mockConverterer_IsolationAccessor_results{funcDecl: recFn}
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+
+		// ACT
+		_, file, err := gen.Generate([]string{"PublicInterface"}, ".")
+
+		// ASSERT
+		Expect(err).NotTo(HaveOccurred())
+		fnStart := -1
+		for n, decl := range file.Decls {
+			if decl == recFn {
+				fnStart = n
+			}
+		}
+		Expect(fnStart).NotTo(Equal(-1))
+	})
+
+	It("creates recorder functions for each method in the interface", func() {
+		// ASSEMBLE
+		loadTypesFnMock.resultsByParams[mockLoadTypesFn_params{pkg: "."}] = mockLoadTypesFn_results{
+			typeSpecs: []*dst.TypeSpec{ifaceSpec1},
+			pkgPath:   "github.com/myshkin5/moqueries/pkg/generator",
+			err:       nil,
+		}
+		methodFns := []dst.Decl{&dst.FuncDecl{Name: dst.NewIdent("Func1")}}
+		converterMock.resultsByParams_RecorderMethods[mockConverterer_RecorderMethods_params{
+			typeName: "PublicInterface",
+			fn: generator.Func{
+				Name:   "Func1",
+				Params: func1Params,
+			},
+		}] = mockConverterer_RecorderMethods_results{funcDecls: methodFns}
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+
+		// ACT
+		_, file, err := gen.Generate([]string{"PublicInterface"}, ".")
+
+		// ASSERT
+		Expect(err).NotTo(HaveOccurred())
+		Expect(file.Decls).To(ContainElement(methodFns[0]))
 	})
 
 	It("returns an error when the interface can't be found", func() {
@@ -418,7 +514,7 @@ var _ = Describe("MockGen", func() {
 			pkgPath: "github.com/myshkin5/moqueries/pkg/generator",
 			err:     nil,
 		}
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"NotThereInterface"}, ".")
@@ -437,7 +533,7 @@ var _ = Describe("MockGen", func() {
 			pkgPath:   "github.com/myshkin5/moqueries/pkg/generator",
 			err:       loadErr,
 		}
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.fn(), converterMock)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"NotThereInterface"}, ".")
