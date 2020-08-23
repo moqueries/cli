@@ -119,7 +119,7 @@ func initializeFile(pkg string) (*token.FileSet, *dst.File, error) {
 	fSet := token.NewFileSet()
 
 	src := fmt.Sprintf("%s\n\npackage %s\n", headerComment, pkg)
-	file, err := decorator.NewDecoratorWithImports(fSet, pkg, goast.New(), true).Parse(src)
+	file, err := decorator.NewDecoratorWithImports(fSet, pkg, goast.New()).Parse(src)
 	if err != nil {
 		return nil, nil, err
 	}

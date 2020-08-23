@@ -19,4 +19,4 @@ require (
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
 
-replace github.com/dave/dst => github.com/myshkin5/dst v0.25.6-0.20200804170417-0a9c7893d553
+replace github.com/dave/dst => github.com/myshkin5/dst v0.25.6-0.20200822225706-4d9bf5761b05

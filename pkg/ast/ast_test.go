@@ -85,5 +85,36 @@ var _ = Describe("Ast", func() {
 			Expect(fTypes[0].Name.Name).To(Equal("SplitFunc"))
 			Expect(pkgPath).To(Equal("bufio"))
 		})
+
+		It("resolves local paths", func() {
+			// ASSEMBLE
+
+			// ACT
+			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/pkg/generator")
+
+			// ASSERT
+			Expect(err).NotTo(HaveOccurred())
+
+			var iTypes []*dst.TypeSpec
+			for _, typ := range typs {
+				if _, ok := typ.Type.(*dst.InterfaceType); ok {
+					iTypes = append(iTypes, typ)
+				}
+			}
+			Expect(iTypes).To(HaveLen(1))
+			Expect(iTypes[0].Name.Name).To(Equal("Converterer"))
+			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/pkg/generator"))
+
+			var baseStruct *dst.FuncType
+			for _, field := range iTypes[0].Type.(*dst.InterfaceType).Methods.List {
+				if field.Names[0].Name == "BaseStruct" {
+					baseStruct = field.Type.(*dst.FuncType)
+				}
+			}
+			Expect(baseStruct).NotTo(BeNil())
+			Expect(baseStruct.Params.List[1].Names[0].Name).To(Equal("funcs"))
+			funcIdent := baseStruct.Params.List[1].Type.(*dst.ArrayType).Elt.(*dst.Ident)
+			Expect(funcIdent.Path).To(Equal("github.com/myshkin5/moqueries/pkg/generator"))
+		})
 	})
 })

@@ -31,17 +31,7 @@ func FindPackageDir(pkg string) (string, error) {
 
 // LoadTypes loads all of the types in the specified package
 func LoadTypes(loadPkg string) ([]*dst.TypeSpec, string, error) {
-	pkgs, err := decorator.Load(&packages.Config{
-		Mode: packages.NeedName |
-			packages.NeedFiles |
-			packages.NeedCompiledGoFiles |
-			packages.NeedImports |
-			packages.NeedTypes |
-			packages.NeedSyntax |
-			packages.NeedTypesInfo |
-			packages.NeedTypesSizes,
-		Env: []string{"DST_INCLUDE_LOCAL_PKG=true"},
-	}, loadPkg)
+	pkgs, err := load(loadPkg)
 	if err != nil {
 		return nil, "", err
 	}
@@ -65,4 +55,81 @@ func LoadTypes(loadPkg string) ([]*dst.TypeSpec, string, error) {
 	}
 
 	return typs, pkgPath, nil
+}
+
+// load was copied from github.com/dave/dst/decorator.Load with minor modifications
+func load(loadPkg string) ([]*decorator.Package, error) {
+	pkgs, err := packages.Load(&packages.Config{
+		Mode: packages.NeedName |
+			packages.NeedFiles |
+			packages.NeedCompiledGoFiles |
+			packages.NeedImports |
+			packages.NeedTypes |
+			packages.NeedSyntax |
+			packages.NeedTypesInfo |
+			packages.NeedTypesSizes,
+	}, loadPkg)
+	if err != nil {
+		return nil, err
+	}
+
+	dpkgs := map[*packages.Package]*decorator.Package{}
+
+	var out []*decorator.Package
+	for _, pkg := range pkgs {
+		p, cErr := convert(pkg, dpkgs)
+		if cErr != nil {
+			return nil, cErr
+		}
+		out = append(out, p)
+	}
+
+	return out, nil
+}
+
+// convert was copied from github.com/dave/dst/decorator.Load with minor modifications
+func convert(pkg *packages.Package, dpkgs map[*packages.Package]*decorator.Package) (*decorator.Package, error) {
+	if dp, ok := dpkgs[pkg]; ok {
+		return dp, nil
+	}
+	p := &decorator.Package{
+		Package: pkg,
+		Imports: map[string]*decorator.Package{},
+	}
+	dpkgs[pkg] = p
+	if len(pkg.Syntax) > 0 {
+
+		// Only decorate files in the GoFiles list. Syntax also has preprocessed cgo files which
+		// break things.
+		goFiles := make(map[string]bool, len(pkg.GoFiles))
+		for _, fpath := range pkg.GoFiles {
+			goFiles[fpath] = true
+		}
+
+		p.Decorator = decorator.NewDecoratorFromPackage(pkg)
+		p.Decorator.ResolveLocalPath = true
+		for _, f := range pkg.Syntax {
+			fpath := pkg.Fset.File(f.Pos()).Name()
+			if !goFiles[fpath] {
+				continue
+			}
+			file, err := p.Decorator.DecorateFile(f)
+			if err != nil {
+				return nil, err
+			}
+			p.Syntax = append(p.Syntax, file)
+		}
+
+		dir, _ := filepath.Split(pkg.Fset.File(pkg.Syntax[0].Pos()).Name())
+		p.Dir = dir
+
+		for path, imp := range pkg.Imports {
+			dimp, err := convert(imp, dpkgs)
+			if err != nil {
+				return nil, err
+			}
+			p.Imports[path] = dimp
+		}
+	}
+	return p, nil
 }
