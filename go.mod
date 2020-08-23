@@ -3,7 +3,7 @@ module github.com/myshkin5/moqueries
 go 1.13
 
 require (
-	github.com/dave/dst v0.25.5
+	github.com/dave/dst v0.26.0
 	github.com/davegardnerisme/deephash v0.0.0-20180626120106-785ea1a8038f
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
@@ -18,5 +18,3 @@ require (
 	golang.org/x/tools v0.0.0-20200624225443-88f3c62a19ff
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
-
-replace github.com/dave/dst => github.com/myshkin5/dst v0.25.6-0.20200822225706-4d9bf5761b05
