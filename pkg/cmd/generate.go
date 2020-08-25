@@ -33,6 +33,13 @@ func generate(cmd *cobra.Command, typs []string) {
 		logs.Panic("Error getting package flag", err)
 	}
 	imp, err := cmd.PersistentFlags().GetString(importFlag)
+	if err != nil {
+		logs.Panic("Error getting import flag", err)
+	}
+	testImp, err := cmd.PersistentFlags().GetBool(testImportFlag)
+	if err != nil {
+		logs.Panic("Error getting test-import flag", err)
+	}
 
 	logs.Init(debug)
 	if debug {
@@ -45,7 +52,7 @@ func generate(cmd *cobra.Command, typs []string) {
 	converter := generator.NewConverter()
 	gen := generator.New(public, pkg, dest, ast.LoadTypes, converter)
 
-	_, file, err := gen.Generate(typs, imp)
+	_, file, err := gen.Generate(typs, imp, testImp)
 	if err != nil {
 		logs.Panic("Error generating mocks", err)
 	}

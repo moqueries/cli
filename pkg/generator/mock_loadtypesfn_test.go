@@ -24,7 +24,10 @@ type mockLoadTypesFn_recorder struct {
 }
 
 // mockLoadTypesFn_params holds the params of the LoadTypesFn type
-type mockLoadTypesFn_params struct{ pkg string }
+type mockLoadTypesFn_params struct {
+	pkg           string
+	loadTestTypes bool
+}
 
 // mockLoadTypesFn_results holds the results of the LoadTypesFn type
 type mockLoadTypesFn_results struct {
@@ -49,15 +52,16 @@ func newMockLoadTypesFn() *mockLoadTypesFn {
 
 // mock returns the mock implementation of the LoadTypesFn type
 func (m *mockLoadTypesFn) mock() generator.LoadTypesFn {
-	return func(pkg string) (typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
+	return func(pkg string, loadTestTypes bool) (typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
 		mock := &mockLoadTypesFn_mock{mock: m}
-		return mock.fn(pkg)
+		return mock.fn(pkg, loadTestTypes)
 	}
 }
 
-func (m *mockLoadTypesFn_mock) fn(pkg string) (typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
+func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
 	params := mockLoadTypesFn_params{
-		pkg: pkg,
+		pkg:           pkg,
+		loadTestTypes: loadTestTypes,
 	}
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
@@ -69,10 +73,11 @@ func (m *mockLoadTypesFn_mock) fn(pkg string) (typeSpecs []*dst.TypeSpec, pkgPat
 	return typeSpecs, pkgPath, err
 }
 
-func (m *mockLoadTypesFn) onCall(pkg string) *mockLoadTypesFn_fnRecorder {
+func (m *mockLoadTypesFn) onCall(pkg string, loadTestTypes bool) *mockLoadTypesFn_fnRecorder {
 	return &mockLoadTypesFn_fnRecorder{
 		params: mockLoadTypesFn_params{
-			pkg: pkg,
+			pkg:           pkg,
+			loadTestTypes: loadTestTypes,
 		},
 		mock: m,
 	}

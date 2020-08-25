@@ -30,8 +30,8 @@ func FindPackageDir(pkg string) (string, error) {
 }
 
 // LoadTypes loads all of the types in the specified package
-func LoadTypes(loadPkg string) ([]*dst.TypeSpec, string, error) {
-	pkgs, err := load(loadPkg)
+func LoadTypes(loadPkg string, loadTestTypes bool) ([]*dst.TypeSpec, string, error) {
+	pkgs, err := load(loadPkg, loadTestTypes)
 	if err != nil {
 		return nil, "", err
 	}
@@ -58,7 +58,7 @@ func LoadTypes(loadPkg string) ([]*dst.TypeSpec, string, error) {
 }
 
 // load was copied from github.com/dave/dst/decorator.Load with minor modifications
-func load(loadPkg string) ([]*decorator.Package, error) {
+func load(loadPkg string, loadTestTypes bool) ([]*decorator.Package, error) {
 	pkgs, err := packages.Load(&packages.Config{
 		Mode: packages.NeedName |
 			packages.NeedFiles |
@@ -68,6 +68,7 @@ func load(loadPkg string) ([]*decorator.Package, error) {
 			packages.NeedSyntax |
 			packages.NeedTypesInfo |
 			packages.NeedTypesSizes,
+		Tests: loadTestTypes,
 	}, loadPkg)
 	if err != nil {
 		return nil, err

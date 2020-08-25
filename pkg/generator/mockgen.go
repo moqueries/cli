@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
@@ -33,37 +34,37 @@ type Converterer interface {
 
 // MockGenerator generates mocks
 type MockGenerator struct {
-	public    bool
-	pkg       string
-	dest      string
-	loadTypes LoadTypesFn
-	converter Converterer
+	public      bool
+	pkg         string
+	dest        string
+	loadTypesFn LoadTypesFn
+	converter   Converterer
 }
 
 //go:generate moqueries --destination mock_loadtypesfn_test.go LoadTypesFn
 
 // LoadTypesFn is used to load types from a given package
-type LoadTypesFn func(pkg string) (typeSpecs []*dst.TypeSpec, pkgPath string, err error)
+type LoadTypesFn func(pkg string, loadTestTypes bool) (typeSpecs []*dst.TypeSpec, pkgPath string, err error)
 
 // New returns a new MockGenerator
-func New(public bool, pkg, dest string, loadTypes LoadTypesFn, converter Converterer) *MockGenerator {
+func New(public bool, pkg, dest string, loadTypesFn LoadTypesFn, converter Converterer) *MockGenerator {
 	return &MockGenerator{
-		public:    public,
-		pkg:       pkg,
-		dest:      dest,
-		loadTypes: loadTypes,
-		converter: converter,
+		public:      public,
+		pkg:         pkg,
+		dest:        dest,
+		loadTypesFn: loadTypesFn,
+		converter:   converter,
 	}
 }
 
 // Generate generates mocks for the given types in the given destination package
-func (g *MockGenerator) Generate(inTypes []string, imp string) (*token.FileSet, *dst.File, error) {
+func (g *MockGenerator) Generate(inTypes []string, imp string, testImp bool) (*token.FileSet, *dst.File, error) {
 	pkg, err := g.defaultPackage()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	typesByIdent, pkgPath, err := g.findTypes(inTypes, imp)
+	typesByIdent, pkgPath, err := g.findTypes(inTypes, imp, testImp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -127,8 +128,9 @@ func initializeFile(pkg string) (*token.FileSet, *dst.File, error) {
 	return fSet, file, nil
 }
 
-func (g *MockGenerator) findTypes(inTypes []string, pkg string) (map[string]*dst.TypeSpec, string, error) {
-	typeSpecs, pkgPath, err := g.loadTypes(pkg)
+func (g *MockGenerator) findTypes(
+	inTypes []string, pkg string, loadTestTypes bool) (map[string]*dst.TypeSpec, string, error) {
+	typeSpecs, pkgPath, err := g.loadTypes(pkg, loadTestTypes)
 	if err != nil {
 		return nil, "", err
 	}
@@ -156,6 +158,16 @@ func (g *MockGenerator) findTypes(inTypes []string, pkg string) (map[string]*dst
 	}
 
 	return typesByIdent, pkgPath, nil
+}
+
+const testPkgSuffix = "_test"
+
+func (g *MockGenerator) loadTypes(pkg string, loadTestTypes bool) ([]*dst.TypeSpec, string, error) {
+	if strings.HasSuffix(pkg, testPkgSuffix) {
+		pkg = strings.TrimSuffix(pkg, testPkgSuffix)
+		loadTestTypes = true
+	}
+	return g.loadTypesFn(pkg, loadTestTypes)
 }
 
 func (g *MockGenerator) findFuncs(
@@ -192,7 +204,7 @@ func (g *MockGenerator) loadNestedInterfaces(
 		case *dst.Ident:
 			nestedType, ok := typesByIdent[typ.String()]
 			if !ok {
-				newTypes, _, err := g.findTypes([]string{typ.Name}, typ.Path)
+				newTypes, _, err := g.findTypes([]string{typ.Name}, typ.Path, false)
 				if err != nil {
 					return nil, err
 				}

@@ -12,6 +12,7 @@ const (
 	destinationFlag = "destination"
 	packageFlag     = "package"
 	importFlag      = "import"
+	testImportFlag  = "test-import"
 )
 
 var rootCmd = &cobra.Command{
@@ -40,6 +41,8 @@ func init() {
 		"Package generated code will be created in (defaults to <destination dir>_test)")
 	rootCmd.PersistentFlags().String(importFlag, ".",
 		"Package containing interface to be mocked (defaults to directory containing generate directive)")
+	rootCmd.PersistentFlags().Bool(testImportFlag, false,
+		"Look for the types to be mocked in the test package")
 }
 
 // Execute generates one or more mocks

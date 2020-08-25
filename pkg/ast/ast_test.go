@@ -52,7 +52,7 @@ var _ = Describe("Ast", func() {
 			// ASSEMBLE
 
 			// ACT
-			typs, pkgPath, err := ast.LoadTypes("builtin")
+			typs, pkgPath, err := ast.LoadTypes("builtin", false)
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
@@ -71,7 +71,7 @@ var _ = Describe("Ast", func() {
 			// ASSEMBLE
 
 			// ACT
-			typs, pkgPath, err := ast.LoadTypes("bufio")
+			typs, pkgPath, err := ast.LoadTypes("bufio", false)
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
@@ -90,7 +90,7 @@ var _ = Describe("Ast", func() {
 			// ASSEMBLE
 
 			// ACT
-			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/pkg/generator")
+			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/pkg/generator", false)
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
@@ -116,5 +116,27 @@ var _ = Describe("Ast", func() {
 			funcIdent := baseStruct.Params.List[1].Type.(*dst.ArrayType).Elt.(*dst.Ident)
 			Expect(funcIdent.Path).To(Equal("github.com/myshkin5/moqueries/pkg/generator"))
 		})
+
+		It("loads test types", func() {
+			// ASSEMBLE
+
+			// ACT
+			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/pkg/ast", true)
+
+			// ASSERT
+			Expect(err).NotTo(HaveOccurred())
+
+			var fTypes []*dst.TypeSpec
+			for _, typ := range typs {
+				if _, ok := typ.Type.(*dst.FuncType); ok {
+					fTypes = append(fTypes, typ)
+				}
+			}
+			Expect(fTypes).To(HaveLen(1))
+			Expect(fTypes[0].Name.Name).To(Equal("TestFn"))
+			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/pkg/ast.test"))
+		})
 	})
 })
+
+type TestFn func()
