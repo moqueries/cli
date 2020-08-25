@@ -911,16 +911,31 @@ var _ = Describe("Converter", func() {
 			}))
 		})
 
-		It("copies unnamed params", func() {
+		It("names unnamed params and results", func() {
 			// ASSEMBLE
-			for _, f := range func1Params.List {
-				f.Names = nil
+			for _, p := range func1Params.List {
+				p.Names = nil
+			}
+			expectedParams := dst.Clone(func1Params).(*dst.FieldList)
+			for n, p := range expectedParams.List {
+				p.Names = []*dst.Ident{dst.NewIdent(fmt.Sprintf("param%d", n+1))}
+			}
+			for _, r := range func1Results.List {
+				r.Names = nil
+			}
+			expectedResults := dst.Clone(func1Results).(*dst.FieldList)
+			for n, r := range expectedResults.List {
+				r.Names = []*dst.Ident{dst.NewIdent(fmt.Sprintf("result%d", n+1))}
 			}
 
 			// ACT
 			decl := converter.MockMethod("MyInterface", iSpecFuncs[0])
 
 			// ASSERT
+			Expect(decl.Type).To(Equal(&dst.FuncType{
+				Params:  expectedParams,
+				Results: expectedResults,
+			}))
 			elements := decl.Body.List[0].(*dst.AssignStmt).Rhs[0].(*dst.CompositeLit).Elts
 			Expect(elements).To(Equal([]dst.Expr{
 				&dst.KeyValueExpr{
@@ -1321,10 +1336,14 @@ var _ = Describe("Converter", func() {
 				}))
 			})
 
-			It("names unnamed return values in the return method", func() {
+			It("names unnamed values in the return method", func() {
 				// ASSEMBLE
 				for _, f := range func1Results.List {
 					f.Names = nil
+				}
+				expectedResults := dst.Clone(func1Results).(*dst.FieldList)
+				for n, r := range expectedResults.List {
+					r.Names = []*dst.Ident{dst.NewIdent(fmt.Sprintf("result%d", n+1))}
 				}
 
 				// ACT
@@ -1334,6 +1353,9 @@ var _ = Describe("Converter", func() {
 				Expect(len(decls)).To(BeNumerically(">", 1))
 				decl, ok := decls[1].(*dst.FuncDecl)
 				Expect(ok).To(BeTrue())
+				Expect(decl.Type).To(Equal(&dst.FuncType{
+					Params: expectedResults,
+				}))
 				Expect(decl.Body.List).To(HaveLen(1))
 				assignStmt, ok := decl.Body.List[0].(*dst.AssignStmt)
 				Expect(ok).To(BeTrue())

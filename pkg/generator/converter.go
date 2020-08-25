@@ -308,8 +308,8 @@ func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 		},
 		Name: dst.NewIdent(fnName),
 		Type: &dst.FuncType{
-			Params:  dst.Clone(fn.Params).(*dst.FieldList),
-			Results: dst.Clone(fn.Results).(*dst.FieldList),
+			Params:  cloneAndNameUnnamed(paramPrefix, fn.Params),
+			Results: cloneAndNameUnnamed(resultPrefix, fn.Results),
 		},
 		Body: mockFunc(typePrefix, fieldSuffix, fn),
 		Decs: stdFuncDec(),
@@ -651,7 +651,7 @@ func recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
 		},
 		Name: dst.NewIdent(returnFnName),
 		Type: &dst.FuncType{
-			Params: dst.Clone(fn.Results).(*dst.FieldList),
+			Params: cloneAndNameUnnamed(resultPrefix, fn.Results),
 		},
 		Body: &dst.BlockStmt{
 			List: []dst.Stmt{
@@ -779,6 +779,16 @@ func assignResults(results []*dst.Field) []dst.Stmt {
 		}
 	}
 	return assigns
+}
+
+func cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList) *dst.FieldList {
+	fieldList = dst.Clone(fieldList).(*dst.FieldList)
+	for n, f := range fieldList.List {
+		if len(f.Names) == 0 {
+			f.Names = []*dst.Ident{dst.NewIdent(fmt.Sprintf("%s%d", prefix, n+1))}
+		}
+	}
+	return fieldList
 }
 
 func mockFnReturn(results []*dst.Field) dst.Stmt {
