@@ -1526,8 +1526,8 @@ var _ = Describe("Converter", func() {
 	})
 
 	It("dumps the AST of an interface mock", func() {
-		filePath := "./mock_converterer_test.go"
-		outPath := "./mock_converterer_ast.txt"
+		filePath := "./moq_converterer_test.go"
+		outPath := "./moq_converterer_ast.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)
@@ -1540,8 +1540,8 @@ var _ = Describe("Converter", func() {
 	})
 
 	It("dumps the DST of an interface mock", func() {
-		filePath := "./mock_converterer_test.go"
-		outPath := "./mock_converterer_dst.txt"
+		filePath := "./moq_converterer_test.go"
+		outPath := "./moq_converterer_dst.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)
@@ -1557,8 +1557,8 @@ var _ = Describe("Converter", func() {
 	})
 
 	It("dumps the AST of a function mock", func() {
-		filePath := "./mock_loadtypesfn_test.go"
-		outPath := "./mock_loadtypesfn_ast.txt"
+		filePath := "./moq_loadtypesfn_test.go"
+		outPath := "./moq_loadtypesfn_ast.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)
@@ -1571,8 +1571,8 @@ var _ = Describe("Converter", func() {
 	})
 
 	It("dumps the DST of a function mock", func() {
-		filePath := "./mock_loadtypesfn_test.go"
-		outPath := "./mock_loadtypesfn_dst.txt"
+		filePath := "./moq_loadtypesfn_test.go"
+		outPath := "./moq_loadtypesfn_dst.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)

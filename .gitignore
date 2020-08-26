@@ -15,4 +15,4 @@
 # vendor/
 
 # AST and DST files used while writing code generation code
-/pkg/generator/mock*.txt
+/pkg/generator/moq_*.txt
