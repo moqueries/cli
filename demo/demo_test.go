@@ -14,16 +14,17 @@ var _ = Describe("Demo", func() {
 	It("only writes my favorite numbers", func() {
 		isFavMock := newMockIsFavorite()
 		writerMock := newMockWriter()
-		d := demo.FavWriter{
-			IsFav: isFavMock.mock(),
-			W:     writerMock.mock(),
-		}
 
 		isFavMock.onCall(1).ret(false)
 		isFavMock.onCall(2).ret(false)
 		isFavMock.onCall(3).ret(true)
 
 		writerMock.onCall().Write([]byte("3"))
+
+		d := demo.FavWriter{
+			IsFav: isFavMock.mock(),
+			W:     writerMock.mock(),
+		}
 
 		err := d.WriteFavorites([]int{1, 2, 3})
 
@@ -34,14 +35,15 @@ var _ = Describe("Demo", func() {
 	It("returns an error when writing", func() {
 		isFavMock := newMockIsFavorite()
 		writerMock := newMockWriter()
-		d := demo.FavWriter{
-			IsFav: isFavMock.mock(),
-			W:     writerMock.mock(),
-		}
 
 		isFavMock.onCall(3).ret(true)
 
 		writerMock.onCall().Write([]byte("3")).ret(0, errors.New("couldn't write"))
+
+		d := demo.FavWriter{
+			IsFav: isFavMock.mock(),
+			W:     writerMock.mock(),
+		}
 
 		err := d.WriteFavorites([]int{1, 2, 3})
 
