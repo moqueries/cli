@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
@@ -20,9 +21,9 @@ func generate(cmd *cobra.Command, typs []string) {
 	if err != nil {
 		logs.Panic("Error getting debug flag", err)
 	}
-	public, err := cmd.PersistentFlags().GetBool(publicFlag)
+	export, err := cmd.PersistentFlags().GetBool(exportFlag)
 	if err != nil {
-		logs.Panic("Error getting public flag", err)
+		logs.Panic("Error getting export flag", err)
 	}
 	dest, err := cmd.PersistentFlags().GetString(destinationFlag)
 	if err != nil {
@@ -44,13 +45,19 @@ func generate(cmd *cobra.Command, typs []string) {
 	logs.Init(debug)
 	if debug {
 		cwd, _ := os.Getwd()
-		logs.Debugf("moqueries invoked, debug: %t, public: %t, destination: %s,"+
+		logs.Debugf("moqueries invoked, debug: %t, export: %t, destination: %s,"+
 			" package: %s, import: %s, types: %s, current working directory: %s",
-			debug, public, dest, pkg, imp, typs, cwd)
+			debug, export, dest, pkg, imp, typs, cwd)
 	}
 
-	converter := generator.NewConverter()
-	gen := generator.New(public, pkg, dest, ast.LoadTypes, converter)
+	if export && strings.HasSuffix(dest, "_test.go") {
+		logs.Warn("Exported mock in a test file will not be accessible in" +
+			" other packages. Remove --export option or set the --destination" +
+			" to a non-test file.")
+	}
+
+	converter := generator.NewConverter(export)
+	gen := generator.New(export, pkg, dest, ast.LoadTypes, converter)
 
 	_, file, err := gen.Generate(typs, imp, testImp)
 	if err != nil {
@@ -71,6 +78,13 @@ func generate(cmd *cobra.Command, typs []string) {
 	}()
 
 	destDir := filepath.Dir(dest)
+	if _, err = os.Stat(destDir); os.IsNotExist(err) {
+		err = os.Mkdir(destDir, os.ModePerm)
+		if err != nil {
+			logs.Error("Error creating destination directory", err)
+		}
+	}
+
 	restorer := decorator.NewRestorerWithImports(destDir, gopackages.New(destDir))
 	err = restorer.Fprint(tempFile, file)
 	if err != nil {

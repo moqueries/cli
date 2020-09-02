@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"strings"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
@@ -32,7 +33,7 @@ var _ = Describe("Converter", func() {
 	)
 
 	BeforeEach(func() {
-		converter = generator.NewConverter(false)
+		converter = generator.NewConverter(true)
 
 		func1Params = &dst.FieldList{
 			List: []*dst.Field{
@@ -81,10 +82,10 @@ var _ = Describe("Converter", func() {
 		}
 
 		func1ParamsPassthrough = &dst.CompositeLit{
-			Type: dst.NewIdent("mockMyInterface_Func1_params"),
+			Type: dst.NewIdent("MockMyInterface_Func1_params"),
 			Elts: []dst.Expr{
 				&dst.KeyValueExpr{
-					Key:   dst.NewIdent("firstParam"),
+					Key:   dst.NewIdent("FirstParam"),
 					Value: dst.NewIdent("firstParam"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{
@@ -95,21 +96,21 @@ var _ = Describe("Converter", func() {
 					},
 				},
 				&dst.KeyValueExpr{
-					Key:   dst.NewIdent("secondParam"),
+					Key:   dst.NewIdent("SecondParam"),
 					Value: dst.NewIdent("secondParam"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{After: dst.NewLine},
 					},
 				},
 				&dst.KeyValueExpr{
-					Key:   dst.NewIdent("thirdParam"),
+					Key:   dst.NewIdent("ThirdParam"),
 					Value: dst.NewIdent("thirdParam"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{After: dst.NewLine},
 					},
 				},
 				&dst.KeyValueExpr{
-					Key: dst.NewIdent("fourthParam"),
+					Key: dst.NewIdent("FourthParam"),
 					Value: &dst.CallExpr{
 						Fun: &dst.Ident{
 							Path: "github.com/myshkin5/moqueries/pkg/hash",
@@ -181,35 +182,35 @@ var _ = Describe("Converter", func() {
 			Expect(decl.Tok).To(Equal(token.TYPE))
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface"),
+					Name: dst.NewIdent("MockPublicInterface"),
 					Type: &dst.StructType{Fields: &dst.FieldList{
 						List: []*dst.Field{
 							{
-								Names: []*dst.Ident{dst.NewIdent("resultsByParams_Func1")},
+								Names: []*dst.Ident{dst.NewIdent("ResultsByParams_Func1")},
 								Type: &dst.MapType{
-									Key:   dst.NewIdent("mockPublicInterface_Func1_params"),
-									Value: dst.NewIdent("mockPublicInterface_Func1_results"),
+									Key:   dst.NewIdent("MockPublicInterface_Func1_params"),
+									Value: dst.NewIdent("MockPublicInterface_Func1_results"),
 								},
 							},
 							{
-								Names: []*dst.Ident{dst.NewIdent("params_Func1")},
+								Names: []*dst.Ident{dst.NewIdent("Params_Func1")},
 								Type: &dst.ChanType{
 									Dir:   dst.SEND | dst.RECV,
-									Value: dst.NewIdent("mockPublicInterface_Func1_params"),
+									Value: dst.NewIdent("MockPublicInterface_Func1_params"),
 								},
 							},
 							{
-								Names: []*dst.Ident{dst.NewIdent("resultsByParams_func2")},
+								Names: []*dst.Ident{dst.NewIdent("ResultsByParams_func2")},
 								Type: &dst.MapType{
-									Key:   dst.NewIdent("mockPublicInterface_func2_params"),
-									Value: dst.NewIdent("mockPublicInterface_func2_results"),
+									Key:   dst.NewIdent("MockPublicInterface_func2_params"),
+									Value: dst.NewIdent("MockPublicInterface_func2_results"),
 								},
 							},
 							{
-								Names: []*dst.Ident{dst.NewIdent("params_func2")},
+								Names: []*dst.Ident{dst.NewIdent("Params_func2")},
 								Type: &dst.ChanType{
 									Dir:   dst.SEND | dst.RECV,
-									Value: dst.NewIdent("mockPublicInterface_func2_params"),
+									Value: dst.NewIdent("MockPublicInterface_func2_params"),
 								},
 							},
 						},
@@ -218,7 +219,7 @@ var _ = Describe("Converter", func() {
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mockPublicInterface holds the state of a mock of the PublicInterface type"))
+				"// MockPublicInterface holds the state of a mock of the PublicInterface type"))
 		})
 
 		It("creates a base mock for a function", func() {
@@ -231,21 +232,21 @@ var _ = Describe("Converter", func() {
 			Expect(decl.Tok).To(Equal(token.TYPE))
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicFunction"),
+					Name: dst.NewIdent("MockPublicFunction"),
 					Type: &dst.StructType{Fields: &dst.FieldList{
 						List: []*dst.Field{
 							{
-								Names: []*dst.Ident{dst.NewIdent("resultsByParams")},
+								Names: []*dst.Ident{dst.NewIdent("ResultsByParams")},
 								Type: &dst.MapType{
-									Key:   dst.NewIdent("mockPublicFunction_params"),
-									Value: dst.NewIdent("mockPublicFunction_results"),
+									Key:   dst.NewIdent("MockPublicFunction_params"),
+									Value: dst.NewIdent("MockPublicFunction_results"),
 								},
 							},
 							{
-								Names: []*dst.Ident{dst.NewIdent("params")},
+								Names: []*dst.Ident{dst.NewIdent("Params")},
 								Type: &dst.ChanType{
 									Dir:   dst.SEND | dst.RECV,
-									Value: dst.NewIdent("mockPublicFunction_params"),
+									Value: dst.NewIdent("MockPublicFunction_params"),
 								},
 							},
 						},
@@ -254,7 +255,7 @@ var _ = Describe("Converter", func() {
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mockPublicFunction holds the state of a mock of the PublicFunction type"))
+				"// MockPublicFunction holds the state of a mock of the PublicFunction type"))
 		})
 	})
 
@@ -269,13 +270,13 @@ var _ = Describe("Converter", func() {
 			Expect(decl.Tok).To(Equal(token.TYPE))
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockMyInterface_mock"),
+					Name: dst.NewIdent("MockMyInterface_mock"),
 					Type: &dst.StructType{Fields: &dst.FieldList{
 						List: []*dst.Field{
 							{
-								Names: []*dst.Ident{dst.NewIdent("mock")},
+								Names: []*dst.Ident{dst.NewIdent("Mock")},
 								Type: &dst.StarExpr{
-									X: dst.NewIdent("mockMyInterface"),
+									X: dst.NewIdent("MockMyInterface"),
 								},
 							},
 						},
@@ -284,7 +285,7 @@ var _ = Describe("Converter", func() {
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mockMyInterface_mock isolates the mock interface of the MyInterface type"))
+				"// MockMyInterface_mock isolates the mock interface of the MyInterface type"))
 		})
 	})
 
@@ -313,48 +314,48 @@ var _ = Describe("Converter", func() {
 			Expect(decl.Tok).To(Equal(token.TYPE))
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_params"),
-					Type: &dst.StructType{Fields: expectedParams},
+					Name: dst.NewIdent("MockPublicInterface_Func1_params"),
+					Type: &dst.StructType{Fields: exportFieldList(expectedParams)},
 				},
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mockPublicInterface_Func1_params holds the params of the PublicInterface type"))
+				"// MockPublicInterface_Func1_params holds the params of the PublicInterface type"))
 
 			decl, ok = decls[1].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(decl.Tok).To(Equal(token.TYPE))
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_results"),
-					Type: &dst.StructType{Fields: func1Results},
+					Name: dst.NewIdent("MockPublicInterface_Func1_results"),
+					Type: &dst.StructType{Fields: exportFieldList(func1Results)},
 				},
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mockPublicInterface_Func1_results holds the results of the PublicInterface type"))
+				"// MockPublicInterface_Func1_results holds the results of the PublicInterface type"))
 
 			decl, ok = decls[2].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(decl.Tok).To(Equal(token.TYPE))
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_fnRecorder"),
+					Name: dst.NewIdent("MockPublicInterface_Func1_fnRecorder"),
 					Type: &dst.StructType{Fields: &dst.FieldList{List: []*dst.Field{
 						{
-							Names: []*dst.Ident{dst.NewIdent("params")},
-							Type:  dst.NewIdent("mockPublicInterface_Func1_params"),
+							Names: []*dst.Ident{dst.NewIdent("Params")},
+							Type:  dst.NewIdent("MockPublicInterface_Func1_params"),
 						},
 						{
-							Names: []*dst.Ident{dst.NewIdent("mock")},
-							Type:  &dst.StarExpr{X: dst.NewIdent("mockPublicInterface")},
+							Names: []*dst.Ident{dst.NewIdent("Mock")},
+							Type:  &dst.StarExpr{X: dst.NewIdent("MockPublicInterface")},
 						},
 					}}},
 				},
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// mockPublicInterface_Func1_fnRecorder " +
-				"routes recorded function calls to the mockPublicInterface mock"))
+			Expect(decl.Decs.Start[0]).To(Equal("// MockPublicInterface_Func1_fnRecorder " +
+				"routes recorded function calls to the MockPublicInterface mock"))
 		})
 
 		It("doesn't convert non-comparables to hashes when making a non-comparable struct", func() {
@@ -383,17 +384,17 @@ var _ = Describe("Converter", func() {
 			Expect(ok).To(BeTrue())
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_params"),
-					Type: &dst.StructType{Fields: expectedParams},
+					Name: dst.NewIdent("MockPublicInterface_Func1_params"),
+					Type: &dst.StructType{Fields: exportFieldList(expectedParams)},
 				},
 			}))
 			decl, ok = decls[1].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_results"),
+					Name: dst.NewIdent("MockPublicInterface_Func1_results"),
 					// Types still match as nothing was converted to a hash
-					Type: &dst.StructType{Fields: func1Params},
+					Type: &dst.StructType{Fields: exportFieldList(func1Params)},
 				},
 			}))
 		})
@@ -436,8 +437,8 @@ var _ = Describe("Converter", func() {
 			Expect(ok).To(BeTrue())
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_params"),
-					Type: &dst.StructType{Fields: expectedParams},
+					Name: dst.NewIdent("MockPublicInterface_Func1_params"),
+					Type: &dst.StructType{Fields: exportFieldList(expectedParams)},
 				},
 			}))
 			// Verify the source AST wasn't modified
@@ -447,8 +448,8 @@ var _ = Describe("Converter", func() {
 			Expect(ok).To(BeTrue())
 			Expect(decl.Specs).To(Equal([]dst.Spec{
 				&dst.TypeSpec{
-					Name: dst.NewIdent("mockPublicInterface_Func1_results"),
-					Type: &dst.StructType{Fields: expectedResults},
+					Name: dst.NewIdent("MockPublicInterface_Func1_results"),
+					Type: &dst.StructType{Fields: exportFieldList(expectedResults)},
 				},
 			}))
 			// Verify the source AST wasn't modified
@@ -464,13 +465,13 @@ var _ = Describe("Converter", func() {
 			decl := converter.NewFunc(iSpec, iSpecFuncs)
 
 			// ASSERT
-			Expect(decl.Name).To(Equal(dst.NewIdent("newMockPublicInterface")))
+			Expect(decl.Name).To(Equal(dst.NewIdent("NewMockPublicInterface")))
 			Expect(decl.Type).To(Equal(&dst.FuncType{
 				Params: &dst.FieldList{},
 				Results: &dst.FieldList{
 					List: []*dst.Field{
 						{
-							Type: &dst.StarExpr{X: dst.NewIdent("mockPublicInterface")},
+							Type: &dst.StarExpr{X: dst.NewIdent("MockPublicInterface")},
 						},
 					},
 				},
@@ -484,14 +485,14 @@ var _ = Describe("Converter", func() {
 			Expect(unaryExpr.Op).To(Equal(token.AND))
 			compositeLit, ok := unaryExpr.X.(*dst.CompositeLit)
 			Expect(ok).To(BeTrue())
-			Expect(compositeLit.Type).To(Equal(dst.NewIdent("mockPublicInterface")))
+			Expect(compositeLit.Type).To(Equal(dst.NewIdent("MockPublicInterface")))
 			Expect(compositeLit.Elts).To(HaveLen(4))
 			Expect(compositeLit.Elts[0]).To(Equal(&dst.KeyValueExpr{
-				Key: dst.NewIdent("resultsByParams_Func1"),
+				Key: dst.NewIdent("ResultsByParams_Func1"),
 				Value: &dst.CompositeLit{
 					Type: &dst.MapType{
-						Key:   dst.NewIdent("mockPublicInterface_Func1_params"),
-						Value: dst.NewIdent("mockPublicInterface_Func1_results"),
+						Key:   dst.NewIdent("MockPublicInterface_Func1_params"),
+						Value: dst.NewIdent("MockPublicInterface_Func1_results"),
 					},
 				},
 				Decs: dst.KeyValueExprDecorations{
@@ -499,13 +500,13 @@ var _ = Describe("Converter", func() {
 				},
 			}))
 			Expect(compositeLit.Elts[1]).To(Equal(&dst.KeyValueExpr{
-				Key: dst.NewIdent("params_Func1"),
+				Key: dst.NewIdent("Params_Func1"),
 				Value: &dst.CallExpr{
 					Fun: dst.NewIdent("make"),
 					Args: []dst.Expr{
 						&dst.ChanType{
 							Dir:   dst.SEND | dst.RECV,
-							Value: dst.NewIdent("mockPublicInterface_Func1_params"),
+							Value: dst.NewIdent("MockPublicInterface_Func1_params"),
 						},
 						&dst.BasicLit{
 							Kind:  token.INT,
@@ -518,11 +519,11 @@ var _ = Describe("Converter", func() {
 				},
 			}))
 			Expect(compositeLit.Elts[2]).To(Equal(&dst.KeyValueExpr{
-				Key: dst.NewIdent("resultsByParams_func2"),
+				Key: dst.NewIdent("ResultsByParams_func2"),
 				Value: &dst.CompositeLit{
 					Type: &dst.MapType{
-						Key:   dst.NewIdent("mockPublicInterface_func2_params"),
-						Value: dst.NewIdent("mockPublicInterface_func2_results"),
+						Key:   dst.NewIdent("MockPublicInterface_func2_params"),
+						Value: dst.NewIdent("MockPublicInterface_func2_results"),
 					},
 				},
 				Decs: dst.KeyValueExprDecorations{
@@ -530,13 +531,13 @@ var _ = Describe("Converter", func() {
 				},
 			}))
 			Expect(compositeLit.Elts[3]).To(Equal(&dst.KeyValueExpr{
-				Key: dst.NewIdent("params_func2"),
+				Key: dst.NewIdent("Params_func2"),
 				Value: &dst.CallExpr{
 					Fun: dst.NewIdent("make"),
 					Args: []dst.Expr{
 						&dst.ChanType{
 							Dir:   dst.SEND | dst.RECV,
-							Value: dst.NewIdent("mockPublicInterface_func2_params"),
+							Value: dst.NewIdent("MockPublicInterface_func2_params"),
 						},
 						&dst.BasicLit{
 							Kind:  token.INT,
@@ -551,7 +552,7 @@ var _ = Describe("Converter", func() {
 			Expect(compositeLit.Decs).To(Equal(dst.CompositeLitDecorations{Lbrace: []string{"\n"}}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// newMockPublicInterface creates a new mock of the PublicInterface type"))
+				"// NewMockPublicInterface creates a new mock of the PublicInterface type"))
 		})
 
 		It("creates a new mock function for a function", func() {
@@ -561,13 +562,13 @@ var _ = Describe("Converter", func() {
 			decl := converter.NewFunc(fnSpec, fnSpecFuncs)
 
 			// ASSERT
-			Expect(decl.Name).To(Equal(dst.NewIdent("newMockPublicFunction")))
+			Expect(decl.Name).To(Equal(dst.NewIdent("NewMockPublicFunction")))
 			Expect(decl.Type).To(Equal(&dst.FuncType{
 				Params: &dst.FieldList{},
 				Results: &dst.FieldList{
 					List: []*dst.Field{
 						{
-							Type: &dst.StarExpr{X: dst.NewIdent("mockPublicFunction")},
+							Type: &dst.StarExpr{X: dst.NewIdent("MockPublicFunction")},
 						},
 					},
 				},
@@ -581,14 +582,14 @@ var _ = Describe("Converter", func() {
 			Expect(unaryExpr.Op).To(Equal(token.AND))
 			compositeLit, ok := unaryExpr.X.(*dst.CompositeLit)
 			Expect(ok).To(BeTrue())
-			Expect(compositeLit.Type).To(Equal(dst.NewIdent("mockPublicFunction")))
+			Expect(compositeLit.Type).To(Equal(dst.NewIdent("MockPublicFunction")))
 			Expect(compositeLit.Elts).To(HaveLen(2))
 			Expect(compositeLit.Elts[0]).To(Equal(&dst.KeyValueExpr{
-				Key: dst.NewIdent("resultsByParams"),
+				Key: dst.NewIdent("ResultsByParams"),
 				Value: &dst.CompositeLit{
 					Type: &dst.MapType{
-						Key:   dst.NewIdent("mockPublicFunction_params"),
-						Value: dst.NewIdent("mockPublicFunction_results"),
+						Key:   dst.NewIdent("MockPublicFunction_params"),
+						Value: dst.NewIdent("MockPublicFunction_results"),
 					},
 				},
 				Decs: dst.KeyValueExprDecorations{
@@ -596,13 +597,13 @@ var _ = Describe("Converter", func() {
 				},
 			}))
 			Expect(compositeLit.Elts[1]).To(Equal(&dst.KeyValueExpr{
-				Key: dst.NewIdent("params"),
+				Key: dst.NewIdent("Params"),
 				Value: &dst.CallExpr{
 					Fun: dst.NewIdent("make"),
 					Args: []dst.Expr{
 						&dst.ChanType{
 							Dir:   dst.SEND | dst.RECV,
-							Value: dst.NewIdent("mockPublicFunction_params"),
+							Value: dst.NewIdent("MockPublicFunction_params"),
 						},
 						&dst.BasicLit{
 							Kind:  token.INT,
@@ -617,7 +618,7 @@ var _ = Describe("Converter", func() {
 			Expect(compositeLit.Decs).To(Equal(dst.CompositeLitDecorations{Lbrace: []string{"\n"}}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// newMockPublicFunction creates a new mock of the PublicFunction type"))
+				"// NewMockPublicFunction creates a new mock of the PublicFunction type"))
 		})
 	})
 
@@ -634,18 +635,18 @@ var _ = Describe("Converter", func() {
 					{
 						Names: []*dst.Ident{dst.NewIdent("m")},
 						Type: &dst.StarExpr{
-							X: dst.NewIdent("mockMyInterface"),
+							X: dst.NewIdent("MockMyInterface"),
 						},
 					},
 				},
 			}))
-			Expect(decl.Name).To(Equal(dst.NewIdent("onCall")))
+			Expect(decl.Name).To(Equal(dst.NewIdent("OnCall")))
 			Expect(decl.Type).To(Equal(&dst.FuncType{
 				Params: &dst.FieldList{},
 				Results: &dst.FieldList{
 					List: []*dst.Field{
 						{
-							Type: &dst.StarExpr{X: dst.NewIdent("mockMyInterface_recorder")},
+							Type: &dst.StarExpr{X: dst.NewIdent("MockMyInterface_recorder")},
 						},
 					},
 				},
@@ -659,10 +660,10 @@ var _ = Describe("Converter", func() {
 			Expect(unaryExpr.Op).To(Equal(token.AND))
 			compositeLit, ok := unaryExpr.X.(*dst.CompositeLit)
 			Expect(ok).To(BeTrue())
-			Expect(compositeLit.Type).To(Equal(dst.NewIdent("mockMyInterface_recorder")))
+			Expect(compositeLit.Type).To(Equal(dst.NewIdent("MockMyInterface_recorder")))
 			Expect(compositeLit.Elts).To(HaveLen(1))
 			Expect(compositeLit.Elts[0]).To(Equal(&dst.KeyValueExpr{
-				Key:   dst.NewIdent("mock"),
+				Key:   dst.NewIdent("Mock"),
 				Value: dst.NewIdent("m"),
 				Decs: dst.KeyValueExprDecorations{
 					NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -671,7 +672,7 @@ var _ = Describe("Converter", func() {
 			Expect(compositeLit.Decs).To(Equal(dst.CompositeLitDecorations{Lbrace: []string{"\n"}}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// onCall returns the recorder implementation of the MyInterface type"))
+				"// OnCall returns the recorder implementation of the MyInterface type"))
 		})
 	})
 
@@ -688,7 +689,7 @@ var _ = Describe("Converter", func() {
 					{
 						Names: []*dst.Ident{dst.NewIdent("m")},
 						Type: &dst.StarExpr{
-							X: dst.NewIdent("mockMyInterface_mock"),
+							X: dst.NewIdent("MockMyInterface_mock"),
 						},
 					},
 				},
@@ -710,9 +711,9 @@ var _ = Describe("Converter", func() {
 				Chan: &dst.SelectorExpr{
 					X: &dst.SelectorExpr{
 						X:   dst.NewIdent("m"),
-						Sel: dst.NewIdent("mock"),
+						Sel: dst.NewIdent("Mock"),
 					},
-					Sel: dst.NewIdent("params_Func1"),
+					Sel: dst.NewIdent("Params_Func1"),
 				},
 				Value: dst.NewIdent("params"),
 			}))
@@ -727,9 +728,9 @@ var _ = Describe("Converter", func() {
 						X: &dst.SelectorExpr{
 							X: &dst.SelectorExpr{
 								X:   dst.NewIdent("m"),
-								Sel: dst.NewIdent("mock"),
+								Sel: dst.NewIdent("Mock"),
 							},
-							Sel: dst.NewIdent("resultsByParams_Func1"),
+							Sel: dst.NewIdent("ResultsByParams_Func1"),
 						},
 						Index: dst.NewIdent("params"),
 					},
@@ -745,7 +746,7 @@ var _ = Describe("Converter", func() {
 							Rhs: []dst.Expr{
 								&dst.SelectorExpr{
 									X:   dst.NewIdent("results"),
-									Sel: dst.NewIdent("result"),
+									Sel: dst.NewIdent("Result"),
 								},
 							},
 						},
@@ -755,7 +756,7 @@ var _ = Describe("Converter", func() {
 							Rhs: []dst.Expr{
 								&dst.SelectorExpr{
 									X:   dst.NewIdent("results"),
-									Sel: dst.NewIdent("err"),
+									Sel: dst.NewIdent("Err"),
 								},
 							},
 						},
@@ -778,7 +779,7 @@ var _ = Describe("Converter", func() {
 
 		It("creates a mock function for a function", func() {
 			// ASSEMBLE
-			func1ParamsPassthrough.Type = dst.NewIdent("mockMyFn_params")
+			func1ParamsPassthrough.Type = dst.NewIdent("MockMyFn_params")
 
 			// ACT
 			decl := converter.MockMethod("MyFn", fnSpecFuncs[0])
@@ -789,12 +790,12 @@ var _ = Describe("Converter", func() {
 					{
 						Names: []*dst.Ident{dst.NewIdent("m")},
 						Type: &dst.StarExpr{
-							X: dst.NewIdent("mockMyFn_mock"),
+							X: dst.NewIdent("MockMyFn_mock"),
 						},
 					},
 				},
 			}))
-			Expect(decl.Name).To(Equal(dst.NewIdent("fn")))
+			Expect(decl.Name).To(Equal(dst.NewIdent("Fn")))
 			Expect(decl.Type).To(Equal(&dst.FuncType{
 				Params:  func1Params,
 				Results: func1Results,
@@ -811,9 +812,9 @@ var _ = Describe("Converter", func() {
 				Chan: &dst.SelectorExpr{
 					X: &dst.SelectorExpr{
 						X:   dst.NewIdent("m"),
-						Sel: dst.NewIdent("mock"),
+						Sel: dst.NewIdent("Mock"),
 					},
-					Sel: dst.NewIdent("params"),
+					Sel: dst.NewIdent("Params"),
 				},
 				Value: dst.NewIdent("params"),
 			}))
@@ -828,9 +829,9 @@ var _ = Describe("Converter", func() {
 						X: &dst.SelectorExpr{
 							X: &dst.SelectorExpr{
 								X:   dst.NewIdent("m"),
-								Sel: dst.NewIdent("mock"),
+								Sel: dst.NewIdent("Mock"),
 							},
-							Sel: dst.NewIdent("resultsByParams"),
+							Sel: dst.NewIdent("ResultsByParams"),
 						},
 						Index: dst.NewIdent("params"),
 					},
@@ -846,7 +847,7 @@ var _ = Describe("Converter", func() {
 							Rhs: []dst.Expr{
 								&dst.SelectorExpr{
 									X:   dst.NewIdent("results"),
-									Sel: dst.NewIdent("result"),
+									Sel: dst.NewIdent("Result"),
 								},
 							},
 						},
@@ -856,7 +857,7 @@ var _ = Describe("Converter", func() {
 							Rhs: []dst.Expr{
 								&dst.SelectorExpr{
 									X:   dst.NewIdent("results"),
-									Sel: dst.NewIdent("err"),
+									Sel: dst.NewIdent("Err"),
 								},
 							},
 						},
@@ -889,7 +890,7 @@ var _ = Describe("Converter", func() {
 			elements := decl.Body.List[0].(*dst.AssignStmt).Rhs[0].(*dst.CompositeLit).Elts
 			Expect(elements).To(Equal([]dst.Expr{
 				&dst.KeyValueExpr{
-					Key:   dst.NewIdent("firstParam"),
+					Key:   dst.NewIdent("FirstParam"),
 					Value: dst.NewIdent("firstParam"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{
@@ -900,7 +901,7 @@ var _ = Describe("Converter", func() {
 					},
 				},
 				&dst.KeyValueExpr{
-					Key:   dst.NewIdent("secondParam"),
+					Key:   dst.NewIdent("SecondParam"),
 					Value: dst.NewIdent("secondParam"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{
@@ -996,7 +997,7 @@ var _ = Describe("Converter", func() {
 					Rhs: []dst.Expr{
 						&dst.SelectorExpr{
 							X:   dst.NewIdent("results"),
-							Sel: dst.NewIdent("result"),
+							Sel: dst.NewIdent("Result"),
 						},
 					},
 				},
@@ -1006,7 +1007,7 @@ var _ = Describe("Converter", func() {
 					Rhs: []dst.Expr{
 						&dst.SelectorExpr{
 							X:   dst.NewIdent("results"),
-							Sel: dst.NewIdent("secondResult"),
+							Sel: dst.NewIdent("SecondResult"),
 						},
 					},
 				},
@@ -1096,11 +1097,11 @@ var _ = Describe("Converter", func() {
 				List: []*dst.Field{
 					{
 						Names: []*dst.Ident{dst.NewIdent("m")},
-						Type:  &dst.StarExpr{X: dst.NewIdent("mockMyFn")},
+						Type:  &dst.StarExpr{X: dst.NewIdent("MockMyFn")},
 					},
 				},
 			}))
-			Expect(decl.Name).To(Equal(dst.NewIdent("mock")))
+			Expect(decl.Name).To(Equal(dst.NewIdent("Mock")))
 			Expect(decl.Type).To(Equal(&dst.FuncType{
 				Params: &dst.FieldList{},
 				Results: &dst.FieldList{
@@ -1132,10 +1133,10 @@ var _ = Describe("Converter", func() {
 					&dst.UnaryExpr{
 						Op: token.AND,
 						X: &dst.CompositeLit{
-							Type: dst.NewIdent("mockMyFn_mock"),
+							Type: dst.NewIdent("MockMyFn_mock"),
 							Elts: []dst.Expr{
 								&dst.KeyValueExpr{
-									Key:   dst.NewIdent("mock"),
+									Key:   dst.NewIdent("Mock"),
 									Value: dst.NewIdent("m"),
 								},
 							},
@@ -1148,7 +1149,7 @@ var _ = Describe("Converter", func() {
 					&dst.CallExpr{
 						Fun: &dst.SelectorExpr{
 							X:   dst.NewIdent("mock"),
-							Sel: dst.NewIdent("fn"),
+							Sel: dst.NewIdent("Fn"),
 						},
 						Args: []dst.Expr{
 							dst.NewIdent("firstParam"),
@@ -1161,7 +1162,7 @@ var _ = Describe("Converter", func() {
 			}))
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mock returns the mock implementation of the MyFn type"))
+				"// Mock returns the mock implementation of the MyFn type"))
 		})
 	})
 
@@ -1182,7 +1183,7 @@ var _ = Describe("Converter", func() {
 						{
 							Names: []*dst.Ident{dst.NewIdent("m")},
 							Type: &dst.StarExpr{
-								X: dst.NewIdent("mockMyInterface_recorder"),
+								X: dst.NewIdent("MockMyInterface_recorder"),
 							},
 						},
 					},
@@ -1191,7 +1192,7 @@ var _ = Describe("Converter", func() {
 				Expect(decl.Type).To(Equal(&dst.FuncType{
 					Params: func1Params,
 					Results: &dst.FieldList{List: []*dst.Field{{
-						Type: &dst.StarExpr{X: dst.NewIdent("mockMyInterface_Func1_fnRecorder")},
+						Type: &dst.StarExpr{X: dst.NewIdent("MockMyInterface_Func1_fnRecorder")},
 					}}},
 				}))
 				Expect(decl.Type.Params.List[0]).NotTo(BeIdenticalTo(func1Params.List[0]), "should be cloned")
@@ -1204,20 +1205,20 @@ var _ = Describe("Converter", func() {
 				Expect(unaryExpr.Op).To(Equal(token.AND))
 				compositeLit, ok := unaryExpr.X.(*dst.CompositeLit)
 				Expect(ok).To(BeTrue())
-				Expect(compositeLit.Type).To(Equal(dst.NewIdent("mockMyInterface_Func1_fnRecorder")))
+				Expect(compositeLit.Type).To(Equal(dst.NewIdent("MockMyInterface_Func1_fnRecorder")))
 				Expect(compositeLit.Elts).To(HaveLen(2))
 				Expect(compositeLit.Elts[0]).To(Equal(&dst.KeyValueExpr{
-					Key:   dst.NewIdent("params"),
+					Key:   dst.NewIdent("Params"),
 					Value: func1ParamsPassthrough,
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{After: dst.NewLine},
 					},
 				}))
 				Expect(compositeLit.Elts[1]).To(Equal(&dst.KeyValueExpr{
-					Key: dst.NewIdent("mock"),
+					Key: dst.NewIdent("Mock"),
 					Value: &dst.SelectorExpr{
 						X:   dst.NewIdent("m"),
-						Sel: dst.NewIdent("mock"),
+						Sel: dst.NewIdent("Mock"),
 					},
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -1247,12 +1248,12 @@ var _ = Describe("Converter", func() {
 						{
 							Names: []*dst.Ident{dst.NewIdent("r")},
 							Type: &dst.StarExpr{
-								X: dst.NewIdent("mockMyInterface_Func1_fnRecorder"),
+								X: dst.NewIdent("MockMyInterface_Func1_fnRecorder"),
 							},
 						},
 					},
 				}))
-				Expect(decl.Name).To(Equal(dst.NewIdent("ret")))
+				Expect(decl.Name).To(Equal(dst.NewIdent("Ret")))
 				Expect(decl.Type).To(Equal(&dst.FuncType{
 					Params: func1Results,
 				}))
@@ -1265,23 +1266,23 @@ var _ = Describe("Converter", func() {
 						X: &dst.SelectorExpr{
 							X: &dst.SelectorExpr{
 								X:   dst.NewIdent("r"),
-								Sel: dst.NewIdent("mock"),
+								Sel: dst.NewIdent("Mock"),
 							},
-							Sel: dst.NewIdent("resultsByParams_Func1"),
+							Sel: dst.NewIdent("ResultsByParams_Func1"),
 						},
 						Index: &dst.SelectorExpr{
 							X:   dst.NewIdent("r"),
-							Sel: dst.NewIdent("params"),
+							Sel: dst.NewIdent("Params"),
 						},
 					},
 				}))
 				Expect(assignStmt.Tok).To(Equal(token.ASSIGN))
 				Expect(assignStmt.Rhs).To(Equal([]dst.Expr{
 					&dst.CompositeLit{
-						Type: dst.NewIdent("mockMyInterface_Func1_results"),
+						Type: dst.NewIdent("MockMyInterface_Func1_results"),
 						Elts: []dst.Expr{
 							&dst.KeyValueExpr{
-								Key:   dst.NewIdent("result"),
+								Key:   dst.NewIdent("Result"),
 								Value: dst.NewIdent("result"),
 								Decs: dst.KeyValueExprDecorations{
 									NodeDecs: dst.NodeDecs{
@@ -1292,7 +1293,7 @@ var _ = Describe("Converter", func() {
 								},
 							},
 							&dst.KeyValueExpr{
-								Key:   dst.NewIdent("err"),
+								Key:   dst.NewIdent("Err"),
 								Value: dst.NewIdent("err"),
 								Decs: dst.KeyValueExprDecorations{
 									NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -1324,7 +1325,7 @@ var _ = Describe("Converter", func() {
 				assignStmt, ok := decl.Body.List[0].(*dst.AssignStmt)
 				Expect(ok).To(BeTrue())
 				Expect(assignStmt.Rhs[0].(*dst.CompositeLit).Elts[0]).To(Equal(&dst.KeyValueExpr{
-					Key:   dst.NewIdent("headerMap"),
+					Key:   dst.NewIdent("HeaderMap"),
 					Value: dst.NewIdent("headerMap"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{
@@ -1385,7 +1386,7 @@ var _ = Describe("Converter", func() {
 		Context("Functions", func() {
 			It("generates a recorder method", func() {
 				// ASSEMBLE
-				func1ParamsPassthrough.Type = dst.NewIdent("mockMyFunc_params")
+				func1ParamsPassthrough.Type = dst.NewIdent("MockMyFunc_params")
 
 				// ACT
 				decls := converter.RecorderMethods("MyFunc", fnSpecFuncs[0])
@@ -1399,19 +1400,19 @@ var _ = Describe("Converter", func() {
 						{
 							Names: []*dst.Ident{dst.NewIdent("m")},
 							Type: &dst.StarExpr{
-								X: dst.NewIdent("mockMyFunc"),
+								X: dst.NewIdent("MockMyFunc"),
 							},
 						},
 					},
 				}))
-				Expect(decl.Name).To(Equal(dst.NewIdent("onCall")))
+				Expect(decl.Name).To(Equal(dst.NewIdent("OnCall")))
 				Expect(decl.Type).To(Equal(&dst.FuncType{
 					Params: func1Params,
 					Results: &dst.FieldList{
 						List: []*dst.Field{
 							{
 								Type: &dst.StarExpr{
-									X: dst.NewIdent("mockMyFunc_fnRecorder"),
+									X: dst.NewIdent("MockMyFunc_fnRecorder"),
 								},
 							},
 						},
@@ -1427,17 +1428,17 @@ var _ = Describe("Converter", func() {
 				Expect(unaryExpr.Op).To(Equal(token.AND))
 				compositeLit, ok := unaryExpr.X.(*dst.CompositeLit)
 				Expect(ok).To(BeTrue())
-				Expect(compositeLit.Type).To(Equal(dst.NewIdent("mockMyFunc_fnRecorder")))
+				Expect(compositeLit.Type).To(Equal(dst.NewIdent("MockMyFunc_fnRecorder")))
 				Expect(compositeLit.Elts).To(HaveLen(2))
 				Expect(compositeLit.Elts[0]).To(Equal(&dst.KeyValueExpr{
-					Key:   dst.NewIdent("params"),
+					Key:   dst.NewIdent("Params"),
 					Value: func1ParamsPassthrough,
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{After: dst.NewLine},
 					},
 				}))
 				Expect(compositeLit.Elts[1]).To(Equal(&dst.KeyValueExpr{
-					Key:   dst.NewIdent("mock"),
+					Key:   dst.NewIdent("Mock"),
 					Value: dst.NewIdent("m"),
 					Decs: dst.KeyValueExprDecorations{
 						NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -1467,12 +1468,12 @@ var _ = Describe("Converter", func() {
 						{
 							Names: []*dst.Ident{dst.NewIdent("r")},
 							Type: &dst.StarExpr{
-								X: dst.NewIdent("mockMyFunc_fnRecorder"),
+								X: dst.NewIdent("MockMyFunc_fnRecorder"),
 							},
 						},
 					},
 				}))
-				Expect(decl.Name).To(Equal(dst.NewIdent("ret")))
+				Expect(decl.Name).To(Equal(dst.NewIdent("Ret")))
 				Expect(decl.Type).To(Equal(&dst.FuncType{
 					Params: func1Results,
 				}))
@@ -1485,23 +1486,23 @@ var _ = Describe("Converter", func() {
 						X: &dst.SelectorExpr{
 							X: &dst.SelectorExpr{
 								X:   dst.NewIdent("r"),
-								Sel: dst.NewIdent("mock"),
+								Sel: dst.NewIdent("Mock"),
 							},
-							Sel: dst.NewIdent("resultsByParams"),
+							Sel: dst.NewIdent("ResultsByParams"),
 						},
 						Index: &dst.SelectorExpr{
 							X:   dst.NewIdent("r"),
-							Sel: dst.NewIdent("params"),
+							Sel: dst.NewIdent("Params"),
 						},
 					},
 				}))
 				Expect(assignStmt.Tok).To(Equal(token.ASSIGN))
 				Expect(assignStmt.Rhs).To(Equal([]dst.Expr{
 					&dst.CompositeLit{
-						Type: dst.NewIdent("mockMyFunc_results"),
+						Type: dst.NewIdent("MockMyFunc_results"),
 						Elts: []dst.Expr{
 							&dst.KeyValueExpr{
-								Key:   dst.NewIdent("result"),
+								Key:   dst.NewIdent("Result"),
 								Value: dst.NewIdent("result"),
 								Decs: dst.KeyValueExprDecorations{
 									NodeDecs: dst.NodeDecs{
@@ -1512,7 +1513,7 @@ var _ = Describe("Converter", func() {
 								},
 							},
 							&dst.KeyValueExpr{
-								Key:   dst.NewIdent("err"),
+								Key:   dst.NewIdent("Err"),
 								Value: dst.NewIdent("err"),
 								Decs: dst.KeyValueExprDecorations{
 									NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -1587,3 +1588,11 @@ var _ = Describe("Converter", func() {
 		Expect(dst.Fprint(outFile, dstFile, dst.NotNilFilter)).To(Succeed())
 	})
 })
+
+func exportFieldList(fields *dst.FieldList) *dst.FieldList {
+	fields = dst.Clone(fields).(*dst.FieldList)
+	for _, field := range fields.List {
+		field.Names[0] = dst.NewIdent(strings.Title(field.Names[0].Name))
+	}
+	return fields
+}

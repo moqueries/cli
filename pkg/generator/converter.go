@@ -30,11 +30,15 @@ const (
 
 // Converter converts various interface and function types to AST structs to
 // build a mock
-type Converter struct{}
+type Converter struct {
+	export bool
+}
 
 // NewConverter creates a new Converter
-func NewConverter() *Converter {
-	return &Converter{}
+func NewConverter(export bool) *Converter {
+	return &Converter{
+		export: export,
+	}
 }
 
 // Func holds on to function related data
@@ -46,14 +50,14 @@ type Func struct {
 
 // BaseStruct generates the base structure used to store the mock's state
 func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDecl {
-	mName := mockName(typeSpec.Name.Name)
+	mName := c.mockName(typeSpec.Name.Name)
 	mock := &dst.GenDecl{
 		Tok: token.TYPE,
 		Specs: []dst.Spec{
 			&dst.TypeSpec{
 				Name: dst.NewIdent(mName),
 				Type: &dst.StructType{Fields: &dst.FieldList{
-					List: baseMockFieldList(typeSpec, funcs),
+					List: c.baseMockFieldList(typeSpec, funcs),
 				}},
 			},
 		},
@@ -66,7 +70,7 @@ func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDec
 
 // IsolationStruct generates a struct used to isolate an interface for the mock
 func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
-	mName := mockName(typeName)
+	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
 	isolate := &dst.GenDecl{
 		Tok: token.TYPE,
@@ -76,7 +80,7 @@ func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.Ge
 				Type: &dst.StructType{Fields: &dst.FieldList{
 					List: []*dst.Field{
 						{
-							Names: []*dst.Ident{dst.NewIdent(mockIdent)},
+							Names: []*dst.Ident{dst.NewIdent(c.exportName(mockIdent))},
 							Type: &dst.StarExpr{
 								X: dst.NewIdent(mName),
 							},
@@ -94,18 +98,23 @@ func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.Ge
 
 // MethodStructs generates a structure for storing a set of parameters or
 // a set of results for a method invocation of a mock
-func (c *Converter) MethodStructs(typeName, prefix string, fn Func) []dst.Decl {
+func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) []dst.Decl {
+	prefix := c.mockName(typeSpec.Name.Name)
+	if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+		prefix = fmt.Sprintf("%s_%s", prefix, fn.Name)
+	}
+
 	decls := make([]dst.Decl, 3)
-	decls[0] = methodStruct(typeName, prefix, paramsIdent, fn.Params)
-	decls[1] = methodStruct(typeName, prefix, resultsIdent, fn.Results)
-	decls[2] = fnRecorderStruct(typeName, prefix)
+	decls[0] = c.methodStruct(typeSpec.Name.Name, prefix, paramsIdent, fn.Params)
+	decls[1] = c.methodStruct(typeSpec.Name.Name, prefix, resultsIdent, fn.Results)
+	decls[2] = c.fnRecorderStruct(typeSpec.Name.Name, prefix)
 	return decls
 }
 
 // NewFunc generates a function for constructing a mock
 func (c *Converter) NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
-	fnName := "newMock" + typeSpec.Name.Name
-	mName := mockName(typeSpec.Name.Name)
+	fnName := c.exportName("newMock" + typeSpec.Name.Name)
+	mName := c.mockName(typeSpec.Name.Name)
 	mockFn := &dst.FuncDecl{
 		Name: dst.NewIdent(fnName),
 		Type: &dst.FuncType{
@@ -126,7 +135,7 @@ func (c *Converter) NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst
 							Op: token.AND,
 							X: &dst.CompositeLit{
 								Type: dst.NewIdent(mName),
-								Elts: newMockElements(typeSpec, funcs),
+								Elts: c.newMockElements(typeSpec, funcs),
 								Decs: dst.CompositeLitDecorations{Lbrace: []string{"\n"}},
 							},
 						},
@@ -144,7 +153,8 @@ func (c *Converter) NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst
 
 // IsolationAccessor generates a function to access an isolation interface
 func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl) {
-	mName := mockName(typeName)
+	fnName = c.exportName(fnName)
+	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
 	mockFn := &dst.FuncDecl{
 		Recv: &dst.FieldList{
@@ -176,7 +186,7 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl
 								Type: dst.NewIdent(iName),
 								Elts: []dst.Expr{
 									&dst.KeyValueExpr{
-										Key:   dst.NewIdent(mockIdent),
+										Key:   dst.NewIdent(c.exportName(mockIdent)),
 										Value: dst.NewIdent(mockReceiverIdent),
 										Decs: dst.KeyValueExprDecorations{
 											NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -202,7 +212,7 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl
 // FuncClosure generates a mock implementation of function type wrapped in a
 // closure
 func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl) {
-	mName := mockName(typeName)
+	mName := c.mockName(typeName)
 	mockFn := &dst.FuncDecl{
 		Recv: &dst.FieldList{
 			List: []*dst.Field{
@@ -212,7 +222,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *ds
 				},
 			},
 		},
-		Name: dst.NewIdent(mockFnName),
+		Name: dst.NewIdent(c.exportName(mockFnName)),
 		Type: &dst.FuncType{
 			Params: &dst.FieldList{},
 			Results: &dst.FieldList{
@@ -247,7 +257,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *ds
 													Type: dst.NewIdent(fmt.Sprintf("%s_%s", mName, mockIdent)),
 													Elts: []dst.Expr{
 														&dst.KeyValueExpr{
-															Key:   dst.NewIdent(mockIdent),
+															Key:   dst.NewIdent(c.exportName(mockIdent)),
 															Value: dst.NewIdent(mockReceiverIdent),
 														},
 													},
@@ -260,7 +270,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *ds
 											&dst.CallExpr{
 												Fun: &dst.SelectorExpr{
 													X:   dst.NewIdent(mockIdent),
-													Sel: dst.NewIdent(fnFnName),
+													Sel: dst.NewIdent(c.exportName(fnFnName)),
 												},
 												Args: passthroughFields(fn.Params),
 											},
@@ -278,21 +288,21 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *ds
 
 	mockFn.Decs.Before = dst.NewLine
 	mockFn.Decs.Start.Append(fmt.Sprintf("// %s returns the %s implementation of the %s type",
-		mockFnName, mockIdent, typeName))
+		c.exportName(mockFnName), mockIdent, typeName))
 
 	return mockFn
 }
 
 // MockMethod generates a mock implementation of a method
 func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
-	mName := mockName(typeName)
+	mName := c.mockName(typeName)
 	recv := fmt.Sprintf("%s_%s", mName, mockIdent)
 
 	fnName := fn.Name
 	fieldSuffix := "_" + fn.Name
 	typePrefix := fmt.Sprintf("%s_%s", mName, fn.Name)
 	if fnName == "" {
-		fnName = "fn"
+		fnName = c.exportName(fnFnName)
 		fieldSuffix = ""
 		typePrefix = mName
 	}
@@ -311,7 +321,7 @@ func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 			Params:  cloneAndNameUnnamed(paramPrefix, fn.Params),
 			Results: cloneAndNameUnnamed(resultPrefix, fn.Results),
 		},
-		Body: mockFunc(typePrefix, fieldSuffix, fn),
+		Body: c.mockFunc(typePrefix, fieldSuffix, fn),
 		Decs: stdFuncDec(),
 	}
 }
@@ -320,15 +330,15 @@ func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 // return method
 func (c *Converter) RecorderMethods(typeName string, fn Func) (funcDecls []dst.Decl) {
 	return []dst.Decl{
-		recorderFn(typeName, fn),
-		recorderReturnFn(typeName, fn),
+		c.recorderFn(typeName, fn),
+		c.recorderReturnFn(typeName, fn),
 	}
 }
 
-func baseMockFieldList(typeSpec *dst.TypeSpec, funcs []Func) []*dst.Field {
+func (c *Converter) baseMockFieldList(typeSpec *dst.TypeSpec, funcs []Func) []*dst.Field {
 	var fields []*dst.Field
 
-	mName := mockName(typeSpec.Name.Name)
+	mName := c.mockName(typeSpec.Name.Name)
 	for _, fn := range funcs {
 		typePrefix := mName
 		fieldSuffix := ""
@@ -336,17 +346,17 @@ func baseMockFieldList(typeSpec *dst.TypeSpec, funcs []Func) []*dst.Field {
 			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
 			fieldSuffix = "_" + fn.Name
 		}
-		fields = baseMockFieldsPerFn(fields, typePrefix, fieldSuffix)
+		fields = c.baseMockFieldsPerFn(fields, typePrefix, fieldSuffix)
 	}
 
 	return fields
 }
 
-func baseMockFieldsPerFn(fields []*dst.Field, typePrefix, fieldSuffix string) []*dst.Field {
-	pName := fmt.Sprintf("%s_%s", typePrefix, paramsIdent)
+func (c *Converter) baseMockFieldsPerFn(fields []*dst.Field, typePrefix, fieldSuffix string) []*dst.Field {
+	pName := c.exportName(fmt.Sprintf("%s_%s", typePrefix, paramsIdent))
 	fields = append(fields, &dst.Field{
 		Names: []*dst.Ident{
-			dst.NewIdent(resultsByParamsIdent + fieldSuffix),
+			dst.NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
 		},
 		Type: &dst.MapType{
 			Key:   &dst.Ident{Name: pName},
@@ -355,7 +365,7 @@ func baseMockFieldsPerFn(fields []*dst.Field, typePrefix, fieldSuffix string) []
 	})
 
 	fields = append(fields, &dst.Field{
-		Names: []*dst.Ident{dst.NewIdent(paramsIdent + fieldSuffix)},
+		Names: []*dst.Ident{dst.NewIdent(c.exportName(paramsIdent + fieldSuffix))},
 		Type: &dst.ChanType{
 			Dir:   dst.SEND | dst.RECV,
 			Value: &dst.Ident{Name: pName},
@@ -375,7 +385,7 @@ func isComparable(expr dst.Expr) bool {
 	return true
 }
 
-func methodStruct(typeName, prefix, label string, fieldList *dst.FieldList) *dst.GenDecl {
+func (c *Converter) methodStruct(typeName, prefix, label string, fieldList *dst.FieldList) *dst.GenDecl {
 	unnamedPrefix, comparable := labelDirection(label)
 	fieldList = dst.Clone(fieldList).(*dst.FieldList)
 
@@ -383,6 +393,10 @@ func methodStruct(typeName, prefix, label string, fieldList *dst.FieldList) *dst
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
 				f.Names = []*dst.Ident{dst.NewIdent(fmt.Sprintf("%s%d", unnamedPrefix, n+1))}
+			}
+
+			for nn := range f.Names {
+				f.Names[nn] = dst.NewIdent(c.exportName(f.Names[nn].Name))
 			}
 
 			// Map params are represented as a deep hash
@@ -414,8 +428,8 @@ func methodStruct(typeName, prefix, label string, fieldList *dst.FieldList) *dst
 	return sType
 }
 
-func fnRecorderStruct(typeName string, prefix string) *dst.GenDecl {
-	mName := mockName(typeName)
+func (c *Converter) fnRecorderStruct(typeName string, prefix string) *dst.GenDecl {
+	mName := c.mockName(typeName)
 	structName := fmt.Sprintf("%s_%s", prefix, fnRecorderSuffix)
 	sType := &dst.GenDecl{
 		Tok: token.TYPE,
@@ -424,11 +438,11 @@ func fnRecorderStruct(typeName string, prefix string) *dst.GenDecl {
 				Name: dst.NewIdent(structName),
 				Type: &dst.StructType{Fields: &dst.FieldList{List: []*dst.Field{
 					{
-						Names: []*dst.Ident{dst.NewIdent(paramsIdent)},
+						Names: []*dst.Ident{dst.NewIdent(c.exportName(paramsIdent))},
 						Type:  dst.NewIdent(fmt.Sprintf("%s_%s", prefix, paramsIdent)),
 					},
 					{
-						Names: []*dst.Ident{dst.NewIdent(mockIdent)},
+						Names: []*dst.Ident{dst.NewIdent(c.exportName(mockIdent))},
 						Type:  &dst.StarExpr{X: dst.NewIdent(mName)},
 					},
 				}}},
@@ -443,10 +457,10 @@ func fnRecorderStruct(typeName string, prefix string) *dst.GenDecl {
 	return sType
 }
 
-func newMockElements(typeSpec *dst.TypeSpec, funcs []Func) []dst.Expr {
+func (c *Converter) newMockElements(typeSpec *dst.TypeSpec, funcs []Func) []dst.Expr {
 	var elems []dst.Expr
 
-	mName := mockName(typeSpec.Name.Name)
+	mName := c.mockName(typeSpec.Name.Name)
 	for _, fn := range funcs {
 		typePrefix := mName
 		fieldSuffix := ""
@@ -454,16 +468,16 @@ func newMockElements(typeSpec *dst.TypeSpec, funcs []Func) []dst.Expr {
 			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
 			fieldSuffix = "_" + fn.Name
 		}
-		elems = newMockElement(elems, typePrefix, fieldSuffix)
+		elems = c.newMockElement(elems, typePrefix, fieldSuffix)
 	}
 
 	return elems
 }
 
-func newMockElement(elems []dst.Expr, typePrefix, fieldSuffix string) []dst.Expr {
+func (c *Converter) newMockElement(elems []dst.Expr, typePrefix, fieldSuffix string) []dst.Expr {
 	pName := fmt.Sprintf("%s_%s", typePrefix, paramsIdent)
 	elems = append(elems, &dst.KeyValueExpr{
-		Key: dst.NewIdent(resultsByParamsIdent + fieldSuffix),
+		Key: dst.NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
 		Value: &dst.CompositeLit{
 			Type: &dst.MapType{
 				Key:   dst.NewIdent(pName),
@@ -475,7 +489,7 @@ func newMockElement(elems []dst.Expr, typePrefix, fieldSuffix string) []dst.Expr
 		},
 	})
 	elems = append(elems, &dst.KeyValueExpr{
-		Key: dst.NewIdent(paramsIdent + fieldSuffix),
+		Key: dst.NewIdent(c.exportName(paramsIdent + fieldSuffix)),
 		Value: &dst.CallExpr{
 			Fun: dst.NewIdent("make"),
 			Args: []dst.Expr{
@@ -496,10 +510,10 @@ func newMockElement(elems []dst.Expr, typePrefix, fieldSuffix string) []dst.Expr
 	return elems
 }
 
-func mockFunc(typePrefix, fieldSuffix string, fn Func) *dst.BlockStmt {
+func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *dst.BlockStmt {
 	stateSelector := &dst.SelectorExpr{
 		X:   dst.NewIdent(mockReceiverIdent),
-		Sel: dst.NewIdent(mockIdent),
+		Sel: dst.NewIdent(c.exportName(mockIdent)),
 	}
 	return &dst.BlockStmt{
 		List: []dst.Stmt{
@@ -509,14 +523,14 @@ func mockFunc(typePrefix, fieldSuffix string, fn Func) *dst.BlockStmt {
 				Rhs: []dst.Expr{
 					&dst.CompositeLit{
 						Type: dst.NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
-						Elts: passthroughElements(fn.Params.List, paramsIdent),
+						Elts: c.passthroughElements(fn.Params.List, paramsIdent),
 					},
 				},
 			},
 			&dst.SendStmt{
 				Chan: &dst.SelectorExpr{
 					X:   dst.Clone(stateSelector).(dst.Expr),
-					Sel: dst.NewIdent(paramsIdent + fieldSuffix),
+					Sel: dst.NewIdent(c.exportName(paramsIdent + fieldSuffix)),
 				},
 				Value: dst.NewIdent(paramsIdent),
 			},
@@ -530,7 +544,7 @@ func mockFunc(typePrefix, fieldSuffix string, fn Func) *dst.BlockStmt {
 					&dst.IndexExpr{
 						X: &dst.SelectorExpr{
 							X:   dst.Clone(stateSelector).(dst.Expr),
-							Sel: dst.NewIdent(resultsByParamsIdent + fieldSuffix),
+							Sel: dst.NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
 						},
 						Index: dst.NewIdent(paramsIdent),
 					},
@@ -538,15 +552,15 @@ func mockFunc(typePrefix, fieldSuffix string, fn Func) *dst.BlockStmt {
 			},
 			&dst.IfStmt{
 				Cond: dst.NewIdent(okIdent),
-				Body: &dst.BlockStmt{List: assignResults(fn.Results.List)},
+				Body: &dst.BlockStmt{List: c.assignResults(fn.Results.List)},
 			},
 			mockFnReturn(fn.Results.List),
 		},
 	}
 }
 
-func recorderFn(typeName string, fn Func) *dst.FuncDecl {
-	mName := mockName(typeName)
+func (c *Converter) recorderFn(typeName string, fn Func) *dst.FuncDecl {
+	mName := c.mockName(typeName)
 
 	recvType := fmt.Sprintf("%s_%s", mName, recorderIdent)
 	fnName := fn.Name
@@ -554,11 +568,11 @@ func recorderFn(typeName string, fn Func) *dst.FuncDecl {
 	typePrefix := fmt.Sprintf("%s_%s", mName, fn.Name)
 	var mockVal dst.Expr = &dst.SelectorExpr{
 		X:   dst.NewIdent(mockReceiverIdent),
-		Sel: dst.NewIdent(mockIdent),
+		Sel: dst.NewIdent(c.exportName(mockIdent)),
 	}
 	if fn.Name == "" {
 		recvType = mName
-		fnName = onCallIdent
+		fnName = c.exportName(onCallIdent)
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 		typePrefix = mName
 		mockVal = dst.NewIdent(mockReceiverIdent)
@@ -586,12 +600,12 @@ func recorderFn(typeName string, fn Func) *dst.FuncDecl {
 				},
 			},
 		},
-		Body: recorderFnInterfaceBody(fnRecName, typePrefix, mockVal, fn),
+		Body: c.recorderFnInterfaceBody(fnRecName, typePrefix, mockVal, fn),
 		Decs: stdFuncDec(),
 	}
 }
 
-func recorderFnInterfaceBody(fnRecName, typePrefix string, mockValue dst.Expr, fn Func) *dst.BlockStmt {
+func (c *Converter) recorderFnInterfaceBody(fnRecName, typePrefix string, mockValue dst.Expr, fn Func) *dst.BlockStmt {
 	return &dst.BlockStmt{
 		List: []dst.Stmt{
 			&dst.ReturnStmt{
@@ -602,17 +616,17 @@ func recorderFnInterfaceBody(fnRecName, typePrefix string, mockValue dst.Expr, f
 							Type: dst.NewIdent(fnRecName),
 							Elts: []dst.Expr{
 								&dst.KeyValueExpr{
-									Key: dst.NewIdent(paramsIdent),
+									Key: dst.NewIdent(c.exportName(paramsIdent)),
 									Value: &dst.CompositeLit{
 										Type: dst.NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
-										Elts: passthroughElements(fn.Params.List, paramsIdent),
+										Elts: c.passthroughElements(fn.Params.List, paramsIdent),
 									},
 									Decs: dst.KeyValueExprDecorations{
 										NodeDecs: dst.NodeDecs{After: dst.NewLine},
 									},
 								},
 								&dst.KeyValueExpr{
-									Key:   dst.NewIdent(mockIdent),
+									Key:   dst.NewIdent(c.exportName(mockIdent)),
 									Value: mockValue,
 									Decs: dst.KeyValueExprDecorations{
 										NodeDecs: dst.NodeDecs{After: dst.NewLine},
@@ -628,15 +642,15 @@ func recorderFnInterfaceBody(fnRecName, typePrefix string, mockValue dst.Expr, f
 	}
 }
 
-func recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
-	mName := mockName(typeName)
+func (c *Converter) recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
+	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
-	resultsByParams := fmt.Sprintf("%s_%s", resultsByParamsIdent, fn.Name)
+	resultsByParams := c.exportName(fmt.Sprintf("%s_%s", resultsByParamsIdent, fn.Name))
 	results := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultsIdent)
 	if fn.Name == "" {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
-		resultsByParams = resultsByParamsIdent
+		resultsByParams = c.exportName(resultsByParamsIdent)
 		results = fmt.Sprintf("%s_%s", mName, resultsIdent)
 	}
 
@@ -649,7 +663,7 @@ func recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
 				},
 			},
 		},
-		Name: dst.NewIdent(returnFnName),
+		Name: dst.NewIdent(c.exportName(returnFnName)),
 		Type: &dst.FuncType{
 			Params: cloneAndNameUnnamed(resultPrefix, fn.Results),
 		},
@@ -661,13 +675,13 @@ func recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
 							X: &dst.SelectorExpr{
 								X: &dst.SelectorExpr{
 									X:   dst.NewIdent(recorderReceiverIdent),
-									Sel: dst.NewIdent(mockIdent),
+									Sel: dst.NewIdent(c.exportName(mockIdent)),
 								},
-								Sel: dst.NewIdent(resultsByParams),
+								Sel: dst.NewIdent(c.exportName(resultsByParams)),
 							},
 							Index: &dst.SelectorExpr{
 								X:   dst.NewIdent(recorderReceiverIdent),
-								Sel: dst.NewIdent(paramsIdent),
+								Sel: dst.NewIdent(c.exportName(paramsIdent)),
 							},
 						},
 					},
@@ -675,7 +689,7 @@ func recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
 					Rhs: []dst.Expr{
 						&dst.CompositeLit{
 							Type: dst.NewIdent(results),
-							Elts: passthroughElements(fn.Results.List, resultsIdent),
+							Elts: c.passthroughElements(fn.Results.List, resultsIdent),
 						},
 					},
 				},
@@ -685,7 +699,7 @@ func recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
 	}
 }
 
-func passthroughElements(fields []*dst.Field, label string) []dst.Expr {
+func (c *Converter) passthroughElements(fields []*dst.Field, label string) []dst.Expr {
 	unnamedPrefix, comparable := labelDirection(label)
 	var elts []dst.Expr
 	beforeDec := dst.NewLine
@@ -707,7 +721,7 @@ func passthroughElements(fields []*dst.Field, label string) []dst.Expr {
 
 		for _, name := range field.Names {
 			elts = append(elts, &dst.KeyValueExpr{
-				Key:   dst.NewIdent(name.Name),
+				Key:   dst.NewIdent(c.exportName(name.Name)),
 				Value: passthroughValue(name.Name, field, comparable),
 				Decs: dst.KeyValueExprDecorations{
 					NodeDecs: dst.NodeDecs{
@@ -748,7 +762,7 @@ func passthroughFields(fields *dst.FieldList) []dst.Expr {
 	return exprs
 }
 
-func assignResults(results []*dst.Field) []dst.Stmt {
+func (c *Converter) assignResults(results []*dst.Field) []dst.Stmt {
 	var assigns []dst.Stmt
 	for n, result := range results {
 		if len(result.Names) == 0 {
@@ -772,7 +786,7 @@ func assignResults(results []*dst.Field) []dst.Stmt {
 				Rhs: []dst.Expr{
 					&dst.SelectorExpr{
 						X:   dst.NewIdent(resultsIdent),
-						Sel: dst.NewIdent(name.Name),
+						Sel: dst.NewIdent(c.exportName(name.Name)),
 					},
 				},
 			})
@@ -805,8 +819,15 @@ func mockFnReturn(results []*dst.Field) dst.Stmt {
 	return &dst.ReturnStmt{Results: exprs}
 }
 
-func mockName(typeName string) string {
-	return mockIdent + strings.Title(typeName)
+func (c *Converter) mockName(typeName string) string {
+	return c.exportName(mockIdent + strings.Title(typeName))
+}
+
+func (c *Converter) exportName(name string) string {
+	if c.export {
+		name = strings.Title(name)
+	}
+	return name
 }
 
 func stdFuncDec() dst.FuncDeclDecorations {

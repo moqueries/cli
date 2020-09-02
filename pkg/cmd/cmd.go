@@ -8,7 +8,7 @@ import (
 
 const (
 	debugFlag       = "debug"
-	publicFlag      = "public"
+	exportFlag      = "export"
 	destinationFlag = "destination"
 	packageFlag     = "package"
 	importFlag      = "import"
@@ -27,8 +27,8 @@ func init() {
 
 	rootCmd.PersistentFlags().Bool(debugFlag, false,
 		"If true, debugging output will be logged")
-	rootCmd.PersistentFlags().Bool(publicFlag, false,
-		"If true, mocks will be publicly accessible from other packages")
+	rootCmd.PersistentFlags().Bool(exportFlag, false,
+		"If true, mocks will be exported and accessible from other packages")
 
 	rootCmd.PersistentFlags().String(destinationFlag, "",
 		"File path where mocks are generated relative to directory containing generate directive")

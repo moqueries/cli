@@ -67,8 +67,8 @@ type mockConverterer_IsolationStruct_fnRecorder struct {
 
 // mockConverterer_MethodStructs_params holds the params of the Converterer type
 type mockConverterer_MethodStructs_params struct {
-	typeName, prefix string
-	fn               generator.Func
+	typeSpec *dst.TypeSpec
+	fn       generator.Func
 }
 
 // mockConverterer_MethodStructs_results holds the results of the Converterer type
@@ -207,10 +207,9 @@ func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structD
 	return structDecl
 }
 
-func (m *mockConverterer_mock) MethodStructs(typeName, prefix string, fn generator.Func) (structDecls []dst.Decl) {
+func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl) {
 	params := mockConverterer_MethodStructs_params{
-		typeName: typeName,
-		prefix:   prefix,
+		typeSpec: typeSpec,
 		fn:       fn,
 	}
 	m.mock.params_MethodStructs <- params
@@ -327,11 +326,10 @@ func (r *mockConverterer_IsolationStruct_fnRecorder) ret(structDecl *dst.GenDecl
 	}
 }
 
-func (m *mockConverterer_recorder) MethodStructs(typeName, prefix string, fn generator.Func) *mockConverterer_MethodStructs_fnRecorder {
+func (m *mockConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) *mockConverterer_MethodStructs_fnRecorder {
 	return &mockConverterer_MethodStructs_fnRecorder{
 		params: mockConverterer_MethodStructs_params{
-			typeName: typeName,
-			prefix:   prefix,
+			typeSpec: typeSpec,
 			fn:       fn,
 		},
 		mock: m.mock,

@@ -6,13 +6,15 @@ import (
 )
 
 var (
-	debug     = false
-	errLogger *log.Logger
+	debug      = false
+	warnLogger *log.Logger
+	errLogger  *log.Logger
 )
 
 // Init initializes the loggers
 func Init(dbg bool) {
 	errLogger = log.New(os.Stderr, "ERROR: ", log.LstdFlags)
+	warnLogger = log.New(os.Stderr, "WARNING: ", log.LstdFlags)
 	debug = dbg
 	if debug {
 		log.SetPrefix("DEBUG: ")
@@ -26,7 +28,12 @@ func Debugf(format string, args ...interface{}) {
 	}
 }
 
-// Error logs a message with an error
+// Warn logs a warning message
+func Warn(msg string) {
+	warnLogger.Printf(msg + ": %v")
+}
+
+// Error logs a error message with an error
 func Error(msg string, err error) {
 	errLogger.Printf(msg+": %v", err)
 }

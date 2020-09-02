@@ -8,11 +8,12 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/myshkin5/moqueries/pkg/generator"
+	"github.com/myshkin5/moqueries/pkg/generator/exported"
 )
 
 var _ = Describe("MockGen", func() {
 	var (
-		loadTypesFnMock *mockLoadTypesFn
+		loadTypesFnMock *exported.MockLoadTypesFn
 		converterMock   *mockConverterer
 
 		ifaceSpec1    *dst.TypeSpec
@@ -29,7 +30,7 @@ var _ = Describe("MockGen", func() {
 	)
 
 	BeforeEach(func() {
-		loadTypesFnMock = newMockLoadTypesFn()
+		loadTypesFnMock = exported.NewMockLoadTypesFn()
 		converterMock = newMockConverterer()
 
 		func1Params = &dst.FieldList{
@@ -126,7 +127,7 @@ var _ = Describe("MockGen", func() {
 
 	It("always returns a header comment", func() {
 		// ASSEMBLE
-		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -140,9 +141,9 @@ var _ = Describe("MockGen", func() {
 		))
 	})
 
-	It("defaults the package when it isn't specified", func() {
+	It("defaults a test package when not exported and the package isn't specified", func() {
 		// ASSEMBLE
-		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "dir/file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -152,9 +153,22 @@ var _ = Describe("MockGen", func() {
 		Expect(file.Name.Name).To(Equal("dir_test"))
 	})
 
-	It("defaults the package to a name based on the current directory when it isn't specified", func() {
+	It("defaults a non-test package when exported and the package isn't specified", func() {
 		// ASSEMBLE
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(true, "", "dir/file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
+
+		// ACT
+		_, file, err := gen.Generate(nil, ".", false)
+
+		// ASSERT
+		Expect(err).NotTo(HaveOccurred())
+		Expect(file.Name.Name).To(Equal("dir"))
+	})
+
+	It("defaults the package to a test name based on the current directory"+
+		" when it isn't specified and not exported", func() {
+		// ASSEMBLE
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -164,17 +178,30 @@ var _ = Describe("MockGen", func() {
 		Expect(file.Name.Name).To(Equal("generator_test"))
 	})
 
+	It("defaults the package to a non-test name based on the current directory"+
+		" when it isn't specified and exported", func() {
+		// ASSEMBLE
+		gen := generator.New(true, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
+
+		// ACT
+		_, file, err := gen.Generate(nil, ".", false)
+
+		// ASSERT
+		Expect(err).NotTo(HaveOccurred())
+		Expect(file.Name.Name).To(Equal("generator"))
+	})
+
 	It("creates structs for each mock", func() {
 		// ASSEMBLE
-		loadTypesFnMock.resultsByParams[mockLoadTypesFn_params{pkg: "."}] = mockLoadTypesFn_results{
-			typeSpecs: []*dst.TypeSpec{
+		loadTypesFnMock.OnCall(".", false).Ret(
+			[]*dst.TypeSpec{
 				ifaceSpec1,
 				ifaceSpec2,
 				fnSpec,
 			},
-			pkgPath: "github.com/myshkin5/moqueries/pkg/generator",
-			err:     nil,
-		}
+			"github.com/myshkin5/moqueries/pkg/generator",
+			nil,
+		)
 		pubDecl := &dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
 		}
@@ -198,11 +225,7 @@ var _ = Describe("MockGen", func() {
 				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-struct-decl")}},
 			},
 		}
-		converterMock.onCall().MethodStructs(
-			"PublicInterface",
-			"mockPublicInterface_Func1",
-			ifaceFuncs[0],
-		).ret(pubStructDecls)
+		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).ret(pubStructDecls)
 
 		privateDecl := &dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("private-decl")}},
@@ -231,9 +254,9 @@ var _ = Describe("MockGen", func() {
 				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("fn-struct-decl")}},
 			},
 		}
-		converterMock.onCall().MethodStructs("PublicFn", "mockPublicFn", fnFuncs[0]).ret(fnStructDecls)
+		converterMock.onCall().MethodStructs(fnSpec, fnFuncs[0]).ret(fnStructDecls)
 
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface", "privateInterface", "PublicFn"}, ".", false)
@@ -281,7 +304,7 @@ var _ = Describe("MockGen", func() {
 				Path: "io",
 			},
 		})
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{
 				ifaceSpec1,
 				ifaceSpec2,
@@ -289,12 +312,12 @@ var _ = Describe("MockGen", func() {
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
 		)
-		loadTypesFnMock.onCall("io", false).ret([]*dst.TypeSpec{readerSpec}, "io", nil)
+		loadTypesFnMock.OnCall("io", false).Ret([]*dst.TypeSpec{readerSpec}, "io", nil)
 		converterMock.onCall().BaseStruct(ifaceSpec1, []generator.Func{}).ret(&dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
 		})
 
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, _, err := gen.Generate([]string{"PublicInterface", "privateInterface"}, ".", false)
@@ -305,7 +328,7 @@ var _ = Describe("MockGen", func() {
 
 	It("loads tests types when requested", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", true).ret(
+		loadTypesFnMock.OnCall(".", true).Ret(
 			[]*dst.TypeSpec{
 				ifaceSpec1,
 				ifaceSpec2,
@@ -314,22 +337,22 @@ var _ = Describe("MockGen", func() {
 			nil,
 		)
 
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, _, err := gen.Generate([]string{"PublicInterface", "privateInterface"}, ".", true)
 
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
-		Expect(loadTypesFnMock.params).To(Receive(&mockLoadTypesFn_params{
-			pkg:           ".",
-			loadTestTypes: true,
+		Expect(loadTypesFnMock.Params).To(Receive(&exported.MockLoadTypesFn_params{
+			Pkg:           ".",
+			LoadTestTypes: true,
 		}))
 	})
 
 	It("loads tests types when importing a test package", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall("github.com/myshkin5/moqueries/pkg/generator", true).ret(
+		loadTypesFnMock.OnCall("github.com/myshkin5/moqueries/pkg/generator", true).Ret(
 			[]*dst.TypeSpec{
 				ifaceSpec1,
 				ifaceSpec2,
@@ -338,7 +361,7 @@ var _ = Describe("MockGen", func() {
 			nil,
 		)
 
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, _, err := gen.Generate(
@@ -348,15 +371,15 @@ var _ = Describe("MockGen", func() {
 
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
-		Expect(loadTypesFnMock.params).To(Receive(&mockLoadTypesFn_params{
-			pkg:           ".",
-			loadTestTypes: true,
+		Expect(loadTypesFnMock.Params).To(Receive(&exported.MockLoadTypesFn_params{
+			Pkg:           ".",
+			LoadTestTypes: true,
 		}))
 	})
 
 	It("creates a new mock function", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{ifaceSpec1},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
@@ -371,7 +394,7 @@ var _ = Describe("MockGen", func() {
 				},
 			},
 		).ret(newFunc)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -389,14 +412,14 @@ var _ = Describe("MockGen", func() {
 
 	It("creates a mock accessor", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{ifaceSpec1},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
 		)
 		mockFn := &dst.FuncDecl{Name: dst.NewIdent("mock")}
 		converterMock.onCall().IsolationAccessor("PublicInterface", "mock", "mock").ret(mockFn)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -414,7 +437,7 @@ var _ = Describe("MockGen", func() {
 
 	It("creates mock functions for each method in the interface", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{ifaceSpec1},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
@@ -427,7 +450,7 @@ var _ = Describe("MockGen", func() {
 				Params: func1Params,
 			},
 		).ret(methodFn)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -439,7 +462,7 @@ var _ = Describe("MockGen", func() {
 
 	It("creates a closure for a mock func", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{fnSpec},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
@@ -450,7 +473,7 @@ var _ = Describe("MockGen", func() {
 			"github.com/myshkin5/moqueries/pkg/generator",
 			generator.Func{Params: func1Params},
 		).ret(methodFn)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicFn"}, ".", false)
@@ -462,14 +485,14 @@ var _ = Describe("MockGen", func() {
 
 	It("creates a recorder accessor", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{ifaceSpec1},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
 		)
 		recFn := &dst.FuncDecl{Name: dst.NewIdent("onCall")}
 		converterMock.onCall().IsolationAccessor("PublicInterface", "recorder", "onCall").ret(recFn)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -487,7 +510,7 @@ var _ = Describe("MockGen", func() {
 
 	It("creates recorder functions for each method in the interface", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{ifaceSpec1},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
@@ -500,7 +523,7 @@ var _ = Describe("MockGen", func() {
 				Params: func1Params,
 			},
 		).ret(methodFns)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -512,12 +535,12 @@ var _ = Describe("MockGen", func() {
 
 	It("returns an error when the interface can't be found", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).ret(
+		loadTypesFnMock.OnCall(".", false).Ret(
 			[]*dst.TypeSpec{{Name: dst.NewIdent("SomethingElseInterface")}},
 			"github.com/myshkin5/moqueries/pkg/generator",
 			nil,
 		)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"NotThereInterface"}, ".", false)
@@ -531,8 +554,8 @@ var _ = Describe("MockGen", func() {
 	It("returns an ast error when the interfaces can't be loaded", func() {
 		// ASSEMBLE
 		loadErr := errors.New("ast is not happy")
-		loadTypesFnMock.onCall(".", false).ret(nil, "github.com/myshkin5/moqueries/pkg/generator", loadErr)
-		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.mock(), converterMock.mock())
+		loadTypesFnMock.OnCall(".", false).Ret(nil, "github.com/myshkin5/moqueries/pkg/generator", loadErr)
+		gen := generator.New(false, "", "file_test.go", loadTypesFnMock.Mock(), converterMock.mock())
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"NotThereInterface"}, ".", false)

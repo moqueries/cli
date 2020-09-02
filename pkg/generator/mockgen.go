@@ -19,12 +19,14 @@ const (
 )
 
 //go:generate moqueries --destination moq_converterer_test.go Converterer
+// Generated twice to compare output with --export flag
+//go:generate moqueries --destination exported/moq_converterer.go --export Converterer
 
 // Converterer is the interface used by MockGenerator to invoke a Converter
 type Converterer interface {
 	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
 	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
-	MethodStructs(typeName, prefix string, fn Func) (structDecls []dst.Decl)
+	MethodStructs(typeSpec *dst.TypeSpec, fn Func) (structDecls []dst.Decl)
 	NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
 	IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
 	FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
@@ -34,7 +36,7 @@ type Converterer interface {
 
 // MockGenerator generates mocks
 type MockGenerator struct {
-	public      bool
+	export      bool
 	pkg         string
 	dest        string
 	loadTypesFn LoadTypesFn
@@ -42,14 +44,16 @@ type MockGenerator struct {
 }
 
 //go:generate moqueries --destination moq_loadtypesfn_test.go LoadTypesFn
+// Generated twice to compare output with --export flag
+//go:generate moqueries --destination exported/moq_loadtypesfn.go --export LoadTypesFn
 
 // LoadTypesFn is used to load types from a given package
 type LoadTypesFn func(pkg string, loadTestTypes bool) (typeSpecs []*dst.TypeSpec, pkgPath string, err error)
 
 // New returns a new MockGenerator
-func New(public bool, pkg, dest string, loadTypesFn LoadTypesFn, converter Converterer) *MockGenerator {
+func New(export bool, pkg, dest string, loadTypesFn LoadTypesFn, converter Converterer) *MockGenerator {
 	return &MockGenerator{
-		public:      public,
+		export:      export,
 		pkg:         pkg,
 		dest:        dest,
 		loadTypesFn: loadTypesFn,
@@ -110,7 +114,10 @@ func (g *MockGenerator) defaultPackage() (string, error) {
 			}
 		}
 		dirName := filepath.Base(dirPath)
-		pkg = dirName + "_test"
+		pkg = dirName
+		if !g.export {
+			pkg = pkg + "_test"
+		}
 	}
 	logs.Debugf("Output package: %s", pkg)
 	return pkg, nil
@@ -236,11 +243,7 @@ func (g *MockGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl
 	decls = append(decls, g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent))
 
 	for _, fn := range funcs {
-		prefix := mockName(typeSpec.Name.Name)
-		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
-			prefix = fmt.Sprintf("%s_%s", prefix, fn.Name)
-		}
-		decls = append(decls, g.converter.MethodStructs(typeSpec.Name.Name, prefix, fn)...)
+		decls = append(decls, g.converter.MethodStructs(typeSpec, fn)...)
 	}
 
 	return decls
