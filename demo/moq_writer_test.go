@@ -2,11 +2,17 @@
 
 package demo_test
 
-import "github.com/myshkin5/moqueries/pkg/hash"
+import (
+	"sync/atomic"
+
+	"github.com/myshkin5/moqueries/pkg/hash"
+	"github.com/myshkin5/moqueries/pkg/testing"
+)
 
 // mockWriter holds the state of a mock of the Writer type
 type mockWriter struct {
-	resultsByParams_Write map[mockWriter_Write_params]mockWriter_Write_results
+	t                     testing.MoqT
+	resultsByParams_Write map[mockWriter_Write_params]*mockWriter_Write_resultMgr
 	params_Write          chan mockWriter_Write_params
 }
 
@@ -23,6 +29,13 @@ type mockWriter_recorder struct {
 // mockWriter_Write_params holds the params of the Writer type
 type mockWriter_Write_params struct{ p hash.Hash }
 
+// mockWriter_Write_resultMgr manages multiple results and the state of the Writer type
+type mockWriter_Write_resultMgr struct {
+	results  []*mockWriter_Write_results
+	index    uint32
+	anyTimes bool
+}
+
 // mockWriter_Write_results holds the results of the Writer type
 type mockWriter_Write_results struct {
 	n   int
@@ -31,14 +44,16 @@ type mockWriter_Write_results struct {
 
 // mockWriter_Write_fnRecorder routes recorded function calls to the mockWriter mock
 type mockWriter_Write_fnRecorder struct {
-	params mockWriter_Write_params
-	mock   *mockWriter
+	params  mockWriter_Write_params
+	results *mockWriter_Write_resultMgr
+	mock    *mockWriter
 }
 
 // newMockWriter creates a new mock of the Writer type
-func newMockWriter() *mockWriter {
+func newMockWriter(t testing.MoqT) *mockWriter {
 	return &mockWriter{
-		resultsByParams_Write: map[mockWriter_Write_params]mockWriter_Write_results{},
+		t:                     t,
+		resultsByParams_Write: map[mockWriter_Write_params]*mockWriter_Write_resultMgr{},
 		params_Write:          make(chan mockWriter_Write_params, 100),
 	}
 }
@@ -57,8 +72,17 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	m.mock.params_Write <- params
 	results, ok := m.mock.resultsByParams_Write[params]
 	if ok {
-		n = results.n
-		err = results.err
+		i := int(atomic.AddUint32(&results.index, 1)) - 1
+		if i >= len(results.results) {
+			if !results.anyTimes {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+				return
+			}
+			i = len(results.results) - 1
+		}
+		result := results.results[i]
+		n = result.n
+		err = result.err
 	}
 	return n, err
 }
@@ -79,9 +103,39 @@ func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 	}
 }
 
-func (r *mockWriter_Write_fnRecorder) ret(n int, err error) {
-	r.mock.resultsByParams_Write[r.params] = mockWriter_Write_results{
+func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWriter_Write_fnRecorder {
+	if r.results == nil {
+		if _, ok := r.mock.resultsByParams_Write[r.params]; ok {
+			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			return nil
+		}
+
+		r.results = &mockWriter_Write_resultMgr{results: []*mockWriter_Write_results{}, index: 0, anyTimes: false}
+		r.mock.resultsByParams_Write[r.params] = r.results
+	}
+	r.results.results = append(r.results.results, &mockWriter_Write_results{
 		n:   n,
 		err: err,
+	})
+	return r
+}
+
+func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecorder {
+	if r.results == nil {
+		r.mock.t.Fatalf("Return must be called before calling Times")
+		return nil
 	}
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < count-1; n++ {
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (r *mockWriter_Write_fnRecorder) anyTimes() {
+	if r.results == nil {
+		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		return
+	}
+	r.results.anyTimes = true
 }

@@ -6,19 +6,20 @@ import (
 )
 
 var (
-	debug      = false
+	debug      = true
 	warnLogger *log.Logger
 	errLogger  *log.Logger
 )
 
-// Init initializes the loggers
-func Init(dbg bool) {
+func init() {
 	errLogger = log.New(os.Stderr, "ERROR: ", log.LstdFlags)
 	warnLogger = log.New(os.Stderr, "WARNING: ", log.LstdFlags)
+	log.SetPrefix("DEBUG: ")
+}
+
+// Init initializes the loggers
+func Init(dbg bool) {
 	debug = dbg
-	if debug {
-		log.SetPrefix("DEBUG: ")
-	}
 }
 
 // Debugf will output a debugging log if debug logs are configured

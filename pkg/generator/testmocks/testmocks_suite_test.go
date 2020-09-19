@@ -1,4 +1,4 @@
-package demo_test
+package testmocks_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestDemo(t *testing.T) {
+func TestMocks(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Demo Suite")
+	RunSpecs(t, "TestMocks Suite")
 }

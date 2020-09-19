@@ -19,8 +19,6 @@ const (
 )
 
 //go:generate moqueries --destination moq_converterer_test.go Converterer
-// Generated twice to compare output with --export flag
-//go:generate moqueries --destination exported/moq_converterer.go --export Converterer
 
 // Converterer is the interface used by MockGenerator to invoke a Converter
 type Converterer interface {
@@ -44,8 +42,6 @@ type MockGenerator struct {
 }
 
 //go:generate moqueries --destination moq_loadtypesfn_test.go LoadTypesFn
-// Generated twice to compare output with --export flag
-//go:generate moqueries --destination exported/moq_loadtypesfn.go --export LoadTypesFn
 
 // LoadTypesFn is used to load types from a given package
 type LoadTypesFn func(pkg string, loadTestTypes bool) (typeSpecs []*dst.TypeSpec, pkgPath string, err error)
@@ -260,7 +256,7 @@ func (g *MockGenerator) methods(typeSpec *dst.TypeSpec, pkgPath string, funcs []
 			decls = append(decls, g.converter.MockMethod(typeSpec.Name.Name, fn))
 		}
 
-		decls = append(decls, g.converter.IsolationAccessor(typeSpec.Name.Name, recorderIdent, onCallIdent))
+		decls = append(decls, g.converter.IsolationAccessor(typeSpec.Name.Name, recorderIdent, onCallFnName))
 
 		for _, fn := range funcs {
 			decls = append(decls, g.converter.RecorderMethods(typeSpec.Name.Name, fn)...)

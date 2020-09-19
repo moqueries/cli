@@ -2,51 +2,130 @@ package demo_test
 
 import (
 	"errors"
-
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"strings"
+	"testing"
 
 	"github.com/myshkin5/moqueries/demo"
 	"github.com/myshkin5/moqueries/pkg/hash"
 )
 
-var _ = Describe("Demo", func() {
-	It("only writes my favorite numbers", func() {
-		isFavMock := newMockIsFavorite()
-		writerMock := newMockWriter()
+func TestOnlyWriteFavoriteNumbers(t *testing.T) {
+	isFavMock := newMockIsFavorite(t)
+	writerMock := newMockWriter(t)
 
-		isFavMock.onCall(1).ret(false)
-		isFavMock.onCall(2).ret(false)
-		isFavMock.onCall(3).ret(true)
+	isFavMock.onCall(1).returnResults(false)
+	isFavMock.onCall(2).returnResults(false)
+	isFavMock.onCall(3).returnResults(true)
 
-		writerMock.onCall().Write([]byte("3"))
+	writerMock.onCall().Write([]byte("3"))
 
-		d := demo.FavWriter{
-			IsFav: isFavMock.mock(),
-			W:     writerMock.mock(),
-		}
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
 
-		err := d.WriteFavorites([]int{1, 2, 3})
+	err := d.WriteFavorites([]int{1, 2, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if len(writerMock.params_Write) != 1 {
+		t.Errorf("expected Write to be called once, called %d",
+			len(writerMock.params_Write))
+		return
+	}
+	params := <-writerMock.params_Write
+	if params.p != hash.DeepHash([]byte("3")) {
+		t.Errorf("unexpected parameters in call to Write")
+	}
+}
 
-		Expect(err).NotTo(HaveOccurred())
-		Expect(writerMock.params_Write).To(Receive(&mockWriter_Write_params{p: hash.DeepHash([]byte("3"))}))
-	})
+func TestWriteError(t *testing.T) {
+	isFavMock := newMockIsFavorite(t)
+	writerMock := newMockWriter(t)
 
-	It("returns an error when writing", func() {
-		isFavMock := newMockIsFavorite()
-		writerMock := newMockWriter()
+	isFavMock.onCall(3).returnResults(true)
 
-		isFavMock.onCall(3).ret(true)
+	writerMock.onCall().Write([]byte("3")).
+		returnResults(0, errors.New("couldn't write"))
 
-		writerMock.onCall().Write([]byte("3")).ret(0, errors.New("couldn't write"))
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
 
-		d := demo.FavWriter{
-			IsFav: isFavMock.mock(),
-			W:     writerMock.mock(),
-		}
+	err := d.WriteFavorites([]int{1, 2, 3})
+	if err == nil {
+		t.Errorf("expected error")
+		return
+	}
+	if !strings.Contains(err.Error(),
+		"that pesky writer says that it 'couldn't write'") {
+		t.Errorf("unexpected message in error: %v", err)
+	}
+}
 
-		err := d.WriteFavorites([]int{1, 2, 3})
+func TestChangedMyMindILikeIt(t *testing.T) {
+	isFavMock := newMockIsFavorite(t)
+	writerMock := newMockWriter(t)
 
-		Expect(err).To(MatchError("that pesky writer says that it 'couldn't write'"))
-	})
-})
+	isFavMock.onCall(7).
+		returnResults(false).times(5).
+		returnResults(true)
+
+	writerMock.onCall().Write([]byte("7"))
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{7, 7, 7, 7, 7, 7, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if len(writerMock.params_Write) != 1 {
+		t.Errorf("expected Write to be called once, called %d",
+			len(writerMock.params_Write))
+		return
+	}
+	params := <-writerMock.params_Write
+	if params.p != hash.DeepHash([]byte("7")) {
+		t.Errorf("unexpected parameters in call to Write")
+	}
+}
+
+func TestChangedMyMindIHateIt(t *testing.T) {
+	isFavMock := newMockIsFavorite(t)
+	writerMock := newMockWriter(t)
+
+	isFavMock.onCall(7).
+		returnResults(true).times(2).
+		returnResults(false).anyTimes()
+
+	writerMock.onCall().Write([]byte("7")).
+		returnResults(0, nil).times(2).
+		returnResults(0, errors.New("I no longer like 7")).anyTimes()
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if len(writerMock.params_Write) != 2 {
+		t.Errorf("expected Write to be called once, called %d",
+			len(writerMock.params_Write))
+		return
+	}
+	params := <-writerMock.params_Write
+	if params.p != hash.DeepHash([]byte("7")) {
+		t.Errorf("unexpected parameters in call to Write")
+	}
+	params = <-writerMock.params_Write
+	if params.p != hash.DeepHash([]byte("7")) {
+		t.Errorf("unexpected parameters in call to Write")
+	}
+}

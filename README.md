@@ -21,32 +21,50 @@ type IsFavorite func(n int) bool
 ## Using mocks
 
 ### Creating a mock instance
-Code generation creates a `newMockXXX` function for each mock you generate. Simply [invoke the function and hold on to the mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L15-L16) for further testing:
+Code generation creates a `newMockXXX` function for each mock you generate. Simply [invoke the function and hold on to the mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L13-L14) for further testing:
 ```go
-isFavMock := newMockIsFavorite()
-writerMock := newMockWriter()
+isFavMock := newMockIsFavorite(t)
+writerMock := newMockWriter(t)
 ```
 
 ### Expectations
-To get a mock to perform specific behaviors, you have to tell it what to expect and how to behave. For function mocks, the `onCall` function (generated for you) has the same parameter signature as the function itself. The return value of the `onCall` function is a type that (via its `ret` method) informs the mock what to return when invoked with the given parameters. For our `IsFavorite` function mock, we tell it to expect to be called with parameters `1`, `2` and then `3` but only `3` is our favorite number [like so](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L18-L20):
+To get a mock to perform specific behaviors, you have to tell it what to expect and how to behave. For function mocks, the `onCall` function (generated for you) has the same parameter signature as the function itself. The return value of the `onCall` function is a type that (via its `returnResults` method) informs the mock what to return when invoked with the given parameters. For our `IsFavorite` function mock, we tell it to expect to be called with parameters `1`, `2` and then `3` but only `3` is our favorite number [like so](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L16-L18):
 ```go
-isFavMock.onCall(1).ret(false)
-isFavMock.onCall(2).ret(false)
-isFavMock.onCall(3).ret(true)
+isFavMock.onCall(1).returnResults(false)
+isFavMock.onCall(2).returnResults(false)
+isFavMock.onCall(3).returnResults(true)
 ```
 
-Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L22):
+Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L20):
 ```go
 writerMock.onCall().Write([]byte("3"))
 ```
 
-Note that in the above call, we didn't specify what to return (the `Write` function returns the number of bytes written and any error encountered). The mock returns zero values if none are specified in an expectation. To specify the return values, [use](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L41) the generated `ret` method (in this example, we are saying we wrote 0 bytes, and we did get an error):
+Note that in the above call, we didn't specify what to return (the `Write` function returns the number of bytes written and any error encountered). The mock returns zero values if none are specified in an expectation. To specify the return values, [use](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L48-L49) the generated `returnResults` method (in this example, we are saying we wrote 0 bytes, and we did get an error):
 ```go
-writerMock.onCall().Write([]byte("3")).ret(0, errors.New("couldn't write"))
+writerMock.onCall().Write([]byte("3")).
+    returnResults(0, errors.New("couldn't write"))
+```
+
+### N-times and Any times
+When expectations need to be returned repeatedly, `times` and `anyTimes` can be used to control how often a particular result is returned. For instance, [the following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L71-L73) instructs the mock function to return `false` five times and then `true` one time (one time is the default):
+```go
+isFavMock.onCall(7).
+    returnResults(false).times(5).
+    returnResults(true)
+```
+
+`anyTimes` instructs the mock to repeatedly return the same values regardless of how many times the function is called with the given parameters. Note that `anyTimes` can only be used once for a given set of parameters. In fact `anyTimes` has no return value so no other expectations can be set after it.
+
+`times` and `anyTimes` can be used together as well. [This code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L101-L103) returns `true` twice and then always returns `false` regardless of how many times the function is called with the parameter `7`:
+```go
+isFavMock.onCall(7).
+    returnResults(true).times(2).
+    returnResults(false).anyTimes()
 ```
 
 ### Passing the mock to production code
-Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L24-L27), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
+Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L22-L25), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
 ```go
 d := demo.FavWriter{
     IsFav: isFavMock.mock(),
@@ -66,7 +84,7 @@ When the type you want to mock is defined in a test package, use one of the foll
     ```
    Note: This solution requires the `--import` option even if your Go generate directive is in the same package being imported.
 
-   *_--- OR ---_*
+   *_&mdash; OR &mdash;_*
 
 1. Use the `--test-import` option:
     ```go
@@ -84,7 +102,7 @@ Now all of the mock's structs and methods are exported, so they can be used from
 ```go
 writerMock := mockpkg.NewMockWriter()
 
-writerMock.OnCall().Write([]byte("3")).Ret(0, errors.New("couldn't write"))
+writerMock.OnCall().Write([]byte("3")).ReturnResults(0, errors.New("couldn't write"))
 ```
 
 ## Command line reference

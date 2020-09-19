@@ -1,16 +1,10 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"os"
-	"path/filepath"
-	"strings"
 
-	"github.com/dave/dst/decorator"
-	"github.com/dave/dst/decorator/resolver/gopackages"
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/pkg/ast"
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/logs"
 )
@@ -50,49 +44,15 @@ func generate(cmd *cobra.Command, typs []string) {
 			debug, export, dest, pkg, imp, typs, cwd)
 	}
 
-	if export && strings.HasSuffix(dest, "_test.go") {
-		logs.Warn("Exported mock in a test file will not be accessible in" +
-			" other packages. Remove --export option or set the --destination" +
-			" to a non-test file.")
-	}
-
-	converter := generator.NewConverter(export)
-	gen := generator.New(export, pkg, dest, ast.LoadTypes, converter)
-
-	_, file, err := gen.Generate(typs, imp, testImp)
+	err = generator.Generate(generator.GenerateRequest{
+		Types:       typs,
+		Export:      export,
+		Destination: dest,
+		Package:     pkg,
+		Import:      imp,
+		TestImport:  testImp,
+	})
 	if err != nil {
-		logs.Panic("Error generating mocks", err)
-	}
-
-	tempFile, err := ioutil.TempFile("", "*.go")
-	if err != nil {
-		logs.Panic("Error creating temp file", err)
-	}
-	logs.Debugf("Temp file created: %s", tempFile.Name())
-
-	defer func() {
-		err = tempFile.Close()
-		if err != nil {
-			logs.Error("Error closing temp file", err)
-		}
-	}()
-
-	destDir := filepath.Dir(dest)
-	if _, err = os.Stat(destDir); os.IsNotExist(err) {
-		err = os.Mkdir(destDir, os.ModePerm)
-		if err != nil {
-			logs.Error("Error creating destination directory", err)
-		}
-	}
-
-	restorer := decorator.NewRestorerWithImports(destDir, gopackages.New(destDir))
-	err = restorer.Fprint(tempFile, file)
-	if err != nil {
-		logs.Panic("Invalid mock", err)
-	}
-
-	err = os.Rename(tempFile.Name(), dest)
-	if err != nil {
-		logs.Debugf("Error removing destination file: %v", err)
+		logs.Panic("Error generating mock", err)
 	}
 }

@@ -2,11 +2,17 @@
 
 package demo_test
 
-import "github.com/myshkin5/moqueries/demo"
+import (
+	"sync/atomic"
+
+	"github.com/myshkin5/moqueries/demo"
+	"github.com/myshkin5/moqueries/pkg/testing"
+)
 
 // mockIsFavorite holds the state of a mock of the IsFavorite type
 type mockIsFavorite struct {
-	resultsByParams map[mockIsFavorite_params]mockIsFavorite_results
+	t               testing.MoqT
+	resultsByParams map[mockIsFavorite_params]*mockIsFavorite_resultMgr
 	params          chan mockIsFavorite_params
 }
 
@@ -23,6 +29,13 @@ type mockIsFavorite_recorder struct {
 // mockIsFavorite_params holds the params of the IsFavorite type
 type mockIsFavorite_params struct{ n int }
 
+// mockIsFavorite_resultMgr manages multiple results and the state of the IsFavorite type
+type mockIsFavorite_resultMgr struct {
+	results  []*mockIsFavorite_results
+	index    uint32
+	anyTimes bool
+}
+
 // mockIsFavorite_results holds the results of the IsFavorite type
 type mockIsFavorite_results struct {
 	result1 bool
@@ -30,14 +43,16 @@ type mockIsFavorite_results struct {
 
 // mockIsFavorite_fnRecorder routes recorded function calls to the mockIsFavorite mock
 type mockIsFavorite_fnRecorder struct {
-	params mockIsFavorite_params
-	mock   *mockIsFavorite
+	params  mockIsFavorite_params
+	results *mockIsFavorite_resultMgr
+	mock    *mockIsFavorite
 }
 
 // newMockIsFavorite creates a new mock of the IsFavorite type
-func newMockIsFavorite() *mockIsFavorite {
+func newMockIsFavorite(t testing.MoqT) *mockIsFavorite {
 	return &mockIsFavorite{
-		resultsByParams: map[mockIsFavorite_params]mockIsFavorite_results{},
+		t:               t,
+		resultsByParams: map[mockIsFavorite_params]*mockIsFavorite_resultMgr{},
 		params:          make(chan mockIsFavorite_params, 100),
 	}
 }
@@ -54,7 +69,16 @@ func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
 	if ok {
-		result1 = results.result1
+		i := int(atomic.AddUint32(&results.index, 1)) - 1
+		if i >= len(results.results) {
+			if !results.anyTimes {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+				return
+			}
+			i = len(results.results) - 1
+		}
+		result := results.results[i]
+		result1 = result.result1
 	}
 	return result1
 }
@@ -68,8 +92,38 @@ func (m *mockIsFavorite) onCall(n int) *mockIsFavorite_fnRecorder {
 	}
 }
 
-func (r *mockIsFavorite_fnRecorder) ret(result1 bool) {
-	r.mock.resultsByParams[r.params] = mockIsFavorite_results{
-		result1: result1,
+func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_fnRecorder {
+	if r.results == nil {
+		if _, ok := r.mock.resultsByParams[r.params]; ok {
+			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			return nil
+		}
+
+		r.results = &mockIsFavorite_resultMgr{results: []*mockIsFavorite_results{}, index: 0, anyTimes: false}
+		r.mock.resultsByParams[r.params] = r.results
 	}
+	r.results.results = append(r.results.results, &mockIsFavorite_results{
+		result1: result1,
+	})
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) times(count int) *mockIsFavorite_fnRecorder {
+	if r.results == nil {
+		r.mock.t.Fatalf("Return must be called before calling Times")
+		return nil
+	}
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < count-1; n++ {
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) anyTimes() {
+	if r.results == nil {
+		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		return
+	}
+	r.results.anyTimes = true
 }
