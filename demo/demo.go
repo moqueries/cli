@@ -22,7 +22,8 @@ func (d *FavWriter) WriteFavorites(nums []int) error {
 		if d.IsFav(num) {
 			_, err := d.W.Write([]byte(strconv.Itoa(num)))
 			if err != nil {
-				return fmt.Errorf("that pesky writer says that it '%s'", err.Error())
+				return fmt.Errorf("that pesky writer says that it '%s'",
+					err.Error())
 			}
 		}
 	}
