@@ -21,21 +21,21 @@ type IsFavorite func(n int) bool
 ## Using mocks
 
 ### Creating a mock instance
-Code generation creates a `newMockXXX` function for each mock you generate. Simply [invoke the function and hold on to the mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L13-L14) for further testing:
+Code generation creates a `newMockXXX` function for each mock you generate. Simply [invoke the function and hold on to the mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L14-L15) for further testing:
 ```go
 isFavMock := newMockIsFavorite(t, nil)
 writerMock := newMockWriter(t, nil)
 ```
 
 ### Expectations
-To get a mock to perform specific behaviors, you have to tell it what to expect and how to behave. For function mocks, the `onCall` function (generated for you) has the same parameter signature as the function itself. The return value of the `onCall` function is a type that (via its `returnResults` method) informs the mock what to return when invoked with the given parameters. For our `IsFavorite` function mock, we tell it to expect to be called with parameters `1`, `2` and then `3` but only `3` is our favorite number [like so](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L16-L18):
+To get a mock to perform specific behaviors, you have to tell it what to expect and how to behave. For function mocks, the `onCall` function (generated for you) has the same parameter signature as the function itself. The return value of the `onCall` function is a type that (via its `returnResults` method) informs the mock what to return when invoked with the given parameters. For our `IsFavorite` function mock, we tell it to expect to be called with parameters `1`, `2` and then `3` but only `3` is our favorite number [like so](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L17-L19):
 ```go
 isFavMock.onCall(1).returnResults(false)
 isFavMock.onCall(2).returnResults(false)
 isFavMock.onCall(3).returnResults(true)
 ```
 
-Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L20-L21):
+Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L21-L22):
 ```go
 writerMock.onCall().Write([]byte("3")).
     returnResults(1, nil)
@@ -65,7 +65,7 @@ isFavMock.onCall(7).
 ```
 
 ### Passing the mock to production code
-Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L23-L26), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
+Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L24-L27), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
 ```go
 d := demo.FavWriter{
     IsFav: isFavMock.mock(),
