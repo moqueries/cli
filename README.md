@@ -23,8 +23,8 @@ type IsFavorite func(n int) bool
 ### Creating a mock instance
 Code generation creates a `newMockXXX` function for each mock you generate. Simply [invoke the function and hold on to the mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L13-L14) for further testing:
 ```go
-isFavMock := newMockIsFavorite(t)
-writerMock := newMockWriter(t)
+isFavMock := newMockIsFavorite(t, nil)
+writerMock := newMockWriter(t, nil)
 ```
 
 ### Expectations
@@ -35,19 +35,20 @@ isFavMock.onCall(2).returnResults(false)
 isFavMock.onCall(3).returnResults(true)
 ```
 
-Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L20):
+Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L20-L21):
 ```go
-writerMock.onCall().Write([]byte("3"))
+writerMock.onCall().Write([]byte("3")).
+    returnResults(1, nil)
 ```
 
-Note that in the above call, we didn't specify what to return (the `Write` function returns the number of bytes written and any error encountered). The mock returns zero values if none are specified in an expectation. To specify the return values, [use](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L48-L49) the generated `returnResults` method (in this example, we are saying we wrote 0 bytes, and we did get an error):
+Note that in the above call, we didn't specify what to return (the `Write` function returns the number of bytes written and any error encountered). The mock returns zero values if none are specified in an expectation. To specify the return values, [use](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L51-L52) the generated `returnResults` method (in this example, we are saying we wrote 0 bytes, and we did get an error):
 ```go
 writerMock.onCall().Write([]byte("3")).
     returnResults(0, errors.New("couldn't write"))
 ```
 
 ### N-times and Any times
-When expectations need to be returned repeatedly, `times` and `anyTimes` can be used to control how often a particular result is returned. For instance, [the following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L71-L73) instructs the mock function to return `false` five times and then `true` one time (one time is the default):
+When expectations need to be returned repeatedly, `times` and `anyTimes` can be used to control how often a particular result is returned. For instance, [the following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L74-L76) instructs the mock function to return `false` five times and then `true` one time (one time is the default):
 ```go
 isFavMock.onCall(7).
     returnResults(false).times(5).
@@ -56,7 +57,7 @@ isFavMock.onCall(7).
 
 `anyTimes` instructs the mock to repeatedly return the same values regardless of how many times the function is called with the given parameters. Note that `anyTimes` can only be used once for a given set of parameters. In fact `anyTimes` has no return value so no other expectations can be set after it.
 
-`times` and `anyTimes` can be used together as well. [This code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L101-L103) returns `true` twice and then always returns `false` regardless of how many times the function is called with the parameter `7`:
+`times` and `anyTimes` can be used together as well. [This code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L107-L109) returns `true` twice and then always returns `false` regardless of how many times the function is called with the parameter `7`:
 ```go
 isFavMock.onCall(7).
     returnResults(true).times(2).
@@ -64,13 +65,27 @@ isFavMock.onCall(7).
 ```
 
 ### Passing the mock to production code
-Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L22-L25), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
+Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L23-L26), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
 ```go
 d := demo.FavWriter{
     IsFav: isFavMock.mock(),
     W:     writerMock.mock(),
 }
 ```
+
+### Nice vs. Strict
+Sometimes your mocks will get lots of function calls with lots of different parameters &mdash; maybe more calls than you can (or want) to configure. Nice mocks trigger special logic that allow them to return zero values for any unexpected calls. [Creating a nice mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L45-L46) is as simple as supplying a little configuration to the `new` method (the value was `nil` above which defaults to creating strict mocks):
+```go
+isFavMock := newMockIsFavorite(
+    t, &config.MockConfig{Expectation: config.Nice})
+```
+
+Now we only need to [set expectations](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L49) when returning non-zero values (`returnResults(false)` is now the default):
+```go
+isFavMock.onCall(3).returnResults(true)
+```
+
+Calling this mock with any value besides `3` will now return `false`.
 
 ## More command line options
 Below is a loose collection of out-of-the-ordinary command line options for use in out-of-the-ordinary situations.

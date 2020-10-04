@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/dave/dst"
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -13,6 +14,7 @@ import (
 // mockLoadTypesFn holds the state of a mock of the LoadTypesFn type
 type mockLoadTypesFn struct {
 	t               testing.MoqT
+	config          config.MockConfig
 	resultsByParams map[mockLoadTypesFn_params]*mockLoadTypesFn_resultMgr
 	params          chan mockLoadTypesFn_params
 }
@@ -55,9 +57,13 @@ type mockLoadTypesFn_fnRecorder struct {
 }
 
 // newMockLoadTypesFn creates a new mock of the LoadTypesFn type
-func newMockLoadTypesFn(t testing.MoqT) *mockLoadTypesFn {
+func newMockLoadTypesFn(t testing.MoqT, c *config.MockConfig) *mockLoadTypesFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockLoadTypesFn{
 		t:               t,
+		config:          *c,
 		resultsByParams: map[mockLoadTypesFn_params]*mockLoadTypesFn_resultMgr{},
 		params:          make(chan mockLoadTypesFn_params, 100),
 	}
@@ -78,21 +84,28 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (typeSpecs []*
 	}
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		typeSpecs = result.typeSpecs
-		pkgPath = result.pkgPath
-		err = result.err
+		return
 	}
-	return typeSpecs, pkgPath, err
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	typeSpecs = result.typeSpecs
+	pkgPath = result.pkgPath
+	err = result.err
+	return
 }
 
 func (m *mockLoadTypesFn) onCall(pkg string, loadTestTypes bool) *mockLoadTypesFn_fnRecorder {

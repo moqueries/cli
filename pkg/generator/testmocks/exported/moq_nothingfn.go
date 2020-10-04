@@ -5,6 +5,7 @@ package exported
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // MockNothingFn holds the state of a mock of the NothingFn type
 type MockNothingFn struct {
 	T               testing.MoqT
+	Config          config.MockConfig
 	ResultsByParams map[MockNothingFn_params]*MockNothingFn_resultMgr
 	Params          chan MockNothingFn_params
 }
@@ -48,9 +50,13 @@ type MockNothingFn_fnRecorder struct {
 }
 
 // NewMockNothingFn creates a new mock of the NothingFn type
-func NewMockNothingFn(t testing.MoqT) *MockNothingFn {
+func NewMockNothingFn(t testing.MoqT, c *config.MockConfig) *MockNothingFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &MockNothingFn{
 		T:               t,
+		Config:          *c,
 		ResultsByParams: map[MockNothingFn_params]*MockNothingFn_resultMgr{},
 		Params:          make(chan MockNothingFn_params, 100),
 	}
@@ -65,15 +71,22 @@ func (m *MockNothingFn_mock) Fn() {
 	params := MockNothingFn_params{}
 	m.Mock.Params <- params
 	results, ok := m.Mock.ResultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
 	}
 	return
 }

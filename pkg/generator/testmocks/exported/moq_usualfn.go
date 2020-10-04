@@ -5,6 +5,7 @@ package exported
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // MockUsualFn holds the state of a mock of the UsualFn type
 type MockUsualFn struct {
 	T               testing.MoqT
+	Config          config.MockConfig
 	ResultsByParams map[MockUsualFn_params]*MockUsualFn_resultMgr
 	Params          chan MockUsualFn_params
 }
@@ -53,9 +55,13 @@ type MockUsualFn_fnRecorder struct {
 }
 
 // NewMockUsualFn creates a new mock of the UsualFn type
-func NewMockUsualFn(t testing.MoqT) *MockUsualFn {
+func NewMockUsualFn(t testing.MoqT, c *config.MockConfig) *MockUsualFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &MockUsualFn{
 		T:               t,
+		Config:          *c,
 		ResultsByParams: map[MockUsualFn_params]*MockUsualFn_resultMgr{},
 		Params:          make(chan MockUsualFn_params, 100),
 	}
@@ -76,20 +82,27 @@ func (m *MockUsualFn_mock) Fn(sParam string, bParam bool) (sResult string, err e
 	}
 	m.Mock.Params <- params
 	results, ok := m.Mock.ResultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		sResult = result.SResult
-		err = result.Err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	sResult = result.SResult
+	err = result.Err
+	return
 }
 
 func (m *MockUsualFn) OnCall(sParam string, bParam bool) *MockUsualFn_fnRecorder {

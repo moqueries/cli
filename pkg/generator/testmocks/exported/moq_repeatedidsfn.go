@@ -5,6 +5,7 @@ package exported
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // MockRepeatedIdsFn holds the state of a mock of the RepeatedIdsFn type
 type MockRepeatedIdsFn struct {
 	T               testing.MoqT
+	Config          config.MockConfig
 	ResultsByParams map[MockRepeatedIdsFn_params]*MockRepeatedIdsFn_resultMgr
 	Params          chan MockRepeatedIdsFn_params
 }
@@ -53,9 +55,13 @@ type MockRepeatedIdsFn_fnRecorder struct {
 }
 
 // NewMockRepeatedIdsFn creates a new mock of the RepeatedIdsFn type
-func NewMockRepeatedIdsFn(t testing.MoqT) *MockRepeatedIdsFn {
+func NewMockRepeatedIdsFn(t testing.MoqT, c *config.MockConfig) *MockRepeatedIdsFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &MockRepeatedIdsFn{
 		T:               t,
+		Config:          *c,
 		ResultsByParams: map[MockRepeatedIdsFn_params]*MockRepeatedIdsFn_resultMgr{},
 		Params:          make(chan MockRepeatedIdsFn_params, 100),
 	}
@@ -77,21 +83,28 @@ func (m *MockRepeatedIdsFn_mock) Fn(sParam1, sParam2 string, bParam bool) (sResu
 	}
 	m.Mock.Params <- params
 	results, ok := m.Mock.ResultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		sResult1 = result.SResult1
-		sResult2 = result.SResult2
-		err = result.Err
+		return
 	}
-	return sResult1, sResult2, err
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	sResult1 = result.SResult1
+	sResult2 = result.SResult2
+	err = result.Err
+	return
 }
 
 func (m *MockRepeatedIdsFn) OnCall(sParam1, sParam2 string, bParam bool) *MockRepeatedIdsFn_fnRecorder {

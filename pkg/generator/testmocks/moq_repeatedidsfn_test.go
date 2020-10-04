@@ -5,6 +5,7 @@ package testmocks_test
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // mockRepeatedIdsFn holds the state of a mock of the RepeatedIdsFn type
 type mockRepeatedIdsFn struct {
 	t               testing.MoqT
+	config          config.MockConfig
 	resultsByParams map[mockRepeatedIdsFn_params]*mockRepeatedIdsFn_resultMgr
 	params          chan mockRepeatedIdsFn_params
 }
@@ -53,9 +55,13 @@ type mockRepeatedIdsFn_fnRecorder struct {
 }
 
 // newMockRepeatedIdsFn creates a new mock of the RepeatedIdsFn type
-func newMockRepeatedIdsFn(t testing.MoqT) *mockRepeatedIdsFn {
+func newMockRepeatedIdsFn(t testing.MoqT, c *config.MockConfig) *mockRepeatedIdsFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockRepeatedIdsFn{
 		t:               t,
+		config:          *c,
 		resultsByParams: map[mockRepeatedIdsFn_params]*mockRepeatedIdsFn_resultMgr{},
 		params:          make(chan mockRepeatedIdsFn_params, 100),
 	}
@@ -77,21 +83,28 @@ func (m *mockRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResu
 	}
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		sResult1 = result.sResult1
-		sResult2 = result.sResult2
-		err = result.err
+		return
 	}
-	return sResult1, sResult2, err
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	sResult1 = result.sResult1
+	sResult2 = result.sResult2
+	err = result.err
+	return
 }
 
 func (m *mockRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *mockRepeatedIdsFn_fnRecorder {

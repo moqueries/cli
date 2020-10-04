@@ -5,6 +5,7 @@ package testmocks_test
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // mockNoNamesFn holds the state of a mock of the NoNamesFn type
 type mockNoNamesFn struct {
 	t               testing.MoqT
+	config          config.MockConfig
 	resultsByParams map[mockNoNamesFn_params]*mockNoNamesFn_resultMgr
 	params          chan mockNoNamesFn_params
 }
@@ -53,9 +55,13 @@ type mockNoNamesFn_fnRecorder struct {
 }
 
 // newMockNoNamesFn creates a new mock of the NoNamesFn type
-func newMockNoNamesFn(t testing.MoqT) *mockNoNamesFn {
+func newMockNoNamesFn(t testing.MoqT, c *config.MockConfig) *mockNoNamesFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockNoNamesFn{
 		t:               t,
+		config:          *c,
 		resultsByParams: map[mockNoNamesFn_params]*mockNoNamesFn_resultMgr{},
 		params:          make(chan mockNoNamesFn_params, 100),
 	}
@@ -76,20 +82,27 @@ func (m *mockNoNamesFn_mock) fn(sParam string, bParam bool) (sResult string, err
 	}
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		sResult = result.sResult
-		err = result.err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	sResult = result.sResult
+	err = result.err
+	return
 }
 
 func (m *mockNoNamesFn) onCall(sParam string, bParam bool) *mockNoNamesFn_fnRecorder {

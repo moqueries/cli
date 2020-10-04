@@ -5,6 +5,7 @@ package testmocks_test
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/hash"
 	"github.com/myshkin5/moqueries/pkg/testing"
@@ -13,6 +14,7 @@ import (
 // mockVariadicFn holds the state of a mock of the VariadicFn type
 type mockVariadicFn struct {
 	t               testing.MoqT
+	config          config.MockConfig
 	resultsByParams map[mockVariadicFn_params]*mockVariadicFn_resultMgr
 	params          chan mockVariadicFn_params
 }
@@ -54,9 +56,13 @@ type mockVariadicFn_fnRecorder struct {
 }
 
 // newMockVariadicFn creates a new mock of the VariadicFn type
-func newMockVariadicFn(t testing.MoqT) *mockVariadicFn {
+func newMockVariadicFn(t testing.MoqT, c *config.MockConfig) *mockVariadicFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockVariadicFn{
 		t:               t,
+		config:          *c,
 		resultsByParams: map[mockVariadicFn_params]*mockVariadicFn_resultMgr{},
 		params:          make(chan mockVariadicFn_params, 100),
 	}
@@ -77,20 +83,27 @@ func (m *mockVariadicFn_mock) fn(other bool, args ...string) (sResult string, er
 	}
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		sResult = result.sResult
-		err = result.err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	sResult = result.sResult
+	err = result.err
+	return
 }
 
 func (m *mockVariadicFn) onCall(other bool, args ...string) *mockVariadicFn_fnRecorder {

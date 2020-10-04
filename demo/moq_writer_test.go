@@ -5,6 +5,7 @@ package demo_test
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/hash"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // mockWriter holds the state of a mock of the Writer type
 type mockWriter struct {
 	t                     testing.MoqT
+	config                config.MockConfig
 	resultsByParams_Write map[mockWriter_Write_params]*mockWriter_Write_resultMgr
 	params_Write          chan mockWriter_Write_params
 }
@@ -50,9 +52,13 @@ type mockWriter_Write_fnRecorder struct {
 }
 
 // newMockWriter creates a new mock of the Writer type
-func newMockWriter(t testing.MoqT) *mockWriter {
+func newMockWriter(t testing.MoqT, c *config.MockConfig) *mockWriter {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockWriter{
 		t:                     t,
+		config:                *c,
 		resultsByParams_Write: map[mockWriter_Write_params]*mockWriter_Write_resultMgr{},
 		params_Write:          make(chan mockWriter_Write_params, 100),
 	}
@@ -71,20 +77,27 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	}
 	m.mock.params_Write <- params
 	results, ok := m.mock.resultsByParams_Write[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		n = result.n
-		err = result.err
+		return
 	}
-	return n, err
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	n = result.n
+	err = result.err
+	return
 }
 
 // onCall returns the recorder implementation of the Writer type

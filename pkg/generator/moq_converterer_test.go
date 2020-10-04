@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/dave/dst"
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/hash"
 	"github.com/myshkin5/moqueries/pkg/testing"
@@ -14,6 +15,7 @@ import (
 // mockConverterer holds the state of a mock of the Converterer type
 type mockConverterer struct {
 	t                                 testing.MoqT
+	config                            config.MockConfig
 	resultsByParams_BaseStruct        map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr
 	params_BaseStruct                 chan mockConverterer_BaseStruct_params
 	resultsByParams_IsolationStruct   map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr
@@ -221,9 +223,13 @@ type mockConverterer_RecorderMethods_fnRecorder struct {
 }
 
 // newMockConverterer creates a new mock of the Converterer type
-func newMockConverterer(t testing.MoqT) *mockConverterer {
+func newMockConverterer(t testing.MoqT, c *config.MockConfig) *mockConverterer {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockConverterer{
 		t:                                 t,
+		config:                            *c,
 		resultsByParams_BaseStruct:        map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr{},
 		params_BaseStruct:                 make(chan mockConverterer_BaseStruct_params, 100),
 		resultsByParams_IsolationStruct:   map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr{},
@@ -257,19 +263,26 @@ func (m *mockConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []genera
 	}
 	m.mock.params_BaseStruct <- params
 	results, ok := m.mock.resultsByParams_BaseStruct[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		structDecl = result.structDecl
+		return
 	}
-	return structDecl
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	structDecl = result.structDecl
+	return
 }
 
 func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
@@ -279,19 +292,26 @@ func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structD
 	}
 	m.mock.params_IsolationStruct <- params
 	results, ok := m.mock.resultsByParams_IsolationStruct[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		structDecl = result.structDecl
+		return
 	}
-	return structDecl
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	structDecl = result.structDecl
+	return
 }
 
 func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl) {
@@ -301,19 +321,26 @@ func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generato
 	}
 	m.mock.params_MethodStructs <- params
 	results, ok := m.mock.resultsByParams_MethodStructs[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		structDecls = result.structDecls
+		return
 	}
-	return structDecls
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	structDecls = result.structDecls
+	return
 }
 
 func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
@@ -323,19 +350,26 @@ func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator
 	}
 	m.mock.params_NewFunc <- params
 	results, ok := m.mock.resultsByParams_NewFunc[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		funcDecl = result.funcDecl
+		return
 	}
-	return funcDecl
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecl = result.funcDecl
+	return
 }
 
 func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl) {
@@ -346,19 +380,26 @@ func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string
 	}
 	m.mock.params_IsolationAccessor <- params
 	results, ok := m.mock.resultsByParams_IsolationAccessor[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		funcDecl = result.funcDecl
+		return
 	}
-	return funcDecl
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecl = result.funcDecl
+	return
 }
 
 func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl) {
@@ -369,19 +410,26 @@ func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generato
 	}
 	m.mock.params_FuncClosure <- params
 	results, ok := m.mock.resultsByParams_FuncClosure[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		funcDecl = result.funcDecl
+		return
 	}
-	return funcDecl
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecl = result.funcDecl
+	return
 }
 
 func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (funcDecl *dst.FuncDecl) {
@@ -391,19 +439,26 @@ func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (f
 	}
 	m.mock.params_MockMethod <- params
 	results, ok := m.mock.resultsByParams_MockMethod[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		funcDecl = result.funcDecl
+		return
 	}
-	return funcDecl
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecl = result.funcDecl
+	return
 }
 
 func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Func) (funcDecls []dst.Decl) {
@@ -413,19 +468,26 @@ func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Fun
 	}
 	m.mock.params_RecorderMethods <- params
 	results, ok := m.mock.resultsByParams_RecorderMethods[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		funcDecls = result.funcDecls
+		return
 	}
-	return funcDecls
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecls = result.funcDecls
+	return
 }
 
 // onCall returns the recorder implementation of the Converterer type

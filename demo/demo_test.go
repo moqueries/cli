@@ -6,18 +6,20 @@ import (
 	"testing"
 
 	"github.com/myshkin5/moqueries/demo"
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/hash"
 )
 
 func TestOnlyWriteFavoriteNumbers(t *testing.T) {
-	isFavMock := newMockIsFavorite(t)
-	writerMock := newMockWriter(t)
+	isFavMock := newMockIsFavorite(t, nil)
+	writerMock := newMockWriter(t, nil)
 
 	isFavMock.onCall(1).returnResults(false)
 	isFavMock.onCall(2).returnResults(false)
 	isFavMock.onCall(3).returnResults(true)
 
-	writerMock.onCall().Write([]byte("3"))
+	writerMock.onCall().Write([]byte("3")).
+		returnResults(1, nil)
 
 	d := demo.FavWriter{
 		IsFav: isFavMock.mock(),
@@ -40,8 +42,9 @@ func TestOnlyWriteFavoriteNumbers(t *testing.T) {
 }
 
 func TestWriteError(t *testing.T) {
-	isFavMock := newMockIsFavorite(t)
-	writerMock := newMockWriter(t)
+	isFavMock := newMockIsFavorite(
+		t, &config.MockConfig{Expectation: config.Nice})
+	writerMock := newMockWriter(t, nil)
 
 	isFavMock.onCall(3).returnResults(true)
 
@@ -65,14 +68,17 @@ func TestWriteError(t *testing.T) {
 }
 
 func TestChangedMyMindILikeIt(t *testing.T) {
-	isFavMock := newMockIsFavorite(t)
-	writerMock := newMockWriter(t)
+	isFavMock := newMockIsFavorite(t, nil)
+	writerMock := newMockWriter(t, nil)
 
 	isFavMock.onCall(7).
 		returnResults(false).times(5).
 		returnResults(true)
+	isFavMock.onCall(3).
+		returnResults(false)
 
-	writerMock.onCall().Write([]byte("7"))
+	writerMock.onCall().Write([]byte("7")).
+		returnResults(1, nil)
 
 	d := demo.FavWriter{
 		IsFav: isFavMock.mock(),
@@ -95,8 +101,8 @@ func TestChangedMyMindILikeIt(t *testing.T) {
 }
 
 func TestChangedMyMindIHateIt(t *testing.T) {
-	isFavMock := newMockIsFavorite(t)
-	writerMock := newMockWriter(t)
+	isFavMock := newMockIsFavorite(t, nil)
+	writerMock := newMockWriter(t, nil)
 
 	isFavMock.onCall(7).
 		returnResults(true).times(2).

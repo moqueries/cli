@@ -5,12 +5,14 @@ package testing
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/hash"
 )
 
 // MockMoqT holds the state of a mock of the MoqT type
 type MockMoqT struct {
 	T                      MoqT
+	Config                 config.MockConfig
 	ResultsByParams_Fatalf map[MockMoqT_Fatalf_params]*MockMoqT_Fatalf_resultMgr
 	Params_Fatalf          chan MockMoqT_Fatalf_params
 }
@@ -50,9 +52,13 @@ type MockMoqT_Fatalf_fnRecorder struct {
 }
 
 // NewMockMoqT creates a new mock of the MoqT type
-func NewMockMoqT(t MoqT) *MockMoqT {
+func NewMockMoqT(t MoqT, c *config.MockConfig) *MockMoqT {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &MockMoqT{
 		T:                      t,
+		Config:                 *c,
 		ResultsByParams_Fatalf: map[MockMoqT_Fatalf_params]*MockMoqT_Fatalf_resultMgr{},
 		Params_Fatalf:          make(chan MockMoqT_Fatalf_params, 100),
 	}
@@ -72,15 +78,22 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 	}
 	m.Mock.Params_Fatalf <- params
 	results, ok := m.Mock.ResultsByParams_Fatalf[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
 	}
 	return
 }

@@ -5,6 +5,7 @@ package exported
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/hash"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // MockUsual holds the state of a mock of the Usual type
 type MockUsual struct {
 	T                           testing.MoqT
+	Config                      config.MockConfig
 	ResultsByParams_Usual       map[MockUsual_Usual_params]*MockUsual_Usual_resultMgr
 	Params_Usual                chan MockUsual_Usual_params
 	ResultsByParams_NoNames     map[MockUsual_NoNames_params]*MockUsual_NoNames_resultMgr
@@ -211,9 +213,13 @@ type MockUsual_RepeatedIds_fnRecorder struct {
 }
 
 // NewMockUsual creates a new mock of the Usual type
-func NewMockUsual(t testing.MoqT) *MockUsual {
+func NewMockUsual(t testing.MoqT, c *config.MockConfig) *MockUsual {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &MockUsual{
 		T:                           t,
+		Config:                      *c,
 		ResultsByParams_Usual:       map[MockUsual_Usual_params]*MockUsual_Usual_resultMgr{},
 		Params_Usual:                make(chan MockUsual_Usual_params, 100),
 		ResultsByParams_NoNames:     map[MockUsual_NoNames_params]*MockUsual_NoNames_resultMgr{},
@@ -245,20 +251,27 @@ func (m *MockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err 
 	}
 	m.Mock.Params_Usual <- params
 	results, ok := m.Mock.ResultsByParams_Usual[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		sResult = result.SResult
-		err = result.Err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	sResult = result.SResult
+	err = result.Err
+	return
 }
 
 func (m *MockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, result2 error) {
@@ -268,20 +281,27 @@ func (m *MockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, re
 	}
 	m.Mock.Params_NoNames <- params
 	results, ok := m.Mock.ResultsByParams_NoNames[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		result1 = result.Result1
-		result2 = result.Result2
+		return
 	}
-	return result1, result2
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	result1 = result.Result1
+	result2 = result.Result2
+	return
 }
 
 func (m *MockUsual_mock) NoResults(sParam string, bParam bool) {
@@ -291,15 +311,22 @@ func (m *MockUsual_mock) NoResults(sParam string, bParam bool) {
 	}
 	m.Mock.Params_NoResults <- params
 	results, ok := m.Mock.ResultsByParams_NoResults[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
 	}
 	return
 }
@@ -308,35 +335,49 @@ func (m *MockUsual_mock) NoParams() (sResult string, err error) {
 	params := MockUsual_NoParams_params{}
 	m.Mock.Params_NoParams <- params
 	results, ok := m.Mock.ResultsByParams_NoParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		sResult = result.SResult
-		err = result.Err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	sResult = result.SResult
+	err = result.Err
+	return
 }
 
 func (m *MockUsual_mock) Nothing() {
 	params := MockUsual_Nothing_params{}
 	m.Mock.Params_Nothing <- params
 	results, ok := m.Mock.ResultsByParams_Nothing[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
 	}
 	return
 }
@@ -348,20 +389,27 @@ func (m *MockUsual_mock) Variadic(other bool, args ...string) (sResult string, e
 	}
 	m.Mock.Params_Variadic <- params
 	results, ok := m.Mock.ResultsByParams_Variadic[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		sResult = result.SResult
-		err = result.Err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	sResult = result.SResult
+	err = result.Err
+	return
 }
 
 func (m *MockUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
@@ -372,21 +420,28 @@ func (m *MockUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sRes
 	}
 	m.Mock.Params_RepeatedIds <- params
 	results, ok := m.Mock.ResultsByParams_RepeatedIds[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.Index, 1)) - 1
-		if i >= len(results.Results) {
-			if !results.AnyTimes {
-				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.Results) - 1
+	if !ok {
+		if m.Mock.Config.Expectation == config.Strict {
+			m.Mock.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.Results[i]
-		sResult1 = result.SResult1
-		sResult2 = result.SResult2
-		err = result.Err
+		return
 	}
-	return sResult1, sResult2, err
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Mock.Config.Expectation == config.Strict {
+				m.Mock.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+	result := results.Results[i]
+	sResult1 = result.SResult1
+	sResult2 = result.SResult2
+	err = result.Err
+	return
 }
 
 // OnCall returns the recorder implementation of the Usual type

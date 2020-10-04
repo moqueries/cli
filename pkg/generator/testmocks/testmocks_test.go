@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks/exported"
 	"github.com/myshkin5/moqueries/pkg/hash"
@@ -34,41 +35,43 @@ type adaptor interface {
 }
 
 var _ = Describe("TestMocks", func() {
-	entries := func() []TableEntry {
-		tMoq := testing.NewMockMoqT(GinkgoT())
+	var (
+		tMoq = testing.NewMockMoqT(GinkgoT(), nil)
+	)
 
+	entries := func(c config.MockConfig) []TableEntry {
 		var entries []TableEntry
 		entries = append(entries, Entry("usualFn", &usualFnAdaptor{
-			m: newMockUsualFn(tMoq.Mock())}, tMoq))
+			m: newMockUsualFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedUsualFn", &exportedUsualFnAdaptor{
-			m: exported.NewMockUsualFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockUsualFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("noNamesFn", &noNamesFnAdaptor{
-			m: newMockNoNamesFn(tMoq.Mock())}, tMoq))
+			m: newMockNoNamesFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedNoNamesFn", &exportedNoNamesFnAdaptor{
-			m: exported.NewMockNoNamesFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockNoNamesFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("noResultsFn", &noResultsFnAdaptor{
-			m: newMockNoResultsFn(tMoq.Mock())}, tMoq))
+			m: newMockNoResultsFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedNoResultsFn", &exportedNoResultsFnAdaptor{
-			m: exported.NewMockNoResultsFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockNoResultsFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("noParamsFn", &noParamsFnAdaptor{
-			m: newMockNoParamsFn(tMoq.Mock())}, tMoq))
+			m: newMockNoParamsFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedNoParamsFn", &exportedNoParamsFnAdaptor{
-			m: exported.NewMockNoParamsFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockNoParamsFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("nothingFn", &nothingFnAdaptor{
-			m: newMockNothingFn(tMoq.Mock())}, tMoq))
+			m: newMockNothingFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedNothingFn", &exportedNothingFnAdaptor{
-			m: exported.NewMockNothingFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockNothingFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("variadicFn", &variadicFnAdaptor{
-			m: newMockVariadicFn(tMoq.Mock())}, tMoq))
+			m: newMockVariadicFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedVariadicFn", &exportedVariadicFnAdaptor{
-			m: exported.NewMockVariadicFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockVariadicFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("repeatedIdsFn", &repeatedIdsFnAdaptor{
-			m: newMockRepeatedIdsFn(tMoq.Mock())}, tMoq))
+			m: newMockRepeatedIdsFn(tMoq.Mock(), &c)}, tMoq))
 		entries = append(entries, Entry("exportedRepeatedIdsFn", &exportedRepeatedIdsFnAdaptor{
-			m: exported.NewMockRepeatedIdsFn(tMoq.Mock())}, tMoq))
+			m: exported.NewMockRepeatedIdsFn(tMoq.Mock(), &c)}, tMoq))
 
-		usualMock := newMockUsual(tMoq.Mock())
-		exportUsualMock := exported.NewMockUsual(tMoq.Mock())
+		usualMock := newMockUsual(tMoq.Mock(), &c)
+		exportUsualMock := exported.NewMockUsual(tMoq.Mock(), &c)
 		entries = append(entries, Entry("usual", &usualAdaptor{
 			m: usualMock}, tMoq))
 		entries = append(entries, Entry("exportedUsual", &exportedUsualAdaptor{
@@ -101,6 +104,11 @@ var _ = Describe("TestMocks", func() {
 		return entries
 	}
 
+	BeforeEach(func() {
+		// TODO tMoq.Reset()
+		tMoq.ResultsByParams_Fatalf = map[testing.MockMoqT_Fatalf_params]*testing.MockMoqT_Fatalf_resultMgr{}
+	})
+
 	DescribeTable("can return different values when configured to do so",
 		func(a adaptor, tMoq *testing.MockMoqT) {
 			// ASSEMBLE
@@ -126,7 +134,43 @@ var _ = Describe("TestMocks", func() {
 			// ASSERT
 			Expect(tMoq.Params_Fatalf).To(BeEmpty())
 		},
-		entries()...,
+		entries(config.MockConfig{})...,
+	)
+
+	DescribeTable("fails if an expectation is not set in strict mode",
+		func(a adaptor, tMoq *testing.MockMoqT) {
+			// ASSEMBLE
+			tMoq.OnCall().Fatalf(
+				"Unexpected call with parameters %#v",
+				a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
+
+			// ACT
+			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"", ""}, err: nil})
+
+			// ASSERT
+			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
+				Format: "Unexpected call with parameters %#v",
+				Args: hash.DeepHash([]interface{}{
+					a.bundleParams([]string{"Hi", "you"}, true),
+				}),
+			})))
+		},
+		entries(config.MockConfig{})...,
+	)
+
+	DescribeTable("returns zero values if an expectation is not set in nice mode",
+		func(a adaptor, tMoq *testing.MockMoqT) {
+			// ASSEMBLE
+
+			// ACT
+			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"", ""}, err: nil})
+
+			// ASSERT
+			Expect(tMoq.Params_Fatalf).To(BeEmpty())
+		},
+		entries(config.MockConfig{Expectation: config.Nice})...,
 	)
 
 	DescribeTable("can return the same values multiple times",
@@ -156,7 +200,7 @@ var _ = Describe("TestMocks", func() {
 			// ASSERT
 			Expect(tMoq.Params_Fatalf).To(BeEmpty())
 		},
-		entries()...,
+		entries(config.MockConfig{})...,
 	)
 
 	DescribeTable("returns the same value any number of times",
@@ -186,12 +230,14 @@ var _ = Describe("TestMocks", func() {
 			// ASSERT
 			Expect(tMoq.Params_Fatalf).To(BeEmpty())
 		},
-		entries()...,
+		entries(config.MockConfig{})...,
 	)
 
 	DescribeTable("fails if Times is called without a preceding Return call",
 		func(a adaptor, tMoq *testing.MockMoqT) {
 			// ASSEMBLE
+			tMoq.OnCall().Fatalf("Return must be called before calling Times").
+				ReturnResults()
 
 			// ACT
 			a.expectCall([]string{"Hi", "you"}, true,
@@ -203,12 +249,14 @@ var _ = Describe("TestMocks", func() {
 				Args:   hash.DeepHash([]interface{}{}),
 			})))
 		},
-		entries()...,
+		entries(config.MockConfig{})...,
 	)
 
 	DescribeTable("fails if AnyTimes is called without a preceding Return call",
 		func(a adaptor, tMoq *testing.MockMoqT) {
 			// ASSEMBLE
+			tMoq.OnCall().Fatalf("Return must be called before calling AnyTimes").
+				ReturnResults()
 
 			// ACT
 			a.expectCall([]string{"Hi", "you"}, true,
@@ -220,10 +268,42 @@ var _ = Describe("TestMocks", func() {
 				Args:   hash.DeepHash([]interface{}{}),
 			})))
 		},
-		entries()...,
+		entries(config.MockConfig{})...,
 	)
 
-	DescribeTable("fails if the function is called too many times",
+	DescribeTable("fails if the function is called too many times in strict mode",
+		func(a adaptor, tMoq *testing.MockMoqT) {
+			// ASSEMBLE
+			a.expectCall([]string{"Hi", "you"}, true,
+				results{sResults: []string{"blue", "orange"}, err: nil},
+				results{sResults: []string{"green", "purple"}, err: io.EOF})
+
+			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"blue", "orange"}, err: nil})
+
+			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"green", "purple"}, err: io.EOF})
+
+			tMoq.OnCall().Fatalf(
+				"Too many calls to mock with parameters %#v",
+				a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
+
+			// ACT
+			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"", ""}, err: nil})
+
+			// ASSERT
+			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
+				Format: "Too many calls to mock with parameters %#v",
+				Args: hash.DeepHash([]interface{}{
+					a.bundleParams([]string{"Hi", "you"}, true),
+				}),
+			})))
+		},
+		entries(config.MockConfig{})...,
+	)
+
+	DescribeTable("returns zero values if the function is called too many times in nice mode",
 		func(a adaptor, tMoq *testing.MockMoqT) {
 			// ASSEMBLE
 			a.expectCall([]string{"Hi", "you"}, true,
@@ -241,14 +321,9 @@ var _ = Describe("TestMocks", func() {
 				results{sResults: []string{"", ""}, err: nil})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
-				Format: "Too many calls to mock with parameters %#v",
-				Args: hash.DeepHash([]interface{}{
-					a.bundleParams([]string{"Hi", "you"}, true),
-				}),
-			})))
+			Expect(tMoq.Params_Fatalf).To(BeEmpty())
 		},
-		entries()...,
+		entries(config.MockConfig{Expectation: config.Nice})...,
 	)
 
 	DescribeTable("fails if expectations are set more than once for the same parameter set",
@@ -256,6 +331,11 @@ var _ = Describe("TestMocks", func() {
 			// ASSEMBLE
 			a.expectCall([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
+
+			tMoq.OnCall().Fatalf(
+				"Expectations already recorded for mock with parameters %#v",
+				a.bundleParams([]string{"Hi", "you"}, true)).
+				ReturnResults()
 
 			// ACT
 			fnRec := a.expectCall([]string{"Hi", "you"}, true,
@@ -270,7 +350,7 @@ var _ = Describe("TestMocks", func() {
 				}),
 			})))
 		},
-		entries()...,
+		entries(config.MockConfig{})...,
 	)
 
 	PIt("generates mocks", func() {

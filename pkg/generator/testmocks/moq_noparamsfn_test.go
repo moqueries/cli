@@ -5,6 +5,7 @@ package testmocks_test
 import (
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
 	"github.com/myshkin5/moqueries/pkg/testing"
 )
@@ -12,6 +13,7 @@ import (
 // mockNoParamsFn holds the state of a mock of the NoParamsFn type
 type mockNoParamsFn struct {
 	t               testing.MoqT
+	config          config.MockConfig
 	resultsByParams map[mockNoParamsFn_params]*mockNoParamsFn_resultMgr
 	params          chan mockNoParamsFn_params
 }
@@ -50,9 +52,13 @@ type mockNoParamsFn_fnRecorder struct {
 }
 
 // newMockNoParamsFn creates a new mock of the NoParamsFn type
-func newMockNoParamsFn(t testing.MoqT) *mockNoParamsFn {
+func newMockNoParamsFn(t testing.MoqT, c *config.MockConfig) *mockNoParamsFn {
+	if c == nil {
+		c = &config.MockConfig{}
+	}
 	return &mockNoParamsFn{
 		t:               t,
+		config:          *c,
 		resultsByParams: map[mockNoParamsFn_params]*mockNoParamsFn_resultMgr{},
 		params:          make(chan mockNoParamsFn_params, 100),
 	}
@@ -67,20 +73,27 @@ func (m *mockNoParamsFn_mock) fn() (sResult string, err error) {
 	params := mockNoParamsFn_params{}
 	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
-	if ok {
-		i := int(atomic.AddUint32(&results.index, 1)) - 1
-		if i >= len(results.results) {
-			if !results.anyTimes {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
-				return
-			}
-			i = len(results.results) - 1
+	if !ok {
+		if m.mock.config.Expectation == config.Strict {
+			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
 		}
-		result := results.results[i]
-		sResult = result.sResult
-		err = result.err
+		return
 	}
-	return sResult, err
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == config.Strict {
+				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	sResult = result.sResult
+	err = result.err
+	return
 }
 
 func (m *mockNoParamsFn) onCall() *mockNoParamsFn_fnRecorder {
