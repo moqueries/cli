@@ -5,6 +5,7 @@ import (
 
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks/exported"
 	"github.com/myshkin5/moqueries/pkg/hash"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 type usualFnAdaptor struct{ m *mockUsualFn }
@@ -42,6 +43,10 @@ func (a *usualFnAdaptor) bundleParams(sParams []string, bParam bool) interface{}
 	return mockUsualFn_params{sParam: sParams[0], bParam: bParam}
 }
 
+func (a *usualFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedUsualFnAdaptor struct{ m *exported.MockUsualFn }
 
 func (a *exportedUsualFnAdaptor) tracksParams() bool { return true }
@@ -75,6 +80,10 @@ func (a *exportedUsualFnAdaptor) invokeMockAndExpectResults(sParams []string, bP
 
 func (a *exportedUsualFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
 	return exported.MockUsualFn_params{SParam: sParams[0], BParam: bParam}
+}
+
+func (a *exportedUsualFnAdaptor) sceneMock() moq.Mock {
+	return a.m
 }
 
 type noNamesFnAdaptor struct{ m *mockNoNamesFn }
@@ -112,6 +121,10 @@ func (a *noNamesFnAdaptor) bundleParams(sParams []string, bParam bool) interface
 	return mockNoNamesFn_params{sParam: sParams[0], bParam: bParam}
 }
 
+func (a *noNamesFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedNoNamesFnAdaptor struct{ m *exported.MockNoNamesFn }
 
 func (a *exportedNoNamesFnAdaptor) tracksParams() bool { return true }
@@ -147,6 +160,10 @@ func (a *exportedNoNamesFnAdaptor) bundleParams(sParams []string, bParam bool) i
 	return exported.MockNoNamesFn_params{SParam: sParams[0], BParam: bParam}
 }
 
+func (a *exportedNoNamesFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type noResultsFnAdaptor struct{ m *mockNoResultsFn }
 
 func (a *noResultsFnAdaptor) tracksParams() bool { return true }
@@ -176,6 +193,10 @@ func (a *noResultsFnAdaptor) bundleParams(sParams []string, bParam bool) interfa
 	return mockNoResultsFn_params{sParam: sParams[0], bParam: bParam}
 }
 
+func (a *noResultsFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedNoResultsFnAdaptor struct{ m *exported.MockNoResultsFn }
 
 func (a *exportedNoResultsFnAdaptor) tracksParams() bool { return true }
@@ -203,6 +224,10 @@ func (a *exportedNoResultsFnAdaptor) invokeMockAndExpectResults(sParams []string
 
 func (a *exportedNoResultsFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
 	return exported.MockNoResultsFn_params{SParam: sParams[0], BParam: bParam}
+}
+
+func (a *exportedNoResultsFnAdaptor) sceneMock() moq.Mock {
+	return a.m
 }
 
 type noParamsFnAdaptor struct{ m *mockNoParamsFn }
@@ -240,6 +265,10 @@ func (a *noParamsFnAdaptor) bundleParams([]string, bool) interface{} {
 	return mockNoParamsFn_params{}
 }
 
+func (a *noParamsFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedNoParamsFnAdaptor struct{ m *exported.MockNoParamsFn }
 
 func (a *exportedNoParamsFnAdaptor) tracksParams() bool { return false }
@@ -275,6 +304,10 @@ func (a *exportedNoParamsFnAdaptor) bundleParams([]string, bool) interface{} {
 	return exported.MockNoParamsFn_params{}
 }
 
+func (a *exportedNoParamsFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type nothingFnAdaptor struct{ m *mockNothingFn }
 
 func (a *nothingFnAdaptor) tracksParams() bool { return false }
@@ -304,6 +337,10 @@ func (a *nothingFnAdaptor) bundleParams([]string, bool) interface{} {
 	return mockNothingFn_params{}
 }
 
+func (a *nothingFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedNothingFnAdaptor struct{ m *exported.MockNothingFn }
 
 func (a *exportedNothingFnAdaptor) tracksParams() bool { return false }
@@ -331,6 +368,10 @@ func (a *exportedNothingFnAdaptor) invokeMockAndExpectResults([]string, bool, re
 
 func (a *exportedNothingFnAdaptor) bundleParams([]string, bool) interface{} {
 	return exported.MockNothingFn_params{}
+}
+
+func (a *exportedNothingFnAdaptor) sceneMock() moq.Mock {
+	return a.m
 }
 
 type variadicFnAdaptor struct{ m *mockVariadicFn }
@@ -368,6 +409,10 @@ func (a *variadicFnAdaptor) bundleParams(sParams []string, bParam bool) interfac
 	return mockVariadicFn_params{args: hash.DeepHash(sParams), other: bParam}
 }
 
+func (a *variadicFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedVariadicFnAdaptor struct{ m *exported.MockVariadicFn }
 
 func (a *exportedVariadicFnAdaptor) tracksParams() bool { return true }
@@ -401,6 +446,10 @@ func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(sParams []string,
 
 func (a *exportedVariadicFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
 	return exported.MockVariadicFn_params{Args: hash.DeepHash(sParams), Other: bParam}
+}
+
+func (a *exportedVariadicFnAdaptor) sceneMock() moq.Mock {
+	return a.m
 }
 
 type repeatedIdsFnAdaptor struct{ m *mockRepeatedIdsFn }
@@ -439,6 +488,10 @@ func (a *repeatedIdsFnAdaptor) bundleParams(sParams []string, bParam bool) inter
 	return mockRepeatedIdsFn_params{sParam1: sParams[0], sParam2: sParams[1], bParam: bParam}
 }
 
+func (a *repeatedIdsFnAdaptor) sceneMock() moq.Mock {
+	return a.m
+}
+
 type exportedRepeatedIdsFnAdaptor struct{ m *exported.MockRepeatedIdsFn }
 
 func (a *exportedRepeatedIdsFnAdaptor) tracksParams() bool { return true }
@@ -473,4 +526,8 @@ func (a *exportedRepeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []stri
 
 func (a *exportedRepeatedIdsFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
 	return exported.MockRepeatedIdsFn_params{SParam1: sParams[0], SParam2: sParams[1], BParam: bParam}
+}
+
+func (a *exportedRepeatedIdsFnAdaptor) sceneMock() moq.Mock {
+	return a.m
 }

@@ -6,32 +6,25 @@ import (
 	"sync/atomic"
 
 	"github.com/dave/dst"
-	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/hash"
-	"github.com/myshkin5/moqueries/pkg/testing"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 // mockConverterer holds the state of a mock of the Converterer type
 type mockConverterer struct {
-	t                                 testing.MoqT
-	config                            config.MockConfig
+	scene                             *moq.Scene
+	config                            moq.MockConfig
 	resultsByParams_BaseStruct        map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr
-	params_BaseStruct                 chan mockConverterer_BaseStruct_params
 	resultsByParams_IsolationStruct   map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr
-	params_IsolationStruct            chan mockConverterer_IsolationStruct_params
 	resultsByParams_MethodStructs     map[mockConverterer_MethodStructs_params]*mockConverterer_MethodStructs_resultMgr
-	params_MethodStructs              chan mockConverterer_MethodStructs_params
 	resultsByParams_NewFunc           map[mockConverterer_NewFunc_params]*mockConverterer_NewFunc_resultMgr
-	params_NewFunc                    chan mockConverterer_NewFunc_params
 	resultsByParams_IsolationAccessor map[mockConverterer_IsolationAccessor_params]*mockConverterer_IsolationAccessor_resultMgr
-	params_IsolationAccessor          chan mockConverterer_IsolationAccessor_params
 	resultsByParams_FuncClosure       map[mockConverterer_FuncClosure_params]*mockConverterer_FuncClosure_resultMgr
-	params_FuncClosure                chan mockConverterer_FuncClosure_params
 	resultsByParams_MockMethod        map[mockConverterer_MockMethod_params]*mockConverterer_MockMethod_resultMgr
-	params_MockMethod                 chan mockConverterer_MockMethod_params
 	resultsByParams_RecorderMethods   map[mockConverterer_RecorderMethods_params]*mockConverterer_RecorderMethods_resultMgr
-	params_RecorderMethods            chan mockConverterer_RecorderMethods_params
+	resultsByParams_ResetMethod       map[mockConverterer_ResetMethod_params]*mockConverterer_ResetMethod_resultMgr
+	resultsByParams_AssertMethod      map[mockConverterer_AssertMethod_params]*mockConverterer_AssertMethod_resultMgr
 }
 
 // mockConverterer_mock isolates the mock interface of the Converterer type
@@ -222,31 +215,64 @@ type mockConverterer_RecorderMethods_fnRecorder struct {
 	mock    *mockConverterer
 }
 
+// mockConverterer_ResetMethod_params holds the params of the Converterer type
+type mockConverterer_ResetMethod_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    hash.Hash
+}
+
+// mockConverterer_ResetMethod_resultMgr manages multiple results and the state of the Converterer type
+type mockConverterer_ResetMethod_resultMgr struct {
+	results  []*mockConverterer_ResetMethod_results
+	index    uint32
+	anyTimes bool
+}
+
+// mockConverterer_ResetMethod_results holds the results of the Converterer type
+type mockConverterer_ResetMethod_results struct{ funcDecl *dst.FuncDecl }
+
+// mockConverterer_ResetMethod_fnRecorder routes recorded function calls to the mockConverterer mock
+type mockConverterer_ResetMethod_fnRecorder struct {
+	params  mockConverterer_ResetMethod_params
+	results *mockConverterer_ResetMethod_resultMgr
+	mock    *mockConverterer
+}
+
+// mockConverterer_AssertMethod_params holds the params of the Converterer type
+type mockConverterer_AssertMethod_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    hash.Hash
+}
+
+// mockConverterer_AssertMethod_resultMgr manages multiple results and the state of the Converterer type
+type mockConverterer_AssertMethod_resultMgr struct {
+	results  []*mockConverterer_AssertMethod_results
+	index    uint32
+	anyTimes bool
+}
+
+// mockConverterer_AssertMethod_results holds the results of the Converterer type
+type mockConverterer_AssertMethod_results struct{ funcDecl *dst.FuncDecl }
+
+// mockConverterer_AssertMethod_fnRecorder routes recorded function calls to the mockConverterer mock
+type mockConverterer_AssertMethod_fnRecorder struct {
+	params  mockConverterer_AssertMethod_params
+	results *mockConverterer_AssertMethod_resultMgr
+	mock    *mockConverterer
+}
+
 // newMockConverterer creates a new mock of the Converterer type
-func newMockConverterer(t testing.MoqT, c *config.MockConfig) *mockConverterer {
-	if c == nil {
-		c = &config.MockConfig{}
+func newMockConverterer(scene *moq.Scene, config *moq.MockConfig) *mockConverterer {
+	if config == nil {
+		config = &moq.MockConfig{}
 	}
-	return &mockConverterer{
-		t:                                 t,
-		config:                            *c,
-		resultsByParams_BaseStruct:        map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr{},
-		params_BaseStruct:                 make(chan mockConverterer_BaseStruct_params, 100),
-		resultsByParams_IsolationStruct:   map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr{},
-		params_IsolationStruct:            make(chan mockConverterer_IsolationStruct_params, 100),
-		resultsByParams_MethodStructs:     map[mockConverterer_MethodStructs_params]*mockConverterer_MethodStructs_resultMgr{},
-		params_MethodStructs:              make(chan mockConverterer_MethodStructs_params, 100),
-		resultsByParams_NewFunc:           map[mockConverterer_NewFunc_params]*mockConverterer_NewFunc_resultMgr{},
-		params_NewFunc:                    make(chan mockConverterer_NewFunc_params, 100),
-		resultsByParams_IsolationAccessor: map[mockConverterer_IsolationAccessor_params]*mockConverterer_IsolationAccessor_resultMgr{},
-		params_IsolationAccessor:          make(chan mockConverterer_IsolationAccessor_params, 100),
-		resultsByParams_FuncClosure:       map[mockConverterer_FuncClosure_params]*mockConverterer_FuncClosure_resultMgr{},
-		params_FuncClosure:                make(chan mockConverterer_FuncClosure_params, 100),
-		resultsByParams_MockMethod:        map[mockConverterer_MockMethod_params]*mockConverterer_MockMethod_resultMgr{},
-		params_MockMethod:                 make(chan mockConverterer_MockMethod_params, 100),
-		resultsByParams_RecorderMethods:   map[mockConverterer_RecorderMethods_params]*mockConverterer_RecorderMethods_resultMgr{},
-		params_RecorderMethods:            make(chan mockConverterer_RecorderMethods_params, 100),
+	m := &mockConverterer{
+		scene:  scene,
+		config: *config,
 	}
+	m.Reset()
+	scene.AddMock(m)
+	return m
 }
 
 // mock returns the mock implementation of the Converterer type
@@ -261,11 +287,10 @@ func (m *mockConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []genera
 		typeSpec: typeSpec,
 		funcs:    hash.DeepHash(funcs),
 	}
-	m.mock.params_BaseStruct <- params
 	results, ok := m.mock.resultsByParams_BaseStruct[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -273,8 +298,8 @@ func (m *mockConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []genera
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -290,11 +315,10 @@ func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structD
 		typeName: typeName,
 		suffix:   suffix,
 	}
-	m.mock.params_IsolationStruct <- params
 	results, ok := m.mock.resultsByParams_IsolationStruct[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -302,8 +326,8 @@ func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structD
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -319,11 +343,10 @@ func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generato
 		typeSpec: typeSpec,
 		fn:       fn,
 	}
-	m.mock.params_MethodStructs <- params
 	results, ok := m.mock.resultsByParams_MethodStructs[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -331,8 +354,8 @@ func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generato
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -348,11 +371,10 @@ func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator
 		typeSpec: typeSpec,
 		funcs:    hash.DeepHash(funcs),
 	}
-	m.mock.params_NewFunc <- params
 	results, ok := m.mock.resultsByParams_NewFunc[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -360,8 +382,8 @@ func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -378,11 +400,10 @@ func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string
 		suffix:   suffix,
 		fnName:   fnName,
 	}
-	m.mock.params_IsolationAccessor <- params
 	results, ok := m.mock.resultsByParams_IsolationAccessor[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -390,8 +411,8 @@ func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -408,11 +429,10 @@ func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generato
 		pkgPath:  pkgPath,
 		fn:       fn,
 	}
-	m.mock.params_FuncClosure <- params
 	results, ok := m.mock.resultsByParams_FuncClosure[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -420,8 +440,8 @@ func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generato
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -437,11 +457,10 @@ func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (f
 		typeName: typeName,
 		fn:       fn,
 	}
-	m.mock.params_MockMethod <- params
 	results, ok := m.mock.resultsByParams_MockMethod[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -449,8 +468,8 @@ func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (f
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -466,11 +485,10 @@ func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Fun
 		typeName: typeName,
 		fn:       fn,
 	}
-	m.mock.params_RecorderMethods <- params
 	results, ok := m.mock.resultsByParams_RecorderMethods[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -478,8 +496,8 @@ func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Fun
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -487,6 +505,62 @@ func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Fun
 	}
 	result := results.results[i]
 	funcDecls = result.funcDecls
+	return
+}
+
+func (m *mockConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
+	params := mockConverterer_ResetMethod_params{
+		typeSpec: typeSpec,
+		funcs:    hash.DeepHash(funcs),
+	}
+	results, ok := m.mock.resultsByParams_ResetMethod[params]
+	if !ok {
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecl = result.funcDecl
+	return
+}
+
+func (m *mockConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
+	params := mockConverterer_AssertMethod_params{
+		typeSpec: typeSpec,
+		funcs:    hash.DeepHash(funcs),
+	}
+	results, ok := m.mock.resultsByParams_AssertMethod[params]
+	if !ok {
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= len(results.results) {
+		if !results.anyTimes {
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.results) - 1
+	}
+	result := results.results[i]
+	funcDecl = result.funcDecl
 	return
 }
 
@@ -510,7 +584,7 @@ func (m *mockConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []ge
 func (r *mockConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *mockConverterer_BaseStruct_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_BaseStruct[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -525,7 +599,7 @@ func (r *mockConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.Ge
 
 func (r *mockConverterer_BaseStruct_fnRecorder) times(count int) *mockConverterer_BaseStruct_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -537,7 +611,7 @@ func (r *mockConverterer_BaseStruct_fnRecorder) times(count int) *mockConvertere
 
 func (r *mockConverterer_BaseStruct_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -556,7 +630,7 @@ func (m *mockConverterer_recorder) IsolationStruct(typeName, suffix string) *moc
 func (r *mockConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *mockConverterer_IsolationStruct_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_IsolationStruct[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -571,7 +645,7 @@ func (r *mockConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *d
 
 func (r *mockConverterer_IsolationStruct_fnRecorder) times(count int) *mockConverterer_IsolationStruct_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -583,7 +657,7 @@ func (r *mockConverterer_IsolationStruct_fnRecorder) times(count int) *mockConve
 
 func (r *mockConverterer_IsolationStruct_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -602,7 +676,7 @@ func (m *mockConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn gene
 func (r *mockConverterer_MethodStructs_fnRecorder) returnResults(structDecls []dst.Decl) *mockConverterer_MethodStructs_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_MethodStructs[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -617,7 +691,7 @@ func (r *mockConverterer_MethodStructs_fnRecorder) returnResults(structDecls []d
 
 func (r *mockConverterer_MethodStructs_fnRecorder) times(count int) *mockConverterer_MethodStructs_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -629,7 +703,7 @@ func (r *mockConverterer_MethodStructs_fnRecorder) times(count int) *mockConvert
 
 func (r *mockConverterer_MethodStructs_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -648,7 +722,7 @@ func (m *mockConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec, funcs []gener
 func (r *mockConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_NewFunc_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_NewFunc[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -663,7 +737,7 @@ func (r *mockConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDec
 
 func (r *mockConverterer_NewFunc_fnRecorder) times(count int) *mockConverterer_NewFunc_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -675,7 +749,7 @@ func (r *mockConverterer_NewFunc_fnRecorder) times(count int) *mockConverterer_N
 
 func (r *mockConverterer_NewFunc_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -695,7 +769,7 @@ func (m *mockConverterer_recorder) IsolationAccessor(typeName, suffix, fnName st
 func (r *mockConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_IsolationAccessor_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_IsolationAccessor[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -710,7 +784,7 @@ func (r *mockConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *d
 
 func (r *mockConverterer_IsolationAccessor_fnRecorder) times(count int) *mockConverterer_IsolationAccessor_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -722,7 +796,7 @@ func (r *mockConverterer_IsolationAccessor_fnRecorder) times(count int) *mockCon
 
 func (r *mockConverterer_IsolationAccessor_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -742,7 +816,7 @@ func (m *mockConverterer_recorder) FuncClosure(typeName, pkgPath string, fn gene
 func (r *mockConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_FuncClosure_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_FuncClosure[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -757,7 +831,7 @@ func (r *mockConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.Fun
 
 func (r *mockConverterer_FuncClosure_fnRecorder) times(count int) *mockConverterer_FuncClosure_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -769,7 +843,7 @@ func (r *mockConverterer_FuncClosure_fnRecorder) times(count int) *mockConverter
 
 func (r *mockConverterer_FuncClosure_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -788,7 +862,7 @@ func (m *mockConverterer_recorder) MockMethod(typeName string, fn generator.Func
 func (r *mockConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_MockMethod_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_MockMethod[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -803,7 +877,7 @@ func (r *mockConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.Func
 
 func (r *mockConverterer_MockMethod_fnRecorder) times(count int) *mockConverterer_MockMethod_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -815,7 +889,7 @@ func (r *mockConverterer_MockMethod_fnRecorder) times(count int) *mockConvertere
 
 func (r *mockConverterer_MockMethod_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -834,7 +908,7 @@ func (m *mockConverterer_recorder) RecorderMethods(typeName string, fn generator
 func (r *mockConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []dst.Decl) *mockConverterer_RecorderMethods_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_RecorderMethods[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -849,7 +923,7 @@ func (r *mockConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []d
 
 func (r *mockConverterer_RecorderMethods_fnRecorder) times(count int) *mockConverterer_RecorderMethods_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -861,8 +935,208 @@ func (r *mockConverterer_RecorderMethods_fnRecorder) times(count int) *mockConve
 
 func (r *mockConverterer_RecorderMethods_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
+}
+
+func (m *mockConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *mockConverterer_ResetMethod_fnRecorder {
+	return &mockConverterer_ResetMethod_fnRecorder{
+		params: mockConverterer_ResetMethod_params{
+			typeSpec: typeSpec,
+			funcs:    hash.DeepHash(funcs),
+		},
+		mock: m.mock,
+	}
+}
+
+func (r *mockConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_ResetMethod_fnRecorder {
+	if r.results == nil {
+		if _, ok := r.mock.resultsByParams_ResetMethod[r.params]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			return nil
+		}
+
+		r.results = &mockConverterer_ResetMethod_resultMgr{results: []*mockConverterer_ResetMethod_results{}, index: 0, anyTimes: false}
+		r.mock.resultsByParams_ResetMethod[r.params] = r.results
+	}
+	r.results.results = append(r.results.results, &mockConverterer_ResetMethod_results{
+		funcDecl: funcDecl,
+	})
+	return r
+}
+
+func (r *mockConverterer_ResetMethod_fnRecorder) times(count int) *mockConverterer_ResetMethod_fnRecorder {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
+		return nil
+	}
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < count-1; n++ {
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (r *mockConverterer_ResetMethod_fnRecorder) anyTimes() {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		return
+	}
+	r.results.anyTimes = true
+}
+
+func (m *mockConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *mockConverterer_AssertMethod_fnRecorder {
+	return &mockConverterer_AssertMethod_fnRecorder{
+		params: mockConverterer_AssertMethod_params{
+			typeSpec: typeSpec,
+			funcs:    hash.DeepHash(funcs),
+		},
+		mock: m.mock,
+	}
+}
+
+func (r *mockConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_AssertMethod_fnRecorder {
+	if r.results == nil {
+		if _, ok := r.mock.resultsByParams_AssertMethod[r.params]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			return nil
+		}
+
+		r.results = &mockConverterer_AssertMethod_resultMgr{results: []*mockConverterer_AssertMethod_results{}, index: 0, anyTimes: false}
+		r.mock.resultsByParams_AssertMethod[r.params] = r.results
+	}
+	r.results.results = append(r.results.results, &mockConverterer_AssertMethod_results{
+		funcDecl: funcDecl,
+	})
+	return r
+}
+
+func (r *mockConverterer_AssertMethod_fnRecorder) times(count int) *mockConverterer_AssertMethod_fnRecorder {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
+		return nil
+	}
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < count-1; n++ {
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (r *mockConverterer_AssertMethod_fnRecorder) anyTimes() {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		return
+	}
+	r.results.anyTimes = true
+}
+
+// Reset resets the state of the mock
+func (m *mockConverterer) Reset() {
+	m.resultsByParams_BaseStruct = map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr{}
+	m.resultsByParams_IsolationStruct = map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr{}
+	m.resultsByParams_MethodStructs = map[mockConverterer_MethodStructs_params]*mockConverterer_MethodStructs_resultMgr{}
+	m.resultsByParams_NewFunc = map[mockConverterer_NewFunc_params]*mockConverterer_NewFunc_resultMgr{}
+	m.resultsByParams_IsolationAccessor = map[mockConverterer_IsolationAccessor_params]*mockConverterer_IsolationAccessor_resultMgr{}
+	m.resultsByParams_FuncClosure = map[mockConverterer_FuncClosure_params]*mockConverterer_FuncClosure_resultMgr{}
+	m.resultsByParams_MockMethod = map[mockConverterer_MockMethod_params]*mockConverterer_MockMethod_resultMgr{}
+	m.resultsByParams_RecorderMethods = map[mockConverterer_RecorderMethods_params]*mockConverterer_RecorderMethods_resultMgr{}
+	m.resultsByParams_ResetMethod = map[mockConverterer_ResetMethod_params]*mockConverterer_ResetMethod_resultMgr{}
+	m.resultsByParams_AssertMethod = map[mockConverterer_AssertMethod_params]*mockConverterer_AssertMethod_resultMgr{}
+}
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *mockConverterer) AssertExpectationsMet() {
+	for params, results := range m.resultsByParams_BaseStruct {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_IsolationStruct {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_MethodStructs {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_NewFunc {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_IsolationAccessor {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_FuncClosure {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_MockMethod {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_RecorderMethods {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_ResetMethod {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
+	for params, results := range m.resultsByParams_AssertMethod {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
 }

@@ -5,17 +5,15 @@ package testmocks_test
 import (
 	"sync/atomic"
 
-	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
-	"github.com/myshkin5/moqueries/pkg/testing"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 // mockNothingFn holds the state of a mock of the NothingFn type
 type mockNothingFn struct {
-	t               testing.MoqT
-	config          config.MockConfig
+	scene           *moq.Scene
+	config          moq.MockConfig
 	resultsByParams map[mockNothingFn_params]*mockNothingFn_resultMgr
-	params          chan mockNothingFn_params
 }
 
 // mockNothingFn_mock isolates the mock interface of the NothingFn type
@@ -50,16 +48,17 @@ type mockNothingFn_fnRecorder struct {
 }
 
 // newMockNothingFn creates a new mock of the NothingFn type
-func newMockNothingFn(t testing.MoqT, c *config.MockConfig) *mockNothingFn {
-	if c == nil {
-		c = &config.MockConfig{}
+func newMockNothingFn(scene *moq.Scene, config *moq.MockConfig) *mockNothingFn {
+	if config == nil {
+		config = &moq.MockConfig{}
 	}
-	return &mockNothingFn{
-		t:               t,
-		config:          *c,
-		resultsByParams: map[mockNothingFn_params]*mockNothingFn_resultMgr{},
-		params:          make(chan mockNothingFn_params, 100),
+	m := &mockNothingFn{
+		scene:  scene,
+		config: *config,
 	}
+	m.Reset()
+	scene.AddMock(m)
+	return m
 }
 
 // mock returns the mock implementation of the NothingFn type
@@ -69,11 +68,10 @@ func (m *mockNothingFn) mock() testmocks.NothingFn {
 
 func (m *mockNothingFn_mock) fn() {
 	params := mockNothingFn_params{}
-	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -81,8 +79,8 @@ func (m *mockNothingFn_mock) fn() {
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -101,7 +99,7 @@ func (m *mockNothingFn) onCall() *mockNothingFn_fnRecorder {
 func (r *mockNothingFn_fnRecorder) returnResults() *mockNothingFn_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -114,7 +112,7 @@ func (r *mockNothingFn_fnRecorder) returnResults() *mockNothingFn_fnRecorder {
 
 func (r *mockNothingFn_fnRecorder) times(count int) *mockNothingFn_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -126,8 +124,26 @@ func (r *mockNothingFn_fnRecorder) times(count int) *mockNothingFn_fnRecorder {
 
 func (r *mockNothingFn_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
+}
+
+// Reset resets the state of the mock
+func (m *mockNothingFn) Reset() {
+	m.resultsByParams = map[mockNothingFn_params]*mockNothingFn_resultMgr{}
+}
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *mockNothingFn) AssertExpectationsMet() {
+	for params, results := range m.resultsByParams {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
 }

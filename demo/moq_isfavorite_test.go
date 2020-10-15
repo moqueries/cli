@@ -6,16 +6,14 @@ import (
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/demo"
-	"github.com/myshkin5/moqueries/pkg/config"
-	"github.com/myshkin5/moqueries/pkg/testing"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 // mockIsFavorite holds the state of a mock of the IsFavorite type
 type mockIsFavorite struct {
-	t               testing.MoqT
-	config          config.MockConfig
+	scene           *moq.Scene
+	config          moq.MockConfig
 	resultsByParams map[mockIsFavorite_params]*mockIsFavorite_resultMgr
-	params          chan mockIsFavorite_params
 }
 
 // mockIsFavorite_mock isolates the mock interface of the IsFavorite type
@@ -51,16 +49,17 @@ type mockIsFavorite_fnRecorder struct {
 }
 
 // newMockIsFavorite creates a new mock of the IsFavorite type
-func newMockIsFavorite(t testing.MoqT, c *config.MockConfig) *mockIsFavorite {
-	if c == nil {
-		c = &config.MockConfig{}
+func newMockIsFavorite(scene *moq.Scene, config *moq.MockConfig) *mockIsFavorite {
+	if config == nil {
+		config = &moq.MockConfig{}
 	}
-	return &mockIsFavorite{
-		t:               t,
-		config:          *c,
-		resultsByParams: map[mockIsFavorite_params]*mockIsFavorite_resultMgr{},
-		params:          make(chan mockIsFavorite_params, 100),
+	m := &mockIsFavorite{
+		scene:  scene,
+		config: *config,
 	}
+	m.Reset()
+	scene.AddMock(m)
+	return m
 }
 
 // mock returns the mock implementation of the IsFavorite type
@@ -72,11 +71,10 @@ func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
 	params := mockIsFavorite_params{
 		n: n,
 	}
-	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -84,8 +82,8 @@ func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -108,7 +106,7 @@ func (m *mockIsFavorite) onCall(n int) *mockIsFavorite_fnRecorder {
 func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -123,7 +121,7 @@ func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_
 
 func (r *mockIsFavorite_fnRecorder) times(count int) *mockIsFavorite_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -135,8 +133,26 @@ func (r *mockIsFavorite_fnRecorder) times(count int) *mockIsFavorite_fnRecorder 
 
 func (r *mockIsFavorite_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
+}
+
+// Reset resets the state of the mock
+func (m *mockIsFavorite) Reset() {
+	m.resultsByParams = map[mockIsFavorite_params]*mockIsFavorite_resultMgr{}
+}
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *mockIsFavorite) AssertExpectationsMet() {
+	for params, results := range m.resultsByParams {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
 }

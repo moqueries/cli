@@ -9,14 +9,11 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks/exported"
-	"github.com/myshkin5/moqueries/pkg/hash"
-	"github.com/myshkin5/moqueries/pkg/testing"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 type results struct {
@@ -32,326 +29,584 @@ type adaptor interface {
 	expectCall(sParams []string, bParam bool, results ...results) interface{}
 	invokeMockAndExpectResults(sParams []string, bParam bool, res results)
 	bundleParams(sParams []string, bParam bool) interface{}
+	sceneMock() moq.Mock
+}
+
+type tableEntry struct {
+	description string
+	a           adaptor
+}
+
+var (
+	scene    *moq.Scene
+	moqTMock *moq.MockMoqT
+)
+
+var _ = BeforeSuite(func() {
+	scene = moq.NewScene(GinkgoT())
+	moqTMock = moq.NewMockMoqT(scene, nil)
+})
+
+func entries(moqTMock *moq.MockMoqT, c moq.MockConfig) ([]tableEntry, *moq.Scene) {
+	mockScene := moq.NewScene(moqTMock.Mock())
+
+	var entries []tableEntry
+	entries = append(entries, tableEntry{"usualFn", &usualFnAdaptor{
+		m: newMockUsualFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedUsualFn", &exportedUsualFnAdaptor{
+		m: exported.NewMockUsualFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"noNamesFn", &noNamesFnAdaptor{
+		m: newMockNoNamesFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedNoNamesFn", &exportedNoNamesFnAdaptor{
+		m: exported.NewMockNoNamesFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"noResultsFn", &noResultsFnAdaptor{
+		m: newMockNoResultsFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedNoResultsFn", &exportedNoResultsFnAdaptor{
+		m: exported.NewMockNoResultsFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"noParamsFn", &noParamsFnAdaptor{
+		m: newMockNoParamsFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedNoParamsFn", &exportedNoParamsFnAdaptor{
+		m: exported.NewMockNoParamsFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"nothingFn", &nothingFnAdaptor{
+		m: newMockNothingFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedNothingFn", &exportedNothingFnAdaptor{
+		m: exported.NewMockNothingFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"variadicFn", &variadicFnAdaptor{
+		m: newMockVariadicFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedVariadicFn", &exportedVariadicFnAdaptor{
+		m: exported.NewMockVariadicFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"repeatedIdsFn", &repeatedIdsFnAdaptor{
+		m: newMockRepeatedIdsFn(mockScene, &c)}})
+	entries = append(entries, tableEntry{"exportedRepeatedIdsFn", &exportedRepeatedIdsFnAdaptor{
+		m: exported.NewMockRepeatedIdsFn(mockScene, &c)}})
+
+	usualMock := newMockUsual(mockScene, &c)
+	exportUsualMock := exported.NewMockUsual(mockScene, &c)
+	entries = append(entries, tableEntry{"usual", &usualAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedUsual", &exportedUsualAdaptor{
+		m: exportUsualMock}})
+	entries = append(entries, tableEntry{"noNames", &noNamesAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedNoNames", &exportedNoNamesAdaptor{
+		m: exportUsualMock}})
+	entries = append(entries, tableEntry{"noResults", &noResultsAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedNoResults", &exportedNoResultsAdaptor{
+		m: exportUsualMock}})
+	entries = append(entries, tableEntry{"noParams", &noParamsAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedNoParams", &exportedNoParamsAdaptor{
+		m: exportUsualMock}})
+	entries = append(entries, tableEntry{"nothing", &nothingAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedNothing", &exportedNothingAdaptor{
+		m: exportUsualMock}})
+	entries = append(entries, tableEntry{"variadic", &variadicAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedVariadic", &exportedVariadicAdaptor{
+		m: exportUsualMock}})
+	entries = append(entries, tableEntry{"repeatedIds", &repeatedIdsAdaptor{
+		m: usualMock}})
+	entries = append(entries, tableEntry{"exportedRepeatedIds", &exportedRepeatedIdsAdaptor{
+		m: exportUsualMock}})
+
+	return entries, mockScene
 }
 
 var _ = Describe("TestMocks", func() {
-	var (
-		tMoq = testing.NewMockMoqT(GinkgoT(), nil)
-	)
+	It("can return different values when configured to do so", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
+			// ASSEMBLE
+			scene.Reset()
+			mockScene.Reset()
 
-	entries := func(c config.MockConfig) []TableEntry {
-		var entries []TableEntry
-		entries = append(entries, Entry("usualFn", &usualFnAdaptor{
-			m: newMockUsualFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedUsualFn", &exportedUsualFnAdaptor{
-			m: exported.NewMockUsualFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("noNamesFn", &noNamesFnAdaptor{
-			m: newMockNoNamesFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedNoNamesFn", &exportedNoNamesFnAdaptor{
-			m: exported.NewMockNoNamesFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("noResultsFn", &noResultsFnAdaptor{
-			m: newMockNoResultsFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedNoResultsFn", &exportedNoResultsFnAdaptor{
-			m: exported.NewMockNoResultsFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("noParamsFn", &noParamsFnAdaptor{
-			m: newMockNoParamsFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedNoParamsFn", &exportedNoParamsFnAdaptor{
-			m: exported.NewMockNoParamsFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("nothingFn", &nothingFnAdaptor{
-			m: newMockNothingFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedNothingFn", &exportedNothingFnAdaptor{
-			m: exported.NewMockNothingFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("variadicFn", &variadicFnAdaptor{
-			m: newMockVariadicFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedVariadicFn", &exportedVariadicFnAdaptor{
-			m: exported.NewMockVariadicFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("repeatedIdsFn", &repeatedIdsFnAdaptor{
-			m: newMockRepeatedIdsFn(tMoq.Mock(), &c)}, tMoq))
-		entries = append(entries, Entry("exportedRepeatedIdsFn", &exportedRepeatedIdsFnAdaptor{
-			m: exported.NewMockRepeatedIdsFn(tMoq.Mock(), &c)}, tMoq))
+			if entry.a.tracksParams() {
+				entry.a.expectCall([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
+			entry.a.expectCall([]string{"Hi", "you"}, true,
+				results{sResults: []string{"blue", "orange"}, err: nil},
+				results{sResults: []string{"green", "purple"}, err: nil})
+			if entry.a.tracksParams() {
+				entry.a.expectCall([]string{"Bye", "now"}, true,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
 
-		usualMock := newMockUsual(tMoq.Mock(), &c)
-		exportUsualMock := exported.NewMockUsual(tMoq.Mock(), &c)
-		entries = append(entries, Entry("usual", &usualAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedUsual", &exportedUsualAdaptor{
-			m: exportUsualMock}, tMoq))
-		entries = append(entries, Entry("noNames", &noNamesAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedNoNames", &exportedNoNamesAdaptor{
-			m: exportUsualMock}, tMoq))
-		entries = append(entries, Entry("noResults", &noResultsAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedNoResults", &exportedNoResultsAdaptor{
-			m: exportUsualMock}, tMoq))
-		entries = append(entries, Entry("noParams", &noParamsAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedNoParams", &exportedNoParamsAdaptor{
-			m: exportUsualMock}, tMoq))
-		entries = append(entries, Entry("nothing", &nothingAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedNothing", &exportedNothingAdaptor{
-			m: exportUsualMock}, tMoq))
-		entries = append(entries, Entry("variadic", &variadicAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedVariadic", &exportedVariadicAdaptor{
-			m: exportUsualMock}, tMoq))
-		entries = append(entries, Entry("repeatedIds", &repeatedIdsAdaptor{
-			m: usualMock}, tMoq))
-		entries = append(entries, Entry("exportedRepeatedIds", &exportedRepeatedIdsAdaptor{
-			m: exportUsualMock}, tMoq))
+			if entry.a.tracksParams() {
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"blue", "orange"}, err: nil})
+			if entry.a.tracksParams() {
+				entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
 
-		return entries
-	}
+			// ACT
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"green", "purple"}, err: nil})
 
-	BeforeEach(func() {
-		// TODO tMoq.Reset()
-		tMoq.ResultsByParams_Fatalf = map[testing.MockMoqT_Fatalf_params]*testing.MockMoqT_Fatalf_resultMgr{}
+			// ASSERT
+			mockScene.AssertExpectationsMet()
+			scene.AssertExpectationsMet()
+		}
 	})
 
-	DescribeTable("can return different values when configured to do so",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("fails if an expectation is not set in strict mode", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			if a.tracksParams() {
-				a.expectCall([]string{"Hello", "there"}, false,
-					results{sResults: []string{"red", "yellow"}, err: io.EOF})
-			}
-			a.expectCall([]string{"Hi", "you"}, true,
-				results{sResults: []string{"blue", "orange"}, err: nil},
-				results{sResults: []string{"green", "purple"}, err: nil})
-			if a.tracksParams() {
-				a.expectCall([]string{"Bye", "now"}, true,
-					results{sResults: []string{"red", "yellow"}, err: io.EOF})
-			}
+			scene.Reset()
+			mockScene.Reset()
 
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
-				results{sResults: []string{"blue", "orange"}, err: nil})
-
-			// ACT
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
-				results{sResults: []string{"green", "purple"}, err: nil})
-
-			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(BeEmpty())
-		},
-		entries(config.MockConfig{})...,
-	)
-
-	DescribeTable("fails if an expectation is not set in strict mode",
-		func(a adaptor, tMoq *testing.MockMoqT) {
-			// ASSEMBLE
-			tMoq.OnCall().Fatalf(
+			moqTMock.OnCall().Fatalf(
 				"Unexpected call with parameters %#v",
-				a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
+				entry.a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
 
 			// ACT
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"", ""}, err: nil})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
-				Format: "Unexpected call with parameters %#v",
-				Args: hash.DeepHash([]interface{}{
-					a.bundleParams([]string{"Hi", "you"}, true),
-				}),
-			})))
-		},
-		entries(config.MockConfig{})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("returns zero values if an expectation is not set in nice mode",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("returns zero values if an expectation is not set in nice mode", func() {
+		entries, mockScene := entries(
+			moqTMock, moq.MockConfig{Expectation: moq.Nice})
+		for _, entry := range entries {
 			// ASSEMBLE
+			scene.Reset()
+			mockScene.Reset()
 
 			// ACT
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"", ""}, err: nil})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(BeEmpty())
-		},
-		entries(config.MockConfig{Expectation: config.Nice})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("can return the same values multiple times",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("can return the same values multiple times", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			if a.tracksParams() {
-				a.expectCall([]string{"Hello", "there"}, false,
+			scene.Reset()
+			mockScene.Reset()
+
+			if entry.a.tracksParams() {
+				entry.a.expectCall([]string{"Hello", "there"}, false,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
-			a.expectCall([]string{"Hi", "you"}, true,
+			entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil, times: 4},
 				results{sResults: []string{"green", "purple"}, err: nil})
-			if a.tracksParams() {
-				a.expectCall([]string{"Bye", "now"}, true,
+			if entry.a.tracksParams() {
+				entry.a.expectCall([]string{"Bye", "now"}, true,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
 
+			if entry.a.tracksParams() {
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
 			for n := 0; n < 4; n++ {
-				a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
+			}
+			if entry.a.tracksParams() {
+				entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
 
 			// ACT
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(BeEmpty())
-		},
-		entries(config.MockConfig{})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("returns the same value any number of times",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("returns the same value any number of times", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			if a.tracksParams() {
-				a.expectCall([]string{"Hello", "there"}, false,
+			scene.Reset()
+			mockScene.Reset()
+
+			if entry.a.tracksParams() {
+				entry.a.expectCall([]string{"Hello", "there"}, false,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
-			a.expectCall([]string{"Hi", "you"}, true,
+			entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: nil, anyTimes: true})
-			if a.tracksParams() {
-				a.expectCall([]string{"Bye", "now"}, true,
+			if entry.a.tracksParams() {
+				entry.a.expectCall([]string{"Bye", "now"}, true,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
 
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			if entry.a.tracksParams() {
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil})
+			if entry.a.tracksParams() {
+				entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+			}
 
 			// ACT
 			// NB: Don't use values larger than the results channel will hold
-			for n := 0; n < 99; n++ {
-				a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			for n := 0; n < 20; n++ {
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"green", "purple"}, err: nil})
 			}
-			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(BeEmpty())
-		},
-		entries(config.MockConfig{})...,
-	)
 
-	DescribeTable("fails if Times is called without a preceding Return call",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+			// ASSERT
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
+
+	It("fails if Times is called without a preceding Return call", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			tMoq.OnCall().Fatalf("Return must be called before calling Times").
+			scene.Reset()
+			mockScene.Reset()
+
+			// ASSEMBLE
+			moqTMock.OnCall().Fatalf("Return must be called before calling Times").
 				ReturnResults()
 
 			// ACT
-			a.expectCall([]string{"Hi", "you"}, true,
+			entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{noReturnResults: true, times: 4})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
-				Format: "Return must be called before calling Times",
-				Args:   hash.DeepHash([]interface{}{}),
-			})))
-		},
-		entries(config.MockConfig{})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("fails if AnyTimes is called without a preceding Return call",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("fails if AnyTimes is called without a preceding Return call", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			tMoq.OnCall().Fatalf("Return must be called before calling AnyTimes").
+			scene.Reset()
+			mockScene.Reset()
+
+			// ASSEMBLE
+			moqTMock.OnCall().Fatalf("Return must be called before calling AnyTimes").
 				ReturnResults()
 
 			// ACT
-			a.expectCall([]string{"Hi", "you"}, true,
+			entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{noReturnResults: true, anyTimes: true})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
-				Format: "Return must be called before calling AnyTimes",
-				Args:   hash.DeepHash([]interface{}{}),
-			})))
-		},
-		entries(config.MockConfig{})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("fails if the function is called too many times in strict mode",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("fails if the function is called too many times in strict mode", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			a.expectCall([]string{"Hi", "you"}, true,
+			scene.Reset()
+			mockScene.Reset()
+
+			entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: io.EOF})
 
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil})
 
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: io.EOF})
 
-			tMoq.OnCall().Fatalf(
+			moqTMock.OnCall().Fatalf(
 				"Too many calls to mock with parameters %#v",
-				a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
+				entry.a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
 
 			// ACT
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"", ""}, err: nil})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
-				Format: "Too many calls to mock with parameters %#v",
-				Args: hash.DeepHash([]interface{}{
-					a.bundleParams([]string{"Hi", "you"}, true),
-				}),
-			})))
-		},
-		entries(config.MockConfig{})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("returns zero values if the function is called too many times in nice mode",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("returns zero values if the function is called too many times in nice mode", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{Expectation: moq.Nice})
+		for _, entry := range entries {
 			// ASSEMBLE
-			a.expectCall([]string{"Hi", "you"}, true,
+			scene.Reset()
+			mockScene.Reset()
+
+			entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: io.EOF})
 
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil})
 
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: io.EOF})
 
 			// ACT
-			a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"", ""}, err: nil})
 
 			// ASSERT
-			Expect(tMoq.Params_Fatalf).To(BeEmpty())
-		},
-		entries(config.MockConfig{Expectation: config.Nice})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
 
-	DescribeTable("fails if expectations are set more than once for the same parameter set",
-		func(a adaptor, tMoq *testing.MockMoqT) {
+	It("fails if expectations are set more than once for the same parameter set", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
 			// ASSEMBLE
-			a.expectCall([]string{"Hi", "you"}, true,
+			scene.Reset()
+			mockScene.Reset()
+
+			entry.a.expectCall([]string{"Hi", "you"}, true,
+				results{sResults: []string{"green", "purple"}, err: nil})
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
 
-			tMoq.OnCall().Fatalf(
+			moqTMock.OnCall().Fatalf(
 				"Expectations already recorded for mock with parameters %#v",
-				a.bundleParams([]string{"Hi", "you"}, true)).
+				entry.a.bundleParams([]string{"Hi", "you"}, true)).
 				ReturnResults()
 
 			// ACT
-			fnRec := a.expectCall([]string{"Hi", "you"}, true,
+			fnRec := entry.a.expectCall([]string{"Hi", "you"}, true,
 				results{sResults: []string{"red", "purple"}, err: io.EOF})
 
 			// ASSERT
 			Expect(fnRec).To(BeNil())
-			Expect(tMoq.Params_Fatalf).To(Receive(Equal(testing.MockMoqT_Fatalf_params{
-				Format: "Expectations already recorded for mock with parameters %#v",
-				Args: hash.DeepHash([]interface{}{
-					a.bundleParams([]string{"Hi", "you"}, true),
-				}),
-			})))
-		},
-		entries(config.MockConfig{})...,
-	)
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
+
+	It("resets its state", func() {
+		entries, mockScene := entries(moqTMock, moq.MockConfig{})
+		for _, entry := range entries {
+			// ASSEMBLE
+			scene.Reset()
+			mockScene.Reset()
+
+			entry.a.expectCall([]string{"Hi", "you"}, true,
+				results{sResults: []string{"green", "purple"}, err: nil})
+
+			// ACT
+			entry.a.sceneMock().Reset()
+
+			// ASSERT
+			entry.a.expectCall([]string{"Hi", "you"}, true,
+				results{sResults: []string{"grey", "indigo"}, err: nil})
+			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"grey", "indigo"}, err: nil})
+
+			scene.AssertExpectationsMet()
+			mockScene.AssertExpectationsMet()
+		}
+	})
+
+	Describe("AssertExpectationsMet", func() {
+		It("reports success when there ae no expectations", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				// ACT
+				entry.a.sceneMock().AssertExpectationsMet()
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+
+		It("reports success when all expectations are met", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				if entry.a.tracksParams() {
+					entry.a.expectCall([]string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				entry.a.expectCall([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				if entry.a.tracksParams() {
+					entry.a.expectCall([]string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				// ACT
+				entry.a.sceneMock().AssertExpectationsMet()
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+
+		It("fails when one expectation is not met", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				// ASSEMBLE
+				if entry.a.tracksParams() {
+					entry.a.expectCall([]string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				entry.a.expectCall([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				if entry.a.tracksParams() {
+					entry.a.expectCall([]string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				moqTMock.OnCall().Errorf(
+					"Expected %d additional call(s) with parameters %#v",
+					1,
+					entry.a.bundleParams([]string{"Hi", "you"}, true)).
+					ReturnResults()
+
+				// ACT
+				entry.a.sceneMock().AssertExpectationsMet()
+
+				// ASSERT
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+
+		It("succeeds when an anyTimes expectation is not called at all", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				entry.a.expectCall([]string{"Hi", "you"}, true, results{
+					sResults: []string{"blue", "orange"},
+					err:      nil,
+					anyTimes: true,
+				})
+
+				// ACT
+				entry.a.sceneMock().AssertExpectationsMet()
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+
+		It("succeeds when an anyTimes expectation is called once", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				// ASSEMBLE
+				entry.a.expectCall([]string{"Hi", "you"}, true, results{
+					sResults: []string{"blue", "orange"},
+					err:      nil,
+					anyTimes: true,
+				})
+
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				// ACT
+				entry.a.sceneMock().AssertExpectationsMet()
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+
+		It("succeeds when an anyTimes expectation is called many times", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				// ASSEMBLE
+				entry.a.expectCall([]string{"Hi", "you"}, true, results{
+					sResults: []string{"blue", "orange"},
+					err:      nil,
+					anyTimes: true,
+				})
+
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				// ACT
+				entry.a.sceneMock().AssertExpectationsMet()
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+	})
 
 	PIt("generates mocks", func() {
 		// NB: Keep in sync with types.go go:generate directives

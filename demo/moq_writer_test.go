@@ -5,17 +5,15 @@ package demo_test
 import (
 	"sync/atomic"
 
-	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/hash"
-	"github.com/myshkin5/moqueries/pkg/testing"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 // mockWriter holds the state of a mock of the Writer type
 type mockWriter struct {
-	t                     testing.MoqT
-	config                config.MockConfig
+	scene                 *moq.Scene
+	config                moq.MockConfig
 	resultsByParams_Write map[mockWriter_Write_params]*mockWriter_Write_resultMgr
-	params_Write          chan mockWriter_Write_params
 }
 
 // mockWriter_mock isolates the mock interface of the Writer type
@@ -52,16 +50,17 @@ type mockWriter_Write_fnRecorder struct {
 }
 
 // newMockWriter creates a new mock of the Writer type
-func newMockWriter(t testing.MoqT, c *config.MockConfig) *mockWriter {
-	if c == nil {
-		c = &config.MockConfig{}
+func newMockWriter(scene *moq.Scene, config *moq.MockConfig) *mockWriter {
+	if config == nil {
+		config = &moq.MockConfig{}
 	}
-	return &mockWriter{
-		t:                     t,
-		config:                *c,
-		resultsByParams_Write: map[mockWriter_Write_params]*mockWriter_Write_resultMgr{},
-		params_Write:          make(chan mockWriter_Write_params, 100),
+	m := &mockWriter{
+		scene:  scene,
+		config: *config,
 	}
+	m.Reset()
+	scene.AddMock(m)
+	return m
 }
 
 // mock returns the mock implementation of the Writer type
@@ -75,11 +74,10 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	params := mockWriter_Write_params{
 		p: hash.DeepHash(p),
 	}
-	m.mock.params_Write <- params
 	results, ok := m.mock.resultsByParams_Write[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -87,8 +85,8 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -119,7 +117,7 @@ func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWriter_Write_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_Write[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -135,7 +133,7 @@ func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWrite
 
 func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -147,8 +145,26 @@ func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecor
 
 func (r *mockWriter_Write_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
+}
+
+// Reset resets the state of the mock
+func (m *mockWriter) Reset() {
+	m.resultsByParams_Write = map[mockWriter_Write_params]*mockWriter_Write_resultMgr{}
+}
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *mockWriter) AssertExpectationsMet() {
+	for params, results := range m.resultsByParams_Write {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
 }

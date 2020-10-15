@@ -14,6 +14,7 @@ import (
 	"github.com/myshkin5/moqueries/pkg/logs"
 )
 
+// GenerateRequest contains all of the parameters needed to call Generate
 type GenerateRequest struct {
 	Types       []string
 	Export      bool
@@ -23,6 +24,7 @@ type GenerateRequest struct {
 	TestImport  bool
 }
 
+// Generate generates a mock
 func Generate(reqs ...GenerateRequest) error {
 	for _, req := range reqs {
 		err := generate(req)

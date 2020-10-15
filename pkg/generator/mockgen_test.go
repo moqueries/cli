@@ -9,10 +9,12 @@ import (
 
 	"github.com/myshkin5/moqueries/pkg/generator"
 	"github.com/myshkin5/moqueries/pkg/logs"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 var _ = Describe("MockGen", func() {
 	var (
+		scene           *moq.Scene
 		loadTypesFnMock *mockLoadTypesFn
 		converterMock   *mockConverterer
 
@@ -23,9 +25,6 @@ var _ = Describe("MockGen", func() {
 		func1         *dst.Field
 		func1Params   *dst.FieldList
 
-		fnSpec *dst.TypeSpec
-		fnType *dst.FuncType
-
 		readFnType *dst.FuncType
 		readerSpec *dst.TypeSpec
 	)
@@ -33,8 +32,9 @@ var _ = Describe("MockGen", func() {
 	BeforeEach(func() {
 		logs.Init(false)
 
-		loadTypesFnMock = newMockLoadTypesFn(GinkgoT(), nil)
-		converterMock = newMockConverterer(GinkgoT(), nil)
+		scene = moq.NewScene(GinkgoT())
+		loadTypesFnMock = newMockLoadTypesFn(scene, nil)
+		converterMock = newMockConverterer(scene, nil)
 
 		func1Params = &dst.FieldList{List: []*dst.Field{
 			{
@@ -67,9 +67,6 @@ var _ = Describe("MockGen", func() {
 			Type: &dst.InterfaceType{Methods: ifaceMethods2},
 		}
 
-		fnType = &dst.FuncType{Params: func1Params, Results: nil}
-		fnSpec = &dst.TypeSpec{Name: dst.NewIdent("PublicFn"), Type: fnType}
-
 		readFnType = &dst.FuncType{
 			Params: &dst.FieldList{List: []*dst.Field{{
 				Names: []*dst.Ident{dst.NewIdent("p")},
@@ -95,6 +92,10 @@ var _ = Describe("MockGen", func() {
 				}},
 			}},
 		}
+	})
+
+	AfterEach(func() {
+		scene.AssertExpectationsMet()
 	})
 
 	It("always returns a header comment", func() {
@@ -206,139 +207,6 @@ var _ = Describe("MockGen", func() {
 		Expect(file.Name.Name).To(Equal("generator"))
 	})
 
-	It("creates structs for each mock", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
-			returnResults(
-				[]*dst.TypeSpec{ifaceSpec1, ifaceSpec2, fnSpec},
-				"github.com/myshkin5/moqueries/pkg/generator",
-				nil)
-		pubDecl := &dst.GenDecl{
-			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
-		}
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
-			returnResults(pubDecl)
-		pubMockDecl := &dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("pub-mock-decl")},
-		}}
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
-			returnResults(pubMockDecl)
-		pubRecorderDecl := &dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("pub-rec-decl")},
-		}}
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
-			returnResults(pubRecorderDecl)
-		pubStructDecls := []dst.Decl{&dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("pub-struct-decl")}},
-		}}
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
-			returnResults(pubStructDecls)
-
-		privateDecl := &dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("private-decl")},
-		}}
-		converterMock.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
-			returnResults(privateDecl)
-
-		fnDecl := &dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("fn-decl")},
-		}}
-		fnFuncs := []generator.Func{{Params: func1Params}}
-		converterMock.onCall().BaseStruct(fnSpec, fnFuncs).
-			returnResults(fnDecl)
-		fnMockDecl := &dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("fn-mock-decl")},
-		}}
-		converterMock.onCall().IsolationStruct("PublicFn", "mock").
-			returnResults(fnMockDecl)
-		fnRecorderDecl := &dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("fn-rec-decl")},
-		}}
-		converterMock.onCall().IsolationStruct("PublicFn", "recorder").
-			returnResults(fnRecorderDecl)
-		fnStructDecls := []dst.Decl{&dst.GenDecl{Specs: []dst.Spec{
-			&dst.TypeSpec{Name: dst.NewIdent("fn-struct-decl")},
-		}}}
-		converterMock.onCall().MethodStructs(fnSpec, fnFuncs[0]).
-			returnResults(fnStructDecls)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "mock", "mock").
-			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "recorder", "onCall").
-			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "recorder").
-			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2, []generator.Func{}).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"privateInterface", "mock", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"privateInterface", "recorder", "onCall").
-			returnResults(nil)
-		converterMock.onCall().NewFunc(fnSpec, fnFuncs).
-			returnResults(nil)
-		converterMock.onCall().FuncClosure(
-			"PublicFn", "github.com/myshkin5/moqueries/pkg/generator",
-			fnFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicFn", fnFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().RecorderMethods("PublicFn", fnFuncs[0]).
-			returnResults(nil)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate(
-			[]string{"PublicInterface", "privateInterface", "PublicFn"},
-			".",
-			false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		Expect(len(file.Decls)).To(BeNumerically(">", 8))
-		// Only looking at the first three structs for PublicInterface
-		Expect(file.Decls[:4]).To(Equal([]dst.Decl{
-			pubDecl,
-			pubMockDecl,
-			pubRecorderDecl,
-			pubStructDecls[0],
-		}))
-
-		fnStart := -1
-		for n, decl := range file.Decls {
-			if decl == fnDecl {
-				fnStart = n
-			}
-		}
-		Expect(fnStart).NotTo(Equal(-1))
-		// Only looking at the structs for PublicFn
-		Expect(file.Decls[fnStart : fnStart+4]).To(Equal([]dst.Decl{
-			fnDecl,
-			fnMockDecl,
-			fnRecorderDecl,
-			fnStructDecls[0],
-		}))
-		Expect(file.Decls).To(ContainElement(privateDecl))
-	})
-
 	It("recursively looks up nested interfaces", func() {
 		// ASSEMBLE
 		// PublicInterface embeds privateInterface which embeds io.Reader
@@ -402,6 +270,10 @@ var _ = Describe("MockGen", func() {
 		converterMock.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[1]).
 			returnResults(nil)
+		converterMock.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+			returnResults(nil)
+		converterMock.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+			returnResults(nil)
 		iface2Funcs := []generator.Func{{
 			Name:    "Read",
 			Params:  readFnType.Params,
@@ -427,6 +299,10 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().RecorderMethods(
 			"privateInterface", iface2Funcs[0]).
+			returnResults(nil)
+		converterMock.onCall().ResetMethod(ifaceSpec2, iface2Funcs).
+			returnResults(nil)
+		converterMock.onCall().AssertMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 
 		gen := generator.New(
@@ -475,6 +351,10 @@ var _ = Describe("MockGen", func() {
 		converterMock.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
+		converterMock.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+			returnResults(nil)
+		converterMock.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+			returnResults(nil)
 
 		converterMock.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
@@ -487,10 +367,12 @@ var _ = Describe("MockGen", func() {
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().MockMethod("privateInterface", ifaceFuncs[0]).
-			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "recorder", "onCall").
+			returnResults(nil)
+		converterMock.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
+			returnResults(nil)
+		converterMock.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
 
 		gen := generator.New(
@@ -506,10 +388,6 @@ var _ = Describe("MockGen", func() {
 
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
-		Expect(loadTypesFnMock.params).To(Receive(Equal(mockLoadTypesFn_params{
-			pkg:           ".",
-			loadTestTypes: true,
-		})))
 	})
 
 	It("loads tests types when importing a test package", func() {
@@ -543,6 +421,10 @@ var _ = Describe("MockGen", func() {
 		converterMock.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
+		converterMock.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+			returnResults(nil)
+		converterMock.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+			returnResults(nil)
 
 		converterMock.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
@@ -555,10 +437,12 @@ var _ = Describe("MockGen", func() {
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().MockMethod("privateInterface", ifaceFuncs[0]).
-			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "recorder", "onCall").
+			returnResults(nil)
+		converterMock.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
+			returnResults(nil)
+		converterMock.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
 
 		gen := generator.New(
@@ -576,320 +460,6 @@ var _ = Describe("MockGen", func() {
 
 		// ASSERT
 		Expect(err).NotTo(HaveOccurred())
-		Expect(loadTypesFnMock.params).To(Receive(Equal(mockLoadTypesFn_params{
-			pkg:           "github.com/myshkin5/moqueries/pkg/generator",
-			loadTestTypes: true,
-		})))
-	})
-
-	It("creates a new mock function", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
-			returnResults(
-				[]*dst.TypeSpec{ifaceSpec1},
-				"github.com/myshkin5/moqueries/pkg/generator",
-				nil)
-
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
-			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
-			returnResults(nil)
-
-		newFunc := &dst.FuncDecl{Name: dst.NewIdent("newMockFn")}
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
-			returnResults(newFunc)
-
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "mock", "mock").
-			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "recorder", "onCall").
-			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		fnStart := -1
-		for n, decl := range file.Decls {
-			if decl == newFunc {
-				fnStart = n
-			}
-		}
-		Expect(fnStart).NotTo(Equal(-1))
-	})
-
-	It("creates a mock accessor", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).returnResults(
-			[]*dst.TypeSpec{ifaceSpec1},
-			"github.com/myshkin5/moqueries/pkg/generator",
-			nil,
-		)
-
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
-			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-
-		mockFn := &dst.FuncDecl{Name: dst.NewIdent("mock")}
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "mock", "mock").
-			returnResults(mockFn)
-
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "recorder", "onCall").
-			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		fnStart := -1
-		for n, decl := range file.Decls {
-			if decl == mockFn {
-				fnStart = n
-			}
-		}
-		Expect(fnStart).NotTo(Equal(-1))
-	})
-
-	It("creates mock functions for each method in the interface", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).returnResults(
-			[]*dst.TypeSpec{ifaceSpec1},
-			"github.com/myshkin5/moqueries/pkg/generator",
-			nil,
-		)
-
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
-			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-
-		methodFn := &dst.FuncDecl{Name: dst.NewIdent("Func1")}
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
-			returnResults(methodFn)
-
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "mock", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "recorder", "onCall").
-			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		Expect(file.Decls).To(ContainElement(methodFn))
-	})
-
-	It("creates a closure for a mock func", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).returnResults(
-			[]*dst.TypeSpec{fnSpec},
-			"github.com/myshkin5/moqueries/pkg/generator",
-			nil,
-		)
-
-		fnFuncs := []generator.Func{{Params: func1Params}}
-		converterMock.onCall().BaseStruct(fnSpec, fnFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicFn", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicFn", "recorder").
-			returnResults(nil)
-		converterMock.onCall().MethodStructs(fnSpec, fnFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().NewFunc(fnSpec, fnFuncs).
-			returnResults(nil)
-
-		methodFn := &dst.FuncDecl{Name: dst.NewIdent("Func1")}
-		converterMock.onCall().FuncClosure(
-			"PublicFn",
-			"github.com/myshkin5/moqueries/pkg/generator",
-			generator.Func{Params: func1Params},
-		).returnResults(methodFn)
-
-		converterMock.onCall().MockMethod("PublicFn", fnFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().RecorderMethods("PublicFn", fnFuncs[0]).
-			returnResults(nil)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate([]string{"PublicFn"}, ".", false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		Expect(file.Decls).To(ContainElement(methodFn))
-	})
-
-	It("creates a recorder accessor", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).returnResults(
-			[]*dst.TypeSpec{ifaceSpec1},
-			"github.com/myshkin5/moqueries/pkg/generator",
-			nil,
-		)
-
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
-			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "mock", "mock").
-			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-
-		recFn := &dst.FuncDecl{Name: dst.NewIdent("onCall")}
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "recorder", "onCall").
-			returnResults(recFn)
-
-		converterMock.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		fnStart := -1
-		for n, decl := range file.Decls {
-			if decl == recFn {
-				fnStart = n
-			}
-		}
-		Expect(fnStart).NotTo(Equal(-1))
-	})
-
-	It("creates recorder functions for each method in the interface", func() {
-		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).returnResults(
-			[]*dst.TypeSpec{ifaceSpec1},
-			"github.com/myshkin5/moqueries/pkg/generator",
-			nil,
-		)
-
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
-			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
-			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "mock", "mock").
-			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
-			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
-			"PublicInterface", "recorder", "onCall").
-			returnResults(nil)
-
-		methodFns := []dst.Decl{&dst.FuncDecl{Name: dst.NewIdent("Func1")}}
-		converterMock.onCall().RecorderMethods(
-			"PublicInterface",
-			generator.Func{Name: "Func1", Params: func1Params},
-		).returnResults(methodFns)
-
-		gen := generator.New(
-			false,
-			"",
-			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
-
-		// ACT
-		_, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
-
-		// ASSERT
-		Expect(err).NotTo(HaveOccurred())
-		Expect(file.Decls).To(ContainElement(methodFns[0]))
 	})
 
 	It("returns an error when the interface can't be found", func() {

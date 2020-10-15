@@ -5,17 +5,15 @@ package testmocks_test
 import (
 	"sync/atomic"
 
-	"github.com/myshkin5/moqueries/pkg/config"
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
-	"github.com/myshkin5/moqueries/pkg/testing"
+	"github.com/myshkin5/moqueries/pkg/moq"
 )
 
 // mockRepeatedIdsFn holds the state of a mock of the RepeatedIdsFn type
 type mockRepeatedIdsFn struct {
-	t               testing.MoqT
-	config          config.MockConfig
+	scene           *moq.Scene
+	config          moq.MockConfig
 	resultsByParams map[mockRepeatedIdsFn_params]*mockRepeatedIdsFn_resultMgr
-	params          chan mockRepeatedIdsFn_params
 }
 
 // mockRepeatedIdsFn_mock isolates the mock interface of the RepeatedIdsFn type
@@ -55,16 +53,17 @@ type mockRepeatedIdsFn_fnRecorder struct {
 }
 
 // newMockRepeatedIdsFn creates a new mock of the RepeatedIdsFn type
-func newMockRepeatedIdsFn(t testing.MoqT, c *config.MockConfig) *mockRepeatedIdsFn {
-	if c == nil {
-		c = &config.MockConfig{}
+func newMockRepeatedIdsFn(scene *moq.Scene, config *moq.MockConfig) *mockRepeatedIdsFn {
+	if config == nil {
+		config = &moq.MockConfig{}
 	}
-	return &mockRepeatedIdsFn{
-		t:               t,
-		config:          *c,
-		resultsByParams: map[mockRepeatedIdsFn_params]*mockRepeatedIdsFn_resultMgr{},
-		params:          make(chan mockRepeatedIdsFn_params, 100),
+	m := &mockRepeatedIdsFn{
+		scene:  scene,
+		config: *config,
 	}
+	m.Reset()
+	scene.AddMock(m)
+	return m
 }
 
 // mock returns the mock implementation of the RepeatedIdsFn type
@@ -81,11 +80,10 @@ func (m *mockRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResu
 		sParam2: sParam2,
 		bParam:  bParam,
 	}
-	m.mock.params <- params
 	results, ok := m.mock.resultsByParams[params]
 	if !ok {
-		if m.mock.config.Expectation == config.Strict {
-			m.mock.t.Fatalf("Unexpected call with parameters %#v", params)
+		if m.mock.config.Expectation == moq.Strict {
+			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -93,8 +91,8 @@ func (m *mockRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResu
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == config.Strict {
-				m.mock.t.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.mock.config.Expectation == moq.Strict {
+				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -121,7 +119,7 @@ func (m *mockRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *mockRe
 func (r *mockRepeatedIdsFn_fnRecorder) returnResults(sResult1, sResult2 string, err error) *mockRepeatedIdsFn_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.t.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
@@ -138,7 +136,7 @@ func (r *mockRepeatedIdsFn_fnRecorder) returnResults(sResult1, sResult2 string, 
 
 func (r *mockRepeatedIdsFn_fnRecorder) times(count int) *mockRepeatedIdsFn_fnRecorder {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -150,8 +148,26 @@ func (r *mockRepeatedIdsFn_fnRecorder) times(count int) *mockRepeatedIdsFn_fnRec
 
 func (r *mockRepeatedIdsFn_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.t.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
 		return
 	}
 	r.results.anyTimes = true
+}
+
+// Reset resets the state of the mock
+func (m *mockRepeatedIdsFn) Reset() {
+	m.resultsByParams = map[mockRepeatedIdsFn_params]*mockRepeatedIdsFn_resultMgr{}
+}
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *mockRepeatedIdsFn) AssertExpectationsMet() {
+	for params, results := range m.resultsByParams {
+		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+		if missing == 1 && results.anyTimes == true {
+			continue
+		}
+		if missing > 0 {
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+		}
+	}
 }

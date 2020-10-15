@@ -1,4 +1,4 @@
-package config
+package moq
 
 // ExpectationMode determines the behavior of a mock when a method is invoked
 // with no matching expectations
