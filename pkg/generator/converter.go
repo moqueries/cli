@@ -5,7 +5,7 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/dave/dst"
+	. "github.com/dave/dst"
 
 	"github.com/myshkin5/moqueries/pkg/logs"
 )
@@ -72,25 +72,23 @@ func NewConverter(export bool) *Converter {
 // Func holds on to function related data
 type Func struct {
 	Name    string
-	Params  *dst.FieldList
-	Results *dst.FieldList
+	Params  *FieldList
+	Results *FieldList
 }
 
 // BaseStruct generates the base structure used to store the mock's state
-func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDecl {
+func (c *Converter) BaseStruct(typeSpec *TypeSpec, funcs []Func) *GenDecl {
 	mName := c.mockName(typeSpec.Name.Name)
-	mock := &dst.GenDecl{
+	mock := &GenDecl{
 		Tok: token.TYPE,
-		Specs: []dst.Spec{
-			&dst.TypeSpec{
-				Name: dst.NewIdent(mName),
-				Type: &dst.StructType{Fields: &dst.FieldList{
-					List: c.baseMockFieldList(typeSpec, funcs),
-				}},
-			},
-		},
+		Specs: []Spec{&TypeSpec{
+			Name: NewIdent(mName),
+			Type: &StructType{Fields: &FieldList{
+				List: c.baseMockFieldList(typeSpec, funcs),
+			}},
+		}},
 	}
-	mock.Decs.Before = dst.NewLine
+	mock.Decs.Before = NewLine
 	mock.Decs.Start.Append(fmt.Sprintf(
 		"// %s holds the state of a mock of the %s type",
 		mName,
@@ -100,26 +98,22 @@ func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDec
 }
 
 // IsolationStruct generates a struct used to isolate an interface for the mock
-func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
+func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *GenDecl) {
 	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
-	isolate := &dst.GenDecl{
+	isolate := &GenDecl{
 		Tok: token.TYPE,
-		Specs: []dst.Spec{
-			&dst.TypeSpec{
-				Name: dst.NewIdent(iName),
-				Type: &dst.StructType{Fields: &dst.FieldList{
-					List: []*dst.Field{{
-						Names: []*dst.Ident{
-							dst.NewIdent(c.exportName(mockIdent)),
-						},
-						Type: &dst.StarExpr{X: dst.NewIdent(mName)},
-					}},
+		Specs: []Spec{&TypeSpec{
+			Name: NewIdent(iName),
+			Type: &StructType{Fields: &FieldList{
+				List: []*Field{{
+					Names: []*Ident{NewIdent(c.exportName(mockIdent))},
+					Type:  &StarExpr{X: NewIdent(mName)},
 				}},
-			},
-		},
+			}},
+		}},
 	}
-	isolate.Decs.Before = dst.NewLine
+	isolate.Decs.Before = NewLine
 	isolate.Decs.Start.Append(fmt.Sprintf(
 		"// %s isolates the %s interface of the %s type",
 		iName,
@@ -131,13 +125,13 @@ func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.Ge
 
 // MethodStructs generates a structure for storing a set of parameters or
 // a set of results for a method invocation of a mock
-func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) []dst.Decl {
+func (c *Converter) MethodStructs(typeSpec *TypeSpec, fn Func) []Decl {
 	prefix := c.mockName(typeSpec.Name.Name)
-	if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+	if _, ok := typeSpec.Type.(*InterfaceType); ok {
 		prefix = fmt.Sprintf("%s_%s", prefix, fn.Name)
 	}
 
-	var decls []dst.Decl
+	var decls []Decl
 	decls = append(decls,
 		c.methodStruct(typeSpec.Name.Name, prefix, paramsIdent, fn.Params))
 	decls = append(decls, c.resultMgrStruct(typeSpec.Name.Name, prefix))
@@ -148,93 +142,71 @@ func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) []dst.Decl {
 }
 
 // NewFunc generates a function for constructing a mock
-func (c *Converter) NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (
-	funcDecl *dst.FuncDecl,
-) {
+func (c *Converter) NewFunc(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
 	fnName := c.exportName("newMock" + typeSpec.Name.Name)
 	mName := c.mockName(typeSpec.Name.Name)
-	mockFn := &dst.FuncDecl{
-		Name: dst.NewIdent(fnName),
-		Type: &dst.FuncType{
-			Params: &dst.FieldList{
-				List: []*dst.Field{
-					{
-						Names: []*dst.Ident{dst.NewIdent(sceneIdent)},
-						Type: &dst.StarExpr{
-							X: &dst.Ident{Name: sceneType, Path: moqPkg},
-						},
-					},
-					{
-						Names: []*dst.Ident{dst.NewIdent(configIdent)},
-						Type: &dst.StarExpr{
-							X: &dst.Ident{Name: mockConfigType, Path: moqPkg},
-						},
-					},
+	mockFn := &FuncDecl{
+		Name: NewIdent(fnName),
+		Type: &FuncType{
+			Params: &FieldList{List: []*Field{
+				{
+					Names: []*Ident{NewIdent(sceneIdent)},
+					Type:  &StarExpr{X: &Ident{Name: sceneType, Path: moqPkg}},
 				},
-			},
-			Results: &dst.FieldList{List: []*dst.Field{{
-				Type: &dst.StarExpr{X: dst.NewIdent(mName)},
-			}}},
+				{
+					Names: []*Ident{NewIdent(configIdent)},
+					Type:  &StarExpr{X: &Ident{Name: mockConfigType, Path: moqPkg}},
+				},
+			}},
+			Results: &FieldList{List: []*Field{{Type: &StarExpr{X: NewIdent(mName)}}}},
 		},
-		Body: &dst.BlockStmt{
-			List: []dst.Stmt{
-				&dst.IfStmt{
-					Cond: &dst.BinaryExpr{
-						X:  dst.NewIdent(configIdent),
-						Op: token.EQL,
-						Y:  dst.NewIdent("nil"),
-					},
-					Body: &dst.BlockStmt{List: []dst.Stmt{&dst.AssignStmt{
-						Lhs: []dst.Expr{dst.NewIdent(configIdent)},
-						Tok: token.ASSIGN,
-						Rhs: []dst.Expr{&dst.UnaryExpr{
-							Op: token.AND,
-							X: &dst.CompositeLit{
-								Type: &dst.Ident{
-									Name: mockConfigType,
-									Path: moqPkg,
-								},
-							},
+		Body: &BlockStmt{List: []Stmt{
+			&IfStmt{
+				Cond: &BinaryExpr{
+					X:  NewIdent(configIdent),
+					Op: token.EQL,
+					Y:  NewIdent("nil"),
+				},
+				Body: &BlockStmt{List: []Stmt{&AssignStmt{
+					Lhs: []Expr{NewIdent(configIdent)},
+					Tok: token.ASSIGN,
+					Rhs: []Expr{&UnaryExpr{
+						Op: token.AND,
+						X: &CompositeLit{Type: &Ident{
+							Name: mockConfigType,
+							Path: moqPkg,
 						}},
-					}}},
-				},
-				&dst.AssignStmt{
-					Lhs: []dst.Expr{dst.NewIdent(mockReceiverIdent)},
-					Tok: token.DEFINE,
-					Rhs: []dst.Expr{
-						&dst.UnaryExpr{
-							Op: token.AND,
-							X: &dst.CompositeLit{
-								Type: dst.NewIdent(mName),
-								Elts: c.newMockElements(typeSpec, funcs),
-								Decs: dst.CompositeLitDecorations{
-									Lbrace: []string{"\n"},
-								},
-							},
-						},
-					},
-				},
-				&dst.ExprStmt{X: &dst.CallExpr{
-					Fun: &dst.SelectorExpr{
-						X:   dst.NewIdent(mockReceiverIdent),
-						Sel: dst.NewIdent(resetFnName),
-					},
-				}},
-				&dst.ExprStmt{X: &dst.CallExpr{
-					Fun: &dst.SelectorExpr{
-						X:   dst.NewIdent(sceneIdent),
-						Sel: dst.NewIdent("AddMock"),
-					},
-					Args: []dst.Expr{dst.NewIdent(mockReceiverIdent)},
-				}},
-				&dst.ReturnStmt{
-					Results: []dst.Expr{dst.NewIdent(mockReceiverIdent)},
-				},
+					}},
+				}}},
 			},
-		},
+			&AssignStmt{
+				Lhs: []Expr{NewIdent(mockReceiverIdent)},
+				Tok: token.DEFINE,
+				Rhs: []Expr{&UnaryExpr{
+					Op: token.AND,
+					X: &CompositeLit{
+						Type: NewIdent(mName),
+						Elts: c.newMockElements(typeSpec, funcs),
+						Decs: CompositeLitDecorations{Lbrace: []string{"\n"}},
+					},
+				}},
+			},
+			&ExprStmt{X: &CallExpr{Fun: &SelectorExpr{
+				X:   NewIdent(mockReceiverIdent),
+				Sel: NewIdent(resetFnName),
+			}}},
+			&ExprStmt{X: &CallExpr{
+				Fun: &SelectorExpr{
+					X:   NewIdent(sceneIdent),
+					Sel: NewIdent("AddMock"),
+				},
+				Args: []Expr{NewIdent(mockReceiverIdent)},
+			}},
+			&ReturnStmt{Results: []Expr{NewIdent(mockReceiverIdent)}},
+		}},
 	}
 
-	mockFn.Decs.Before = dst.NewLine
+	mockFn.Decs.Before = NewLine
 	mockFn.Decs.Start.Append(fmt.Sprintf(
 		"// %s creates a new mock of the %s type", fnName, typeSpec.Name.Name))
 
@@ -242,43 +214,39 @@ func (c *Converter) NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (
 }
 
 // IsolationAccessor generates a function to access an isolation interface
-func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (
-	funcDecl *dst.FuncDecl,
-) {
+func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *FuncDecl) {
 	fnName = c.exportName(fnName)
 	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
-	mockFn := &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(mockReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(mName)},
+	mockFn := &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(mockReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(mName)},
 		}}},
-		Name: dst.NewIdent(fnName),
-		Type: &dst.FuncType{
-			Params: &dst.FieldList{},
-			Results: &dst.FieldList{List: []*dst.Field{{
-				Type: &dst.StarExpr{X: dst.NewIdent(iName)},
-			}}},
+		Name: NewIdent(fnName),
+		Type: &FuncType{
+			Params:  &FieldList{},
+			Results: &FieldList{List: []*Field{{Type: &StarExpr{X: NewIdent(iName)}}}},
 		},
-		Body: &dst.BlockStmt{List: []dst.Stmt{&dst.ReturnStmt{
-			Results: []dst.Expr{&dst.UnaryExpr{
+		Body: &BlockStmt{List: []Stmt{&ReturnStmt{
+			Results: []Expr{&UnaryExpr{
 				Op: token.AND,
-				X: &dst.CompositeLit{
-					Type: dst.NewIdent(iName),
-					Elts: []dst.Expr{&dst.KeyValueExpr{
-						Key:   dst.NewIdent(c.exportName(mockIdent)),
-						Value: dst.NewIdent(mockReceiverIdent),
-						Decs: dst.KeyValueExprDecorations{
-							NodeDecs: dst.NodeDecs{After: dst.NewLine},
+				X: &CompositeLit{
+					Type: NewIdent(iName),
+					Elts: []Expr{&KeyValueExpr{
+						Key:   NewIdent(c.exportName(mockIdent)),
+						Value: NewIdent(mockReceiverIdent),
+						Decs: KeyValueExprDecorations{
+							NodeDecs: NodeDecs{After: NewLine},
 						},
 					}},
-					Decs: dst.CompositeLitDecorations{Lbrace: []string{"\n"}},
+					Decs: CompositeLitDecorations{Lbrace: []string{"\n"}},
 				},
 			}},
 		}}},
 	}
 
-	mockFn.Decs.Before = dst.NewLine
+	mockFn.Decs.Before = NewLine
 	mockFn.Decs.Start.Append(fmt.Sprintf(
 		"// %s returns the %s implementation of the %s type",
 		fnName,
@@ -291,58 +259,57 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (
 // FuncClosure generates a mock implementation of function type wrapped in a
 // closure
 func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
-	funcDecl *dst.FuncDecl,
+	funcDecl *FuncDecl,
 ) {
 	mName := c.mockName(typeName)
 	ellipsis := false
 	if len(fn.Params.List) > 0 {
-		if _, ok := fn.Params.List[len(fn.Params.List)-1].Type.(*dst.Ellipsis); ok {
+		if _, ok := fn.Params.List[len(fn.Params.List)-1].Type.(*Ellipsis); ok {
 			ellipsis = true
 		}
 	}
-	fnLitCall := &dst.CallExpr{
-		Fun: &dst.SelectorExpr{
-			X:   dst.NewIdent(mockIdent),
-			Sel: dst.NewIdent(c.exportName(fnFnName)),
+	fnLitCall := &CallExpr{
+		Fun: &SelectorExpr{
+			X:   NewIdent(mockIdent),
+			Sel: NewIdent(c.exportName(fnFnName)),
 		},
 		Args:     passthroughFields(fn.Params),
 		Ellipsis: ellipsis,
 	}
-	var fnLitRetStmt dst.Stmt
-	fnLitRetStmt = &dst.ReturnStmt{Results: []dst.Expr{fnLitCall}}
+	var fnLitRetStmt Stmt
+	fnLitRetStmt = &ReturnStmt{Results: []Expr{fnLitCall}}
 	if fn.Results == nil {
-		fnLitRetStmt = &dst.ExprStmt{X: fnLitCall}
+		fnLitRetStmt = &ExprStmt{X: fnLitCall}
 	}
 
-	mockFn := &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(mockReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(mName)},
+	mockFn := &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(mockReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(mName)},
 		}}},
-		Name: dst.NewIdent(c.exportName(mockFnName)),
-		Type: &dst.FuncType{
-			Params: &dst.FieldList{},
-			Results: &dst.FieldList{List: []*dst.Field{{
-				Type: &dst.Ident{Path: pkgPath, Name: typeName},
+		Name: NewIdent(c.exportName(mockFnName)),
+		Type: &FuncType{
+			Params: &FieldList{},
+			Results: &FieldList{List: []*Field{{
+				Type: &Ident{Path: pkgPath, Name: typeName},
 			}}},
 		},
-		Body: &dst.BlockStmt{List: []dst.Stmt{&dst.ReturnStmt{
-			Results: []dst.Expr{&dst.FuncLit{
-				Type: &dst.FuncType{
-					Params:  dst.Clone(fn.Params).(*dst.FieldList),
+		Body: &BlockStmt{List: []Stmt{&ReturnStmt{
+			Results: []Expr{&FuncLit{
+				Type: &FuncType{
+					Params:  Clone(fn.Params).(*FieldList),
 					Results: cloneNilableFieldList(fn.Results),
 				},
-				Body: &dst.BlockStmt{List: []dst.Stmt{&dst.AssignStmt{
-					Lhs: []dst.Expr{dst.NewIdent(mockIdent)},
+				Body: &BlockStmt{List: []Stmt{&AssignStmt{
+					Lhs: []Expr{NewIdent(mockIdent)},
 					Tok: token.DEFINE,
-					Rhs: []dst.Expr{&dst.UnaryExpr{
+					Rhs: []Expr{&UnaryExpr{
 						Op: token.AND,
-						X: &dst.CompositeLit{
-							Type: dst.NewIdent(fmt.Sprintf(
-								"%s_%s", mName, mockIdent)),
-							Elts: []dst.Expr{&dst.KeyValueExpr{
-								Key:   dst.NewIdent(c.exportName(mockIdent)),
-								Value: dst.NewIdent(mockReceiverIdent),
+						X: &CompositeLit{
+							Type: NewIdent(fmt.Sprintf("%s_%s", mName, mockIdent)),
+							Elts: []Expr{&KeyValueExpr{
+								Key:   NewIdent(c.exportName(mockIdent)),
+								Value: NewIdent(mockReceiverIdent),
 							}},
 						},
 					}}},
@@ -353,7 +320,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
 		Decs: stdFuncDec(),
 	}
 
-	mockFn.Decs.Before = dst.NewLine
+	mockFn.Decs.Before = NewLine
 	mockFn.Decs.Start.Append(fmt.Sprintf(
 		"// %s returns the %s implementation of the %s type",
 		c.exportName(mockFnName),
@@ -364,7 +331,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
 }
 
 // MockMethod generates a mock implementation of a method
-func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
+func (c *Converter) MockMethod(typeName string, fn Func) *FuncDecl {
 	mName := c.mockName(typeName)
 	recv := fmt.Sprintf("%s_%s", mName, mockIdent)
 
@@ -377,13 +344,13 @@ func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 		typePrefix = mName
 	}
 
-	return &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(mockReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(recv)},
+	return &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(mockReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(recv)},
 		}}},
-		Name: dst.NewIdent(fnName),
-		Type: &dst.FuncType{
+		Name: NewIdent(fnName),
+		Type: &FuncType{
 			Params:  cloneAndNameUnnamed(paramPrefix, fn.Params),
 			Results: cloneAndNameUnnamed(resultPrefix, fn.Results),
 		},
@@ -394,10 +361,8 @@ func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 
 // RecorderMethods generates a recorder implementation of a method and
 // associated return method
-func (c *Converter) RecorderMethods(typeName string, fn Func) (
-	funcDecls []dst.Decl,
-) {
-	return []dst.Decl{
+func (c *Converter) RecorderMethods(typeName string, fn Func) (funcDecls []Decl) {
+	return []Decl{
 		c.recorderFn(typeName, fn),
 		c.recorderReturnFn(typeName, fn),
 		c.recorderTimesFn(typeName, fn),
@@ -406,152 +371,144 @@ func (c *Converter) RecorderMethods(typeName string, fn Func) (
 }
 
 // ResetMethod generates a method to reset the mock's state
-func (c *Converter) ResetMethod(
-	typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
+func (c *Converter) ResetMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
 	mName := c.mockName(typeSpec.Name.Name)
 
-	var stmts []dst.Stmt
+	var stmts []Stmt
 	for _, fn := range funcs {
 		typePrefix := mName
 		fieldSuffix := ""
-		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+		if _, ok := typeSpec.Type.(*InterfaceType); ok {
 			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
 			fieldSuffix = "_" + fn.Name
 		}
 
 		pName := fmt.Sprintf("%s_%s", typePrefix, paramsIdent)
 
-		stmts = append(stmts, &dst.AssignStmt{
-			Lhs: []dst.Expr{&dst.SelectorExpr{
-				X: dst.NewIdent(mockReceiverIdent),
-				Sel: dst.NewIdent(c.exportName(
-					resultsByParamsIdent + fieldSuffix)),
+		stmts = append(stmts, &AssignStmt{
+			Lhs: []Expr{&SelectorExpr{
+				X:   NewIdent(mockReceiverIdent),
+				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
 			}},
 			Tok: token.ASSIGN,
-			Rhs: []dst.Expr{&dst.CompositeLit{Type: &dst.MapType{
-				Key: dst.NewIdent(pName),
-				Value: &dst.StarExpr{
-					X: dst.NewIdent(fmt.Sprintf(
-						"%s_%s", typePrefix, resultMgrSuffix)),
+			Rhs: []Expr{&CompositeLit{Type: &MapType{
+				Key: NewIdent(pName),
+				Value: &StarExpr{
+					X: NewIdent(fmt.Sprintf("%s_%s", typePrefix, resultMgrSuffix)),
 				},
 			}}},
 		})
 	}
 
-	fn := &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(mockReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(mName)},
+	fn := &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(mockReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(mName)},
 		}}},
-		Name: dst.NewIdent(resetFnName),
-		Type: &dst.FuncType{},
-		Body: &dst.BlockStmt{List: stmts},
+		Name: NewIdent(resetFnName),
+		Type: &FuncType{},
+		Body: &BlockStmt{List: stmts},
 	}
 
-	fn.Decs.Before = dst.NewLine
+	fn.Decs.Before = NewLine
 	fn.Decs.Start.Append(fmt.Sprintf(
 		"// %s resets the state of the mock", resetFnName))
 
 	return fn
 }
 
-func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
+func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
 	mName := c.mockName(typeSpec.Name.Name)
 
-	var stmts []dst.Stmt
+	var stmts []Stmt
 	for _, fn := range funcs {
 		fieldSuffix := ""
-		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+		if _, ok := typeSpec.Type.(*InterfaceType); ok {
 			fieldSuffix = "_" + fn.Name
 		}
 
-		stmts = append(stmts, &dst.RangeStmt{
-			Key:   dst.NewIdent(paramsIdent),
-			Value: dst.NewIdent(resultsIdent),
+		stmts = append(stmts, &RangeStmt{
+			Key:   NewIdent(paramsIdent),
+			Value: NewIdent(resultsIdent),
 			Tok:   token.DEFINE,
-			X: &dst.SelectorExpr{
-				X: dst.NewIdent(mockReceiverIdent),
-				Sel: dst.NewIdent(c.exportName(
-					resultsByParamsIdent + fieldSuffix))},
-			Body: &dst.BlockStmt{List: []dst.Stmt{
-				&dst.AssignStmt{
-					Lhs: []dst.Expr{dst.NewIdent(missingIdent)},
+			X: &SelectorExpr{
+				X:   NewIdent(mockReceiverIdent),
+				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix))},
+			Body: &BlockStmt{List: []Stmt{
+				&AssignStmt{
+					Lhs: []Expr{NewIdent(missingIdent)},
 					Tok: token.DEFINE,
-					Rhs: []dst.Expr{&dst.BinaryExpr{
-						X: &dst.CallExpr{
-							Fun: dst.NewIdent("len"),
-							Args: []dst.Expr{&dst.SelectorExpr{
-								X:   dst.NewIdent(resultsIdent),
-								Sel: dst.NewIdent(c.exportName(resultsIdent)),
+					Rhs: []Expr{&BinaryExpr{
+						X: &CallExpr{
+							Fun: NewIdent("len"),
+							Args: []Expr{&SelectorExpr{
+								X:   NewIdent(resultsIdent),
+								Sel: NewIdent(c.exportName(resultsIdent)),
 							}},
 						},
 						Op: token.SUB,
-						Y: &dst.CallExpr{
-							Fun: dst.NewIdent("int"),
-							Args: []dst.Expr{&dst.CallExpr{
-								Fun: &dst.Ident{
+						Y: &CallExpr{
+							Fun: NewIdent("int"),
+							Args: []Expr{&CallExpr{
+								Fun: &Ident{
 									Name: "LoadUint32",
 									Path: "sync/atomic",
 								},
-								Args: []dst.Expr{&dst.UnaryExpr{
+								Args: []Expr{&UnaryExpr{
 									Op: token.AND,
-									X: &dst.SelectorExpr{
-										X: dst.NewIdent(resultsIdent),
-										Sel: dst.NewIdent(
-											c.exportName(indexIdent)),
+									X: &SelectorExpr{
+										X:   NewIdent(resultsIdent),
+										Sel: NewIdent(c.exportName(indexIdent)),
 									},
 								}},
 							}},
 						},
 					}},
 				},
-				&dst.IfStmt{
-					Cond: &dst.BinaryExpr{
-						X: &dst.BinaryExpr{
-							X:  dst.NewIdent(missingIdent),
+				&IfStmt{
+					Cond: &BinaryExpr{
+						X: &BinaryExpr{
+							X:  NewIdent(missingIdent),
 							Op: token.EQL,
-							Y:  &dst.BasicLit{Kind: token.INT, Value: "1"},
+							Y:  &BasicLit{Kind: token.INT, Value: "1"},
 						},
 						Op: token.LAND,
-						Y: &dst.BinaryExpr{
-							X: &dst.SelectorExpr{
-								X:   dst.NewIdent(resultsIdent),
-								Sel: dst.NewIdent(c.exportName(anyTimesIdent)),
+						Y: &BinaryExpr{
+							X: &SelectorExpr{
+								X:   NewIdent(resultsIdent),
+								Sel: NewIdent(c.exportName(anyTimesIdent)),
 							},
 							Op: token.EQL,
-							Y:  dst.NewIdent("true"),
+							Y:  NewIdent("true"),
 						},
 					},
-					Body: &dst.BlockStmt{List: []dst.Stmt{
-						&dst.BranchStmt{Tok: token.CONTINUE},
-					}},
+					Body: &BlockStmt{List: []Stmt{&BranchStmt{Tok: token.CONTINUE}}},
 				},
-				&dst.IfStmt{
-					Cond: &dst.BinaryExpr{
-						X:  dst.NewIdent(missingIdent),
+				&IfStmt{
+					Cond: &BinaryExpr{
+						X:  NewIdent(missingIdent),
 						Op: token.GTR,
-						Y:  &dst.BasicLit{Kind: token.INT, Value: "0"},
+						Y:  &BasicLit{Kind: token.INT, Value: "0"},
 					},
-					Body: &dst.BlockStmt{List: []dst.Stmt{
-						&dst.ExprStmt{X: &dst.CallExpr{
-							Fun: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
-										X: dst.NewIdent(mockReceiverIdent),
-										Sel: dst.NewIdent(
-											c.exportName(sceneIdent)),
+					Body: &BlockStmt{List: []Stmt{
+						&ExprStmt{X: &CallExpr{
+							Fun: &SelectorExpr{
+								X: &SelectorExpr{
+									X: &SelectorExpr{
+										X:   NewIdent(mockReceiverIdent),
+										Sel: NewIdent(c.exportName(sceneIdent)),
 									},
-									Sel: dst.NewIdent(moqTType),
+									Sel: NewIdent(moqTType),
 								},
-								Sel: dst.NewIdent(errorfFnName),
+								Sel: NewIdent(errorfFnName),
 							},
-							Args: []dst.Expr{
-								&dst.BasicLit{
+							Args: []Expr{
+								&BasicLit{
 									Kind:  token.STRING,
 									Value: "\"Expected %d additional call(s) with parameters %#v\"",
 								},
-								dst.NewIdent(missingIdent),
-								dst.NewIdent(paramsIdent),
+								NewIdent(missingIdent),
+								NewIdent(paramsIdent),
 							},
 						}},
 					}},
@@ -560,42 +517,40 @@ func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl
 		})
 	}
 
-	fn := &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(mockReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(mName)},
+	fn := &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(mockReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(mName)},
 		}}},
-		Name: dst.NewIdent(assertFnName),
-		Type: &dst.FuncType{},
-		Body: &dst.BlockStmt{List: stmts},
+		Name: NewIdent(assertFnName),
+		Type: &FuncType{},
+		Body: &BlockStmt{List: stmts},
 	}
 
-	fn.Decs.Before = dst.NewLine
+	fn.Decs.Before = NewLine
 	fn.Decs.Start.Append(fmt.Sprintf(
 		"// %s asserts that all expectations have been met", assertFnName))
 
 	return fn
 }
 
-func (c *Converter) baseMockFieldList(
-	typeSpec *dst.TypeSpec, funcs []Func,
-) []*dst.Field {
-	var fields []*dst.Field
+func (c *Converter) baseMockFieldList(typeSpec *TypeSpec, funcs []Func) []*Field {
+	var fields []*Field
 
-	fields = append(fields, &dst.Field{
-		Names: []*dst.Ident{dst.NewIdent(c.exportName(sceneIdent))},
-		Type:  &dst.StarExpr{X: &dst.Ident{Name: sceneType, Path: moqPkg}},
+	fields = append(fields, &Field{
+		Names: []*Ident{NewIdent(c.exportName(sceneIdent))},
+		Type:  &StarExpr{X: &Ident{Name: sceneType, Path: moqPkg}},
 	})
-	fields = append(fields, &dst.Field{
-		Names: []*dst.Ident{dst.NewIdent(c.exportName(configIdent))},
-		Type:  &dst.Ident{Name: mockConfigType, Path: moqPkg},
+	fields = append(fields, &Field{
+		Names: []*Ident{NewIdent(c.exportName(configIdent))},
+		Type:  &Ident{Name: mockConfigType, Path: moqPkg},
 	})
 
 	mName := c.mockName(typeSpec.Name.Name)
 	for _, fn := range funcs {
 		typePrefix := mName
 		fieldSuffix := ""
-		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+		if _, ok := typeSpec.Type.(*InterfaceType); ok {
 			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
 			fieldSuffix = "_" + fn.Name
 		}
@@ -606,40 +561,32 @@ func (c *Converter) baseMockFieldList(
 }
 
 func (c *Converter) baseMockFieldsPerFn(
-	fields []*dst.Field, typePrefix, fieldSuffix string,
-) []*dst.Field {
+	fields []*Field, typePrefix, fieldSuffix string,
+) []*Field {
 	pName := c.exportName(fmt.Sprintf("%s_%s", typePrefix, paramsIdent))
-	fields = append(fields, &dst.Field{
-		Names: []*dst.Ident{
-			dst.NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
-		},
-		Type: &dst.MapType{
-			Key: dst.NewIdent(pName),
-			Value: &dst.StarExpr{
-				X: dst.NewIdent(fmt.Sprintf(
-					"%s_%s", typePrefix, resultMgrSuffix)),
+	fields = append(fields, &Field{
+		Names: []*Ident{NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix))},
+		Type: &MapType{
+			Key: NewIdent(pName),
+			Value: &StarExpr{
+				X: NewIdent(fmt.Sprintf("%s_%s", typePrefix, resultMgrSuffix)),
 			},
 		},
 	})
 
 	// TODO: param chans
-	//fields = append(fields, &dst.Field{
-	//	Names: []*dst.Ident{
-	//		dst.NewIdent(c.exportName(paramsIdent + fieldSuffix)),
-	//	},
-	//	Type: &dst.ChanType{
-	//		Dir:   dst.SEND | dst.RECV,
-	//		Value: dst.NewIdent(pName),
-	//	},
+	//fields = append(fields, &Field{
+	//	Names: []*Ident{NewIdent(c.exportName(paramsIdent + fieldSuffix))},
+	//	Type:  &ChanType{Dir: SEND | RECV, Value: NewIdent(pName)},
 	//})
 
 	return fields
 }
 
-func isComparable(expr dst.Expr) bool {
+func isComparable(expr Expr) bool {
 	// TODO this logic needs to be expanded -- also should check structs recursively
 	switch expr.(type) {
-	case *dst.ArrayType, *dst.MapType, *dst.Ellipsis:
+	case *ArrayType, *MapType, *Ellipsis:
 		return false
 	}
 
@@ -647,43 +594,41 @@ func isComparable(expr dst.Expr) bool {
 }
 
 func (c *Converter) methodStruct(
-	typeName, prefix, label string, fieldList *dst.FieldList,
-) *dst.GenDecl {
+	typeName, prefix, label string, fieldList *FieldList,
+) *GenDecl {
 	unnamedPrefix, comparable := labelDirection(label)
 	fieldList = cloneNilableFieldList(fieldList)
 
 	if fieldList == nil {
 		// Result field lists can be nil (rather than containing an empty
 		// list). Struct field lists cannot be nil.
-		fieldList = &dst.FieldList{}
+		fieldList = &FieldList{}
 	} else {
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
-				f.Names = []*dst.Ident{
-					dst.NewIdent(fmt.Sprintf("%s%d", unnamedPrefix, n+1)),
-				}
+				f.Names = []*Ident{NewIdent(fmt.Sprintf("%s%d", unnamedPrefix, n+1))}
 			}
 
 			for nn := range f.Names {
-				f.Names[nn] = dst.NewIdent(c.exportName(f.Names[nn].Name))
+				f.Names[nn] = NewIdent(c.exportName(f.Names[nn].Name))
 			}
 
 			// Map params are represented as a deep hash
 			if comparable && !isComparable(f.Type) {
-				f.Type = &dst.Ident{Path: hashPkg, Name: "Hash"}
+				f.Type = &Ident{Path: hashPkg, Name: "Hash"}
 			}
 		}
 	}
 
 	structName := fmt.Sprintf("%s_%s", prefix, label)
-	sType := &dst.GenDecl{
+	sType := &GenDecl{
 		Tok: token.TYPE,
-		Specs: []dst.Spec{&dst.TypeSpec{
-			Name: dst.NewIdent(structName),
-			Type: &dst.StructType{Fields: fieldList},
+		Specs: []Spec{&TypeSpec{
+			Name: NewIdent(structName),
+			Type: &StructType{Fields: fieldList},
 		}},
 	}
-	sType.Decs.Before = dst.NewLine
+	sType.Decs.Before = NewLine
 	sType.Decs.Start.Append(fmt.Sprintf("// %s holds the %s of the %s type",
 		structName,
 		label,
@@ -692,39 +637,33 @@ func (c *Converter) methodStruct(
 	return sType
 }
 
-func (c *Converter) resultMgrStruct(typeName, prefix string) *dst.GenDecl {
+func (c *Converter) resultMgrStruct(typeName, prefix string) *GenDecl {
 	structName := fmt.Sprintf("%s_%s", prefix, resultMgrSuffix)
 
-	sType := &dst.GenDecl{
+	sType := &GenDecl{
 		Tok: token.TYPE,
-		Specs: []dst.Spec{&dst.TypeSpec{
-			Name: dst.NewIdent(structName),
-			Type: &dst.StructType{Fields: &dst.FieldList{List: []*dst.Field{
+		Specs: []Spec{&TypeSpec{
+			Name: NewIdent(structName),
+			Type: &StructType{Fields: &FieldList{List: []*Field{
 				{
-					Names: []*dst.Ident{
-						dst.NewIdent(c.exportName(resultsIdent)),
-					},
-					Type: &dst.ArrayType{Elt: &dst.StarExpr{
-						X: dst.NewIdent(c.exportName(fmt.Sprintf(
+					Names: []*Ident{NewIdent(c.exportName(resultsIdent))},
+					Type: &ArrayType{Elt: &StarExpr{
+						X: NewIdent(c.exportName(fmt.Sprintf(
 							"%s_%s", prefix, resultsIdent))),
 					}},
 				},
 				{
-					Names: []*dst.Ident{
-						dst.NewIdent(c.exportName(indexIdent)),
-					},
-					Type: dst.NewIdent("uint32"),
+					Names: []*Ident{NewIdent(c.exportName(indexIdent))},
+					Type:  NewIdent("uint32"),
 				},
 				{
-					Names: []*dst.Ident{
-						dst.NewIdent(c.exportName(anyTimesIdent)),
-					},
-					Type: dst.NewIdent("bool"),
+					Names: []*Ident{NewIdent(c.exportName(anyTimesIdent))},
+					Type:  NewIdent("bool"),
 				},
 			}}},
 		}},
 	}
-	sType.Decs.Before = dst.NewLine
+	sType.Decs.Before = NewLine
 	sType.Decs.Start.Append(fmt.Sprintf(
 		"// %s manages multiple results and the state of the %s type",
 		structName,
@@ -733,38 +672,32 @@ func (c *Converter) resultMgrStruct(typeName, prefix string) *dst.GenDecl {
 	return sType
 }
 
-func (c *Converter) fnRecorderStruct(
-	typeName string, prefix string,
-) *dst.GenDecl {
+func (c *Converter) fnRecorderStruct(typeName string, prefix string) *GenDecl {
 	mName := c.mockName(typeName)
 	structName := fmt.Sprintf("%s_%s", prefix, fnRecorderSuffix)
-	sType := &dst.GenDecl{
+	sType := &GenDecl{
 		Tok: token.TYPE,
-		Specs: []dst.Spec{&dst.TypeSpec{
-			Name: dst.NewIdent(structName),
-			Type: &dst.StructType{Fields: &dst.FieldList{List: []*dst.Field{
+		Specs: []Spec{&TypeSpec{
+			Name: NewIdent(structName),
+			Type: &StructType{Fields: &FieldList{List: []*Field{
 				{
-					Names: []*dst.Ident{
-						dst.NewIdent(c.exportName(paramsIdent)),
-					},
-					Type: dst.NewIdent(fmt.Sprintf(
-						"%s_%s", prefix, paramsIdent)),
+					Names: []*Ident{NewIdent(c.exportName(paramsIdent))},
+					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsIdent)),
 				},
 				{
-					Names: []*dst.Ident{
-						dst.NewIdent(c.exportName(resultsIdent)),
+					Names: []*Ident{NewIdent(c.exportName(resultsIdent))},
+					Type: &StarExpr{
+						X: NewIdent(fmt.Sprintf("%s_%s", prefix, resultMgrSuffix)),
 					},
-					Type: &dst.StarExpr{X: dst.NewIdent(fmt.Sprintf(
-						"%s_%s", prefix, resultMgrSuffix))},
 				},
 				{
-					Names: []*dst.Ident{dst.NewIdent(c.exportName(mockIdent))},
-					Type:  &dst.StarExpr{X: dst.NewIdent(mName)},
+					Names: []*Ident{NewIdent(c.exportName(mockIdent))},
+					Type:  &StarExpr{X: NewIdent(mName)},
 				},
 			}}},
 		}},
 	}
-	sType.Decs.Before = dst.NewLine
+	sType.Decs.Before = NewLine
 	sType.Decs.Start.Append(fmt.Sprintf(
 		"// %s routes recorded function calls to the %s mock",
 		structName,
@@ -773,24 +706,18 @@ func (c *Converter) fnRecorderStruct(
 	return sType
 }
 
-func (c *Converter) newMockElements(
-	typeSpec *dst.TypeSpec, funcs []Func,
-) []dst.Expr {
-	var elems []dst.Expr
+func (c *Converter) newMockElements(typeSpec *TypeSpec, funcs []Func) []Expr {
+	var elems []Expr
 
-	elems = append(elems, &dst.KeyValueExpr{
-		Key:   dst.NewIdent(c.exportName(sceneIdent)),
-		Value: dst.NewIdent(sceneIdent),
-		Decs: dst.KeyValueExprDecorations{
-			NodeDecs: dst.NodeDecs{After: dst.NewLine},
-		},
+	elems = append(elems, &KeyValueExpr{
+		Key:   NewIdent(c.exportName(sceneIdent)),
+		Value: NewIdent(sceneIdent),
+		Decs:  KeyValueExprDecorations{NodeDecs: NodeDecs{After: NewLine}},
 	})
-	elems = append(elems, &dst.KeyValueExpr{
-		Key:   dst.NewIdent(c.exportName(configIdent)),
-		Value: &dst.StarExpr{X: dst.NewIdent(configIdent)},
-		Decs: dst.KeyValueExprDecorations{
-			NodeDecs: dst.NodeDecs{After: dst.NewLine},
-		},
+	elems = append(elems, &KeyValueExpr{
+		Key:   NewIdent(c.exportName(configIdent)),
+		Value: &StarExpr{X: NewIdent(configIdent)},
+		Decs:  KeyValueExprDecorations{NodeDecs: NodeDecs{After: NewLine}},
 	})
 
 	// TODO: param chans
@@ -798,287 +725,267 @@ func (c *Converter) newMockElements(
 	//for _, fn := range funcs {
 	//	typePrefix := mName
 	//	fieldSuffix := ""
-	//	if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+	//	if _, ok := typeSpec.Type.(*InterfaceType); ok {
 	//		typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
 	//		fieldSuffix = "_" + fn.Name
 	//	}
-	//	elems = append(elems, &dst.KeyValueExpr{
-	//		Key: dst.NewIdent(c.exportName(paramsIdent + fieldSuffix)),
-	//		Value: &dst.CallExpr{
-	//			Fun: dst.NewIdent("make"),
-	//			Args: []dst.Expr{
-	//				&dst.ChanType{
-	//					Dir: dst.SEND | dst.RECV,
-	//					Value: dst.NewIdent(
+	//	elems = append(elems, &KeyValueExpr{
+	//		Key: NewIdent(c.exportName(paramsIdent + fieldSuffix)),
+	//		Value: &CallExpr{
+	//			Fun: NewIdent("make"),
+	//			Args: []Expr{
+	//				&ChanType{
+	//					Dir: SEND | RECV,
+	//					Value: NewIdent(
 	//						fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
 	//				},
-	//				&dst.BasicLit{Kind: token.INT, Value: "100"},
+	//				&BasicLit{Kind: token.INT, Value: "100"},
 	//			},
 	//		},
-	//		Decs: dst.KeyValueExprDecorations{
-	//			NodeDecs: dst.NodeDecs{After: dst.NewLine},
-	//		},
+	//		Decs: KeyValueExprDecorations{NodeDecs: NodeDecs{After: NewLine}},
 	//	})
 	//}
 
 	return elems
 }
 
-func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *dst.BlockStmt {
-	stateSelector := &dst.SelectorExpr{
-		X:   dst.NewIdent(mockReceiverIdent),
-		Sel: dst.NewIdent(c.exportName(mockIdent)),
+func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt {
+	stateSelector := &SelectorExpr{
+		X:   NewIdent(mockReceiverIdent),
+		Sel: NewIdent(c.exportName(mockIdent)),
 	}
-	stmts := []dst.Stmt{
-		&dst.AssignStmt{
-			Lhs: []dst.Expr{dst.NewIdent(paramsIdent)},
+	stmts := []Stmt{
+		&AssignStmt{
+			Lhs: []Expr{NewIdent(paramsIdent)},
 			Tok: token.DEFINE,
-			Rhs: []dst.Expr{&dst.CompositeLit{
-				Type: dst.NewIdent(fmt.Sprintf(
-					"%s_%s", typePrefix, paramsIdent)),
+			Rhs: []Expr{&CompositeLit{
+				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
 				Elts: c.passthroughElements(fn.Params, paramsIdent),
 			}},
 		},
 		// TODO: param chans
-		//&dst.SendStmt{
-		//	Chan: &dst.SelectorExpr{
-		//		X:   dst.Clone(stateSelector).(dst.Expr),
-		//		Sel: dst.NewIdent(c.exportName(paramsIdent + fieldSuffix)),
+		//&SendStmt{
+		//	Chan: &SelectorExpr{
+		//		X:   Clone(stateSelector).(Expr),
+		//		Sel: NewIdent(c.exportName(paramsIdent + fieldSuffix)),
 		//	},
-		//	Value: dst.NewIdent(paramsIdent),
+		//	Value: NewIdent(paramsIdent),
 		//},
 	}
 
-	stmts = append(stmts, &dst.AssignStmt{
-		Lhs: []dst.Expr{
-			dst.NewIdent(resultsIdent),
-			dst.NewIdent(okIdent),
-		},
+	stmts = append(stmts, &AssignStmt{
+		Lhs: []Expr{NewIdent(resultsIdent), NewIdent(okIdent)},
 		Tok: token.DEFINE,
-		Rhs: []dst.Expr{&dst.IndexExpr{
-			X: &dst.SelectorExpr{
-				X: dst.Clone(stateSelector).(dst.Expr),
-				Sel: dst.NewIdent(c.exportName(
-					resultsByParamsIdent + fieldSuffix)),
+		Rhs: []Expr{&IndexExpr{
+			X: &SelectorExpr{
+				X:   Clone(stateSelector).(Expr),
+				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
 			},
-			Index: dst.NewIdent(paramsIdent),
+			Index: NewIdent(paramsIdent),
 		}},
 	})
-	stmts = append(stmts, &dst.IfStmt{
-		Cond: &dst.UnaryExpr{Op: token.NOT, X: dst.NewIdent(okIdent)},
-		Body: &dst.BlockStmt{
-			List: []dst.Stmt{
-				&dst.IfStmt{
-					Cond: &dst.BinaryExpr{
-						X: &dst.SelectorExpr{
-							X: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X:   dst.NewIdent(mockReceiverIdent),
-									Sel: dst.NewIdent(c.exportName(mockIdent)),
-								},
-								Sel: dst.NewIdent(c.exportName(configIdent)),
+	stmts = append(stmts, &IfStmt{
+		Cond: &UnaryExpr{Op: token.NOT, X: NewIdent(okIdent)},
+		Body: &BlockStmt{List: []Stmt{
+			&IfStmt{
+				Cond: &BinaryExpr{
+					X: &SelectorExpr{
+						X: &SelectorExpr{
+							X: &SelectorExpr{
+								X:   NewIdent(mockReceiverIdent),
+								Sel: NewIdent(c.exportName(mockIdent)),
 							},
-							Sel: dst.NewIdent(expectationIdent),
+							Sel: NewIdent(c.exportName(configIdent)),
 						},
-						Op: token.EQL,
-						Y:  &dst.Ident{Name: strictIdent, Path: moqPkg},
+						Sel: NewIdent(expectationIdent),
 					},
-					Body: &dst.BlockStmt{List: []dst.Stmt{
-						&dst.ExprStmt{X: &dst.CallExpr{
-							Fun: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
-										X: &dst.SelectorExpr{
-											X: dst.NewIdent(mockReceiverIdent),
-											Sel: dst.NewIdent(
-												c.exportName(mockIdent)),
-										},
-										Sel: dst.NewIdent(
-											c.exportName(sceneIdent)),
-									},
-									Sel: dst.NewIdent(moqTType),
-								},
-								Sel: dst.NewIdent(fatalfFnName),
-							},
-							Args: []dst.Expr{
-								&dst.BasicLit{
-									Kind:  token.STRING,
-									Value: "\"Unexpected call with parameters %#v\"",
-								},
-								dst.NewIdent(paramsIdent),
-							},
-						}},
-					}},
+					Op: token.EQL,
+					Y:  &Ident{Name: strictIdent, Path: moqPkg},
 				},
-				&dst.ReturnStmt{},
+				Body: &BlockStmt{List: []Stmt{
+					&ExprStmt{X: &CallExpr{
+						Fun: &SelectorExpr{
+							X: &SelectorExpr{
+								X: &SelectorExpr{
+									X: &SelectorExpr{
+										X:   NewIdent(mockReceiverIdent),
+										Sel: NewIdent(c.exportName(mockIdent)),
+									},
+									Sel: NewIdent(c.exportName(sceneIdent)),
+								},
+								Sel: NewIdent(moqTType),
+							},
+							Sel: NewIdent(fatalfFnName),
+						},
+						Args: []Expr{
+							&BasicLit{
+								Kind:  token.STRING,
+								Value: "\"Unexpected call with parameters %#v\"",
+							},
+							NewIdent(paramsIdent),
+						},
+					}},
+				}},
 			},
-		},
+			&ReturnStmt{},
+		}},
 	})
 
-	stmts = append(stmts, &dst.AssignStmt{
-		Lhs: []dst.Expr{dst.NewIdent(iIdent)},
+	stmts = append(stmts, &AssignStmt{
+		Lhs: []Expr{NewIdent(iIdent)},
 		Tok: token.DEFINE,
-		Rhs: []dst.Expr{&dst.BinaryExpr{
-			X: &dst.CallExpr{
-				Fun: dst.NewIdent("int"),
-				Args: []dst.Expr{&dst.CallExpr{
-					Fun: &dst.Ident{
-						Name: "AddUint32",
-						Path: "sync/atomic",
-					},
-					Args: []dst.Expr{
-						&dst.UnaryExpr{
+		Rhs: []Expr{&BinaryExpr{
+			X: &CallExpr{
+				Fun: NewIdent("int"),
+				Args: []Expr{&CallExpr{
+					Fun: &Ident{Name: "AddUint32", Path: "sync/atomic"},
+					Args: []Expr{
+						&UnaryExpr{
 							Op: token.AND,
-							X: &dst.SelectorExpr{
-								X:   dst.NewIdent(resultsIdent),
-								Sel: dst.NewIdent(c.exportName(indexIdent)),
+							X: &SelectorExpr{
+								X:   NewIdent(resultsIdent),
+								Sel: NewIdent(c.exportName(indexIdent)),
 							},
 						},
-						&dst.BasicLit{Kind: token.INT, Value: "1"},
+						&BasicLit{Kind: token.INT, Value: "1"},
 					},
 				}},
 			},
 			Op: token.SUB,
-			Y:  &dst.BasicLit{Kind: token.INT, Value: "1"},
+			Y:  &BasicLit{Kind: token.INT, Value: "1"},
 		}},
-		Decs: dst.AssignStmtDecorations{NodeDecs: dst.NodeDecs{
-			Before: dst.EmptyLine,
-		}},
+		Decs: AssignStmtDecorations{NodeDecs: NodeDecs{Before: EmptyLine}},
 	})
-	stmts = append(stmts, &dst.IfStmt{
-		Cond: &dst.BinaryExpr{
-			X:  dst.NewIdent(iIdent),
+	stmts = append(stmts, &IfStmt{
+		Cond: &BinaryExpr{
+			X:  NewIdent(iIdent),
 			Op: token.GEQ,
-			Y: &dst.CallExpr{
-				Fun: dst.NewIdent("len"),
-				Args: []dst.Expr{&dst.SelectorExpr{
-					X:   dst.NewIdent(resultsIdent),
-					Sel: dst.NewIdent(c.exportName(resultsIdent)),
+			Y: &CallExpr{
+				Fun: NewIdent("len"),
+				Args: []Expr{&SelectorExpr{
+					X:   NewIdent(resultsIdent),
+					Sel: NewIdent(c.exportName(resultsIdent)),
 				}},
 			},
 		},
-		Body: &dst.BlockStmt{List: []dst.Stmt{
-			&dst.IfStmt{
-				Cond: &dst.UnaryExpr{
+		Body: &BlockStmt{List: []Stmt{
+			&IfStmt{
+				Cond: &UnaryExpr{
 					Op: token.NOT,
-					X: &dst.SelectorExpr{
-						X:   dst.NewIdent(resultsIdent),
-						Sel: dst.NewIdent(c.exportName(anyTimesIdent)),
+					X: &SelectorExpr{
+						X:   NewIdent(resultsIdent),
+						Sel: NewIdent(c.exportName(anyTimesIdent)),
 					},
 				},
-				Body: &dst.BlockStmt{List: []dst.Stmt{
-					&dst.IfStmt{
-						Cond: &dst.BinaryExpr{
-							X: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
-										X:   dst.NewIdent(mockReceiverIdent),
-										Sel: dst.NewIdent(c.exportName(mockIdent)),
+				Body: &BlockStmt{List: []Stmt{
+					&IfStmt{
+						Cond: &BinaryExpr{
+							X: &SelectorExpr{
+								X: &SelectorExpr{
+									X: &SelectorExpr{
+										X:   NewIdent(mockReceiverIdent),
+										Sel: NewIdent(c.exportName(mockIdent)),
 									},
-									Sel: dst.NewIdent(c.exportName(configIdent)),
+									Sel: NewIdent(c.exportName(configIdent)),
 								},
-								Sel: dst.NewIdent(expectationIdent),
+								Sel: NewIdent(expectationIdent),
 							},
 							Op: token.EQL,
-							Y:  &dst.Ident{Name: strictIdent, Path: moqPkg},
+							Y:  &Ident{Name: strictIdent, Path: moqPkg},
 						},
-						Body: &dst.BlockStmt{List: []dst.Stmt{
-							&dst.ExprStmt{X: &dst.CallExpr{
-								Fun: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
-										X: &dst.SelectorExpr{
-											X: &dst.SelectorExpr{
-												X: dst.NewIdent(mockReceiverIdent),
-												Sel: dst.NewIdent(
-													c.exportName(mockIdent)),
-											},
-											Sel: dst.NewIdent(
-												c.exportName(sceneIdent)),
+						Body: &BlockStmt{List: []Stmt{&ExprStmt{X: &CallExpr{
+							Fun: &SelectorExpr{
+								X: &SelectorExpr{
+									X: &SelectorExpr{
+										X: &SelectorExpr{
+											X:   NewIdent(mockReceiverIdent),
+											Sel: NewIdent(c.exportName(mockIdent)),
 										},
-										Sel: dst.NewIdent(moqTType),
+										Sel: NewIdent(c.exportName(sceneIdent)),
 									},
-									Sel: dst.NewIdent(fatalfFnName),
+									Sel: NewIdent(moqTType),
 								},
-								Args: []dst.Expr{
-									&dst.BasicLit{
-										Kind:  token.STRING,
-										Value: "\"Too many calls to mock with parameters %#v\"",
-									},
-									dst.NewIdent(paramsIdent),
+								Sel: NewIdent(fatalfFnName),
+							},
+							Args: []Expr{
+								&BasicLit{
+									Kind:  token.STRING,
+									Value: "\"Too many calls to mock with parameters %#v\"",
 								},
-							}},
-						}},
+								NewIdent(paramsIdent),
+							},
+						}}}},
 					},
-					&dst.ReturnStmt{},
+					&ReturnStmt{},
 				}},
 			},
-			&dst.AssignStmt{
-				Lhs: []dst.Expr{dst.NewIdent(iIdent)},
+			&AssignStmt{
+				Lhs: []Expr{NewIdent(iIdent)},
 				Tok: token.ASSIGN,
-				Rhs: []dst.Expr{&dst.BinaryExpr{
-					X: &dst.CallExpr{
-						Fun: dst.NewIdent("len"),
-						Args: []dst.Expr{&dst.SelectorExpr{
-							X:   dst.NewIdent(resultsIdent),
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+				Rhs: []Expr{&BinaryExpr{
+					X: &CallExpr{
+						Fun: NewIdent("len"),
+						Args: []Expr{&SelectorExpr{
+							X:   NewIdent(resultsIdent),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						}},
 					},
 					Op: token.SUB,
-					Y:  &dst.BasicLit{Kind: token.INT, Value: "1"},
+					Y:  &BasicLit{Kind: token.INT, Value: "1"},
 				}},
 			},
 		}},
 	})
 
 	if fn.Results != nil {
-		stmts = append(stmts, &dst.AssignStmt{
-			Lhs: []dst.Expr{dst.NewIdent(resultIdent)},
+		stmts = append(stmts, &AssignStmt{
+			Lhs: []Expr{NewIdent(resultIdent)},
 			Tok: token.DEFINE,
-			Rhs: []dst.Expr{&dst.IndexExpr{
-				X: &dst.SelectorExpr{
-					X:   dst.NewIdent(resultsIdent),
-					Sel: dst.NewIdent(c.exportName(resultsIdent)),
+			Rhs: []Expr{&IndexExpr{
+				X: &SelectorExpr{
+					X:   NewIdent(resultsIdent),
+					Sel: NewIdent(c.exportName(resultsIdent)),
 				},
-				Index: dst.NewIdent(iIdent),
+				Index: NewIdent(iIdent),
 			}},
 		})
 		stmts = append(stmts, c.assignResult(fn.Results)...)
 	}
 
-	stmts = append(stmts, &dst.ReturnStmt{})
+	stmts = append(stmts, &ReturnStmt{})
 
-	return &dst.BlockStmt{List: stmts}
+	return &BlockStmt{List: stmts}
 }
 
-func (c *Converter) recorderFn(typeName string, fn Func) *dst.FuncDecl {
+func (c *Converter) recorderFn(typeName string, fn Func) *FuncDecl {
 	mName := c.mockName(typeName)
 
 	recvType := fmt.Sprintf("%s_%s", mName, recorderIdent)
 	fnName := fn.Name
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
 	typePrefix := fmt.Sprintf("%s_%s", mName, fn.Name)
-	var mockVal dst.Expr = &dst.SelectorExpr{
-		X:   dst.NewIdent(mockReceiverIdent),
-		Sel: dst.NewIdent(c.exportName(mockIdent)),
+	var mockVal Expr = &SelectorExpr{
+		X:   NewIdent(mockReceiverIdent),
+		Sel: NewIdent(c.exportName(mockIdent)),
 	}
 	if fn.Name == "" {
 		recvType = mName
 		fnName = c.exportName(onCallFnName)
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 		typePrefix = mName
-		mockVal = dst.NewIdent(mockReceiverIdent)
+		mockVal = NewIdent(mockReceiverIdent)
 	}
 
-	return &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(mockReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(recvType)},
+	return &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(mockReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(recvType)},
 		}}},
-		Name: dst.NewIdent(fnName),
-		Type: &dst.FuncType{
+		Name: NewIdent(fnName),
+		Type: &FuncType{
 			Params: cloneAndNameUnnamed(paramPrefix, fn.Params),
-			Results: &dst.FieldList{List: []*dst.Field{{
-				Type: &dst.StarExpr{X: dst.NewIdent(fnRecName)},
+			Results: &FieldList{List: []*Field{{
+				Type: &StarExpr{X: NewIdent(fnRecName)},
 			}}},
 		},
 		Body: c.recorderFnInterfaceBody(fnRecName, typePrefix, mockVal, fn),
@@ -1087,237 +994,215 @@ func (c *Converter) recorderFn(typeName string, fn Func) *dst.FuncDecl {
 }
 
 func (c *Converter) recorderFnInterfaceBody(
-	fnRecName, typePrefix string, mockValue dst.Expr, fn Func,
-) *dst.BlockStmt {
-	return &dst.BlockStmt{List: []dst.Stmt{&dst.ReturnStmt{
-		Results: []dst.Expr{&dst.UnaryExpr{
+	fnRecName, typePrefix string, mockValue Expr, fn Func,
+) *BlockStmt {
+	return &BlockStmt{List: []Stmt{&ReturnStmt{
+		Results: []Expr{&UnaryExpr{
 			Op: token.AND,
-			X: &dst.CompositeLit{
-				Type: dst.NewIdent(fnRecName),
-				Elts: []dst.Expr{
-					&dst.KeyValueExpr{
-						Key: dst.NewIdent(c.exportName(paramsIdent)),
-						Value: &dst.CompositeLit{
-							Type: dst.NewIdent(fmt.Sprintf(
+			X: &CompositeLit{
+				Type: NewIdent(fnRecName),
+				Elts: []Expr{
+					&KeyValueExpr{
+						Key: NewIdent(c.exportName(paramsIdent)),
+						Value: &CompositeLit{
+							Type: NewIdent(fmt.Sprintf(
 								"%s_%s", typePrefix, paramsIdent)),
-							Elts: c.passthroughElements(
-								fn.Params, paramsIdent),
+							Elts: c.passthroughElements(fn.Params, paramsIdent),
 						},
-						Decs: dst.KeyValueExprDecorations{
-							NodeDecs: dst.NodeDecs{After: dst.NewLine},
+						Decs: KeyValueExprDecorations{
+							NodeDecs: NodeDecs{After: NewLine},
 						},
 					},
-					&dst.KeyValueExpr{
-						Key:   dst.NewIdent(c.exportName(mockIdent)),
+					&KeyValueExpr{
+						Key:   NewIdent(c.exportName(mockIdent)),
 						Value: mockValue,
-						Decs: dst.KeyValueExprDecorations{
-							NodeDecs: dst.NodeDecs{After: dst.NewLine},
+						Decs: KeyValueExprDecorations{
+							NodeDecs: NodeDecs{After: NewLine},
 						},
 					},
 				},
-				Decs: dst.CompositeLitDecorations{Lbrace: []string{"\n"}},
+				Decs: CompositeLitDecorations{Lbrace: []string{"\n"}},
 			},
 		}},
 	}}}
 }
 
-func (c *Converter) recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
+func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
 	results := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultsIdent)
 	resultMgr := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultMgrSuffix)
 	resultsByParams := fmt.Sprintf("%s_%s", resultsByParamsIdent, fn.Name)
-	mockSel := &dst.SelectorExpr{X: &dst.SelectorExpr{
-		X:   dst.NewIdent(recorderReceiverIdent),
-		Sel: dst.NewIdent(c.exportName(mockIdent)),
+	mockSel := &SelectorExpr{X: &SelectorExpr{
+		X:   NewIdent(recorderReceiverIdent),
+		Sel: NewIdent(c.exportName(mockIdent)),
 	}}
 	if fn.Name == "" {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 		results = fmt.Sprintf("%s_%s", mName, resultsIdent)
 		resultMgr = fmt.Sprintf("%s_%s", mName, resultMgrSuffix)
 		resultsByParams = resultsByParamsIdent
-		mockSel = &dst.SelectorExpr{X: &dst.SelectorExpr{
-			X:   dst.NewIdent(recorderReceiverIdent),
-			Sel: dst.NewIdent(c.exportName(mockIdent)),
+		mockSel = &SelectorExpr{X: &SelectorExpr{
+			X:   NewIdent(recorderReceiverIdent),
+			Sel: NewIdent(c.exportName(mockIdent)),
 		}}
 	}
 
-	return &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(recorderReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(fnRecName)},
+	return &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(recorderReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(fnRecName)},
 		}}},
-		Name: dst.NewIdent(c.exportName(returnFnName)),
-		Type: &dst.FuncType{
+		Name: NewIdent(c.exportName(returnFnName)),
+		Type: &FuncType{
 			Params: cloneAndNameUnnamed(resultPrefix, fn.Results),
-			Results: &dst.FieldList{List: []*dst.Field{{
-				Type: &dst.StarExpr{X: dst.NewIdent(fnRecName)},
+			Results: &FieldList{List: []*Field{{
+				Type: &StarExpr{X: NewIdent(fnRecName)},
 			}}},
 		},
-		Body: &dst.BlockStmt{List: []dst.Stmt{
-			&dst.IfStmt{
-				Cond: &dst.BinaryExpr{
-					X: &dst.SelectorExpr{
-						X:   dst.NewIdent(recorderReceiverIdent),
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+		Body: &BlockStmt{List: []Stmt{
+			&IfStmt{
+				Cond: &BinaryExpr{
+					X: &SelectorExpr{
+						X:   NewIdent(recorderReceiverIdent),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 					Op: token.EQL,
-					Y:  dst.NewIdent("nil"),
+					Y:  NewIdent("nil"),
 				},
-				Body: &dst.BlockStmt{List: []dst.Stmt{
-					&dst.IfStmt{
-						Init: &dst.AssignStmt{
-							Lhs: []dst.Expr{
-								dst.NewIdent("_"),
-								dst.NewIdent(okIdent),
-							},
+				Body: &BlockStmt{List: []Stmt{
+					&IfStmt{
+						Init: &AssignStmt{
+							Lhs: []Expr{NewIdent("_"), NewIdent(okIdent)},
 							Tok: token.DEFINE,
-							Rhs: []dst.Expr{&dst.IndexExpr{
-								X: cloneSelect(
-									mockSel, c.exportName(resultsByParams)),
-								Index: &dst.SelectorExpr{
-									X: dst.NewIdent(recorderReceiverIdent),
-									Sel: dst.NewIdent(
-										c.exportName(paramsIdent)),
+							Rhs: []Expr{&IndexExpr{
+								X: cloneSelect(mockSel, c.exportName(resultsByParams)),
+								Index: &SelectorExpr{
+									X:   NewIdent(recorderReceiverIdent),
+									Sel: NewIdent(c.exportName(paramsIdent)),
 								},
 							}},
 						},
-						Cond: dst.NewIdent(okIdent),
-						Body: &dst.BlockStmt{List: []dst.Stmt{
-							&dst.ExprStmt{X: &dst.CallExpr{
-								Fun: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
+						Cond: NewIdent(okIdent),
+						Body: &BlockStmt{List: []Stmt{
+							&ExprStmt{X: &CallExpr{
+								Fun: &SelectorExpr{
+									X: &SelectorExpr{
 										X: cloneSelect(
 											mockSel, c.exportName(sceneIdent)),
-										Sel: dst.NewIdent(moqTType),
+										Sel: NewIdent(moqTType),
 									},
-									Sel: dst.NewIdent(fatalfFnName),
+									Sel: NewIdent(fatalfFnName),
 								},
-								Args: []dst.Expr{
-									&dst.BasicLit{
+								Args: []Expr{
+									&BasicLit{
 										Kind:  token.STRING,
 										Value: "\"Expectations already recorded for mock with parameters %#v\"",
 									},
-									&dst.SelectorExpr{
-										X: dst.NewIdent(
-											recorderReceiverIdent),
-										Sel: dst.NewIdent(c.exportName(
-											paramsIdent)),
+									&SelectorExpr{
+										X:   NewIdent(recorderReceiverIdent),
+										Sel: NewIdent(c.exportName(paramsIdent)),
 									},
 								},
 							}},
-							&dst.ReturnStmt{Results: []dst.Expr{
-								dst.NewIdent("nil")},
-							},
+							&ReturnStmt{Results: []Expr{NewIdent("nil")}},
 						}},
-						Decs: dst.IfStmtDecorations{NodeDecs: dst.NodeDecs{
-							After: dst.EmptyLine,
+						Decs: IfStmtDecorations{NodeDecs: NodeDecs{
+							After: EmptyLine,
 						}},
 					},
-					&dst.AssignStmt{
-						Lhs: []dst.Expr{&dst.SelectorExpr{
-							X:   dst.NewIdent(recorderReceiverIdent),
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+					&AssignStmt{
+						Lhs: []Expr{&SelectorExpr{
+							X:   NewIdent(recorderReceiverIdent),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						}},
 						Tok: token.ASSIGN,
-						Rhs: []dst.Expr{&dst.UnaryExpr{
+						Rhs: []Expr{&UnaryExpr{
 							Op: token.AND,
-							X: &dst.CompositeLit{
-								Type: dst.NewIdent(c.exportName(resultMgr)),
-								Elts: []dst.Expr{
-									&dst.KeyValueExpr{
-										Key: dst.NewIdent(c.exportName(
-											resultsIdent)),
-										Value: &dst.CompositeLit{
-											Type: &dst.ArrayType{
-												Elt: &dst.StarExpr{
-													X: dst.NewIdent(
-														c.exportName(results)),
-												},
+							X: &CompositeLit{
+								Type: NewIdent(c.exportName(resultMgr)),
+								Elts: []Expr{
+									&KeyValueExpr{
+										Key: NewIdent(c.exportName(resultsIdent)),
+										Value: &CompositeLit{Type: &ArrayType{
+											Elt: &StarExpr{
+												X: NewIdent(c.exportName(results)),
 											},
-										},
+										}},
 									},
-									&dst.KeyValueExpr{
-										Key: dst.NewIdent(c.exportName(
-											indexIdent)),
-										Value: &dst.BasicLit{
-											Kind:  token.INT,
-											Value: "0",
-										},
+									&KeyValueExpr{
+										Key:   NewIdent(c.exportName(indexIdent)),
+										Value: &BasicLit{Kind: token.INT, Value: "0"},
 									},
-									&dst.KeyValueExpr{
-										Key: dst.NewIdent(c.exportName(
-											anyTimesIdent)),
-										Value: dst.NewIdent("false"),
+									&KeyValueExpr{
+										Key:   NewIdent(c.exportName(anyTimesIdent)),
+										Value: NewIdent("false"),
 									},
 								},
 							},
 						}},
 					},
-					&dst.AssignStmt{
-						Lhs: []dst.Expr{&dst.IndexExpr{
-							X: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X:   dst.NewIdent(recorderReceiverIdent),
-									Sel: dst.NewIdent(c.exportName(mockIdent)),
+					&AssignStmt{
+						Lhs: []Expr{&IndexExpr{
+							X: &SelectorExpr{
+								X: &SelectorExpr{
+									X:   NewIdent(recorderReceiverIdent),
+									Sel: NewIdent(c.exportName(mockIdent)),
 								},
-								Sel: dst.NewIdent(c.exportName(resultsByParams)),
+								Sel: NewIdent(c.exportName(resultsByParams)),
 							},
-							Index: &dst.SelectorExpr{
-								X:   dst.NewIdent(recorderReceiverIdent),
-								Sel: dst.NewIdent(c.exportName(paramsIdent)),
+							Index: &SelectorExpr{
+								X:   NewIdent(recorderReceiverIdent),
+								Sel: NewIdent(c.exportName(paramsIdent)),
 							},
 						}},
 						Tok: token.ASSIGN,
-						Rhs: []dst.Expr{&dst.SelectorExpr{
-							X:   dst.NewIdent(recorderReceiverIdent),
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+						Rhs: []Expr{&SelectorExpr{
+							X:   NewIdent(recorderReceiverIdent),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						}},
 					},
 				}},
 			},
-			&dst.AssignStmt{
-				Lhs: []dst.Expr{
-					&dst.SelectorExpr{
-						X: &dst.SelectorExpr{
-							X:   dst.NewIdent(recorderReceiverIdent),
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+			&AssignStmt{
+				Lhs: []Expr{
+					&SelectorExpr{
+						X: &SelectorExpr{
+							X:   NewIdent(recorderReceiverIdent),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						},
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 				},
 				Tok: token.ASSIGN,
-				Rhs: []dst.Expr{&dst.CallExpr{
-					Fun: dst.NewIdent("append"),
-					Args: []dst.Expr{
-						&dst.SelectorExpr{
-							X: &dst.SelectorExpr{
-								X:   dst.NewIdent(recorderReceiverIdent),
-								Sel: dst.NewIdent(c.exportName(resultsIdent)),
+				Rhs: []Expr{&CallExpr{
+					Fun: NewIdent("append"),
+					Args: []Expr{
+						&SelectorExpr{
+							X: &SelectorExpr{
+								X:   NewIdent(recorderReceiverIdent),
+								Sel: NewIdent(c.exportName(resultsIdent)),
 							},
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						},
-						&dst.UnaryExpr{
+						&UnaryExpr{
 							Op: token.AND,
-							X: &dst.CompositeLit{
-								Type: dst.NewIdent(c.exportName(results)),
-								Elts: c.passthroughElements(
-									fn.Results, resultsIdent),
+							X: &CompositeLit{
+								Type: NewIdent(c.exportName(results)),
+								Elts: c.passthroughElements(fn.Results, resultsIdent),
 							},
 						},
 					},
 				}},
 			},
-			&dst.ReturnStmt{Results: []dst.Expr{
-				dst.NewIdent(recorderReceiverIdent)},
-			},
+			&ReturnStmt{Results: []Expr{NewIdent(recorderReceiverIdent)}},
 		}},
 		Decs: stdFuncDec(),
 	}
 }
 
-func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
+func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
@@ -1325,132 +1210,128 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
-	return &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(recorderReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(fnRecName)},
+	return &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(recorderReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(fnRecName)},
 		}}},
-		Name: dst.NewIdent(c.exportName(timesFnName)),
-		Type: &dst.FuncType{
-			Params: &dst.FieldList{List: []*dst.Field{{
-				Names: []*dst.Ident{dst.NewIdent(countIdent)},
-				Type:  dst.NewIdent("int"),
+		Name: NewIdent(c.exportName(timesFnName)),
+		Type: &FuncType{
+			Params: &FieldList{List: []*Field{{
+				Names: []*Ident{NewIdent(countIdent)},
+				Type:  NewIdent("int"),
 			}}},
-			Results: &dst.FieldList{List: []*dst.Field{{
-				Type: &dst.StarExpr{X: dst.NewIdent(fnRecName)},
+			Results: &FieldList{List: []*Field{{
+				Type: &StarExpr{X: NewIdent(fnRecName)},
 			}}},
 		},
-		Body: &dst.BlockStmt{List: []dst.Stmt{
-			&dst.IfStmt{
-				Cond: &dst.BinaryExpr{
-					X: &dst.SelectorExpr{
-						X:   dst.NewIdent(recorderReceiverIdent),
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+		Body: &BlockStmt{List: []Stmt{
+			&IfStmt{
+				Cond: &BinaryExpr{
+					X: &SelectorExpr{
+						X:   NewIdent(recorderReceiverIdent),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 					Op: token.EQL,
-					Y:  dst.NewIdent("nil"),
+					Y:  NewIdent("nil"),
 				},
-				Body: &dst.BlockStmt{List: []dst.Stmt{
-					&dst.ExprStmt{X: &dst.CallExpr{
-						Fun: &dst.SelectorExpr{
-							X: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
-										X:   dst.NewIdent(recorderReceiverIdent),
-										Sel: dst.NewIdent(c.exportName(mockIdent)),
+				Body: &BlockStmt{List: []Stmt{
+					&ExprStmt{X: &CallExpr{
+						Fun: &SelectorExpr{
+							X: &SelectorExpr{
+								X: &SelectorExpr{
+									X: &SelectorExpr{
+										X:   NewIdent(recorderReceiverIdent),
+										Sel: NewIdent(c.exportName(mockIdent)),
 									},
-									Sel: dst.NewIdent(c.exportName(sceneIdent)),
+									Sel: NewIdent(c.exportName(sceneIdent)),
 								},
-								Sel: dst.NewIdent(moqTType),
+								Sel: NewIdent(moqTType),
 							},
-							Sel: dst.NewIdent(fatalfFnName),
+							Sel: NewIdent(fatalfFnName),
 						},
-						Args: []dst.Expr{&dst.BasicLit{
+						Args: []Expr{&BasicLit{
 							Kind:  token.STRING,
 							Value: "\"Return must be called before calling Times\"",
 						}},
 					}},
-					&dst.ReturnStmt{Results: []dst.Expr{dst.NewIdent("nil")}},
+					&ReturnStmt{Results: []Expr{NewIdent("nil")}},
 				}},
 			},
-			&dst.AssignStmt{
-				Lhs: []dst.Expr{dst.NewIdent(lastIdent)},
+			&AssignStmt{
+				Lhs: []Expr{NewIdent(lastIdent)},
 				Tok: token.DEFINE,
-				Rhs: []dst.Expr{&dst.IndexExpr{
-					X: &dst.SelectorExpr{
-						X: &dst.SelectorExpr{
-							X:   dst.NewIdent(recorderReceiverIdent),
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+				Rhs: []Expr{&IndexExpr{
+					X: &SelectorExpr{
+						X: &SelectorExpr{
+							X:   NewIdent(recorderReceiverIdent),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						},
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
-					Index: &dst.BinaryExpr{
-						X: &dst.CallExpr{
-							Fun: dst.NewIdent("len"),
-							Args: []dst.Expr{&dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X:   dst.NewIdent(recorderReceiverIdent),
-									Sel: dst.NewIdent(c.exportName(resultsIdent)),
+					Index: &BinaryExpr{
+						X: &CallExpr{
+							Fun: NewIdent("len"),
+							Args: []Expr{&SelectorExpr{
+								X: &SelectorExpr{
+									X:   NewIdent(recorderReceiverIdent),
+									Sel: NewIdent(c.exportName(resultsIdent)),
 								},
-								Sel: dst.NewIdent(c.exportName(resultsIdent)),
+								Sel: NewIdent(c.exportName(resultsIdent)),
 							}},
 						},
 						Op: token.SUB,
-						Y:  &dst.BasicLit{Kind: token.INT, Value: "1"},
+						Y:  &BasicLit{Kind: token.INT, Value: "1"},
 					},
 				}},
 			},
-			&dst.ForStmt{
-				Init: &dst.AssignStmt{
-					Lhs: []dst.Expr{dst.NewIdent("n")},
+			&ForStmt{
+				Init: &AssignStmt{
+					Lhs: []Expr{NewIdent("n")},
 					Tok: token.DEFINE,
-					Rhs: []dst.Expr{&dst.BasicLit{Kind: token.INT, Value: "0"}},
+					Rhs: []Expr{&BasicLit{Kind: token.INT, Value: "0"}},
 				},
-				Cond: &dst.BinaryExpr{
-					X:  dst.NewIdent("n"),
+				Cond: &BinaryExpr{
+					X:  NewIdent("n"),
 					Op: token.LSS,
-					Y: &dst.BinaryExpr{
-						X:  dst.NewIdent(countIdent),
+					Y: &BinaryExpr{
+						X:  NewIdent(countIdent),
 						Op: token.SUB,
-						Y:  &dst.BasicLit{Kind: token.INT, Value: "1"},
+						Y:  &BasicLit{Kind: token.INT, Value: "1"},
 					},
 				},
-				Post: &dst.IncDecStmt{X: dst.NewIdent("n"), Tok: token.INC},
-				Body: &dst.BlockStmt{List: []dst.Stmt{&dst.AssignStmt{
-					Lhs: []dst.Expr{&dst.SelectorExpr{
-						X: &dst.SelectorExpr{
-							X:   dst.NewIdent(recorderReceiverIdent),
-							Sel: dst.NewIdent(c.exportName(resultsIdent)),
+				Post: &IncDecStmt{X: NewIdent("n"), Tok: token.INC},
+				Body: &BlockStmt{List: []Stmt{&AssignStmt{
+					Lhs: []Expr{&SelectorExpr{
+						X: &SelectorExpr{
+							X:   NewIdent(recorderReceiverIdent),
+							Sel: NewIdent(c.exportName(resultsIdent)),
 						},
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					}},
 					Tok: token.ASSIGN,
-					Rhs: []dst.Expr{&dst.CallExpr{
-						Fun: dst.NewIdent("append"),
-						Args: []dst.Expr{
-							&dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X:   dst.NewIdent(recorderReceiverIdent),
-									Sel: dst.NewIdent(c.exportName(resultsIdent)),
+					Rhs: []Expr{&CallExpr{
+						Fun: NewIdent("append"),
+						Args: []Expr{
+							&SelectorExpr{
+								X: &SelectorExpr{
+									X:   NewIdent(recorderReceiverIdent),
+									Sel: NewIdent(c.exportName(resultsIdent)),
 								},
-								Sel: dst.NewIdent(c.exportName(resultsIdent)),
+								Sel: NewIdent(c.exportName(resultsIdent)),
 							},
-							dst.NewIdent(lastIdent),
+							NewIdent(lastIdent),
 						},
 					}},
 				}}},
 			},
-			&dst.ReturnStmt{Results: []dst.Expr{
-				dst.NewIdent(recorderReceiverIdent)},
-			},
+			&ReturnStmt{Results: []Expr{NewIdent(recorderReceiverIdent)}},
 		}},
 		Decs: stdFuncDec(),
 	}
 }
 
-func (c *Converter) recorderAnyTimesFn(
-	typeName string, fn Func,
-) *dst.FuncDecl {
+func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
@@ -1458,94 +1339,90 @@ func (c *Converter) recorderAnyTimesFn(
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
-	return &dst.FuncDecl{
-		Recv: &dst.FieldList{List: []*dst.Field{{
-			Names: []*dst.Ident{dst.NewIdent(recorderReceiverIdent)},
-			Type:  &dst.StarExpr{X: dst.NewIdent(fnRecName)},
+	return &FuncDecl{
+		Recv: &FieldList{List: []*Field{{
+			Names: []*Ident{NewIdent(recorderReceiverIdent)},
+			Type:  &StarExpr{X: NewIdent(fnRecName)},
 		}}},
-		Name: dst.NewIdent(c.exportName(anyTimesFnName)),
-		Type: &dst.FuncType{Params: &dst.FieldList{}},
-		Body: &dst.BlockStmt{List: []dst.Stmt{
-			&dst.IfStmt{
-				Cond: &dst.BinaryExpr{
-					X: &dst.SelectorExpr{
-						X:   dst.NewIdent(recorderReceiverIdent),
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+		Name: NewIdent(c.exportName(anyTimesFnName)),
+		Type: &FuncType{Params: &FieldList{}},
+		Body: &BlockStmt{List: []Stmt{
+			&IfStmt{
+				Cond: &BinaryExpr{
+					X: &SelectorExpr{
+						X:   NewIdent(recorderReceiverIdent),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 					Op: token.EQL,
-					Y:  dst.NewIdent("nil"),
+					Y:  NewIdent("nil"),
 				},
-				Body: &dst.BlockStmt{List: []dst.Stmt{
-					&dst.ExprStmt{X: &dst.CallExpr{
-						Fun: &dst.SelectorExpr{
-							X: &dst.SelectorExpr{
-								X: &dst.SelectorExpr{
-									X: &dst.SelectorExpr{
-										X:   dst.NewIdent(recorderReceiverIdent),
-										Sel: dst.NewIdent(c.exportName(mockIdent)),
+				Body: &BlockStmt{List: []Stmt{
+					&ExprStmt{X: &CallExpr{
+						Fun: &SelectorExpr{
+							X: &SelectorExpr{
+								X: &SelectorExpr{
+									X: &SelectorExpr{
+										X:   NewIdent(recorderReceiverIdent),
+										Sel: NewIdent(c.exportName(mockIdent)),
 									},
-									Sel: dst.NewIdent(c.exportName(sceneIdent)),
+									Sel: NewIdent(c.exportName(sceneIdent)),
 								},
-								Sel: dst.NewIdent(moqTType),
+								Sel: NewIdent(moqTType),
 							},
-							Sel: dst.NewIdent(fatalfFnName),
+							Sel: NewIdent(fatalfFnName),
 						},
-						Args: []dst.Expr{&dst.BasicLit{
+						Args: []Expr{&BasicLit{
 							Kind:  token.STRING,
 							Value: "\"Return must be called before calling AnyTimes\"",
 						}},
 					}},
-					&dst.ReturnStmt{},
+					&ReturnStmt{},
 				}},
 			},
-			&dst.AssignStmt{
-				Lhs: []dst.Expr{&dst.SelectorExpr{
-					X: &dst.SelectorExpr{
-						X:   dst.NewIdent(recorderReceiverIdent),
-						Sel: dst.NewIdent(c.exportName(resultsIdent)),
+			&AssignStmt{
+				Lhs: []Expr{&SelectorExpr{
+					X: &SelectorExpr{
+						X:   NewIdent(recorderReceiverIdent),
+						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
-					Sel: dst.NewIdent(c.exportName(anyTimesIdent)),
+					Sel: NewIdent(c.exportName(anyTimesIdent)),
 				}},
 				Tok: token.ASSIGN,
-				Rhs: []dst.Expr{dst.NewIdent("true")},
+				Rhs: []Expr{NewIdent("true")},
 			},
 		}},
 		Decs: stdFuncDec(),
 	}
 }
 
-func (c *Converter) passthroughElements(
-	fl *dst.FieldList, label string,
-) []dst.Expr {
+func (c *Converter) passthroughElements(fl *FieldList, label string) []Expr {
 	unnamedPrefix, comparable := labelDirection(label)
-	var elts []dst.Expr
+	var elts []Expr
 	if fl != nil {
-		beforeDec := dst.NewLine
+		beforeDec := NewLine
 		fields := fl.List
 		for n, field := range fields {
 			if len(field.Names) == 0 {
 				pName := fmt.Sprintf("%s%d", unnamedPrefix, n+1)
-				elts = append(elts, &dst.KeyValueExpr{
-					Key:   dst.NewIdent(c.exportName(pName)),
+				elts = append(elts, &KeyValueExpr{
+					Key:   NewIdent(c.exportName(pName)),
 					Value: passthroughValue(pName, field, comparable),
-					Decs: dst.KeyValueExprDecorations{NodeDecs: dst.NodeDecs{
-						Before: beforeDec,
-						After:  dst.NewLine,
-					}},
+					Decs: KeyValueExprDecorations{
+						NodeDecs: NodeDecs{Before: beforeDec, After: NewLine},
+					},
 				})
-				beforeDec = dst.None
+				beforeDec = None
 			}
 
 			for _, name := range field.Names {
-				elts = append(elts, &dst.KeyValueExpr{
-					Key:   dst.NewIdent(c.exportName(name.Name)),
+				elts = append(elts, &KeyValueExpr{
+					Key:   NewIdent(c.exportName(name.Name)),
 					Value: passthroughValue(name.Name, field, comparable),
-					Decs: dst.KeyValueExprDecorations{NodeDecs: dst.NodeDecs{
-						Before: beforeDec,
-						After:  dst.NewLine,
-					}},
+					Decs: KeyValueExprDecorations{
+						NodeDecs: NodeDecs{Before: beforeDec, After: NewLine},
+					},
 				})
-				beforeDec = dst.None
+				beforeDec = None
 			}
 		}
 	}
@@ -1553,54 +1430,52 @@ func (c *Converter) passthroughElements(
 	return elts
 }
 
-func passthroughValue(
-	name string, field *dst.Field, comparable bool,
-) dst.Expr {
-	var val dst.Expr
-	val = dst.NewIdent(name)
+func passthroughValue(name string, field *Field, comparable bool) Expr {
+	var val Expr
+	val = NewIdent(name)
 	if comparable && !isComparable(field.Type) {
-		val = &dst.CallExpr{
-			Fun:  &dst.Ident{Path: hashPkg, Name: "DeepHash"},
-			Args: []dst.Expr{val},
+		val = &CallExpr{
+			Fun:  &Ident{Path: hashPkg, Name: "DeepHash"},
+			Args: []Expr{val},
 		}
 	}
 	return val
 }
 
-func passthroughFields(fields *dst.FieldList) []dst.Expr {
-	var exprs []dst.Expr
+func passthroughFields(fields *FieldList) []Expr {
+	var exprs []Expr
 	for _, f := range fields.List {
 		for _, n := range f.Names {
-			exprs = append(exprs, dst.NewIdent(n.Name))
+			exprs = append(exprs, NewIdent(n.Name))
 		}
 	}
 	return exprs
 }
 
-func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
-	var assigns []dst.Stmt
+func (c *Converter) assignResult(resFL *FieldList) []Stmt {
+	var assigns []Stmt
 	if resFL != nil {
 		results := resFL.List
 		for n, result := range results {
 			if len(result.Names) == 0 {
 				rName := fmt.Sprintf("%s%d", resultPrefix, n+1)
-				assigns = append(assigns, &dst.AssignStmt{
-					Lhs: []dst.Expr{dst.NewIdent(rName)},
+				assigns = append(assigns, &AssignStmt{
+					Lhs: []Expr{NewIdent(rName)},
 					Tok: token.ASSIGN,
-					Rhs: []dst.Expr{&dst.SelectorExpr{
-						X:   dst.NewIdent(resultIdent),
-						Sel: dst.NewIdent(c.exportName(rName)),
+					Rhs: []Expr{&SelectorExpr{
+						X:   NewIdent(resultIdent),
+						Sel: NewIdent(c.exportName(rName)),
 					}},
 				})
 			}
 
 			for _, name := range result.Names {
-				assigns = append(assigns, &dst.AssignStmt{
-					Lhs: []dst.Expr{dst.NewIdent(name.Name)},
+				assigns = append(assigns, &AssignStmt{
+					Lhs: []Expr{NewIdent(name.Name)},
 					Tok: token.ASSIGN,
-					Rhs: []dst.Expr{&dst.SelectorExpr{
-						X:   dst.NewIdent(resultIdent),
-						Sel: dst.NewIdent(c.exportName(name.Name)),
+					Rhs: []Expr{&SelectorExpr{
+						X:   NewIdent(resultIdent),
+						Sel: NewIdent(c.exportName(name.Name)),
 					}},
 				})
 			}
@@ -1609,15 +1484,12 @@ func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
 	return assigns
 }
 
-func cloneAndNameUnnamed(
-	prefix string, fieldList *dst.FieldList,
-) *dst.FieldList {
+func cloneAndNameUnnamed(prefix string, fieldList *FieldList) *FieldList {
 	fieldList = cloneNilableFieldList(fieldList)
 	if fieldList != nil {
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
-				f.Names = []*dst.Ident{dst.NewIdent(fmt.Sprintf(
-					"%s%d", prefix, n+1))}
+				f.Names = []*Ident{NewIdent(fmt.Sprintf("%s%d", prefix, n+1))}
 			}
 		}
 	}
@@ -1635,11 +1507,10 @@ func (c *Converter) exportName(name string) string {
 	return name
 }
 
-func stdFuncDec() dst.FuncDeclDecorations {
-	return dst.FuncDeclDecorations{NodeDecs: dst.NodeDecs{
-		Before: dst.EmptyLine,
-		After:  dst.EmptyLine,
-	}}
+func stdFuncDec() FuncDeclDecorations {
+	return FuncDeclDecorations{
+		NodeDecs: NodeDecs{Before: EmptyLine, After: EmptyLine},
+	}
 }
 
 func labelDirection(label string) (unnamedPrefix string, comparable bool) {
@@ -1657,15 +1528,15 @@ func labelDirection(label string) (unnamedPrefix string, comparable bool) {
 	return unnamedPrefix, comparable
 }
 
-func cloneNilableFieldList(fl *dst.FieldList) *dst.FieldList {
+func cloneNilableFieldList(fl *FieldList) *FieldList {
 	if fl != nil {
-		fl = dst.Clone(fl).(*dst.FieldList)
+		fl = Clone(fl).(*FieldList)
 	}
 	return fl
 }
 
-func cloneSelect(x *dst.SelectorExpr, sel string) *dst.SelectorExpr {
-	x = dst.Clone(x).(*dst.SelectorExpr)
-	x.Sel = dst.NewIdent(sel)
+func cloneSelect(x *SelectorExpr, sel string) *SelectorExpr {
+	x = Clone(x).(*SelectorExpr)
+	x.Sel = NewIdent(sel)
 	return x
 }
