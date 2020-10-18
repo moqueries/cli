@@ -11,10 +11,12 @@ import (
 )
 
 const (
-	moqueriesPkg = "github.com/myshkin5/moqueries"
-	hashPkg      = moqueriesPkg + "/pkg/hash"
-	moqPkg       = moqueriesPkg + "/pkg/moq"
+	moqueriesPkg  = "github.com/myshkin5/moqueries"
+	hashPkg       = moqueriesPkg + "/pkg/hash"
+	moqPkg        = moqueriesPkg + "/pkg/moq"
+	syncAtomicPkg = "sync/atomic"
 
+	intType        = "int"
 	mockConfigType = "MockConfig"
 	moqTType       = "MoqT"
 	sceneType      = "Scene"
@@ -29,6 +31,7 @@ const (
 	missingIdent          = "missing"
 	mockIdent             = "mock"
 	mockReceiverIdent     = "m"
+	nilIdent              = "nil"
 	okIdent               = "ok"
 	paramsIdent           = "params"
 	recorderIdent         = "recorder"
@@ -44,6 +47,7 @@ const (
 	errorfFnName   = "Errorf"
 	fatalfFnName   = "Fatalf"
 	fnFnName       = "fn"
+	lenFnName      = "len"
 	mockFnName     = "mock"
 	onCallFnName   = "onCall"
 	resetFnName    = "Reset"
@@ -165,7 +169,7 @@ func (c *Converter) NewFunc(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDec
 				Cond: &BinaryExpr{
 					X:  NewIdent(configIdent),
 					Op: token.EQL,
-					Y:  NewIdent("nil"),
+					Y:  NewIdent(nilIdent),
 				},
 				Body: &BlockStmt{List: []Stmt{&AssignStmt{
 					Lhs: []Expr{NewIdent(configIdent)},
@@ -187,7 +191,7 @@ func (c *Converter) NewFunc(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDec
 					X: &CompositeLit{
 						Type: NewIdent(mName),
 						Elts: c.newMockElements(typeSpec, funcs),
-						Decs: CompositeLitDecorations{Lbrace: []string{"\n"}},
+						Decs: litDec(),
 					},
 				}},
 			},
@@ -240,7 +244,7 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl
 							NodeDecs: NodeDecs{After: NewLine},
 						},
 					}},
-					Decs: CompositeLitDecorations{Lbrace: []string{"\n"}},
+					Decs: litDec(),
 				},
 			}},
 		}}},
@@ -440,7 +444,7 @@ func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fu
 					Tok: token.DEFINE,
 					Rhs: []Expr{&BinaryExpr{
 						X: &CallExpr{
-							Fun: NewIdent("len"),
+							Fun: NewIdent(lenFnName),
 							Args: []Expr{&SelectorExpr{
 								X:   NewIdent(resultsIdent),
 								Sel: NewIdent(c.exportName(resultsIdent)),
@@ -448,11 +452,11 @@ func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fu
 						},
 						Op: token.SUB,
 						Y: &CallExpr{
-							Fun: NewIdent("int"),
+							Fun: NewIdent(intType),
 							Args: []Expr{&CallExpr{
 								Fun: &Ident{
 									Name: "LoadUint32",
-									Path: "sync/atomic",
+									Path: syncAtomicPkg,
 								},
 								Args: []Expr{&UnaryExpr{
 									Op: token.AND,
@@ -836,9 +840,9 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt
 		Tok: token.DEFINE,
 		Rhs: []Expr{&BinaryExpr{
 			X: &CallExpr{
-				Fun: NewIdent("int"),
+				Fun: NewIdent(intType),
 				Args: []Expr{&CallExpr{
-					Fun: &Ident{Name: "AddUint32", Path: "sync/atomic"},
+					Fun: &Ident{Name: "AddUint32", Path: syncAtomicPkg},
 					Args: []Expr{
 						&UnaryExpr{
 							Op: token.AND,
@@ -861,7 +865,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt
 			X:  NewIdent(iIdent),
 			Op: token.GEQ,
 			Y: &CallExpr{
-				Fun: NewIdent("len"),
+				Fun: NewIdent(lenFnName),
 				Args: []Expr{&SelectorExpr{
 					X:   NewIdent(resultsIdent),
 					Sel: NewIdent(c.exportName(resultsIdent)),
@@ -924,7 +928,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt
 				Tok: token.ASSIGN,
 				Rhs: []Expr{&BinaryExpr{
 					X: &CallExpr{
-						Fun: NewIdent("len"),
+						Fun: NewIdent(lenFnName),
 						Args: []Expr{&SelectorExpr{
 							X:   NewIdent(resultsIdent),
 							Sel: NewIdent(c.exportName(resultsIdent)),
@@ -1021,7 +1025,7 @@ func (c *Converter) recorderFnInterfaceBody(
 						},
 					},
 				},
-				Decs: CompositeLitDecorations{Lbrace: []string{"\n"}},
+				Decs: litDec(),
 			},
 		}},
 	}}}
@@ -1069,7 +1073,7 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 					Op: token.EQL,
-					Y:  NewIdent("nil"),
+					Y:  NewIdent(nilIdent),
 				},
 				Body: &BlockStmt{List: []Stmt{
 					&IfStmt{
@@ -1106,7 +1110,7 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 									},
 								},
 							}},
-							&ReturnStmt{Results: []Expr{NewIdent("nil")}},
+							&ReturnStmt{Results: []Expr{NewIdent(nilIdent)}},
 						}},
 						Decs: IfStmtDecorations{NodeDecs: NodeDecs{
 							After: EmptyLine,
@@ -1219,7 +1223,7 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
 		Type: &FuncType{
 			Params: &FieldList{List: []*Field{{
 				Names: []*Ident{NewIdent(countIdent)},
-				Type:  NewIdent("int"),
+				Type:  NewIdent(intType),
 			}}},
 			Results: &FieldList{List: []*Field{{
 				Type: &StarExpr{X: NewIdent(fnRecName)},
@@ -1233,7 +1237,7 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
 						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 					Op: token.EQL,
-					Y:  NewIdent("nil"),
+					Y:  NewIdent(nilIdent),
 				},
 				Body: &BlockStmt{List: []Stmt{
 					&ExprStmt{X: &CallExpr{
@@ -1255,7 +1259,7 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
 							Value: "\"Return must be called before calling Times\"",
 						}},
 					}},
-					&ReturnStmt{Results: []Expr{NewIdent("nil")}},
+					&ReturnStmt{Results: []Expr{NewIdent(nilIdent)}},
 				}},
 			},
 			&AssignStmt{
@@ -1271,7 +1275,7 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
 					},
 					Index: &BinaryExpr{
 						X: &CallExpr{
-							Fun: NewIdent("len"),
+							Fun: NewIdent(lenFnName),
 							Args: []Expr{&SelectorExpr{
 								X: &SelectorExpr{
 									X:   NewIdent(recorderReceiverIdent),
@@ -1354,7 +1358,7 @@ func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *FuncDecl {
 						Sel: NewIdent(c.exportName(resultsIdent)),
 					},
 					Op: token.EQL,
-					Y:  NewIdent("nil"),
+					Y:  NewIdent(nilIdent),
 				},
 				Body: &BlockStmt{List: []Stmt{
 					&ExprStmt{X: &CallExpr{
@@ -1539,4 +1543,8 @@ func cloneSelect(x *SelectorExpr, sel string) *SelectorExpr {
 	x = Clone(x).(*SelectorExpr)
 	x.Sel = NewIdent(sel)
 	return x
+}
+
+func litDec() CompositeLitDecorations {
+	return CompositeLitDecorations{Lbrace: []string{"\n"}}
 }
