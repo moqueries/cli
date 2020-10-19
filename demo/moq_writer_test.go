@@ -13,7 +13,7 @@ import (
 type mockWriter struct {
 	scene                 *moq.Scene
 	config                moq.MockConfig
-	resultsByParams_Write map[mockWriter_Write_params]*mockWriter_Write_resultMgr
+	resultsByParams_Write map[mockWriter_Write_paramsKey]*mockWriter_Write_resultMgr
 }
 
 // mockWriter_mock isolates the mock interface of the Writer type
@@ -27,7 +27,10 @@ type mockWriter_recorder struct {
 }
 
 // mockWriter_Write_params holds the params of the Writer type
-type mockWriter_Write_params struct{ p hash.Hash }
+type mockWriter_Write_params struct{ p []byte }
+
+// mockWriter_Write_paramsKey holds the map key params of the Writer type
+type mockWriter_Write_paramsKey struct{ p hash.Hash }
 
 // mockWriter_Write_resultMgr manages multiple results and the state of the Writer type
 type mockWriter_Write_resultMgr struct {
@@ -44,9 +47,10 @@ type mockWriter_Write_results struct {
 
 // mockWriter_Write_fnRecorder routes recorded function calls to the mockWriter mock
 type mockWriter_Write_fnRecorder struct {
-	params  mockWriter_Write_params
-	results *mockWriter_Write_resultMgr
-	mock    *mockWriter
+	params    mockWriter_Write_params
+	paramsKey mockWriter_Write_paramsKey
+	results   *mockWriter_Write_resultMgr
+	mock      *mockWriter
 }
 
 // newMockWriter creates a new mock of the Writer type
@@ -71,7 +75,7 @@ func (m *mockWriter) mock() *mockWriter_mock {
 }
 
 func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
-	params := mockWriter_Write_params{
+	params := mockWriter_Write_paramsKey{
 		p: hash.DeepHash(p),
 	}
 	results, ok := m.mock.resultsByParams_Write[params]
@@ -108,6 +112,9 @@ func (m *mockWriter) onCall() *mockWriter_recorder {
 func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 	return &mockWriter_Write_fnRecorder{
 		params: mockWriter_Write_params{
+			p: p,
+		},
+		paramsKey: mockWriter_Write_paramsKey{
 			p: hash.DeepHash(p),
 		},
 		mock: m.mock,
@@ -116,13 +123,13 @@ func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 
 func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWriter_Write_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_Write[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_Write[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockWriter_Write_resultMgr{results: []*mockWriter_Write_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_Write[r.params] = r.results
+		r.mock.resultsByParams_Write[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockWriter_Write_results{
 		n:   n,
@@ -153,7 +160,7 @@ func (r *mockWriter_Write_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockWriter) Reset() {
-	m.resultsByParams_Write = map[mockWriter_Write_params]*mockWriter_Write_resultMgr{}
+	m.resultsByParams_Write = map[mockWriter_Write_paramsKey]*mockWriter_Write_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

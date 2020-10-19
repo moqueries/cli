@@ -13,7 +13,7 @@ import (
 type MockNoParamsFn struct {
 	Scene           *moq.Scene
 	Config          moq.MockConfig
-	ResultsByParams map[MockNoParamsFn_params]*MockNoParamsFn_resultMgr
+	ResultsByParams map[MockNoParamsFn_paramsKey]*MockNoParamsFn_resultMgr
 }
 
 // MockNoParamsFn_mock isolates the mock interface of the NoParamsFn type
@@ -28,6 +28,9 @@ type MockNoParamsFn_recorder struct {
 
 // MockNoParamsFn_params holds the params of the NoParamsFn type
 type MockNoParamsFn_params struct{}
+
+// MockNoParamsFn_paramsKey holds the map key params of the NoParamsFn type
+type MockNoParamsFn_paramsKey struct{}
 
 // MockNoParamsFn_resultMgr manages multiple results and the state of the NoParamsFn type
 type MockNoParamsFn_resultMgr struct {
@@ -44,9 +47,10 @@ type MockNoParamsFn_results struct {
 
 // MockNoParamsFn_fnRecorder routes recorded function calls to the MockNoParamsFn mock
 type MockNoParamsFn_fnRecorder struct {
-	Params  MockNoParamsFn_params
-	Results *MockNoParamsFn_resultMgr
-	Mock    *MockNoParamsFn
+	Params    MockNoParamsFn_params
+	ParamsKey MockNoParamsFn_paramsKey
+	Results   *MockNoParamsFn_resultMgr
+	Mock      *MockNoParamsFn
 }
 
 // NewMockNoParamsFn creates a new mock of the NoParamsFn type
@@ -69,7 +73,7 @@ func (m *MockNoParamsFn) Mock() testmocks.NoParamsFn {
 }
 
 func (m *MockNoParamsFn_mock) Fn() (sResult string, err error) {
-	params := MockNoParamsFn_params{}
+	params := MockNoParamsFn_paramsKey{}
 	results, ok := m.Mock.ResultsByParams[params]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
@@ -96,20 +100,21 @@ func (m *MockNoParamsFn_mock) Fn() (sResult string, err error) {
 
 func (m *MockNoParamsFn) OnCall() *MockNoParamsFn_fnRecorder {
 	return &MockNoParamsFn_fnRecorder{
-		Params: MockNoParamsFn_params{},
-		Mock:   m,
+		Params:    MockNoParamsFn_params{},
+		ParamsKey: MockNoParamsFn_paramsKey{},
+		Mock:      m,
 	}
 }
 
 func (r *MockNoParamsFn_fnRecorder) ReturnResults(sResult string, err error) *MockNoParamsFn_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockNoParamsFn_resultMgr{Results: []*MockNoParamsFn_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams[r.Params] = r.Results
+		r.Mock.ResultsByParams[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockNoParamsFn_results{
 		SResult: sResult,
@@ -140,7 +145,7 @@ func (r *MockNoParamsFn_fnRecorder) AnyTimes() {
 
 // Reset resets the state of the mock
 func (m *MockNoParamsFn) Reset() {
-	m.ResultsByParams = map[MockNoParamsFn_params]*MockNoParamsFn_resultMgr{}
+	m.ResultsByParams = map[MockNoParamsFn_paramsKey]*MockNoParamsFn_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

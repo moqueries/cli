@@ -259,12 +259,9 @@ func (g *MockGenerator) loadNestedInterfaces(
 func (g *MockGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl {
 	decls := []dst.Decl{
 		g.converter.BaseStruct(typeSpec, funcs),
+		g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent),
+		g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent),
 	}
-
-	decls = append(
-		decls, g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent))
-	decls = append(
-		decls, g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent))
 
 	for _, fn := range funcs {
 		decls = append(decls, g.converter.MethodStructs(typeSpec, fn)...)

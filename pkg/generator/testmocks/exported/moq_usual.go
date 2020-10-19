@@ -13,13 +13,13 @@ import (
 type MockUsual struct {
 	Scene                       *moq.Scene
 	Config                      moq.MockConfig
-	ResultsByParams_Usual       map[MockUsual_Usual_params]*MockUsual_Usual_resultMgr
-	ResultsByParams_NoNames     map[MockUsual_NoNames_params]*MockUsual_NoNames_resultMgr
-	ResultsByParams_NoResults   map[MockUsual_NoResults_params]*MockUsual_NoResults_resultMgr
-	ResultsByParams_NoParams    map[MockUsual_NoParams_params]*MockUsual_NoParams_resultMgr
-	ResultsByParams_Nothing     map[MockUsual_Nothing_params]*MockUsual_Nothing_resultMgr
-	ResultsByParams_Variadic    map[MockUsual_Variadic_params]*MockUsual_Variadic_resultMgr
-	ResultsByParams_RepeatedIds map[MockUsual_RepeatedIds_params]*MockUsual_RepeatedIds_resultMgr
+	ResultsByParams_Usual       map[MockUsual_Usual_paramsKey]*MockUsual_Usual_resultMgr
+	ResultsByParams_NoNames     map[MockUsual_NoNames_paramsKey]*MockUsual_NoNames_resultMgr
+	ResultsByParams_NoResults   map[MockUsual_NoResults_paramsKey]*MockUsual_NoResults_resultMgr
+	ResultsByParams_NoParams    map[MockUsual_NoParams_paramsKey]*MockUsual_NoParams_resultMgr
+	ResultsByParams_Nothing     map[MockUsual_Nothing_paramsKey]*MockUsual_Nothing_resultMgr
+	ResultsByParams_Variadic    map[MockUsual_Variadic_paramsKey]*MockUsual_Variadic_resultMgr
+	ResultsByParams_RepeatedIds map[MockUsual_RepeatedIds_paramsKey]*MockUsual_RepeatedIds_resultMgr
 }
 
 // MockUsual_mock isolates the mock interface of the Usual type
@@ -34,6 +34,12 @@ type MockUsual_recorder struct {
 
 // MockUsual_Usual_params holds the params of the Usual type
 type MockUsual_Usual_params struct {
+	SParam string
+	BParam bool
+}
+
+// MockUsual_Usual_paramsKey holds the map key params of the Usual type
+type MockUsual_Usual_paramsKey struct {
 	SParam string
 	BParam bool
 }
@@ -53,13 +59,20 @@ type MockUsual_Usual_results struct {
 
 // MockUsual_Usual_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_Usual_fnRecorder struct {
-	Params  MockUsual_Usual_params
-	Results *MockUsual_Usual_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_Usual_params
+	ParamsKey MockUsual_Usual_paramsKey
+	Results   *MockUsual_Usual_resultMgr
+	Mock      *MockUsual
 }
 
 // MockUsual_NoNames_params holds the params of the Usual type
 type MockUsual_NoNames_params struct {
+	Param1 string
+	Param2 bool
+}
+
+// MockUsual_NoNames_paramsKey holds the map key params of the Usual type
+type MockUsual_NoNames_paramsKey struct {
 	Param1 string
 	Param2 bool
 }
@@ -79,13 +92,20 @@ type MockUsual_NoNames_results struct {
 
 // MockUsual_NoNames_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_NoNames_fnRecorder struct {
-	Params  MockUsual_NoNames_params
-	Results *MockUsual_NoNames_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_NoNames_params
+	ParamsKey MockUsual_NoNames_paramsKey
+	Results   *MockUsual_NoNames_resultMgr
+	Mock      *MockUsual
 }
 
 // MockUsual_NoResults_params holds the params of the Usual type
 type MockUsual_NoResults_params struct {
+	SParam string
+	BParam bool
+}
+
+// MockUsual_NoResults_paramsKey holds the map key params of the Usual type
+type MockUsual_NoResults_paramsKey struct {
 	SParam string
 	BParam bool
 }
@@ -103,13 +123,17 @@ type MockUsual_NoResults_results struct {
 
 // MockUsual_NoResults_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_NoResults_fnRecorder struct {
-	Params  MockUsual_NoResults_params
-	Results *MockUsual_NoResults_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_NoResults_params
+	ParamsKey MockUsual_NoResults_paramsKey
+	Results   *MockUsual_NoResults_resultMgr
+	Mock      *MockUsual
 }
 
 // MockUsual_NoParams_params holds the params of the Usual type
 type MockUsual_NoParams_params struct{}
+
+// MockUsual_NoParams_paramsKey holds the map key params of the Usual type
+type MockUsual_NoParams_paramsKey struct{}
 
 // MockUsual_NoParams_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_NoParams_resultMgr struct {
@@ -126,13 +150,17 @@ type MockUsual_NoParams_results struct {
 
 // MockUsual_NoParams_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_NoParams_fnRecorder struct {
-	Params  MockUsual_NoParams_params
-	Results *MockUsual_NoParams_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_NoParams_params
+	ParamsKey MockUsual_NoParams_paramsKey
+	Results   *MockUsual_NoParams_resultMgr
+	Mock      *MockUsual
 }
 
 // MockUsual_Nothing_params holds the params of the Usual type
 type MockUsual_Nothing_params struct{}
+
+// MockUsual_Nothing_paramsKey holds the map key params of the Usual type
+type MockUsual_Nothing_paramsKey struct{}
 
 // MockUsual_Nothing_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_Nothing_resultMgr struct {
@@ -147,13 +175,20 @@ type MockUsual_Nothing_results struct {
 
 // MockUsual_Nothing_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_Nothing_fnRecorder struct {
-	Params  MockUsual_Nothing_params
-	Results *MockUsual_Nothing_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_Nothing_params
+	ParamsKey MockUsual_Nothing_paramsKey
+	Results   *MockUsual_Nothing_resultMgr
+	Mock      *MockUsual
 }
 
 // MockUsual_Variadic_params holds the params of the Usual type
 type MockUsual_Variadic_params struct {
+	Other bool
+	Args  []string
+}
+
+// MockUsual_Variadic_paramsKey holds the map key params of the Usual type
+type MockUsual_Variadic_paramsKey struct {
 	Other bool
 	Args  hash.Hash
 }
@@ -173,13 +208,20 @@ type MockUsual_Variadic_results struct {
 
 // MockUsual_Variadic_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_Variadic_fnRecorder struct {
-	Params  MockUsual_Variadic_params
-	Results *MockUsual_Variadic_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_Variadic_params
+	ParamsKey MockUsual_Variadic_paramsKey
+	Results   *MockUsual_Variadic_resultMgr
+	Mock      *MockUsual
 }
 
 // MockUsual_RepeatedIds_params holds the params of the Usual type
 type MockUsual_RepeatedIds_params struct {
+	SParam1, SParam2 string
+	BParam           bool
+}
+
+// MockUsual_RepeatedIds_paramsKey holds the map key params of the Usual type
+type MockUsual_RepeatedIds_paramsKey struct {
 	SParam1, SParam2 string
 	BParam           bool
 }
@@ -199,9 +241,10 @@ type MockUsual_RepeatedIds_results struct {
 
 // MockUsual_RepeatedIds_fnRecorder routes recorded function calls to the MockUsual mock
 type MockUsual_RepeatedIds_fnRecorder struct {
-	Params  MockUsual_RepeatedIds_params
-	Results *MockUsual_RepeatedIds_resultMgr
-	Mock    *MockUsual
+	Params    MockUsual_RepeatedIds_params
+	ParamsKey MockUsual_RepeatedIds_paramsKey
+	Results   *MockUsual_RepeatedIds_resultMgr
+	Mock      *MockUsual
 }
 
 // NewMockUsual creates a new mock of the Usual type
@@ -226,7 +269,7 @@ func (m *MockUsual) Mock() *MockUsual_mock {
 }
 
 func (m *MockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err error) {
-	params := MockUsual_Usual_params{
+	params := MockUsual_Usual_paramsKey{
 		SParam: sParam,
 		BParam: bParam,
 	}
@@ -255,7 +298,7 @@ func (m *MockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err 
 }
 
 func (m *MockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, result2 error) {
-	params := MockUsual_NoNames_params{
+	params := MockUsual_NoNames_paramsKey{
 		Param1: param1,
 		Param2: param2,
 	}
@@ -284,7 +327,7 @@ func (m *MockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, re
 }
 
 func (m *MockUsual_mock) NoResults(sParam string, bParam bool) {
-	params := MockUsual_NoResults_params{
+	params := MockUsual_NoResults_paramsKey{
 		SParam: sParam,
 		BParam: bParam,
 	}
@@ -310,7 +353,7 @@ func (m *MockUsual_mock) NoResults(sParam string, bParam bool) {
 }
 
 func (m *MockUsual_mock) NoParams() (sResult string, err error) {
-	params := MockUsual_NoParams_params{}
+	params := MockUsual_NoParams_paramsKey{}
 	results, ok := m.Mock.ResultsByParams_NoParams[params]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
@@ -336,7 +379,7 @@ func (m *MockUsual_mock) NoParams() (sResult string, err error) {
 }
 
 func (m *MockUsual_mock) Nothing() {
-	params := MockUsual_Nothing_params{}
+	params := MockUsual_Nothing_paramsKey{}
 	results, ok := m.Mock.ResultsByParams_Nothing[params]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
@@ -359,7 +402,7 @@ func (m *MockUsual_mock) Nothing() {
 }
 
 func (m *MockUsual_mock) Variadic(other bool, args ...string) (sResult string, err error) {
-	params := MockUsual_Variadic_params{
+	params := MockUsual_Variadic_paramsKey{
 		Other: other,
 		Args:  hash.DeepHash(args),
 	}
@@ -388,7 +431,7 @@ func (m *MockUsual_mock) Variadic(other bool, args ...string) (sResult string, e
 }
 
 func (m *MockUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
-	params := MockUsual_RepeatedIds_params{
+	params := MockUsual_RepeatedIds_paramsKey{
 		SParam1: sParam1,
 		SParam2: sParam2,
 		BParam:  bParam,
@@ -431,19 +474,23 @@ func (m *MockUsual_recorder) Usual(sParam string, bParam bool) *MockUsual_Usual_
 			SParam: sParam,
 			BParam: bParam,
 		},
+		ParamsKey: MockUsual_Usual_paramsKey{
+			SParam: sParam,
+			BParam: bParam,
+		},
 		Mock: m.Mock,
 	}
 }
 
 func (r *MockUsual_Usual_fnRecorder) ReturnResults(sResult string, err error) *MockUsual_Usual_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_Usual[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_Usual[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_Usual_resultMgr{Results: []*MockUsual_Usual_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_Usual[r.Params] = r.Results
+		r.Mock.ResultsByParams_Usual[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_Usual_results{
 		SResult: sResult,
@@ -478,19 +525,23 @@ func (m *MockUsual_recorder) NoNames(param1 string, param2 bool) *MockUsual_NoNa
 			Param1: param1,
 			Param2: param2,
 		},
+		ParamsKey: MockUsual_NoNames_paramsKey{
+			Param1: param1,
+			Param2: param2,
+		},
 		Mock: m.Mock,
 	}
 }
 
 func (r *MockUsual_NoNames_fnRecorder) ReturnResults(result1 string, result2 error) *MockUsual_NoNames_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_NoNames[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_NoNames[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_NoNames_resultMgr{Results: []*MockUsual_NoNames_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_NoNames[r.Params] = r.Results
+		r.Mock.ResultsByParams_NoNames[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_NoNames_results{
 		Result1: result1,
@@ -525,19 +576,23 @@ func (m *MockUsual_recorder) NoResults(sParam string, bParam bool) *MockUsual_No
 			SParam: sParam,
 			BParam: bParam,
 		},
+		ParamsKey: MockUsual_NoResults_paramsKey{
+			SParam: sParam,
+			BParam: bParam,
+		},
 		Mock: m.Mock,
 	}
 }
 
 func (r *MockUsual_NoResults_fnRecorder) ReturnResults() *MockUsual_NoResults_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_NoResults[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_NoResults[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_NoResults_resultMgr{Results: []*MockUsual_NoResults_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_NoResults[r.Params] = r.Results
+		r.Mock.ResultsByParams_NoResults[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_NoResults_results{})
 	return r
@@ -565,20 +620,21 @@ func (r *MockUsual_NoResults_fnRecorder) AnyTimes() {
 
 func (m *MockUsual_recorder) NoParams() *MockUsual_NoParams_fnRecorder {
 	return &MockUsual_NoParams_fnRecorder{
-		Params: MockUsual_NoParams_params{},
-		Mock:   m.Mock,
+		Params:    MockUsual_NoParams_params{},
+		ParamsKey: MockUsual_NoParams_paramsKey{},
+		Mock:      m.Mock,
 	}
 }
 
 func (r *MockUsual_NoParams_fnRecorder) ReturnResults(sResult string, err error) *MockUsual_NoParams_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_NoParams[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_NoParams[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_NoParams_resultMgr{Results: []*MockUsual_NoParams_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_NoParams[r.Params] = r.Results
+		r.Mock.ResultsByParams_NoParams[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_NoParams_results{
 		SResult: sResult,
@@ -609,20 +665,21 @@ func (r *MockUsual_NoParams_fnRecorder) AnyTimes() {
 
 func (m *MockUsual_recorder) Nothing() *MockUsual_Nothing_fnRecorder {
 	return &MockUsual_Nothing_fnRecorder{
-		Params: MockUsual_Nothing_params{},
-		Mock:   m.Mock,
+		Params:    MockUsual_Nothing_params{},
+		ParamsKey: MockUsual_Nothing_paramsKey{},
+		Mock:      m.Mock,
 	}
 }
 
 func (r *MockUsual_Nothing_fnRecorder) ReturnResults() *MockUsual_Nothing_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_Nothing[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_Nothing[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_Nothing_resultMgr{Results: []*MockUsual_Nothing_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_Nothing[r.Params] = r.Results
+		r.Mock.ResultsByParams_Nothing[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_Nothing_results{})
 	return r
@@ -652,6 +709,10 @@ func (m *MockUsual_recorder) Variadic(other bool, args ...string) *MockUsual_Var
 	return &MockUsual_Variadic_fnRecorder{
 		Params: MockUsual_Variadic_params{
 			Other: other,
+			Args:  args,
+		},
+		ParamsKey: MockUsual_Variadic_paramsKey{
+			Other: other,
 			Args:  hash.DeepHash(args),
 		},
 		Mock: m.Mock,
@@ -660,13 +721,13 @@ func (m *MockUsual_recorder) Variadic(other bool, args ...string) *MockUsual_Var
 
 func (r *MockUsual_Variadic_fnRecorder) ReturnResults(sResult string, err error) *MockUsual_Variadic_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_Variadic[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_Variadic[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_Variadic_resultMgr{Results: []*MockUsual_Variadic_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_Variadic[r.Params] = r.Results
+		r.Mock.ResultsByParams_Variadic[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_Variadic_results{
 		SResult: sResult,
@@ -702,19 +763,24 @@ func (m *MockUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *
 			SParam2: sParam2,
 			BParam:  bParam,
 		},
+		ParamsKey: MockUsual_RepeatedIds_paramsKey{
+			SParam1: sParam1,
+			SParam2: sParam2,
+			BParam:  bParam,
+		},
 		Mock: m.Mock,
 	}
 }
 
 func (r *MockUsual_RepeatedIds_fnRecorder) ReturnResults(sResult1, sResult2 string, err error) *MockUsual_RepeatedIds_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_RepeatedIds[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_RepeatedIds[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockUsual_RepeatedIds_resultMgr{Results: []*MockUsual_RepeatedIds_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_RepeatedIds[r.Params] = r.Results
+		r.Mock.ResultsByParams_RepeatedIds[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_RepeatedIds_results{
 		SResult1: sResult1,
@@ -746,13 +812,13 @@ func (r *MockUsual_RepeatedIds_fnRecorder) AnyTimes() {
 
 // Reset resets the state of the mock
 func (m *MockUsual) Reset() {
-	m.ResultsByParams_Usual = map[MockUsual_Usual_params]*MockUsual_Usual_resultMgr{}
-	m.ResultsByParams_NoNames = map[MockUsual_NoNames_params]*MockUsual_NoNames_resultMgr{}
-	m.ResultsByParams_NoResults = map[MockUsual_NoResults_params]*MockUsual_NoResults_resultMgr{}
-	m.ResultsByParams_NoParams = map[MockUsual_NoParams_params]*MockUsual_NoParams_resultMgr{}
-	m.ResultsByParams_Nothing = map[MockUsual_Nothing_params]*MockUsual_Nothing_resultMgr{}
-	m.ResultsByParams_Variadic = map[MockUsual_Variadic_params]*MockUsual_Variadic_resultMgr{}
-	m.ResultsByParams_RepeatedIds = map[MockUsual_RepeatedIds_params]*MockUsual_RepeatedIds_resultMgr{}
+	m.ResultsByParams_Usual = map[MockUsual_Usual_paramsKey]*MockUsual_Usual_resultMgr{}
+	m.ResultsByParams_NoNames = map[MockUsual_NoNames_paramsKey]*MockUsual_NoNames_resultMgr{}
+	m.ResultsByParams_NoResults = map[MockUsual_NoResults_paramsKey]*MockUsual_NoResults_resultMgr{}
+	m.ResultsByParams_NoParams = map[MockUsual_NoParams_paramsKey]*MockUsual_NoParams_resultMgr{}
+	m.ResultsByParams_Nothing = map[MockUsual_Nothing_paramsKey]*MockUsual_Nothing_resultMgr{}
+	m.ResultsByParams_Variadic = map[MockUsual_Variadic_paramsKey]*MockUsual_Variadic_resultMgr{}
+	m.ResultsByParams_RepeatedIds = map[MockUsual_RepeatedIds_paramsKey]*MockUsual_RepeatedIds_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

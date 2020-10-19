@@ -15,16 +15,16 @@ import (
 type mockConverterer struct {
 	scene                             *moq.Scene
 	config                            moq.MockConfig
-	resultsByParams_BaseStruct        map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr
-	resultsByParams_IsolationStruct   map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr
-	resultsByParams_MethodStructs     map[mockConverterer_MethodStructs_params]*mockConverterer_MethodStructs_resultMgr
-	resultsByParams_NewFunc           map[mockConverterer_NewFunc_params]*mockConverterer_NewFunc_resultMgr
-	resultsByParams_IsolationAccessor map[mockConverterer_IsolationAccessor_params]*mockConverterer_IsolationAccessor_resultMgr
-	resultsByParams_FuncClosure       map[mockConverterer_FuncClosure_params]*mockConverterer_FuncClosure_resultMgr
-	resultsByParams_MockMethod        map[mockConverterer_MockMethod_params]*mockConverterer_MockMethod_resultMgr
-	resultsByParams_RecorderMethods   map[mockConverterer_RecorderMethods_params]*mockConverterer_RecorderMethods_resultMgr
-	resultsByParams_ResetMethod       map[mockConverterer_ResetMethod_params]*mockConverterer_ResetMethod_resultMgr
-	resultsByParams_AssertMethod      map[mockConverterer_AssertMethod_params]*mockConverterer_AssertMethod_resultMgr
+	resultsByParams_BaseStruct        map[mockConverterer_BaseStruct_paramsKey]*mockConverterer_BaseStruct_resultMgr
+	resultsByParams_IsolationStruct   map[mockConverterer_IsolationStruct_paramsKey]*mockConverterer_IsolationStruct_resultMgr
+	resultsByParams_MethodStructs     map[mockConverterer_MethodStructs_paramsKey]*mockConverterer_MethodStructs_resultMgr
+	resultsByParams_NewFunc           map[mockConverterer_NewFunc_paramsKey]*mockConverterer_NewFunc_resultMgr
+	resultsByParams_IsolationAccessor map[mockConverterer_IsolationAccessor_paramsKey]*mockConverterer_IsolationAccessor_resultMgr
+	resultsByParams_FuncClosure       map[mockConverterer_FuncClosure_paramsKey]*mockConverterer_FuncClosure_resultMgr
+	resultsByParams_MockMethod        map[mockConverterer_MockMethod_paramsKey]*mockConverterer_MockMethod_resultMgr
+	resultsByParams_RecorderMethods   map[mockConverterer_RecorderMethods_paramsKey]*mockConverterer_RecorderMethods_resultMgr
+	resultsByParams_ResetMethod       map[mockConverterer_ResetMethod_paramsKey]*mockConverterer_ResetMethod_resultMgr
+	resultsByParams_AssertMethod      map[mockConverterer_AssertMethod_paramsKey]*mockConverterer_AssertMethod_resultMgr
 }
 
 // mockConverterer_mock isolates the mock interface of the Converterer type
@@ -39,6 +39,12 @@ type mockConverterer_recorder struct {
 
 // mockConverterer_BaseStruct_params holds the params of the Converterer type
 type mockConverterer_BaseStruct_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    []generator.Func
+}
+
+// mockConverterer_BaseStruct_paramsKey holds the map key params of the Converterer type
+type mockConverterer_BaseStruct_paramsKey struct {
 	typeSpec *dst.TypeSpec
 	funcs    hash.Hash
 }
@@ -55,13 +61,17 @@ type mockConverterer_BaseStruct_results struct{ structDecl *dst.GenDecl }
 
 // mockConverterer_BaseStruct_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_BaseStruct_fnRecorder struct {
-	params  mockConverterer_BaseStruct_params
-	results *mockConverterer_BaseStruct_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_BaseStruct_params
+	paramsKey mockConverterer_BaseStruct_paramsKey
+	results   *mockConverterer_BaseStruct_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_IsolationStruct_params holds the params of the Converterer type
 type mockConverterer_IsolationStruct_params struct{ typeName, suffix string }
+
+// mockConverterer_IsolationStruct_paramsKey holds the map key params of the Converterer type
+type mockConverterer_IsolationStruct_paramsKey struct{ typeName, suffix string }
 
 // mockConverterer_IsolationStruct_resultMgr manages multiple results and the state of the Converterer type
 type mockConverterer_IsolationStruct_resultMgr struct {
@@ -75,13 +85,20 @@ type mockConverterer_IsolationStruct_results struct{ structDecl *dst.GenDecl }
 
 // mockConverterer_IsolationStruct_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_IsolationStruct_fnRecorder struct {
-	params  mockConverterer_IsolationStruct_params
-	results *mockConverterer_IsolationStruct_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_IsolationStruct_params
+	paramsKey mockConverterer_IsolationStruct_paramsKey
+	results   *mockConverterer_IsolationStruct_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_MethodStructs_params holds the params of the Converterer type
 type mockConverterer_MethodStructs_params struct {
+	typeSpec *dst.TypeSpec
+	fn       generator.Func
+}
+
+// mockConverterer_MethodStructs_paramsKey holds the map key params of the Converterer type
+type mockConverterer_MethodStructs_paramsKey struct {
 	typeSpec *dst.TypeSpec
 	fn       generator.Func
 }
@@ -98,13 +115,20 @@ type mockConverterer_MethodStructs_results struct{ structDecls []dst.Decl }
 
 // mockConverterer_MethodStructs_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_MethodStructs_fnRecorder struct {
-	params  mockConverterer_MethodStructs_params
-	results *mockConverterer_MethodStructs_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_MethodStructs_params
+	paramsKey mockConverterer_MethodStructs_paramsKey
+	results   *mockConverterer_MethodStructs_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_NewFunc_params holds the params of the Converterer type
 type mockConverterer_NewFunc_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    []generator.Func
+}
+
+// mockConverterer_NewFunc_paramsKey holds the map key params of the Converterer type
+type mockConverterer_NewFunc_paramsKey struct {
 	typeSpec *dst.TypeSpec
 	funcs    hash.Hash
 }
@@ -121,13 +145,17 @@ type mockConverterer_NewFunc_results struct{ funcDecl *dst.FuncDecl }
 
 // mockConverterer_NewFunc_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_NewFunc_fnRecorder struct {
-	params  mockConverterer_NewFunc_params
-	results *mockConverterer_NewFunc_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_NewFunc_params
+	paramsKey mockConverterer_NewFunc_paramsKey
+	results   *mockConverterer_NewFunc_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_IsolationAccessor_params holds the params of the Converterer type
 type mockConverterer_IsolationAccessor_params struct{ typeName, suffix, fnName string }
+
+// mockConverterer_IsolationAccessor_paramsKey holds the map key params of the Converterer type
+type mockConverterer_IsolationAccessor_paramsKey struct{ typeName, suffix, fnName string }
 
 // mockConverterer_IsolationAccessor_resultMgr manages multiple results and the state of the Converterer type
 type mockConverterer_IsolationAccessor_resultMgr struct {
@@ -141,13 +169,20 @@ type mockConverterer_IsolationAccessor_results struct{ funcDecl *dst.FuncDecl }
 
 // mockConverterer_IsolationAccessor_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_IsolationAccessor_fnRecorder struct {
-	params  mockConverterer_IsolationAccessor_params
-	results *mockConverterer_IsolationAccessor_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_IsolationAccessor_params
+	paramsKey mockConverterer_IsolationAccessor_paramsKey
+	results   *mockConverterer_IsolationAccessor_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_FuncClosure_params holds the params of the Converterer type
 type mockConverterer_FuncClosure_params struct {
+	typeName, pkgPath string
+	fn                generator.Func
+}
+
+// mockConverterer_FuncClosure_paramsKey holds the map key params of the Converterer type
+type mockConverterer_FuncClosure_paramsKey struct {
 	typeName, pkgPath string
 	fn                generator.Func
 }
@@ -164,13 +199,20 @@ type mockConverterer_FuncClosure_results struct{ funcDecl *dst.FuncDecl }
 
 // mockConverterer_FuncClosure_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_FuncClosure_fnRecorder struct {
-	params  mockConverterer_FuncClosure_params
-	results *mockConverterer_FuncClosure_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_FuncClosure_params
+	paramsKey mockConverterer_FuncClosure_paramsKey
+	results   *mockConverterer_FuncClosure_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_MockMethod_params holds the params of the Converterer type
 type mockConverterer_MockMethod_params struct {
+	typeName string
+	fn       generator.Func
+}
+
+// mockConverterer_MockMethod_paramsKey holds the map key params of the Converterer type
+type mockConverterer_MockMethod_paramsKey struct {
 	typeName string
 	fn       generator.Func
 }
@@ -187,13 +229,20 @@ type mockConverterer_MockMethod_results struct{ funcDecl *dst.FuncDecl }
 
 // mockConverterer_MockMethod_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_MockMethod_fnRecorder struct {
-	params  mockConverterer_MockMethod_params
-	results *mockConverterer_MockMethod_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_MockMethod_params
+	paramsKey mockConverterer_MockMethod_paramsKey
+	results   *mockConverterer_MockMethod_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_RecorderMethods_params holds the params of the Converterer type
 type mockConverterer_RecorderMethods_params struct {
+	typeName string
+	fn       generator.Func
+}
+
+// mockConverterer_RecorderMethods_paramsKey holds the map key params of the Converterer type
+type mockConverterer_RecorderMethods_paramsKey struct {
 	typeName string
 	fn       generator.Func
 }
@@ -210,13 +259,20 @@ type mockConverterer_RecorderMethods_results struct{ funcDecls []dst.Decl }
 
 // mockConverterer_RecorderMethods_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_RecorderMethods_fnRecorder struct {
-	params  mockConverterer_RecorderMethods_params
-	results *mockConverterer_RecorderMethods_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_RecorderMethods_params
+	paramsKey mockConverterer_RecorderMethods_paramsKey
+	results   *mockConverterer_RecorderMethods_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_ResetMethod_params holds the params of the Converterer type
 type mockConverterer_ResetMethod_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    []generator.Func
+}
+
+// mockConverterer_ResetMethod_paramsKey holds the map key params of the Converterer type
+type mockConverterer_ResetMethod_paramsKey struct {
 	typeSpec *dst.TypeSpec
 	funcs    hash.Hash
 }
@@ -233,13 +289,20 @@ type mockConverterer_ResetMethod_results struct{ funcDecl *dst.FuncDecl }
 
 // mockConverterer_ResetMethod_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_ResetMethod_fnRecorder struct {
-	params  mockConverterer_ResetMethod_params
-	results *mockConverterer_ResetMethod_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_ResetMethod_params
+	paramsKey mockConverterer_ResetMethod_paramsKey
+	results   *mockConverterer_ResetMethod_resultMgr
+	mock      *mockConverterer
 }
 
 // mockConverterer_AssertMethod_params holds the params of the Converterer type
 type mockConverterer_AssertMethod_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    []generator.Func
+}
+
+// mockConverterer_AssertMethod_paramsKey holds the map key params of the Converterer type
+type mockConverterer_AssertMethod_paramsKey struct {
 	typeSpec *dst.TypeSpec
 	funcs    hash.Hash
 }
@@ -256,9 +319,10 @@ type mockConverterer_AssertMethod_results struct{ funcDecl *dst.FuncDecl }
 
 // mockConverterer_AssertMethod_fnRecorder routes recorded function calls to the mockConverterer mock
 type mockConverterer_AssertMethod_fnRecorder struct {
-	params  mockConverterer_AssertMethod_params
-	results *mockConverterer_AssertMethod_resultMgr
-	mock    *mockConverterer
+	params    mockConverterer_AssertMethod_params
+	paramsKey mockConverterer_AssertMethod_paramsKey
+	results   *mockConverterer_AssertMethod_resultMgr
+	mock      *mockConverterer
 }
 
 // newMockConverterer creates a new mock of the Converterer type
@@ -283,7 +347,7 @@ func (m *mockConverterer) mock() *mockConverterer_mock {
 }
 
 func (m *mockConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generator.Func) (structDecl *dst.GenDecl) {
-	params := mockConverterer_BaseStruct_params{
+	params := mockConverterer_BaseStruct_paramsKey{
 		typeSpec: typeSpec,
 		funcs:    hash.DeepHash(funcs),
 	}
@@ -311,7 +375,7 @@ func (m *mockConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []genera
 }
 
 func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
-	params := mockConverterer_IsolationStruct_params{
+	params := mockConverterer_IsolationStruct_paramsKey{
 		typeName: typeName,
 		suffix:   suffix,
 	}
@@ -339,7 +403,7 @@ func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structD
 }
 
 func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl) {
-	params := mockConverterer_MethodStructs_params{
+	params := mockConverterer_MethodStructs_paramsKey{
 		typeSpec: typeSpec,
 		fn:       fn,
 	}
@@ -367,7 +431,7 @@ func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generato
 }
 
 func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
-	params := mockConverterer_NewFunc_params{
+	params := mockConverterer_NewFunc_paramsKey{
 		typeSpec: typeSpec,
 		funcs:    hash.DeepHash(funcs),
 	}
@@ -395,7 +459,7 @@ func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator
 }
 
 func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl) {
-	params := mockConverterer_IsolationAccessor_params{
+	params := mockConverterer_IsolationAccessor_paramsKey{
 		typeName: typeName,
 		suffix:   suffix,
 		fnName:   fnName,
@@ -424,7 +488,7 @@ func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string
 }
 
 func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl) {
-	params := mockConverterer_FuncClosure_params{
+	params := mockConverterer_FuncClosure_paramsKey{
 		typeName: typeName,
 		pkgPath:  pkgPath,
 		fn:       fn,
@@ -453,7 +517,7 @@ func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generato
 }
 
 func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (funcDecl *dst.FuncDecl) {
-	params := mockConverterer_MockMethod_params{
+	params := mockConverterer_MockMethod_paramsKey{
 		typeName: typeName,
 		fn:       fn,
 	}
@@ -481,7 +545,7 @@ func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (f
 }
 
 func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Func) (funcDecls []dst.Decl) {
-	params := mockConverterer_RecorderMethods_params{
+	params := mockConverterer_RecorderMethods_paramsKey{
 		typeName: typeName,
 		fn:       fn,
 	}
@@ -509,7 +573,7 @@ func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Fun
 }
 
 func (m *mockConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
-	params := mockConverterer_ResetMethod_params{
+	params := mockConverterer_ResetMethod_paramsKey{
 		typeSpec: typeSpec,
 		funcs:    hash.DeepHash(funcs),
 	}
@@ -537,7 +601,7 @@ func (m *mockConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []gener
 }
 
 func (m *mockConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
-	params := mockConverterer_AssertMethod_params{
+	params := mockConverterer_AssertMethod_paramsKey{
 		typeSpec: typeSpec,
 		funcs:    hash.DeepHash(funcs),
 	}
@@ -575,6 +639,10 @@ func (m *mockConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []ge
 	return &mockConverterer_BaseStruct_fnRecorder{
 		params: mockConverterer_BaseStruct_params{
 			typeSpec: typeSpec,
+			funcs:    funcs,
+		},
+		paramsKey: mockConverterer_BaseStruct_paramsKey{
+			typeSpec: typeSpec,
 			funcs:    hash.DeepHash(funcs),
 		},
 		mock: m.mock,
@@ -583,13 +651,13 @@ func (m *mockConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []ge
 
 func (r *mockConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *mockConverterer_BaseStruct_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_BaseStruct[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_BaseStruct[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_BaseStruct_resultMgr{results: []*mockConverterer_BaseStruct_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_BaseStruct[r.params] = r.results
+		r.mock.resultsByParams_BaseStruct[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_BaseStruct_results{
 		structDecl: structDecl,
@@ -623,19 +691,23 @@ func (m *mockConverterer_recorder) IsolationStruct(typeName, suffix string) *moc
 			typeName: typeName,
 			suffix:   suffix,
 		},
+		paramsKey: mockConverterer_IsolationStruct_paramsKey{
+			typeName: typeName,
+			suffix:   suffix,
+		},
 		mock: m.mock,
 	}
 }
 
 func (r *mockConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *mockConverterer_IsolationStruct_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_IsolationStruct[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_IsolationStruct[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_IsolationStruct_resultMgr{results: []*mockConverterer_IsolationStruct_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_IsolationStruct[r.params] = r.results
+		r.mock.resultsByParams_IsolationStruct[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_IsolationStruct_results{
 		structDecl: structDecl,
@@ -669,19 +741,23 @@ func (m *mockConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn gene
 			typeSpec: typeSpec,
 			fn:       fn,
 		},
+		paramsKey: mockConverterer_MethodStructs_paramsKey{
+			typeSpec: typeSpec,
+			fn:       fn,
+		},
 		mock: m.mock,
 	}
 }
 
 func (r *mockConverterer_MethodStructs_fnRecorder) returnResults(structDecls []dst.Decl) *mockConverterer_MethodStructs_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_MethodStructs[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_MethodStructs[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_MethodStructs_resultMgr{results: []*mockConverterer_MethodStructs_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_MethodStructs[r.params] = r.results
+		r.mock.resultsByParams_MethodStructs[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_MethodStructs_results{
 		structDecls: structDecls,
@@ -713,6 +789,10 @@ func (m *mockConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec, funcs []gener
 	return &mockConverterer_NewFunc_fnRecorder{
 		params: mockConverterer_NewFunc_params{
 			typeSpec: typeSpec,
+			funcs:    funcs,
+		},
+		paramsKey: mockConverterer_NewFunc_paramsKey{
+			typeSpec: typeSpec,
 			funcs:    hash.DeepHash(funcs),
 		},
 		mock: m.mock,
@@ -721,13 +801,13 @@ func (m *mockConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec, funcs []gener
 
 func (r *mockConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_NewFunc_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_NewFunc[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_NewFunc[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_NewFunc_resultMgr{results: []*mockConverterer_NewFunc_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_NewFunc[r.params] = r.results
+		r.mock.resultsByParams_NewFunc[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_NewFunc_results{
 		funcDecl: funcDecl,
@@ -762,19 +842,24 @@ func (m *mockConverterer_recorder) IsolationAccessor(typeName, suffix, fnName st
 			suffix:   suffix,
 			fnName:   fnName,
 		},
+		paramsKey: mockConverterer_IsolationAccessor_paramsKey{
+			typeName: typeName,
+			suffix:   suffix,
+			fnName:   fnName,
+		},
 		mock: m.mock,
 	}
 }
 
 func (r *mockConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_IsolationAccessor_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_IsolationAccessor[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_IsolationAccessor[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_IsolationAccessor_resultMgr{results: []*mockConverterer_IsolationAccessor_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_IsolationAccessor[r.params] = r.results
+		r.mock.resultsByParams_IsolationAccessor[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_IsolationAccessor_results{
 		funcDecl: funcDecl,
@@ -809,19 +894,24 @@ func (m *mockConverterer_recorder) FuncClosure(typeName, pkgPath string, fn gene
 			pkgPath:  pkgPath,
 			fn:       fn,
 		},
+		paramsKey: mockConverterer_FuncClosure_paramsKey{
+			typeName: typeName,
+			pkgPath:  pkgPath,
+			fn:       fn,
+		},
 		mock: m.mock,
 	}
 }
 
 func (r *mockConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_FuncClosure_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_FuncClosure[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_FuncClosure[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_FuncClosure_resultMgr{results: []*mockConverterer_FuncClosure_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_FuncClosure[r.params] = r.results
+		r.mock.resultsByParams_FuncClosure[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_FuncClosure_results{
 		funcDecl: funcDecl,
@@ -855,19 +945,23 @@ func (m *mockConverterer_recorder) MockMethod(typeName string, fn generator.Func
 			typeName: typeName,
 			fn:       fn,
 		},
+		paramsKey: mockConverterer_MockMethod_paramsKey{
+			typeName: typeName,
+			fn:       fn,
+		},
 		mock: m.mock,
 	}
 }
 
 func (r *mockConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_MockMethod_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_MockMethod[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_MockMethod[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_MockMethod_resultMgr{results: []*mockConverterer_MockMethod_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_MockMethod[r.params] = r.results
+		r.mock.resultsByParams_MockMethod[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_MockMethod_results{
 		funcDecl: funcDecl,
@@ -901,19 +995,23 @@ func (m *mockConverterer_recorder) RecorderMethods(typeName string, fn generator
 			typeName: typeName,
 			fn:       fn,
 		},
+		paramsKey: mockConverterer_RecorderMethods_paramsKey{
+			typeName: typeName,
+			fn:       fn,
+		},
 		mock: m.mock,
 	}
 }
 
 func (r *mockConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []dst.Decl) *mockConverterer_RecorderMethods_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_RecorderMethods[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_RecorderMethods[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_RecorderMethods_resultMgr{results: []*mockConverterer_RecorderMethods_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_RecorderMethods[r.params] = r.results
+		r.mock.resultsByParams_RecorderMethods[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_RecorderMethods_results{
 		funcDecls: funcDecls,
@@ -945,6 +1043,10 @@ func (m *mockConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []g
 	return &mockConverterer_ResetMethod_fnRecorder{
 		params: mockConverterer_ResetMethod_params{
 			typeSpec: typeSpec,
+			funcs:    funcs,
+		},
+		paramsKey: mockConverterer_ResetMethod_paramsKey{
+			typeSpec: typeSpec,
 			funcs:    hash.DeepHash(funcs),
 		},
 		mock: m.mock,
@@ -953,13 +1055,13 @@ func (m *mockConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []g
 
 func (r *mockConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_ResetMethod_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_ResetMethod[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_ResetMethod[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_ResetMethod_resultMgr{results: []*mockConverterer_ResetMethod_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_ResetMethod[r.params] = r.results
+		r.mock.resultsByParams_ResetMethod[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_ResetMethod_results{
 		funcDecl: funcDecl,
@@ -991,6 +1093,10 @@ func (m *mockConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []
 	return &mockConverterer_AssertMethod_fnRecorder{
 		params: mockConverterer_AssertMethod_params{
 			typeSpec: typeSpec,
+			funcs:    funcs,
+		},
+		paramsKey: mockConverterer_AssertMethod_paramsKey{
+			typeSpec: typeSpec,
 			funcs:    hash.DeepHash(funcs),
 		},
 		mock: m.mock,
@@ -999,13 +1105,13 @@ func (m *mockConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []
 
 func (r *mockConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *mockConverterer_AssertMethod_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_AssertMethod[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_AssertMethod[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockConverterer_AssertMethod_resultMgr{results: []*mockConverterer_AssertMethod_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_AssertMethod[r.params] = r.results
+		r.mock.resultsByParams_AssertMethod[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockConverterer_AssertMethod_results{
 		funcDecl: funcDecl,
@@ -1035,16 +1141,16 @@ func (r *mockConverterer_AssertMethod_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockConverterer) Reset() {
-	m.resultsByParams_BaseStruct = map[mockConverterer_BaseStruct_params]*mockConverterer_BaseStruct_resultMgr{}
-	m.resultsByParams_IsolationStruct = map[mockConverterer_IsolationStruct_params]*mockConverterer_IsolationStruct_resultMgr{}
-	m.resultsByParams_MethodStructs = map[mockConverterer_MethodStructs_params]*mockConverterer_MethodStructs_resultMgr{}
-	m.resultsByParams_NewFunc = map[mockConverterer_NewFunc_params]*mockConverterer_NewFunc_resultMgr{}
-	m.resultsByParams_IsolationAccessor = map[mockConverterer_IsolationAccessor_params]*mockConverterer_IsolationAccessor_resultMgr{}
-	m.resultsByParams_FuncClosure = map[mockConverterer_FuncClosure_params]*mockConverterer_FuncClosure_resultMgr{}
-	m.resultsByParams_MockMethod = map[mockConverterer_MockMethod_params]*mockConverterer_MockMethod_resultMgr{}
-	m.resultsByParams_RecorderMethods = map[mockConverterer_RecorderMethods_params]*mockConverterer_RecorderMethods_resultMgr{}
-	m.resultsByParams_ResetMethod = map[mockConverterer_ResetMethod_params]*mockConverterer_ResetMethod_resultMgr{}
-	m.resultsByParams_AssertMethod = map[mockConverterer_AssertMethod_params]*mockConverterer_AssertMethod_resultMgr{}
+	m.resultsByParams_BaseStruct = map[mockConverterer_BaseStruct_paramsKey]*mockConverterer_BaseStruct_resultMgr{}
+	m.resultsByParams_IsolationStruct = map[mockConverterer_IsolationStruct_paramsKey]*mockConverterer_IsolationStruct_resultMgr{}
+	m.resultsByParams_MethodStructs = map[mockConverterer_MethodStructs_paramsKey]*mockConverterer_MethodStructs_resultMgr{}
+	m.resultsByParams_NewFunc = map[mockConverterer_NewFunc_paramsKey]*mockConverterer_NewFunc_resultMgr{}
+	m.resultsByParams_IsolationAccessor = map[mockConverterer_IsolationAccessor_paramsKey]*mockConverterer_IsolationAccessor_resultMgr{}
+	m.resultsByParams_FuncClosure = map[mockConverterer_FuncClosure_paramsKey]*mockConverterer_FuncClosure_resultMgr{}
+	m.resultsByParams_MockMethod = map[mockConverterer_MockMethod_paramsKey]*mockConverterer_MockMethod_resultMgr{}
+	m.resultsByParams_RecorderMethods = map[mockConverterer_RecorderMethods_paramsKey]*mockConverterer_RecorderMethods_resultMgr{}
+	m.resultsByParams_ResetMethod = map[mockConverterer_ResetMethod_paramsKey]*mockConverterer_ResetMethod_resultMgr{}
+	m.resultsByParams_AssertMethod = map[mockConverterer_AssertMethod_paramsKey]*mockConverterer_AssertMethod_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

@@ -13,7 +13,7 @@ import (
 type mockNoResultsFn struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockNoResultsFn_params]*mockNoResultsFn_resultMgr
+	resultsByParams map[mockNoResultsFn_paramsKey]*mockNoResultsFn_resultMgr
 }
 
 // mockNoResultsFn_mock isolates the mock interface of the NoResultsFn type
@@ -32,6 +32,12 @@ type mockNoResultsFn_params struct {
 	bParam bool
 }
 
+// mockNoResultsFn_paramsKey holds the map key params of the NoResultsFn type
+type mockNoResultsFn_paramsKey struct {
+	sParam string
+	bParam bool
+}
+
 // mockNoResultsFn_resultMgr manages multiple results and the state of the NoResultsFn type
 type mockNoResultsFn_resultMgr struct {
 	results  []*mockNoResultsFn_results
@@ -45,9 +51,10 @@ type mockNoResultsFn_results struct {
 
 // mockNoResultsFn_fnRecorder routes recorded function calls to the mockNoResultsFn mock
 type mockNoResultsFn_fnRecorder struct {
-	params  mockNoResultsFn_params
-	results *mockNoResultsFn_resultMgr
-	mock    *mockNoResultsFn
+	params    mockNoResultsFn_params
+	paramsKey mockNoResultsFn_paramsKey
+	results   *mockNoResultsFn_resultMgr
+	mock      *mockNoResultsFn
 }
 
 // newMockNoResultsFn creates a new mock of the NoResultsFn type
@@ -70,7 +77,7 @@ func (m *mockNoResultsFn) mock() testmocks.NoResultsFn {
 }
 
 func (m *mockNoResultsFn_mock) fn(sParam string, bParam bool) {
-	params := mockNoResultsFn_params{
+	params := mockNoResultsFn_paramsKey{
 		sParam: sParam,
 		bParam: bParam,
 	}
@@ -101,19 +108,23 @@ func (m *mockNoResultsFn) onCall(sParam string, bParam bool) *mockNoResultsFn_fn
 			sParam: sParam,
 			bParam: bParam,
 		},
+		paramsKey: mockNoResultsFn_paramsKey{
+			sParam: sParam,
+			bParam: bParam,
+		},
 		mock: m,
 	}
 }
 
 func (r *mockNoResultsFn_fnRecorder) returnResults() *mockNoResultsFn_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockNoResultsFn_resultMgr{results: []*mockNoResultsFn_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams[r.params] = r.results
+		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockNoResultsFn_results{})
 	return r
@@ -141,7 +152,7 @@ func (r *mockNoResultsFn_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockNoResultsFn) Reset() {
-	m.resultsByParams = map[mockNoResultsFn_params]*mockNoResultsFn_resultMgr{}
+	m.resultsByParams = map[mockNoResultsFn_paramsKey]*mockNoResultsFn_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

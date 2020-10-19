@@ -14,7 +14,7 @@ import (
 type mockLoadTypesFn struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockLoadTypesFn_params]*mockLoadTypesFn_resultMgr
+	resultsByParams map[mockLoadTypesFn_paramsKey]*mockLoadTypesFn_resultMgr
 }
 
 // mockLoadTypesFn_mock isolates the mock interface of the LoadTypesFn type
@@ -29,6 +29,12 @@ type mockLoadTypesFn_recorder struct {
 
 // mockLoadTypesFn_params holds the params of the LoadTypesFn type
 type mockLoadTypesFn_params struct {
+	pkg           string
+	loadTestTypes bool
+}
+
+// mockLoadTypesFn_paramsKey holds the map key params of the LoadTypesFn type
+type mockLoadTypesFn_paramsKey struct {
 	pkg           string
 	loadTestTypes bool
 }
@@ -49,9 +55,10 @@ type mockLoadTypesFn_results struct {
 
 // mockLoadTypesFn_fnRecorder routes recorded function calls to the mockLoadTypesFn mock
 type mockLoadTypesFn_fnRecorder struct {
-	params  mockLoadTypesFn_params
-	results *mockLoadTypesFn_resultMgr
-	mock    *mockLoadTypesFn
+	params    mockLoadTypesFn_params
+	paramsKey mockLoadTypesFn_paramsKey
+	results   *mockLoadTypesFn_resultMgr
+	mock      *mockLoadTypesFn
 }
 
 // newMockLoadTypesFn creates a new mock of the LoadTypesFn type
@@ -79,7 +86,7 @@ func (m *mockLoadTypesFn) mock() generator.LoadTypesFn {
 
 func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 	typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
-	params := mockLoadTypesFn_params{
+	params := mockLoadTypesFn_paramsKey{
 		pkg:           pkg,
 		loadTestTypes: loadTestTypes,
 	}
@@ -114,6 +121,10 @@ func (m *mockLoadTypesFn) onCall(pkg string, loadTestTypes bool) *mockLoadTypesF
 			pkg:           pkg,
 			loadTestTypes: loadTestTypes,
 		},
+		paramsKey: mockLoadTypesFn_paramsKey{
+			pkg:           pkg,
+			loadTestTypes: loadTestTypes,
+		},
 		mock: m,
 	}
 }
@@ -121,13 +132,13 @@ func (m *mockLoadTypesFn) onCall(pkg string, loadTestTypes bool) *mockLoadTypesF
 func (r *mockLoadTypesFn_fnRecorder) returnResults(
 	typeSpecs []*dst.TypeSpec, pkgPath string, err error) *mockLoadTypesFn_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockLoadTypesFn_resultMgr{results: []*mockLoadTypesFn_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams[r.params] = r.results
+		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockLoadTypesFn_results{
 		typeSpecs: typeSpecs,
@@ -159,7 +170,7 @@ func (r *mockLoadTypesFn_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockLoadTypesFn) Reset() {
-	m.resultsByParams = map[mockLoadTypesFn_params]*mockLoadTypesFn_resultMgr{}
+	m.resultsByParams = map[mockLoadTypesFn_paramsKey]*mockLoadTypesFn_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

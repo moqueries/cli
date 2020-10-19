@@ -12,8 +12,8 @@ import (
 type mockMock struct {
 	scene                                 *moq.Scene
 	config                                moq.MockConfig
-	resultsByParams_Reset                 map[mockMock_Reset_params]*mockMock_Reset_resultMgr
-	resultsByParams_AssertExpectationsMet map[mockMock_AssertExpectationsMet_params]*mockMock_AssertExpectationsMet_resultMgr
+	resultsByParams_Reset                 map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr
+	resultsByParams_AssertExpectationsMet map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr
 }
 
 // mockMock_mock isolates the mock interface of the Mock type
@@ -29,6 +29,9 @@ type mockMock_recorder struct {
 // mockMock_Reset_params holds the params of the Mock type
 type mockMock_Reset_params struct{}
 
+// mockMock_Reset_paramsKey holds the map key params of the Mock type
+type mockMock_Reset_paramsKey struct{}
+
 // mockMock_Reset_resultMgr manages multiple results and the state of the Mock type
 type mockMock_Reset_resultMgr struct {
 	results  []*mockMock_Reset_results
@@ -42,13 +45,17 @@ type mockMock_Reset_results struct {
 
 // mockMock_Reset_fnRecorder routes recorded function calls to the mockMock mock
 type mockMock_Reset_fnRecorder struct {
-	params  mockMock_Reset_params
-	results *mockMock_Reset_resultMgr
-	mock    *mockMock
+	params    mockMock_Reset_params
+	paramsKey mockMock_Reset_paramsKey
+	results   *mockMock_Reset_resultMgr
+	mock      *mockMock
 }
 
 // mockMock_AssertExpectationsMet_params holds the params of the Mock type
 type mockMock_AssertExpectationsMet_params struct{}
+
+// mockMock_AssertExpectationsMet_paramsKey holds the map key params of the Mock type
+type mockMock_AssertExpectationsMet_paramsKey struct{}
 
 // mockMock_AssertExpectationsMet_resultMgr manages multiple results and the state of the Mock type
 type mockMock_AssertExpectationsMet_resultMgr struct {
@@ -63,9 +70,10 @@ type mockMock_AssertExpectationsMet_results struct {
 
 // mockMock_AssertExpectationsMet_fnRecorder routes recorded function calls to the mockMock mock
 type mockMock_AssertExpectationsMet_fnRecorder struct {
-	params  mockMock_AssertExpectationsMet_params
-	results *mockMock_AssertExpectationsMet_resultMgr
-	mock    *mockMock
+	params    mockMock_AssertExpectationsMet_params
+	paramsKey mockMock_AssertExpectationsMet_paramsKey
+	results   *mockMock_AssertExpectationsMet_resultMgr
+	mock      *mockMock
 }
 
 // newMockMock creates a new mock of the Mock type
@@ -90,7 +98,7 @@ func (m *mockMock) mock() *mockMock_mock {
 }
 
 func (m *mockMock_mock) Reset() {
-	params := mockMock_Reset_params{}
+	params := mockMock_Reset_paramsKey{}
 	results, ok := m.mock.resultsByParams_Reset[params]
 	if !ok {
 		if m.mock.config.Expectation == moq.Strict {
@@ -113,7 +121,7 @@ func (m *mockMock_mock) Reset() {
 }
 
 func (m *mockMock_mock) AssertExpectationsMet() {
-	params := mockMock_AssertExpectationsMet_params{}
+	params := mockMock_AssertExpectationsMet_paramsKey{}
 	results, ok := m.mock.resultsByParams_AssertExpectationsMet[params]
 	if !ok {
 		if m.mock.config.Expectation == moq.Strict {
@@ -144,20 +152,21 @@ func (m *mockMock) onCall() *mockMock_recorder {
 
 func (m *mockMock_recorder) Reset() *mockMock_Reset_fnRecorder {
 	return &mockMock_Reset_fnRecorder{
-		params: mockMock_Reset_params{},
-		mock:   m.mock,
+		params:    mockMock_Reset_params{},
+		paramsKey: mockMock_Reset_paramsKey{},
+		mock:      m.mock,
 	}
 }
 
 func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_Reset[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_Reset[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockMock_Reset_resultMgr{results: []*mockMock_Reset_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_Reset[r.params] = r.results
+		r.mock.resultsByParams_Reset[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockMock_Reset_results{})
 	return r
@@ -185,20 +194,21 @@ func (r *mockMock_Reset_fnRecorder) anyTimes() {
 
 func (m *mockMock_recorder) AssertExpectationsMet() *mockMock_AssertExpectationsMet_fnRecorder {
 	return &mockMock_AssertExpectationsMet_fnRecorder{
-		params: mockMock_AssertExpectationsMet_params{},
-		mock:   m.mock,
+		params:    mockMock_AssertExpectationsMet_params{},
+		paramsKey: mockMock_AssertExpectationsMet_paramsKey{},
+		mock:      m.mock,
 	}
 }
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_AssertExpectationsMet_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_AssertExpectationsMet[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams_AssertExpectationsMet[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockMock_AssertExpectationsMet_resultMgr{results: []*mockMock_AssertExpectationsMet_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams_AssertExpectationsMet[r.params] = r.results
+		r.mock.resultsByParams_AssertExpectationsMet[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockMock_AssertExpectationsMet_results{})
 	return r
@@ -226,8 +236,8 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockMock) Reset() {
-	m.resultsByParams_Reset = map[mockMock_Reset_params]*mockMock_Reset_resultMgr{}
-	m.resultsByParams_AssertExpectationsMet = map[mockMock_AssertExpectationsMet_params]*mockMock_AssertExpectationsMet_resultMgr{}
+	m.resultsByParams_Reset = map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr{}
+	m.resultsByParams_AssertExpectationsMet = map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

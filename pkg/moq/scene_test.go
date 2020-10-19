@@ -43,10 +43,6 @@ var _ = Describe("Scene", func() {
 		testScene.Reset()
 
 		// ASSERT
-		Expect(mock1.resultsByParams_Reset[mockMock_Reset_params{}].index).
-			To(Equal(uint32(1)))
-		Expect(mock2.resultsByParams_Reset[mockMock_Reset_params{}].index).
-			To(Equal(uint32(1)))
 	})
 
 	It("asserts all of its mocks meet expectations", func() {
@@ -58,10 +54,6 @@ var _ = Describe("Scene", func() {
 		testScene.AssertExpectationsMet()
 
 		// ASSERT
-		Expect(mock1.resultsByParams_AssertExpectationsMet[mockMock_AssertExpectationsMet_params{}].index).
-			To(Equal(uint32(1)))
-		Expect(mock2.resultsByParams_AssertExpectationsMet[mockMock_AssertExpectationsMet_params{}].index).
-			To(Equal(uint32(1)))
 	})
 
 	It("returns the same MoqT it is given", func() {

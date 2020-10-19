@@ -13,7 +13,7 @@ import (
 type MockRepeatedIdsFn struct {
 	Scene           *moq.Scene
 	Config          moq.MockConfig
-	ResultsByParams map[MockRepeatedIdsFn_params]*MockRepeatedIdsFn_resultMgr
+	ResultsByParams map[MockRepeatedIdsFn_paramsKey]*MockRepeatedIdsFn_resultMgr
 }
 
 // MockRepeatedIdsFn_mock isolates the mock interface of the RepeatedIdsFn type
@@ -28,6 +28,12 @@ type MockRepeatedIdsFn_recorder struct {
 
 // MockRepeatedIdsFn_params holds the params of the RepeatedIdsFn type
 type MockRepeatedIdsFn_params struct {
+	SParam1, SParam2 string
+	BParam           bool
+}
+
+// MockRepeatedIdsFn_paramsKey holds the map key params of the RepeatedIdsFn type
+type MockRepeatedIdsFn_paramsKey struct {
 	SParam1, SParam2 string
 	BParam           bool
 }
@@ -47,9 +53,10 @@ type MockRepeatedIdsFn_results struct {
 
 // MockRepeatedIdsFn_fnRecorder routes recorded function calls to the MockRepeatedIdsFn mock
 type MockRepeatedIdsFn_fnRecorder struct {
-	Params  MockRepeatedIdsFn_params
-	Results *MockRepeatedIdsFn_resultMgr
-	Mock    *MockRepeatedIdsFn
+	Params    MockRepeatedIdsFn_params
+	ParamsKey MockRepeatedIdsFn_paramsKey
+	Results   *MockRepeatedIdsFn_resultMgr
+	Mock      *MockRepeatedIdsFn
 }
 
 // NewMockRepeatedIdsFn creates a new mock of the RepeatedIdsFn type
@@ -75,7 +82,7 @@ func (m *MockRepeatedIdsFn) Mock() testmocks.RepeatedIdsFn {
 }
 
 func (m *MockRepeatedIdsFn_mock) Fn(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
-	params := MockRepeatedIdsFn_params{
+	params := MockRepeatedIdsFn_paramsKey{
 		SParam1: sParam1,
 		SParam2: sParam2,
 		BParam:  bParam,
@@ -112,19 +119,24 @@ func (m *MockRepeatedIdsFn) OnCall(sParam1, sParam2 string, bParam bool) *MockRe
 			SParam2: sParam2,
 			BParam:  bParam,
 		},
+		ParamsKey: MockRepeatedIdsFn_paramsKey{
+			SParam1: sParam1,
+			SParam2: sParam2,
+			BParam:  bParam,
+		},
 		Mock: m,
 	}
 }
 
 func (r *MockRepeatedIdsFn_fnRecorder) ReturnResults(sResult1, sResult2 string, err error) *MockRepeatedIdsFn_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockRepeatedIdsFn_resultMgr{Results: []*MockRepeatedIdsFn_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams[r.Params] = r.Results
+		r.Mock.ResultsByParams[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockRepeatedIdsFn_results{
 		SResult1: sResult1,
@@ -156,7 +168,7 @@ func (r *MockRepeatedIdsFn_fnRecorder) AnyTimes() {
 
 // Reset resets the state of the mock
 func (m *MockRepeatedIdsFn) Reset() {
-	m.ResultsByParams = map[MockRepeatedIdsFn_params]*MockRepeatedIdsFn_resultMgr{}
+	m.ResultsByParams = map[MockRepeatedIdsFn_paramsKey]*MockRepeatedIdsFn_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

@@ -40,7 +40,7 @@ func (a *usualFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam boo
 }
 
 func (a *usualFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockUsualFn_params{sParam: sParams[0], bParam: bParam}
+	return mockUsualFn_paramsKey{sParam: sParams[0], bParam: bParam}
 }
 
 func (a *usualFnAdaptor) sceneMock() moq.Mock {
@@ -79,7 +79,7 @@ func (a *exportedUsualFnAdaptor) invokeMockAndExpectResults(sParams []string, bP
 }
 
 func (a *exportedUsualFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockUsualFn_params{SParam: sParams[0], BParam: bParam}
+	return exported.MockUsualFn_paramsKey{SParam: sParams[0], BParam: bParam}
 }
 
 func (a *exportedUsualFnAdaptor) sceneMock() moq.Mock {
@@ -118,7 +118,7 @@ func (a *noNamesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam b
 }
 
 func (a *noNamesFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockNoNamesFn_params{sParam: sParams[0], bParam: bParam}
+	return mockNoNamesFn_paramsKey{sParam: sParams[0], bParam: bParam}
 }
 
 func (a *noNamesFnAdaptor) sceneMock() moq.Mock {
@@ -157,7 +157,7 @@ func (a *exportedNoNamesFnAdaptor) invokeMockAndExpectResults(sParams []string, 
 }
 
 func (a *exportedNoNamesFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockNoNamesFn_params{SParam: sParams[0], BParam: bParam}
+	return exported.MockNoNamesFn_paramsKey{SParam: sParams[0], BParam: bParam}
 }
 
 func (a *exportedNoNamesFnAdaptor) sceneMock() moq.Mock {
@@ -190,7 +190,7 @@ func (a *noResultsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam
 }
 
 func (a *noResultsFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockNoResultsFn_params{sParam: sParams[0], bParam: bParam}
+	return mockNoResultsFn_paramsKey{sParam: sParams[0], bParam: bParam}
 }
 
 func (a *noResultsFnAdaptor) sceneMock() moq.Mock {
@@ -223,7 +223,7 @@ func (a *exportedNoResultsFnAdaptor) invokeMockAndExpectResults(sParams []string
 }
 
 func (a *exportedNoResultsFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockNoResultsFn_params{SParam: sParams[0], BParam: bParam}
+	return exported.MockNoResultsFn_paramsKey{SParam: sParams[0], BParam: bParam}
 }
 
 func (a *exportedNoResultsFnAdaptor) sceneMock() moq.Mock {
@@ -262,7 +262,7 @@ func (a *noParamsFnAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res r
 }
 
 func (a *noParamsFnAdaptor) bundleParams([]string, bool) interface{} {
-	return mockNoParamsFn_params{}
+	return mockNoParamsFn_paramsKey{}
 }
 
 func (a *noParamsFnAdaptor) sceneMock() moq.Mock {
@@ -301,7 +301,7 @@ func (a *exportedNoParamsFnAdaptor) invokeMockAndExpectResults(_ []string, _ boo
 }
 
 func (a *exportedNoParamsFnAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MockNoParamsFn_params{}
+	return exported.MockNoParamsFn_paramsKey{}
 }
 
 func (a *exportedNoParamsFnAdaptor) sceneMock() moq.Mock {
@@ -334,7 +334,7 @@ func (a *nothingFnAdaptor) invokeMockAndExpectResults([]string, bool, results) {
 }
 
 func (a *nothingFnAdaptor) bundleParams([]string, bool) interface{} {
-	return mockNothingFn_params{}
+	return mockNothingFn_paramsKey{}
 }
 
 func (a *nothingFnAdaptor) sceneMock() moq.Mock {
@@ -367,7 +367,7 @@ func (a *exportedNothingFnAdaptor) invokeMockAndExpectResults([]string, bool, re
 }
 
 func (a *exportedNothingFnAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MockNothingFn_params{}
+	return exported.MockNothingFn_paramsKey{}
 }
 
 func (a *exportedNothingFnAdaptor) sceneMock() moq.Mock {
@@ -406,7 +406,7 @@ func (a *variadicFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam 
 }
 
 func (a *variadicFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockVariadicFn_params{args: hash.DeepHash(sParams), other: bParam}
+	return mockVariadicFn_paramsKey{args: hash.DeepHash(sParams), other: bParam}
 }
 
 func (a *variadicFnAdaptor) sceneMock() moq.Mock {
@@ -445,7 +445,7 @@ func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(sParams []string,
 }
 
 func (a *exportedVariadicFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockVariadicFn_params{Args: hash.DeepHash(sParams), Other: bParam}
+	return exported.MockVariadicFn_paramsKey{Args: hash.DeepHash(sParams), Other: bParam}
 }
 
 func (a *exportedVariadicFnAdaptor) sceneMock() moq.Mock {
@@ -485,7 +485,7 @@ func (a *repeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []string, bPar
 }
 
 func (a *repeatedIdsFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockRepeatedIdsFn_params{sParam1: sParams[0], sParam2: sParams[1], bParam: bParam}
+	return mockRepeatedIdsFn_paramsKey{sParam1: sParams[0], sParam2: sParams[1], bParam: bParam}
 }
 
 func (a *repeatedIdsFnAdaptor) sceneMock() moq.Mock {
@@ -525,7 +525,7 @@ func (a *exportedRepeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []stri
 }
 
 func (a *exportedRepeatedIdsFnAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockRepeatedIdsFn_params{SParam1: sParams[0], SParam2: sParams[1], BParam: bParam}
+	return exported.MockRepeatedIdsFn_paramsKey{SParam1: sParams[0], SParam2: sParams[1], BParam: bParam}
 }
 
 func (a *exportedRepeatedIdsFnAdaptor) sceneMock() moq.Mock {

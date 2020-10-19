@@ -34,6 +34,7 @@ const (
 	nilIdent              = "nil"
 	okIdent               = "ok"
 	paramsIdent           = "params"
+	paramsKeyIdent        = "paramsKey"
 	recorderIdent         = "recorder"
 	recorderReceiverIdent = "r"
 	resultsByParamsIdent  = "resultsByParams"
@@ -83,7 +84,7 @@ type Func struct {
 // BaseStruct generates the base structure used to store the mock's state
 func (c *Converter) BaseStruct(typeSpec *TypeSpec, funcs []Func) *GenDecl {
 	mName := c.mockName(typeSpec.Name.Name)
-	mock := &GenDecl{
+	return &GenDecl{
 		Tok: token.TYPE,
 		Specs: []Spec{&TypeSpec{
 			Name: NewIdent(mName),
@@ -91,21 +92,16 @@ func (c *Converter) BaseStruct(typeSpec *TypeSpec, funcs []Func) *GenDecl {
 				List: c.baseMockFieldList(typeSpec, funcs),
 			}},
 		}},
+		Decs: genDeclDec("// %s holds the state of a mock of the %s type",
+			mName, typeSpec.Name.Name),
 	}
-	mock.Decs.Before = NewLine
-	mock.Decs.Start.Append(fmt.Sprintf(
-		"// %s holds the state of a mock of the %s type",
-		mName,
-		typeSpec.Name.Name))
-
-	return mock
 }
 
 // IsolationStruct generates a struct used to isolate an interface for the mock
 func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *GenDecl) {
 	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
-	isolate := &GenDecl{
+	return &GenDecl{
 		Tok: token.TYPE,
 		Specs: []Spec{&TypeSpec{
 			Name: NewIdent(iName),
@@ -116,15 +112,9 @@ func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *GenDec
 				}},
 			}},
 		}},
+		Decs: genDeclDec("// %s isolates the %s interface of the %s type",
+			iName, suffix, typeName),
 	}
-	isolate.Decs.Before = NewLine
-	isolate.Decs.Start.Append(fmt.Sprintf(
-		"// %s isolates the %s interface of the %s type",
-		iName,
-		suffix,
-		typeName))
-
-	return isolate
 }
 
 // MethodStructs generates a structure for storing a set of parameters or
@@ -135,21 +125,20 @@ func (c *Converter) MethodStructs(typeSpec *TypeSpec, fn Func) []Decl {
 		prefix = fmt.Sprintf("%s_%s", prefix, fn.Name)
 	}
 
-	var decls []Decl
-	decls = append(decls,
-		c.methodStruct(typeSpec.Name.Name, prefix, paramsIdent, fn.Params))
-	decls = append(decls, c.resultMgrStruct(typeSpec.Name.Name, prefix))
-	decls = append(decls,
-		c.methodStruct(typeSpec.Name.Name, prefix, resultsIdent, fn.Results))
-	decls = append(decls, c.fnRecorderStruct(typeSpec.Name.Name, prefix))
-	return decls
+	return []Decl{
+		c.methodStruct(typeSpec.Name.Name, prefix, paramsIdent, fn.Params),
+		c.methodStruct(typeSpec.Name.Name, prefix, paramsKeyIdent, fn.Params),
+		c.resultMgrStruct(typeSpec.Name.Name, prefix),
+		c.methodStruct(typeSpec.Name.Name, prefix, resultsIdent, fn.Results),
+		c.fnRecorderStruct(typeSpec.Name.Name, prefix),
+	}
 }
 
 // NewFunc generates a function for constructing a mock
 func (c *Converter) NewFunc(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
 	fnName := c.exportName("newMock" + typeSpec.Name.Name)
 	mName := c.mockName(typeSpec.Name.Name)
-	mockFn := &FuncDecl{
+	return &FuncDecl{
 		Name: NewIdent(fnName),
 		Type: &FuncType{
 			Params: &FieldList{List: []*Field{
@@ -208,13 +197,9 @@ func (c *Converter) NewFunc(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDec
 			}},
 			&ReturnStmt{Results: []Expr{NewIdent(mockReceiverIdent)}},
 		}},
+		Decs: fnDeclDec("// %s creates a new mock of the %s type",
+			fnName, typeSpec.Name.Name),
 	}
-
-	mockFn.Decs.Before = NewLine
-	mockFn.Decs.Start.Append(fmt.Sprintf(
-		"// %s creates a new mock of the %s type", fnName, typeSpec.Name.Name))
-
-	return mockFn
 }
 
 // IsolationAccessor generates a function to access an isolation interface
@@ -222,7 +207,7 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl
 	fnName = c.exportName(fnName)
 	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
-	mockFn := &FuncDecl{
+	return &FuncDecl{
 		Recv: &FieldList{List: []*Field{{
 			Names: []*Ident{NewIdent(mockReceiverIdent)},
 			Type:  &StarExpr{X: NewIdent(mName)},
@@ -240,24 +225,15 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl
 					Elts: []Expr{&KeyValueExpr{
 						Key:   NewIdent(c.exportName(mockIdent)),
 						Value: NewIdent(mockReceiverIdent),
-						Decs: KeyValueExprDecorations{
-							NodeDecs: NodeDecs{After: NewLine},
-						},
+						Decs:  kvExprDec(None),
 					}},
 					Decs: litDec(),
 				},
 			}},
 		}}},
+		Decs: fnDeclDec("// %s returns the %s implementation of the %s type",
+			fnName, suffix, typeName),
 	}
-
-	mockFn.Decs.Before = NewLine
-	mockFn.Decs.Start.Append(fmt.Sprintf(
-		"// %s returns the %s implementation of the %s type",
-		fnName,
-		suffix,
-		typeName))
-
-	return mockFn
 }
 
 // FuncClosure generates a mock implementation of function type wrapped in a
@@ -286,7 +262,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
 		fnLitRetStmt = &ExprStmt{X: fnLitCall}
 	}
 
-	mockFn := &FuncDecl{
+	return &FuncDecl{
 		Recv: &FieldList{List: []*Field{{
 			Names: []*Ident{NewIdent(mockReceiverIdent)},
 			Type:  &StarExpr{X: NewIdent(mName)},
@@ -321,17 +297,9 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
 				}},
 			}},
 		}}},
-		Decs: stdFuncDec(),
+		Decs: fnDeclDec("// %s returns the %s implementation of the %s type",
+			c.exportName(mockFnName), mockIdent, typeName),
 	}
-
-	mockFn.Decs.Before = NewLine
-	mockFn.Decs.Start.Append(fmt.Sprintf(
-		"// %s returns the %s implementation of the %s type",
-		c.exportName(mockFnName),
-		mockIdent,
-		typeName))
-
-	return mockFn
 }
 
 // MockMethod generates a mock implementation of a method
@@ -387,7 +355,7 @@ func (c *Converter) ResetMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fun
 			fieldSuffix = "_" + fn.Name
 		}
 
-		pName := fmt.Sprintf("%s_%s", typePrefix, paramsIdent)
+		pName := fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent)
 
 		stmts = append(stmts, &AssignStmt{
 			Lhs: []Expr{&SelectorExpr{
@@ -404,7 +372,7 @@ func (c *Converter) ResetMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fun
 		})
 	}
 
-	fn := &FuncDecl{
+	return &FuncDecl{
 		Recv: &FieldList{List: []*Field{{
 			Names: []*Ident{NewIdent(mockReceiverIdent)},
 			Type:  &StarExpr{X: NewIdent(mName)},
@@ -412,15 +380,11 @@ func (c *Converter) ResetMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fun
 		Name: NewIdent(resetFnName),
 		Type: &FuncType{},
 		Body: &BlockStmt{List: stmts},
+		Decs: fnDeclDec("// %s resets the state of the mock", resetFnName),
 	}
-
-	fn.Decs.Before = NewLine
-	fn.Decs.Start.Append(fmt.Sprintf(
-		"// %s resets the state of the mock", resetFnName))
-
-	return fn
 }
 
+// AssertMethod generates a method to assert all expectations are met
 func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
 	mName := c.mockName(typeSpec.Name.Name)
 
@@ -521,7 +485,7 @@ func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fu
 		})
 	}
 
-	fn := &FuncDecl{
+	return &FuncDecl{
 		Recv: &FieldList{List: []*Field{{
 			Names: []*Ident{NewIdent(mockReceiverIdent)},
 			Type:  &StarExpr{X: NewIdent(mName)},
@@ -529,13 +493,9 @@ func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fu
 		Name: NewIdent(assertFnName),
 		Type: &FuncType{},
 		Body: &BlockStmt{List: stmts},
+		Decs: fnDeclDec("// %s asserts that all expectations have been met",
+			assertFnName),
 	}
-
-	fn.Decs.Before = NewLine
-	fn.Decs.Start.Append(fmt.Sprintf(
-		"// %s asserts that all expectations have been met", assertFnName))
-
-	return fn
 }
 
 func (c *Converter) baseMockFieldList(typeSpec *TypeSpec, funcs []Func) []*Field {
@@ -567,7 +527,7 @@ func (c *Converter) baseMockFieldList(typeSpec *TypeSpec, funcs []Func) []*Field
 func (c *Converter) baseMockFieldsPerFn(
 	fields []*Field, typePrefix, fieldSuffix string,
 ) []*Field {
-	pName := c.exportName(fmt.Sprintf("%s_%s", typePrefix, paramsIdent))
+	pName := c.exportName(fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent))
 	fields = append(fields, &Field{
 		Names: []*Ident{NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix))},
 		Type: &MapType{
@@ -617,34 +577,37 @@ func (c *Converter) methodStruct(
 				f.Names[nn] = NewIdent(c.exportName(f.Names[nn].Name))
 			}
 
-			// Map params are represented as a deep hash
 			if comparable && !isComparable(f.Type) {
+				// Non-comparable params are represented as a deep hash
 				f.Type = &Ident{Path: hashPkg, Name: "Hash"}
+			} else if ellipsis, ok := f.Type.(*Ellipsis); ok {
+				// Ellipsis params are represented as a slice
+				f.Type = &ArrayType{Elt: ellipsis.Elt}
 			}
 		}
 	}
 
+	goDocDesc := label
+	if label == paramsKeyIdent {
+		goDocDesc = "map key params"
+	}
+
 	structName := fmt.Sprintf("%s_%s", prefix, label)
-	sType := &GenDecl{
+	return &GenDecl{
 		Tok: token.TYPE,
 		Specs: []Spec{&TypeSpec{
 			Name: NewIdent(structName),
 			Type: &StructType{Fields: fieldList},
 		}},
+		Decs: genDeclDec("// %s holds the %s of the %s type",
+			structName, goDocDesc, typeName),
 	}
-	sType.Decs.Before = NewLine
-	sType.Decs.Start.Append(fmt.Sprintf("// %s holds the %s of the %s type",
-		structName,
-		label,
-		typeName))
-
-	return sType
 }
 
 func (c *Converter) resultMgrStruct(typeName, prefix string) *GenDecl {
 	structName := fmt.Sprintf("%s_%s", prefix, resultMgrSuffix)
 
-	sType := &GenDecl{
+	return &GenDecl{
 		Tok: token.TYPE,
 		Specs: []Spec{&TypeSpec{
 			Name: NewIdent(structName),
@@ -666,20 +629,16 @@ func (c *Converter) resultMgrStruct(typeName, prefix string) *GenDecl {
 				},
 			}}},
 		}},
+		Decs: genDeclDec("// %s manages multiple results and the state of the %s type",
+			structName,
+			typeName),
 	}
-	sType.Decs.Before = NewLine
-	sType.Decs.Start.Append(fmt.Sprintf(
-		"// %s manages multiple results and the state of the %s type",
-		structName,
-		typeName))
-
-	return sType
 }
 
 func (c *Converter) fnRecorderStruct(typeName string, prefix string) *GenDecl {
 	mName := c.mockName(typeName)
 	structName := fmt.Sprintf("%s_%s", prefix, fnRecorderSuffix)
-	sType := &GenDecl{
+	return &GenDecl{
 		Tok: token.TYPE,
 		Specs: []Spec{&TypeSpec{
 			Name: NewIdent(structName),
@@ -687,6 +646,10 @@ func (c *Converter) fnRecorderStruct(typeName string, prefix string) *GenDecl {
 				{
 					Names: []*Ident{NewIdent(c.exportName(paramsIdent))},
 					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsIdent)),
+				},
+				{
+					Names: []*Ident{NewIdent(c.exportName(paramsKeyIdent))},
+					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsKeyIdent)),
 				},
 				{
 					Names: []*Ident{NewIdent(c.exportName(resultsIdent))},
@@ -700,14 +663,9 @@ func (c *Converter) fnRecorderStruct(typeName string, prefix string) *GenDecl {
 				},
 			}}},
 		}},
+		Decs: genDeclDec("// %s routes recorded function calls to the %s mock",
+			structName, mName),
 	}
-	sType.Decs.Before = NewLine
-	sType.Decs.Start.Append(fmt.Sprintf(
-		"// %s routes recorded function calls to the %s mock",
-		structName,
-		mName))
-
-	return sType
 }
 
 func (c *Converter) newMockElements(typeSpec *TypeSpec, funcs []Func) []Expr {
@@ -716,12 +674,12 @@ func (c *Converter) newMockElements(typeSpec *TypeSpec, funcs []Func) []Expr {
 	elems = append(elems, &KeyValueExpr{
 		Key:   NewIdent(c.exportName(sceneIdent)),
 		Value: NewIdent(sceneIdent),
-		Decs:  KeyValueExprDecorations{NodeDecs: NodeDecs{After: NewLine}},
+		Decs:  kvExprDec(None),
 	})
 	elems = append(elems, &KeyValueExpr{
 		Key:   NewIdent(c.exportName(configIdent)),
 		Value: &StarExpr{X: NewIdent(configIdent)},
-		Decs:  KeyValueExprDecorations{NodeDecs: NodeDecs{After: NewLine}},
+		Decs:  kvExprDec(None),
 	})
 
 	// TODO: param chans
@@ -746,7 +704,7 @@ func (c *Converter) newMockElements(typeSpec *TypeSpec, funcs []Func) []Expr {
 	//				&BasicLit{Kind: token.INT, Value: "100"},
 	//			},
 	//		},
-	//		Decs: KeyValueExprDecorations{NodeDecs: NodeDecs{After: NewLine}},
+	//		Decs: kvExprDec(None),
 	//	})
 	//}
 
@@ -763,8 +721,8 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt
 			Lhs: []Expr{NewIdent(paramsIdent)},
 			Tok: token.DEFINE,
 			Rhs: []Expr{&CompositeLit{
-				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
-				Elts: c.passthroughElements(fn.Params, paramsIdent),
+				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent)),
+				Elts: c.passthroughElements(fn.Params, paramsKeyIdent),
 			}},
 		},
 		// TODO: param chans
@@ -1013,16 +971,21 @@ func (c *Converter) recorderFnInterfaceBody(
 								"%s_%s", typePrefix, paramsIdent)),
 							Elts: c.passthroughElements(fn.Params, paramsIdent),
 						},
-						Decs: KeyValueExprDecorations{
-							NodeDecs: NodeDecs{After: NewLine},
+						Decs: kvExprDec(None),
+					},
+					&KeyValueExpr{
+						Key: NewIdent(c.exportName(paramsKeyIdent)),
+						Value: &CompositeLit{
+							Type: NewIdent(fmt.Sprintf(
+								"%s_%s", typePrefix, paramsKeyIdent)),
+							Elts: c.passthroughElements(fn.Params, paramsKeyIdent),
 						},
+						Decs: kvExprDec(None),
 					},
 					&KeyValueExpr{
 						Key:   NewIdent(c.exportName(mockIdent)),
 						Value: mockValue,
-						Decs: KeyValueExprDecorations{
-							NodeDecs: NodeDecs{After: NewLine},
-						},
+						Decs:  kvExprDec(None),
 					},
 				},
 				Decs: litDec(),
@@ -1084,7 +1047,7 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 								X: cloneSelect(mockSel, c.exportName(resultsByParams)),
 								Index: &SelectorExpr{
 									X:   NewIdent(recorderReceiverIdent),
-									Sel: NewIdent(c.exportName(paramsIdent)),
+									Sel: NewIdent(c.exportName(paramsKeyIdent)),
 								},
 							}},
 						},
@@ -1105,8 +1068,9 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 										Value: "\"Expectations already recorded for mock with parameters %#v\"",
 									},
 									&SelectorExpr{
-										X:   NewIdent(recorderReceiverIdent),
-										Sel: NewIdent(c.exportName(paramsIdent)),
+										X: NewIdent(recorderReceiverIdent),
+										// TODO should be paramsIdent
+										Sel: NewIdent(c.exportName(paramsKeyIdent)),
 									},
 								},
 							}},
@@ -1158,7 +1122,7 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 							},
 							Index: &SelectorExpr{
 								X:   NewIdent(recorderReceiverIdent),
-								Sel: NewIdent(c.exportName(paramsIdent)),
+								Sel: NewIdent(c.exportName(paramsKeyIdent)),
 							},
 						}},
 						Tok: token.ASSIGN,
@@ -1411,9 +1375,7 @@ func (c *Converter) passthroughElements(fl *FieldList, label string) []Expr {
 				elts = append(elts, &KeyValueExpr{
 					Key:   NewIdent(c.exportName(pName)),
 					Value: passthroughValue(pName, field, comparable),
-					Decs: KeyValueExprDecorations{
-						NodeDecs: NodeDecs{Before: beforeDec, After: NewLine},
-					},
+					Decs:  kvExprDec(beforeDec),
 				})
 				beforeDec = None
 			}
@@ -1422,9 +1384,7 @@ func (c *Converter) passthroughElements(fl *FieldList, label string) []Expr {
 				elts = append(elts, &KeyValueExpr{
 					Key:   NewIdent(c.exportName(name.Name)),
 					Value: passthroughValue(name.Name, field, comparable),
-					Decs: KeyValueExprDecorations{
-						NodeDecs: NodeDecs{Before: beforeDec, After: NewLine},
-					},
+					Decs:  kvExprDec(beforeDec),
 				})
 				beforeDec = None
 			}
@@ -1521,6 +1481,9 @@ func labelDirection(label string) (unnamedPrefix string, comparable bool) {
 	switch label {
 	case paramsIdent:
 		unnamedPrefix = paramPrefix
+		comparable = false
+	case paramsKeyIdent:
+		unnamedPrefix = paramPrefix
 		comparable = true
 	case resultsIdent:
 		unnamedPrefix = resultPrefix
@@ -1545,6 +1508,31 @@ func cloneSelect(x *SelectorExpr, sel string) *SelectorExpr {
 	return x
 }
 
+func genDeclDec(format string, a ...interface{}) GenDeclDecorations {
+	return GenDeclDecorations{
+		NodeDecs: nodeDec(format, a...),
+	}
+}
+
+func fnDeclDec(format string, a ...interface{}) FuncDeclDecorations {
+	return FuncDeclDecorations{
+		NodeDecs: nodeDec(format, a...),
+	}
+}
+
+func nodeDec(format string, a ...interface{}) NodeDecs {
+	return NodeDecs{
+		Before: NewLine,
+		Start:  Decorations{fmt.Sprintf(format, a...)},
+	}
+}
+
 func litDec() CompositeLitDecorations {
 	return CompositeLitDecorations{Lbrace: []string{"\n"}}
+}
+
+func kvExprDec(before SpaceType) KeyValueExprDecorations {
+	return KeyValueExprDecorations{
+		NodeDecs: NodeDecs{Before: before, After: NewLine},
+	}
 }

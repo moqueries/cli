@@ -13,7 +13,7 @@ import (
 type mockNoNamesFn struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockNoNamesFn_params]*mockNoNamesFn_resultMgr
+	resultsByParams map[mockNoNamesFn_paramsKey]*mockNoNamesFn_resultMgr
 }
 
 // mockNoNamesFn_mock isolates the mock interface of the NoNamesFn type
@@ -28,6 +28,12 @@ type mockNoNamesFn_recorder struct {
 
 // mockNoNamesFn_params holds the params of the NoNamesFn type
 type mockNoNamesFn_params struct {
+	sParam string
+	bParam bool
+}
+
+// mockNoNamesFn_paramsKey holds the map key params of the NoNamesFn type
+type mockNoNamesFn_paramsKey struct {
 	sParam string
 	bParam bool
 }
@@ -47,9 +53,10 @@ type mockNoNamesFn_results struct {
 
 // mockNoNamesFn_fnRecorder routes recorded function calls to the mockNoNamesFn mock
 type mockNoNamesFn_fnRecorder struct {
-	params  mockNoNamesFn_params
-	results *mockNoNamesFn_resultMgr
-	mock    *mockNoNamesFn
+	params    mockNoNamesFn_params
+	paramsKey mockNoNamesFn_paramsKey
+	results   *mockNoNamesFn_resultMgr
+	mock      *mockNoNamesFn
 }
 
 // newMockNoNamesFn creates a new mock of the NoNamesFn type
@@ -75,7 +82,7 @@ func (m *mockNoNamesFn) mock() testmocks.NoNamesFn {
 }
 
 func (m *mockNoNamesFn_mock) fn(sParam string, bParam bool) (sResult string, err error) {
-	params := mockNoNamesFn_params{
+	params := mockNoNamesFn_paramsKey{
 		sParam: sParam,
 		bParam: bParam,
 	}
@@ -109,19 +116,23 @@ func (m *mockNoNamesFn) onCall(sParam string, bParam bool) *mockNoNamesFn_fnReco
 			sParam: sParam,
 			bParam: bParam,
 		},
+		paramsKey: mockNoNamesFn_paramsKey{
+			sParam: sParam,
+			bParam: bParam,
+		},
 		mock: m,
 	}
 }
 
 func (r *mockNoNamesFn_fnRecorder) returnResults(sResult string, err error) *mockNoNamesFn_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockNoNamesFn_resultMgr{results: []*mockNoNamesFn_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams[r.params] = r.results
+		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockNoNamesFn_results{
 		sResult: sResult,
@@ -152,7 +163,7 @@ func (r *mockNoNamesFn_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockNoNamesFn) Reset() {
-	m.resultsByParams = map[mockNoNamesFn_params]*mockNoNamesFn_resultMgr{}
+	m.resultsByParams = map[mockNoNamesFn_paramsKey]*mockNoNamesFn_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

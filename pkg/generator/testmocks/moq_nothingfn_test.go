@@ -13,7 +13,7 @@ import (
 type mockNothingFn struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockNothingFn_params]*mockNothingFn_resultMgr
+	resultsByParams map[mockNothingFn_paramsKey]*mockNothingFn_resultMgr
 }
 
 // mockNothingFn_mock isolates the mock interface of the NothingFn type
@@ -29,6 +29,9 @@ type mockNothingFn_recorder struct {
 // mockNothingFn_params holds the params of the NothingFn type
 type mockNothingFn_params struct{}
 
+// mockNothingFn_paramsKey holds the map key params of the NothingFn type
+type mockNothingFn_paramsKey struct{}
+
 // mockNothingFn_resultMgr manages multiple results and the state of the NothingFn type
 type mockNothingFn_resultMgr struct {
 	results  []*mockNothingFn_results
@@ -42,9 +45,10 @@ type mockNothingFn_results struct {
 
 // mockNothingFn_fnRecorder routes recorded function calls to the mockNothingFn mock
 type mockNothingFn_fnRecorder struct {
-	params  mockNothingFn_params
-	results *mockNothingFn_resultMgr
-	mock    *mockNothingFn
+	params    mockNothingFn_params
+	paramsKey mockNothingFn_paramsKey
+	results   *mockNothingFn_resultMgr
+	mock      *mockNothingFn
 }
 
 // newMockNothingFn creates a new mock of the NothingFn type
@@ -67,7 +71,7 @@ func (m *mockNothingFn) mock() testmocks.NothingFn {
 }
 
 func (m *mockNothingFn_mock) fn() {
-	params := mockNothingFn_params{}
+	params := mockNothingFn_paramsKey{}
 	results, ok := m.mock.resultsByParams[params]
 	if !ok {
 		if m.mock.config.Expectation == moq.Strict {
@@ -91,20 +95,21 @@ func (m *mockNothingFn_mock) fn() {
 
 func (m *mockNothingFn) onCall() *mockNothingFn_fnRecorder {
 	return &mockNothingFn_fnRecorder{
-		params: mockNothingFn_params{},
-		mock:   m,
+		params:    mockNothingFn_params{},
+		paramsKey: mockNothingFn_paramsKey{},
+		mock:      m,
 	}
 }
 
 func (r *mockNothingFn_fnRecorder) returnResults() *mockNothingFn_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockNothingFn_resultMgr{results: []*mockNothingFn_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams[r.params] = r.results
+		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockNothingFn_results{})
 	return r
@@ -132,7 +137,7 @@ func (r *mockNothingFn_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockNothingFn) Reset() {
-	m.resultsByParams = map[mockNothingFn_params]*mockNothingFn_resultMgr{}
+	m.resultsByParams = map[mockNothingFn_paramsKey]*mockNothingFn_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

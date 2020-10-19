@@ -13,7 +13,7 @@ import (
 type mockUsualFn struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockUsualFn_params]*mockUsualFn_resultMgr
+	resultsByParams map[mockUsualFn_paramsKey]*mockUsualFn_resultMgr
 }
 
 // mockUsualFn_mock isolates the mock interface of the UsualFn type
@@ -28,6 +28,12 @@ type mockUsualFn_recorder struct {
 
 // mockUsualFn_params holds the params of the UsualFn type
 type mockUsualFn_params struct {
+	sParam string
+	bParam bool
+}
+
+// mockUsualFn_paramsKey holds the map key params of the UsualFn type
+type mockUsualFn_paramsKey struct {
 	sParam string
 	bParam bool
 }
@@ -47,9 +53,10 @@ type mockUsualFn_results struct {
 
 // mockUsualFn_fnRecorder routes recorded function calls to the mockUsualFn mock
 type mockUsualFn_fnRecorder struct {
-	params  mockUsualFn_params
-	results *mockUsualFn_resultMgr
-	mock    *mockUsualFn
+	params    mockUsualFn_params
+	paramsKey mockUsualFn_paramsKey
+	results   *mockUsualFn_resultMgr
+	mock      *mockUsualFn
 }
 
 // newMockUsualFn creates a new mock of the UsualFn type
@@ -75,7 +82,7 @@ func (m *mockUsualFn) mock() testmocks.UsualFn {
 }
 
 func (m *mockUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err error) {
-	params := mockUsualFn_params{
+	params := mockUsualFn_paramsKey{
 		sParam: sParam,
 		bParam: bParam,
 	}
@@ -109,19 +116,23 @@ func (m *mockUsualFn) onCall(sParam string, bParam bool) *mockUsualFn_fnRecorder
 			sParam: sParam,
 			bParam: bParam,
 		},
+		paramsKey: mockUsualFn_paramsKey{
+			sParam: sParam,
+			bParam: bParam,
+		},
 		mock: m,
 	}
 }
 
 func (r *mockUsualFn_fnRecorder) returnResults(sResult string, err error) *mockUsualFn_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockUsualFn_resultMgr{results: []*mockUsualFn_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams[r.params] = r.results
+		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockUsualFn_results{
 		sResult: sResult,
@@ -151,7 +162,7 @@ func (r *mockUsualFn_fnRecorder) anyTimes() {
 }
 
 // Reset resets the state of the mock
-func (m *mockUsualFn) Reset() { m.resultsByParams = map[mockUsualFn_params]*mockUsualFn_resultMgr{} }
+func (m *mockUsualFn) Reset() { m.resultsByParams = map[mockUsualFn_paramsKey]*mockUsualFn_resultMgr{} }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockUsualFn) AssertExpectationsMet() {

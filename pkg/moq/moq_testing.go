@@ -12,8 +12,8 @@ import (
 type MockMoqT struct {
 	Scene                  *Scene
 	Config                 MockConfig
-	ResultsByParams_Errorf map[MockMoqT_Errorf_params]*MockMoqT_Errorf_resultMgr
-	ResultsByParams_Fatalf map[MockMoqT_Fatalf_params]*MockMoqT_Fatalf_resultMgr
+	ResultsByParams_Errorf map[MockMoqT_Errorf_paramsKey]*MockMoqT_Errorf_resultMgr
+	ResultsByParams_Fatalf map[MockMoqT_Fatalf_paramsKey]*MockMoqT_Fatalf_resultMgr
 }
 
 // MockMoqT_mock isolates the mock interface of the MoqT type
@@ -28,6 +28,12 @@ type MockMoqT_recorder struct {
 
 // MockMoqT_Errorf_params holds the params of the MoqT type
 type MockMoqT_Errorf_params struct {
+	Format string
+	Args   []interface{}
+}
+
+// MockMoqT_Errorf_paramsKey holds the map key params of the MoqT type
+type MockMoqT_Errorf_paramsKey struct {
 	Format string
 	Args   hash.Hash
 }
@@ -45,13 +51,20 @@ type MockMoqT_Errorf_results struct {
 
 // MockMoqT_Errorf_fnRecorder routes recorded function calls to the MockMoqT mock
 type MockMoqT_Errorf_fnRecorder struct {
-	Params  MockMoqT_Errorf_params
-	Results *MockMoqT_Errorf_resultMgr
-	Mock    *MockMoqT
+	Params    MockMoqT_Errorf_params
+	ParamsKey MockMoqT_Errorf_paramsKey
+	Results   *MockMoqT_Errorf_resultMgr
+	Mock      *MockMoqT
 }
 
 // MockMoqT_Fatalf_params holds the params of the MoqT type
 type MockMoqT_Fatalf_params struct {
+	Format string
+	Args   []interface{}
+}
+
+// MockMoqT_Fatalf_paramsKey holds the map key params of the MoqT type
+type MockMoqT_Fatalf_paramsKey struct {
 	Format string
 	Args   hash.Hash
 }
@@ -69,9 +82,10 @@ type MockMoqT_Fatalf_results struct {
 
 // MockMoqT_Fatalf_fnRecorder routes recorded function calls to the MockMoqT mock
 type MockMoqT_Fatalf_fnRecorder struct {
-	Params  MockMoqT_Fatalf_params
-	Results *MockMoqT_Fatalf_resultMgr
-	Mock    *MockMoqT
+	Params    MockMoqT_Fatalf_params
+	ParamsKey MockMoqT_Fatalf_paramsKey
+	Results   *MockMoqT_Fatalf_resultMgr
+	Mock      *MockMoqT
 }
 
 // NewMockMoqT creates a new mock of the MoqT type
@@ -96,7 +110,7 @@ func (m *MockMoqT) Mock() *MockMoqT_mock {
 }
 
 func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
-	params := MockMoqT_Errorf_params{
+	params := MockMoqT_Errorf_paramsKey{
 		Format: format,
 		Args:   hash.DeepHash(args),
 	}
@@ -122,7 +136,7 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 }
 
 func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
-	params := MockMoqT_Fatalf_params{
+	params := MockMoqT_Fatalf_paramsKey{
 		Format: format,
 		Args:   hash.DeepHash(args),
 	}
@@ -158,6 +172,10 @@ func (m *MockMoqT_recorder) Errorf(format string, args ...interface{}) *MockMoqT
 	return &MockMoqT_Errorf_fnRecorder{
 		Params: MockMoqT_Errorf_params{
 			Format: format,
+			Args:   args,
+		},
+		ParamsKey: MockMoqT_Errorf_paramsKey{
+			Format: format,
 			Args:   hash.DeepHash(args),
 		},
 		Mock: m.Mock,
@@ -166,13 +184,13 @@ func (m *MockMoqT_recorder) Errorf(format string, args ...interface{}) *MockMoqT
 
 func (r *MockMoqT_Errorf_fnRecorder) ReturnResults() *MockMoqT_Errorf_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_Errorf[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_Errorf[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockMoqT_Errorf_resultMgr{Results: []*MockMoqT_Errorf_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_Errorf[r.Params] = r.Results
+		r.Mock.ResultsByParams_Errorf[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockMoqT_Errorf_results{})
 	return r
@@ -202,6 +220,10 @@ func (m *MockMoqT_recorder) Fatalf(format string, args ...interface{}) *MockMoqT
 	return &MockMoqT_Fatalf_fnRecorder{
 		Params: MockMoqT_Fatalf_params{
 			Format: format,
+			Args:   args,
+		},
+		ParamsKey: MockMoqT_Fatalf_paramsKey{
+			Format: format,
 			Args:   hash.DeepHash(args),
 		},
 		Mock: m.Mock,
@@ -210,13 +232,13 @@ func (m *MockMoqT_recorder) Fatalf(format string, args ...interface{}) *MockMoqT
 
 func (r *MockMoqT_Fatalf_fnRecorder) ReturnResults() *MockMoqT_Fatalf_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams_Fatalf[r.Params]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
+		if _, ok := r.Mock.ResultsByParams_Fatalf[r.ParamsKey]; ok {
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
 			return nil
 		}
 
 		r.Results = &MockMoqT_Fatalf_resultMgr{Results: []*MockMoqT_Fatalf_results{}, Index: 0, AnyTimes: false}
-		r.Mock.ResultsByParams_Fatalf[r.Params] = r.Results
+		r.Mock.ResultsByParams_Fatalf[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockMoqT_Fatalf_results{})
 	return r
@@ -244,8 +266,8 @@ func (r *MockMoqT_Fatalf_fnRecorder) AnyTimes() {
 
 // Reset resets the state of the mock
 func (m *MockMoqT) Reset() {
-	m.ResultsByParams_Errorf = map[MockMoqT_Errorf_params]*MockMoqT_Errorf_resultMgr{}
-	m.ResultsByParams_Fatalf = map[MockMoqT_Fatalf_params]*MockMoqT_Fatalf_resultMgr{}
+	m.ResultsByParams_Errorf = map[MockMoqT_Errorf_paramsKey]*MockMoqT_Errorf_resultMgr{}
+	m.ResultsByParams_Fatalf = map[MockMoqT_Fatalf_paramsKey]*MockMoqT_Fatalf_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met

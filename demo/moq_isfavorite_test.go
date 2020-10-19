@@ -13,7 +13,7 @@ import (
 type mockIsFavorite struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockIsFavorite_params]*mockIsFavorite_resultMgr
+	resultsByParams map[mockIsFavorite_paramsKey]*mockIsFavorite_resultMgr
 }
 
 // mockIsFavorite_mock isolates the mock interface of the IsFavorite type
@@ -29,6 +29,9 @@ type mockIsFavorite_recorder struct {
 // mockIsFavorite_params holds the params of the IsFavorite type
 type mockIsFavorite_params struct{ n int }
 
+// mockIsFavorite_paramsKey holds the map key params of the IsFavorite type
+type mockIsFavorite_paramsKey struct{ n int }
+
 // mockIsFavorite_resultMgr manages multiple results and the state of the IsFavorite type
 type mockIsFavorite_resultMgr struct {
 	results  []*mockIsFavorite_results
@@ -43,9 +46,10 @@ type mockIsFavorite_results struct {
 
 // mockIsFavorite_fnRecorder routes recorded function calls to the mockIsFavorite mock
 type mockIsFavorite_fnRecorder struct {
-	params  mockIsFavorite_params
-	results *mockIsFavorite_resultMgr
-	mock    *mockIsFavorite
+	params    mockIsFavorite_params
+	paramsKey mockIsFavorite_paramsKey
+	results   *mockIsFavorite_resultMgr
+	mock      *mockIsFavorite
 }
 
 // newMockIsFavorite creates a new mock of the IsFavorite type
@@ -68,7 +72,7 @@ func (m *mockIsFavorite) mock() demo.IsFavorite {
 }
 
 func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
-	params := mockIsFavorite_params{
+	params := mockIsFavorite_paramsKey{
 		n: n,
 	}
 	results, ok := m.mock.resultsByParams[params]
@@ -99,19 +103,22 @@ func (m *mockIsFavorite) onCall(n int) *mockIsFavorite_fnRecorder {
 		params: mockIsFavorite_params{
 			n: n,
 		},
+		paramsKey: mockIsFavorite_paramsKey{
+			n: n,
+		},
 		mock: m,
 	}
 }
 
 func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.params]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
+		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
 			return nil
 		}
 
 		r.results = &mockIsFavorite_resultMgr{results: []*mockIsFavorite_results{}, index: 0, anyTimes: false}
-		r.mock.resultsByParams[r.params] = r.results
+		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockIsFavorite_results{
 		result1: result1,
@@ -141,7 +148,7 @@ func (r *mockIsFavorite_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockIsFavorite) Reset() {
-	m.resultsByParams = map[mockIsFavorite_params]*mockIsFavorite_resultMgr{}
+	m.resultsByParams = map[mockIsFavorite_paramsKey]*mockIsFavorite_resultMgr{}
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
