@@ -396,7 +396,7 @@ func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fu
 		}
 
 		stmts = append(stmts, &RangeStmt{
-			Key:   NewIdent(paramsIdent),
+			Key:   NewIdent("_"),
 			Value: NewIdent(resultsIdent),
 			Tok:   token.DEFINE,
 			X: &SelectorExpr{
@@ -476,7 +476,10 @@ func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *Fu
 									Value: "\"Expected %d additional call(s) with parameters %#v\"",
 								},
 								NewIdent(missingIdent),
-								NewIdent(paramsIdent),
+								&SelectorExpr{
+									X:   NewIdent(resultsIdent),
+									Sel: NewIdent(c.exportName(paramsIdent)),
+								},
 							},
 						}},
 					}},
@@ -613,6 +616,10 @@ func (c *Converter) resultMgrStruct(typeName, prefix string) *GenDecl {
 			Name: NewIdent(structName),
 			Type: &StructType{Fields: &FieldList{List: []*Field{
 				{
+					Names: []*Ident{NewIdent(c.exportName(paramsIdent))},
+					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsIdent)),
+				},
+				{
 					Names: []*Ident{NewIdent(c.exportName(resultsIdent))},
 					Type: &ArrayType{Elt: &StarExpr{
 						X: NewIdent(c.exportName(fmt.Sprintf(
@@ -721,6 +728,14 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt
 			Lhs: []Expr{NewIdent(paramsIdent)},
 			Tok: token.DEFINE,
 			Rhs: []Expr{&CompositeLit{
+				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
+				Elts: c.passthroughElements(fn.Params, paramsIdent),
+			}},
+		},
+		&AssignStmt{
+			Lhs: []Expr{NewIdent(paramsKeyIdent)},
+			Tok: token.DEFINE,
+			Rhs: []Expr{&CompositeLit{
 				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent)),
 				Elts: c.passthroughElements(fn.Params, paramsKeyIdent),
 			}},
@@ -743,7 +758,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt
 				X:   Clone(stateSelector).(Expr),
 				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
 			},
-			Index: NewIdent(paramsIdent),
+			Index: NewIdent(paramsKeyIdent),
 		}},
 	})
 	stmts = append(stmts, &IfStmt{
@@ -1068,9 +1083,8 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 										Value: "\"Expectations already recorded for mock with parameters %#v\"",
 									},
 									&SelectorExpr{
-										X: NewIdent(recorderReceiverIdent),
-										// TODO should be paramsIdent
-										Sel: NewIdent(c.exportName(paramsKeyIdent)),
+										X:   NewIdent(recorderReceiverIdent),
+										Sel: NewIdent(c.exportName(paramsIdent)),
 									},
 								},
 							}},
@@ -1092,20 +1106,32 @@ func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
 								Type: NewIdent(c.exportName(resultMgr)),
 								Elts: []Expr{
 									&KeyValueExpr{
+										Key: NewIdent(c.exportName(paramsIdent)),
+										Value: &SelectorExpr{
+											X: NewIdent(recorderReceiverIdent),
+											Sel: NewIdent(c.exportName(
+												paramsIdent)),
+										},
+										Decs: kvExprDec(NewLine),
+									},
+									&KeyValueExpr{
 										Key: NewIdent(c.exportName(resultsIdent)),
 										Value: &CompositeLit{Type: &ArrayType{
 											Elt: &StarExpr{
 												X: NewIdent(c.exportName(results)),
 											},
 										}},
+										Decs: kvExprDec(None),
 									},
 									&KeyValueExpr{
 										Key:   NewIdent(c.exportName(indexIdent)),
 										Value: &BasicLit{Kind: token.INT, Value: "0"},
+										Decs:  kvExprDec(None),
 									},
 									&KeyValueExpr{
 										Key:   NewIdent(c.exportName(anyTimesIdent)),
 										Value: NewIdent("false"),
+										Decs:  kvExprDec(None),
 									},
 								},
 							},

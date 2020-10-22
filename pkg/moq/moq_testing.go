@@ -40,6 +40,7 @@ type MockMoqT_Errorf_paramsKey struct {
 
 // MockMoqT_Errorf_resultMgr manages multiple results and the state of the MoqT type
 type MockMoqT_Errorf_resultMgr struct {
+	Params   MockMoqT_Errorf_params
 	Results  []*MockMoqT_Errorf_results
 	Index    uint32
 	AnyTimes bool
@@ -71,6 +72,7 @@ type MockMoqT_Fatalf_paramsKey struct {
 
 // MockMoqT_Fatalf_resultMgr manages multiple results and the state of the MoqT type
 type MockMoqT_Fatalf_resultMgr struct {
+	Params   MockMoqT_Fatalf_params
 	Results  []*MockMoqT_Fatalf_results
 	Index    uint32
 	AnyTimes bool
@@ -110,11 +112,15 @@ func (m *MockMoqT) Mock() *MockMoqT_mock {
 }
 
 func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
-	params := MockMoqT_Errorf_paramsKey{
+	params := MockMoqT_Errorf_params{
+		Format: format,
+		Args:   args,
+	}
+	paramsKey := MockMoqT_Errorf_paramsKey{
 		Format: format,
 		Args:   hash.DeepHash(args),
 	}
-	results, ok := m.Mock.ResultsByParams_Errorf[params]
+	results, ok := m.Mock.ResultsByParams_Errorf[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -136,11 +142,15 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 }
 
 func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
-	params := MockMoqT_Fatalf_paramsKey{
+	params := MockMoqT_Fatalf_params{
+		Format: format,
+		Args:   args,
+	}
+	paramsKey := MockMoqT_Fatalf_paramsKey{
 		Format: format,
 		Args:   hash.DeepHash(args),
 	}
-	results, ok := m.Mock.ResultsByParams_Fatalf[params]
+	results, ok := m.Mock.ResultsByParams_Fatalf[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -185,11 +195,16 @@ func (m *MockMoqT_recorder) Errorf(format string, args ...interface{}) *MockMoqT
 func (r *MockMoqT_Errorf_fnRecorder) ReturnResults() *MockMoqT_Errorf_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_Errorf[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockMoqT_Errorf_resultMgr{Results: []*MockMoqT_Errorf_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockMoqT_Errorf_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockMoqT_Errorf_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_Errorf[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockMoqT_Errorf_results{})
@@ -233,11 +248,16 @@ func (m *MockMoqT_recorder) Fatalf(format string, args ...interface{}) *MockMoqT
 func (r *MockMoqT_Fatalf_fnRecorder) ReturnResults() *MockMoqT_Fatalf_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_Fatalf[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockMoqT_Fatalf_resultMgr{Results: []*MockMoqT_Fatalf_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockMoqT_Fatalf_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockMoqT_Fatalf_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_Fatalf[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockMoqT_Fatalf_results{})
@@ -272,22 +292,22 @@ func (m *MockMoqT) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MockMoqT) AssertExpectationsMet() {
-	for params, results := range m.ResultsByParams_Errorf {
+	for _, results := range m.ResultsByParams_Errorf {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_Fatalf {
+	for _, results := range m.ResultsByParams_Fatalf {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
 }

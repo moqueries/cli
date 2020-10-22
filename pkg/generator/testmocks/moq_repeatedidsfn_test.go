@@ -40,6 +40,7 @@ type mockRepeatedIdsFn_paramsKey struct {
 
 // mockRepeatedIdsFn_resultMgr manages multiple results and the state of the RepeatedIdsFn type
 type mockRepeatedIdsFn_resultMgr struct {
+	params   mockRepeatedIdsFn_params
 	results  []*mockRepeatedIdsFn_results
 	index    uint32
 	anyTimes bool
@@ -82,12 +83,17 @@ func (m *mockRepeatedIdsFn) mock() testmocks.RepeatedIdsFn {
 }
 
 func (m *mockRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
-	params := mockRepeatedIdsFn_paramsKey{
+	params := mockRepeatedIdsFn_params{
 		sParam1: sParam1,
 		sParam2: sParam2,
 		bParam:  bParam,
 	}
-	results, ok := m.mock.resultsByParams[params]
+	paramsKey := mockRepeatedIdsFn_paramsKey{
+		sParam1: sParam1,
+		sParam2: sParam2,
+		bParam:  bParam,
+	}
+	results, ok := m.mock.resultsByParams[paramsKey]
 	if !ok {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -131,11 +137,16 @@ func (m *mockRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *mockRe
 func (r *mockRepeatedIdsFn_fnRecorder) returnResults(sResult1, sResult2 string, err error) *mockRepeatedIdsFn_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
-		r.results = &mockRepeatedIdsFn_resultMgr{results: []*mockRepeatedIdsFn_results{}, index: 0, anyTimes: false}
+		r.results = &mockRepeatedIdsFn_resultMgr{
+			params:   r.params,
+			results:  []*mockRepeatedIdsFn_results{},
+			index:    0,
+			anyTimes: false,
+		}
 		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockRepeatedIdsFn_results{
@@ -173,13 +184,13 @@ func (m *mockRepeatedIdsFn) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockRepeatedIdsFn) AssertExpectationsMet() {
-	for params, results := range m.resultsByParams {
+	for _, results := range m.resultsByParams {
 		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
 		if missing == 1 && results.anyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 		}
 	}
 }

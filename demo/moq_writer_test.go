@@ -34,6 +34,7 @@ type mockWriter_Write_paramsKey struct{ p hash.Hash }
 
 // mockWriter_Write_resultMgr manages multiple results and the state of the Writer type
 type mockWriter_Write_resultMgr struct {
+	params   mockWriter_Write_params
 	results  []*mockWriter_Write_results
 	index    uint32
 	anyTimes bool
@@ -75,10 +76,13 @@ func (m *mockWriter) mock() *mockWriter_mock {
 }
 
 func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
-	params := mockWriter_Write_paramsKey{
+	params := mockWriter_Write_params{
+		p: p,
+	}
+	paramsKey := mockWriter_Write_paramsKey{
 		p: hash.DeepHash(p),
 	}
-	results, ok := m.mock.resultsByParams_Write[params]
+	results, ok := m.mock.resultsByParams_Write[paramsKey]
 	if !ok {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -124,11 +128,16 @@ func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWriter_Write_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams_Write[r.paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
-		r.results = &mockWriter_Write_resultMgr{results: []*mockWriter_Write_results{}, index: 0, anyTimes: false}
+		r.results = &mockWriter_Write_resultMgr{
+			params:   r.params,
+			results:  []*mockWriter_Write_results{},
+			index:    0,
+			anyTimes: false,
+		}
 		r.mock.resultsByParams_Write[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockWriter_Write_results{
@@ -165,13 +174,13 @@ func (m *mockWriter) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockWriter) AssertExpectationsMet() {
-	for params, results := range m.resultsByParams_Write {
+	for _, results := range m.resultsByParams_Write {
 		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
 		if missing == 1 && results.anyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 		}
 	}
 }

@@ -46,6 +46,7 @@ type MockUsual_Usual_paramsKey struct {
 
 // MockUsual_Usual_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_Usual_resultMgr struct {
+	Params   MockUsual_Usual_params
 	Results  []*MockUsual_Usual_results
 	Index    uint32
 	AnyTimes bool
@@ -79,6 +80,7 @@ type MockUsual_NoNames_paramsKey struct {
 
 // MockUsual_NoNames_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_NoNames_resultMgr struct {
+	Params   MockUsual_NoNames_params
 	Results  []*MockUsual_NoNames_results
 	Index    uint32
 	AnyTimes bool
@@ -112,6 +114,7 @@ type MockUsual_NoResults_paramsKey struct {
 
 // MockUsual_NoResults_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_NoResults_resultMgr struct {
+	Params   MockUsual_NoResults_params
 	Results  []*MockUsual_NoResults_results
 	Index    uint32
 	AnyTimes bool
@@ -137,6 +140,7 @@ type MockUsual_NoParams_paramsKey struct{}
 
 // MockUsual_NoParams_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_NoParams_resultMgr struct {
+	Params   MockUsual_NoParams_params
 	Results  []*MockUsual_NoParams_results
 	Index    uint32
 	AnyTimes bool
@@ -164,6 +168,7 @@ type MockUsual_Nothing_paramsKey struct{}
 
 // MockUsual_Nothing_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_Nothing_resultMgr struct {
+	Params   MockUsual_Nothing_params
 	Results  []*MockUsual_Nothing_results
 	Index    uint32
 	AnyTimes bool
@@ -195,6 +200,7 @@ type MockUsual_Variadic_paramsKey struct {
 
 // MockUsual_Variadic_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_Variadic_resultMgr struct {
+	Params   MockUsual_Variadic_params
 	Results  []*MockUsual_Variadic_results
 	Index    uint32
 	AnyTimes bool
@@ -228,6 +234,7 @@ type MockUsual_RepeatedIds_paramsKey struct {
 
 // MockUsual_RepeatedIds_resultMgr manages multiple results and the state of the Usual type
 type MockUsual_RepeatedIds_resultMgr struct {
+	Params   MockUsual_RepeatedIds_params
 	Results  []*MockUsual_RepeatedIds_results
 	Index    uint32
 	AnyTimes bool
@@ -269,11 +276,15 @@ func (m *MockUsual) Mock() *MockUsual_mock {
 }
 
 func (m *MockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err error) {
-	params := MockUsual_Usual_paramsKey{
+	params := MockUsual_Usual_params{
 		SParam: sParam,
 		BParam: bParam,
 	}
-	results, ok := m.Mock.ResultsByParams_Usual[params]
+	paramsKey := MockUsual_Usual_paramsKey{
+		SParam: sParam,
+		BParam: bParam,
+	}
+	results, ok := m.Mock.ResultsByParams_Usual[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -298,11 +309,15 @@ func (m *MockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err 
 }
 
 func (m *MockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, result2 error) {
-	params := MockUsual_NoNames_paramsKey{
+	params := MockUsual_NoNames_params{
 		Param1: param1,
 		Param2: param2,
 	}
-	results, ok := m.Mock.ResultsByParams_NoNames[params]
+	paramsKey := MockUsual_NoNames_paramsKey{
+		Param1: param1,
+		Param2: param2,
+	}
+	results, ok := m.Mock.ResultsByParams_NoNames[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -327,11 +342,15 @@ func (m *MockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, re
 }
 
 func (m *MockUsual_mock) NoResults(sParam string, bParam bool) {
-	params := MockUsual_NoResults_paramsKey{
+	params := MockUsual_NoResults_params{
 		SParam: sParam,
 		BParam: bParam,
 	}
-	results, ok := m.Mock.ResultsByParams_NoResults[params]
+	paramsKey := MockUsual_NoResults_paramsKey{
+		SParam: sParam,
+		BParam: bParam,
+	}
+	results, ok := m.Mock.ResultsByParams_NoResults[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -353,8 +372,9 @@ func (m *MockUsual_mock) NoResults(sParam string, bParam bool) {
 }
 
 func (m *MockUsual_mock) NoParams() (sResult string, err error) {
-	params := MockUsual_NoParams_paramsKey{}
-	results, ok := m.Mock.ResultsByParams_NoParams[params]
+	params := MockUsual_NoParams_params{}
+	paramsKey := MockUsual_NoParams_paramsKey{}
+	results, ok := m.Mock.ResultsByParams_NoParams[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -379,8 +399,9 @@ func (m *MockUsual_mock) NoParams() (sResult string, err error) {
 }
 
 func (m *MockUsual_mock) Nothing() {
-	params := MockUsual_Nothing_paramsKey{}
-	results, ok := m.Mock.ResultsByParams_Nothing[params]
+	params := MockUsual_Nothing_params{}
+	paramsKey := MockUsual_Nothing_paramsKey{}
+	results, ok := m.Mock.ResultsByParams_Nothing[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -402,11 +423,15 @@ func (m *MockUsual_mock) Nothing() {
 }
 
 func (m *MockUsual_mock) Variadic(other bool, args ...string) (sResult string, err error) {
-	params := MockUsual_Variadic_paramsKey{
+	params := MockUsual_Variadic_params{
+		Other: other,
+		Args:  args,
+	}
+	paramsKey := MockUsual_Variadic_paramsKey{
 		Other: other,
 		Args:  hash.DeepHash(args),
 	}
-	results, ok := m.Mock.ResultsByParams_Variadic[params]
+	results, ok := m.Mock.ResultsByParams_Variadic[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -431,12 +456,17 @@ func (m *MockUsual_mock) Variadic(other bool, args ...string) (sResult string, e
 }
 
 func (m *MockUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
-	params := MockUsual_RepeatedIds_paramsKey{
+	params := MockUsual_RepeatedIds_params{
 		SParam1: sParam1,
 		SParam2: sParam2,
 		BParam:  bParam,
 	}
-	results, ok := m.Mock.ResultsByParams_RepeatedIds[params]
+	paramsKey := MockUsual_RepeatedIds_paramsKey{
+		SParam1: sParam1,
+		SParam2: sParam2,
+		BParam:  bParam,
+	}
+	results, ok := m.Mock.ResultsByParams_RepeatedIds[paramsKey]
 	if !ok {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -485,11 +515,16 @@ func (m *MockUsual_recorder) Usual(sParam string, bParam bool) *MockUsual_Usual_
 func (r *MockUsual_Usual_fnRecorder) ReturnResults(sResult string, err error) *MockUsual_Usual_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_Usual[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_Usual_resultMgr{Results: []*MockUsual_Usual_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_Usual_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_Usual_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_Usual[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_Usual_results{
@@ -536,11 +571,16 @@ func (m *MockUsual_recorder) NoNames(param1 string, param2 bool) *MockUsual_NoNa
 func (r *MockUsual_NoNames_fnRecorder) ReturnResults(result1 string, result2 error) *MockUsual_NoNames_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_NoNames[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_NoNames_resultMgr{Results: []*MockUsual_NoNames_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_NoNames_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_NoNames_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_NoNames[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_NoNames_results{
@@ -587,11 +627,16 @@ func (m *MockUsual_recorder) NoResults(sParam string, bParam bool) *MockUsual_No
 func (r *MockUsual_NoResults_fnRecorder) ReturnResults() *MockUsual_NoResults_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_NoResults[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_NoResults_resultMgr{Results: []*MockUsual_NoResults_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_NoResults_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_NoResults_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_NoResults[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_NoResults_results{})
@@ -629,11 +674,16 @@ func (m *MockUsual_recorder) NoParams() *MockUsual_NoParams_fnRecorder {
 func (r *MockUsual_NoParams_fnRecorder) ReturnResults(sResult string, err error) *MockUsual_NoParams_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_NoParams[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_NoParams_resultMgr{Results: []*MockUsual_NoParams_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_NoParams_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_NoParams_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_NoParams[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_NoParams_results{
@@ -674,11 +724,16 @@ func (m *MockUsual_recorder) Nothing() *MockUsual_Nothing_fnRecorder {
 func (r *MockUsual_Nothing_fnRecorder) ReturnResults() *MockUsual_Nothing_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_Nothing[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_Nothing_resultMgr{Results: []*MockUsual_Nothing_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_Nothing_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_Nothing_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_Nothing[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_Nothing_results{})
@@ -722,11 +777,16 @@ func (m *MockUsual_recorder) Variadic(other bool, args ...string) *MockUsual_Var
 func (r *MockUsual_Variadic_fnRecorder) ReturnResults(sResult string, err error) *MockUsual_Variadic_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_Variadic[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_Variadic_resultMgr{Results: []*MockUsual_Variadic_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_Variadic_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_Variadic_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_Variadic[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_Variadic_results{
@@ -775,11 +835,16 @@ func (m *MockUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *
 func (r *MockUsual_RepeatedIds_fnRecorder) ReturnResults(sResult1, sResult2 string, err error) *MockUsual_RepeatedIds_fnRecorder {
 	if r.Results == nil {
 		if _, ok := r.Mock.ResultsByParams_RepeatedIds[r.ParamsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.ParamsKey)
+			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
 
-		r.Results = &MockUsual_RepeatedIds_resultMgr{Results: []*MockUsual_RepeatedIds_results{}, Index: 0, AnyTimes: false}
+		r.Results = &MockUsual_RepeatedIds_resultMgr{
+			Params:   r.Params,
+			Results:  []*MockUsual_RepeatedIds_results{},
+			Index:    0,
+			AnyTimes: false,
+		}
 		r.Mock.ResultsByParams_RepeatedIds[r.ParamsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockUsual_RepeatedIds_results{
@@ -823,67 +888,67 @@ func (m *MockUsual) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MockUsual) AssertExpectationsMet() {
-	for params, results := range m.ResultsByParams_Usual {
+	for _, results := range m.ResultsByParams_Usual {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_NoNames {
+	for _, results := range m.ResultsByParams_NoNames {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_NoResults {
+	for _, results := range m.ResultsByParams_NoResults {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_NoParams {
+	for _, results := range m.ResultsByParams_NoParams {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_Nothing {
+	for _, results := range m.ResultsByParams_Nothing {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_Variadic {
+	for _, results := range m.ResultsByParams_Variadic {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
-	for params, results := range m.ResultsByParams_RepeatedIds {
+	for _, results := range m.ResultsByParams_RepeatedIds {
 		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 		if missing == 1 && results.AnyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 		}
 	}
 }

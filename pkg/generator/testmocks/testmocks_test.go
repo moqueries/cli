@@ -1,6 +1,7 @@
 package testmocks_test
 
 import (
+	"fmt"
 	"go/parser"
 	"go/token"
 	"io"
@@ -162,9 +163,11 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			moqTMock.OnCall().Fatalf(
-				"Unexpected call with parameters %#v",
-				entry.a.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
+			msg := "Unexpected call with parameters %#v"
+			params := entry.a.bundleParams([]string{"Hi", "you"}, true)
+			moqTMock.OnCall().Fatalf(msg, params).
+				ReturnResults()
+			fmtMsg := fmt.Sprintf(msg, params)
 
 			// ACT
 			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
@@ -173,6 +176,9 @@ var _ = Describe("TestMocks", func() {
 			// ASSERT
 			scene.AssertExpectationsMet()
 			mockScene.AssertExpectationsMet()
+			if entry.a.tracksParams() {
+				Expect(fmtMsg).To(ContainSubstring("Hi"))
+			}
 		}
 	})
 
@@ -391,10 +397,11 @@ var _ = Describe("TestMocks", func() {
 			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
 
-			moqTMock.OnCall().Fatalf(
-				"Expectations already recorded for mock with parameters %#v",
-				entry.a.bundleParams([]string{"Hi", "you"}, true)).
+			msg := "Expectations already recorded for mock with parameters %#v"
+			params := entry.a.bundleParams([]string{"Hi", "you"}, true)
+			moqTMock.OnCall().Fatalf(msg, params).
 				ReturnResults()
+			fmtMsg := fmt.Sprintf(msg, params)
 
 			// ACT
 			fnRec := entry.a.expectCall([]string{"Hi", "you"}, true,
@@ -404,6 +411,9 @@ var _ = Describe("TestMocks", func() {
 			Expect(fnRec).To(BeNil())
 			scene.AssertExpectationsMet()
 			mockScene.AssertExpectationsMet()
+			if entry.a.tracksParams() {
+				Expect(fmtMsg).To(ContainSubstring("Hi"))
+			}
 		}
 	})
 
@@ -514,11 +524,11 @@ var _ = Describe("TestMocks", func() {
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				moqTMock.OnCall().Errorf(
-					"Expected %d additional call(s) with parameters %#v",
-					1,
-					entry.a.bundleParams([]string{"Hi", "you"}, true)).
+				msg := "Expected %d additional call(s) with parameters %#v"
+				params := entry.a.bundleParams([]string{"Hi", "you"}, true)
+				moqTMock.OnCall().Errorf(msg, 1, params).
 					ReturnResults()
+				fmtMsg := fmt.Sprintf(msg, 1, params)
 
 				// ACT
 				entry.a.sceneMock().AssertExpectationsMet()
@@ -528,6 +538,9 @@ var _ = Describe("TestMocks", func() {
 					results{sResults: []string{"blue", "orange"}, err: nil})
 				scene.AssertExpectationsMet()
 				mockScene.AssertExpectationsMet()
+				if entry.a.tracksParams() {
+					Expect(fmtMsg).To(ContainSubstring("Hi"))
+				}
 			}
 		})
 

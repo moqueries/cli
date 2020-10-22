@@ -40,6 +40,7 @@ type mockUsualFn_paramsKey struct {
 
 // mockUsualFn_resultMgr manages multiple results and the state of the UsualFn type
 type mockUsualFn_resultMgr struct {
+	params   mockUsualFn_params
 	results  []*mockUsualFn_results
 	index    uint32
 	anyTimes bool
@@ -82,11 +83,15 @@ func (m *mockUsualFn) mock() testmocks.UsualFn {
 }
 
 func (m *mockUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err error) {
-	params := mockUsualFn_paramsKey{
+	params := mockUsualFn_params{
 		sParam: sParam,
 		bParam: bParam,
 	}
-	results, ok := m.mock.resultsByParams[params]
+	paramsKey := mockUsualFn_paramsKey{
+		sParam: sParam,
+		bParam: bParam,
+	}
+	results, ok := m.mock.resultsByParams[paramsKey]
 	if !ok {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
@@ -127,11 +132,16 @@ func (m *mockUsualFn) onCall(sParam string, bParam bool) *mockUsualFn_fnRecorder
 func (r *mockUsualFn_fnRecorder) returnResults(sResult string, err error) *mockUsualFn_fnRecorder {
 	if r.results == nil {
 		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.paramsKey)
+			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
 
-		r.results = &mockUsualFn_resultMgr{results: []*mockUsualFn_results{}, index: 0, anyTimes: false}
+		r.results = &mockUsualFn_resultMgr{
+			params:   r.params,
+			results:  []*mockUsualFn_results{},
+			index:    0,
+			anyTimes: false,
+		}
 		r.mock.resultsByParams[r.paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockUsualFn_results{
@@ -166,13 +176,13 @@ func (m *mockUsualFn) Reset() { m.resultsByParams = map[mockUsualFn_paramsKey]*m
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockUsualFn) AssertExpectationsMet() {
-	for params, results := range m.resultsByParams {
+	for _, results := range m.resultsByParams {
 		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
 		if missing == 1 && results.anyTimes == true {
 			continue
 		}
 		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, params)
+			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 		}
 	}
 }
