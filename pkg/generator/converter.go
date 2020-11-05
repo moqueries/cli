@@ -5,8 +5,9 @@ import (
 	"go/token"
 	"strings"
 
-	. "github.com/dave/dst"
+	"github.com/dave/dst"
 
+	. "github.com/myshkin5/moqueries/pkg/ast"
 	"github.com/myshkin5/moqueries/pkg/logs"
 )
 
@@ -64,68 +65,69 @@ const (
 // Converter converts various interface and function types to AST structs to
 // build a mock
 type Converter struct {
-	export bool
+	isExported bool
 }
 
 // NewConverter creates a new Converter
-func NewConverter(export bool) *Converter {
+func NewConverter(isExported bool) *Converter {
 	return &Converter{
-		export: export,
+		isExported: isExported,
 	}
 }
 
 // Func holds on to function related data
 type Func struct {
 	Name    string
-	Params  *FieldList
-	Results *FieldList
+	Params  *dst.FieldList
+	Results *dst.FieldList
 }
 
 // BaseStruct generates the base structure used to store the mock's state
-func (c *Converter) BaseStruct(typeSpec *TypeSpec, funcs []Func) *GenDecl {
-	mName := c.mockName(typeSpec.Name.Name)
-	return &GenDecl{
-		Tok: token.TYPE,
-		Specs: []Spec{&TypeSpec{
-			Name: NewIdent(mName),
-			Type: &StructType{Fields: &FieldList{
-				List: c.baseMockFieldList(typeSpec, funcs),
-			}},
-		}},
-		Decs: genDeclDec("// %s holds the state of a mock of the %s type",
-			mName, typeSpec.Name.Name),
+func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDecl {
+	fields := []*dst.Field{
+		Field(Star(IdPath(sceneType, moqPkg))).Names(Id(c.export(sceneIdent))).Obj,
+		Field(IdPath(mockConfigType, moqPkg)).Names(Id(c.export(configIdent))).Obj,
 	}
+
+	mName := c.mockName(typeSpec.Name.Name)
+	for _, fn := range funcs {
+		typePrefix := mName
+		fieldSuffix := ""
+		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
+			fieldSuffix = "_" + fn.Name
+		}
+		fields = append(fields,
+			Field(MapType(Id(c.export(fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent)))).
+				Value(Star(Id(fmt.Sprintf("%s_%s", typePrefix, resultMgrSuffix)))).Obj).
+				Names(Id(c.export(resultsByParamsIdent+fieldSuffix))).Obj)
+	}
+
+	return Struct(mName).Fields(fields...).Decs(genDeclDec(
+		"// %s holds the state of a mock of the %s type",
+		mName, typeSpec.Name.Name)).Obj
 }
 
 // IsolationStruct generates a struct used to isolate an interface for the mock
-func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *GenDecl) {
+func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
 	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
-	return &GenDecl{
-		Tok: token.TYPE,
-		Specs: []Spec{&TypeSpec{
-			Name: NewIdent(iName),
-			Type: &StructType{Fields: &FieldList{
-				List: []*Field{{
-					Names: []*Ident{NewIdent(c.exportName(mockIdent))},
-					Type:  &StarExpr{X: NewIdent(mName)},
-				}},
-			}},
-		}},
-		Decs: genDeclDec("// %s isolates the %s interface of the %s type",
-			iName, suffix, typeName),
-	}
+
+	return Struct(iName).
+		Fields(Field(Star(Id(mName))).Names(Id(c.export(mockIdent))).Obj).
+		Decs(genDeclDec("// %s isolates the %s interface of the %s type",
+			iName, suffix, typeName)).Obj
 }
 
 // MethodStructs generates a structure for storing a set of parameters or
 // a set of results for a method invocation of a mock
-func (c *Converter) MethodStructs(typeSpec *TypeSpec, fn Func) []Decl {
+func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) []dst.Decl {
 	prefix := c.mockName(typeSpec.Name.Name)
-	if _, ok := typeSpec.Type.(*InterfaceType); ok {
+	if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
 		prefix = fmt.Sprintf("%s_%s", prefix, fn.Name)
 	}
 
-	return []Decl{
+	return []dst.Decl{
 		c.methodStruct(typeSpec.Name.Name, prefix, paramsIdent, fn.Params),
 		c.methodStruct(typeSpec.Name.Name, prefix, paramsKeyIdent, fn.Params),
 		c.resultMgrStruct(typeSpec.Name.Name, prefix),
@@ -135,175 +137,93 @@ func (c *Converter) MethodStructs(typeSpec *TypeSpec, fn Func) []Decl {
 }
 
 // NewFunc generates a function for constructing a mock
-func (c *Converter) NewFunc(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
-	fnName := c.exportName("newMock" + typeSpec.Name.Name)
+func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl) {
+	fnName := c.export("newMock" + typeSpec.Name.Name)
 	mName := c.mockName(typeSpec.Name.Name)
-	return &FuncDecl{
-		Name: NewIdent(fnName),
-		Type: &FuncType{
-			Params: &FieldList{List: []*Field{
-				{
-					Names: []*Ident{NewIdent(sceneIdent)},
-					Type:  &StarExpr{X: &Ident{Name: sceneType, Path: moqPkg}},
-				},
-				{
-					Names: []*Ident{NewIdent(configIdent)},
-					Type:  &StarExpr{X: &Ident{Name: mockConfigType, Path: moqPkg}},
-				},
-			}},
-			Results: &FieldList{List: []*Field{{Type: &StarExpr{X: NewIdent(mName)}}}},
-		},
-		Body: &BlockStmt{List: []Stmt{
-			&IfStmt{
-				Cond: &BinaryExpr{
-					X:  NewIdent(configIdent),
-					Op: token.EQL,
-					Y:  NewIdent(nilIdent),
-				},
-				Body: &BlockStmt{List: []Stmt{&AssignStmt{
-					Lhs: []Expr{NewIdent(configIdent)},
-					Tok: token.ASSIGN,
-					Rhs: []Expr{&UnaryExpr{
-						Op: token.AND,
-						X: &CompositeLit{Type: &Ident{
-							Name: mockConfigType,
-							Path: moqPkg,
-						}},
-					}},
-				}}},
-			},
-			&AssignStmt{
-				Lhs: []Expr{NewIdent(mockReceiverIdent)},
-				Tok: token.DEFINE,
-				Rhs: []Expr{&UnaryExpr{
-					Op: token.AND,
-					X: &CompositeLit{
-						Type: NewIdent(mName),
-						Elts: c.newMockElements(typeSpec, funcs),
-						Decs: litDec(),
-					},
-				}},
-			},
-			&ExprStmt{X: &CallExpr{Fun: &SelectorExpr{
-				X:   NewIdent(mockReceiverIdent),
-				Sel: NewIdent(resetFnName),
-			}}},
-			&ExprStmt{X: &CallExpr{
-				Fun: &SelectorExpr{
-					X:   NewIdent(sceneIdent),
-					Sel: NewIdent("AddMock"),
-				},
-				Args: []Expr{NewIdent(mockReceiverIdent)},
-			}},
-			&ReturnStmt{Results: []Expr{NewIdent(mockReceiverIdent)}},
-		}},
-		Decs: fnDeclDec("// %s creates a new mock of the %s type",
-			fnName, typeSpec.Name.Name),
-	}
+	return Fn(fnName).
+		Params(
+			Field(Star(IdPath(sceneType, moqPkg))).Names(Id(sceneIdent)).Obj,
+			Field(Star(IdPath(mockConfigType, moqPkg))).Names(Id(configIdent)).Obj,
+		).
+		Results(Field(Star(Id(mName))).Obj).
+		Body(
+			If(Bin(Id(configIdent)).Op(token.EQL).Y(Id(nilIdent)).Obj).Body(
+				Assign(Id(configIdent)).Tok(token.ASSIGN).Rhs(Un(token.AND,
+					Comp(IdPath(mockConfigType, moqPkg)).Obj)).Obj).Obj,
+			Assign(Id(mockReceiverIdent)).Tok(token.DEFINE).
+				Rhs(Un(token.AND, Comp(Id(mName)).Elts(
+					Key(Id(c.export(sceneIdent))).
+						Value(Id(sceneIdent)).Decs(kvExprDec(dst.None)).Obj,
+					Key(Id(c.export(configIdent))).
+						Value(Star(Id(configIdent))).Decs(kvExprDec(dst.None)).Obj,
+				).Decs(litDec()).Obj)).Obj,
+			Expr(Call(Sel(Id(mockReceiverIdent)).Dot(Id(resetFnName)).Obj).Obj),
+			Expr(Call(Sel(Id(sceneIdent)).Dot(Id("AddMock")).Obj).
+				Args(Id(mockReceiverIdent)).Obj),
+			Return(Id(mockReceiverIdent)),
+		).
+		Decs(fnDeclDec("// %s creates a new mock of the %s type",
+			fnName, typeSpec.Name.Name)).Obj
 }
 
 // IsolationAccessor generates a function to access an isolation interface
-func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *FuncDecl) {
-	fnName = c.exportName(fnName)
+func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl) {
+	fnName = c.export(fnName)
 	mName := c.mockName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(mockReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(mName)},
-		}}},
-		Name: NewIdent(fnName),
-		Type: &FuncType{
-			Params:  &FieldList{},
-			Results: &FieldList{List: []*Field{{Type: &StarExpr{X: NewIdent(iName)}}}},
-		},
-		Body: &BlockStmt{List: []Stmt{&ReturnStmt{
-			Results: []Expr{&UnaryExpr{
-				Op: token.AND,
-				X: &CompositeLit{
-					Type: NewIdent(iName),
-					Elts: []Expr{&KeyValueExpr{
-						Key:   NewIdent(c.exportName(mockIdent)),
-						Value: NewIdent(mockReceiverIdent),
-						Decs:  kvExprDec(None),
-					}},
-					Decs: litDec(),
-				},
-			}},
-		}}},
-		Decs: fnDeclDec("// %s returns the %s implementation of the %s type",
-			fnName, suffix, typeName),
-	}
+	return Fn(fnName).
+		Recv(Field(Star(Id(mName))).Names(Id(mockReceiverIdent)).Obj).
+		Results(Field(Star(Id(iName))).Obj).
+		Body(Return(Un(token.AND, Comp(Id(iName)).Elts(
+			Key(Id(c.export(mockIdent))).Value(Id(mockReceiverIdent)).
+				Decs(kvExprDec(dst.None)).Obj).Decs(litDec()).Obj,
+		))).
+		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
+			fnName, suffix, typeName)).Obj
 }
 
 // FuncClosure generates a mock implementation of function type wrapped in a
 // closure
 func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
-	funcDecl *FuncDecl,
+	funcDecl *dst.FuncDecl,
 ) {
 	mName := c.mockName(typeName)
 	ellipsis := false
 	if len(fn.Params.List) > 0 {
-		if _, ok := fn.Params.List[len(fn.Params.List)-1].Type.(*Ellipsis); ok {
+		if _, ok := fn.Params.List[len(fn.Params.List)-1].Type.(*dst.Ellipsis); ok {
 			ellipsis = true
 		}
 	}
-	fnLitCall := &CallExpr{
-		Fun: &SelectorExpr{
-			X:   NewIdent(mockIdent),
-			Sel: NewIdent(c.exportName(fnFnName)),
-		},
-		Args:     passthroughFields(fn.Params),
-		Ellipsis: ellipsis,
-	}
-	var fnLitRetStmt Stmt
-	fnLitRetStmt = &ReturnStmt{Results: []Expr{fnLitCall}}
+	fnLitCall := Call(Sel(Id(mockIdent)).Dot(Id(c.export(fnFnName))).Obj).
+		Args(passthroughFields(fn.Params)...).
+		Ellipsis(ellipsis).Obj
+	var fnLitRetStmt dst.Stmt
+	fnLitRetStmt = Return(fnLitCall)
 	if fn.Results == nil {
-		fnLitRetStmt = &ExprStmt{X: fnLitCall}
+		fnLitRetStmt = Expr(fnLitCall)
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(mockReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(mName)},
-		}}},
-		Name: NewIdent(c.exportName(mockFnName)),
-		Type: &FuncType{
-			Params: &FieldList{},
-			Results: &FieldList{List: []*Field{{
-				Type: &Ident{Path: pkgPath, Name: typeName},
-			}}},
-		},
-		Body: &BlockStmt{List: []Stmt{&ReturnStmt{
-			Results: []Expr{&FuncLit{
-				Type: &FuncType{
-					Params:  Clone(fn.Params).(*FieldList),
-					Results: cloneNilableFieldList(fn.Results),
-				},
-				Body: &BlockStmt{List: []Stmt{&AssignStmt{
-					Lhs: []Expr{NewIdent(mockIdent)},
-					Tok: token.DEFINE,
-					Rhs: []Expr{&UnaryExpr{
-						Op: token.AND,
-						X: &CompositeLit{
-							Type: NewIdent(fmt.Sprintf("%s_%s", mName, mockIdent)),
-							Elts: []Expr{&KeyValueExpr{
-								Key:   NewIdent(c.exportName(mockIdent)),
-								Value: NewIdent(mockReceiverIdent),
-							}},
-						},
-					}}},
-					fnLitRetStmt,
-				}},
-			}},
-		}}},
-		Decs: fnDeclDec("// %s returns the %s implementation of the %s type",
-			c.exportName(mockFnName), mockIdent, typeName),
-	}
+	return Fn(c.export(mockFnName)).
+		Recv(Field(Star(Id(mName))).Names(Id(mockReceiverIdent)).Obj).
+		Results(Field(IdPath(typeName, pkgPath)).Obj).
+		Body(Return(FnLit(FnType(dst.Clone(fn.Params).(*dst.FieldList)).
+			Results(cloneNilableFieldList(fn.Results)).Obj).
+			Body(Assign(Id(mockIdent)).
+				Tok(token.DEFINE).
+				Rhs(Un(
+					token.AND,
+					Comp(Idf("%s_%s", mName, mockIdent)).
+						Elts(Key(Id(c.export(mockIdent))).
+							Value(Id(mockReceiverIdent)).Obj).Obj,
+				)).Obj,
+				fnLitRetStmt,
+			).Obj)).
+		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
+			c.export(mockFnName), mockIdent, typeName)).Obj
 }
 
 // MockMethod generates a mock implementation of a method
-func (c *Converter) MockMethod(typeName string, fn Func) *FuncDecl {
+func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.mockName(typeName)
 	recv := fmt.Sprintf("%s_%s", mName, mockIdent)
 
@@ -311,249 +231,122 @@ func (c *Converter) MockMethod(typeName string, fn Func) *FuncDecl {
 	fieldSuffix := "_" + fn.Name
 	typePrefix := fmt.Sprintf("%s_%s", mName, fn.Name)
 	if fnName == "" {
-		fnName = c.exportName(fnFnName)
+		fnName = c.export(fnFnName)
 		fieldSuffix = ""
 		typePrefix = mName
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(mockReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(recv)},
-		}}},
-		Name: NewIdent(fnName),
-		Type: &FuncType{
-			Params:  cloneAndNameUnnamed(paramPrefix, fn.Params),
-			Results: cloneAndNameUnnamed(resultPrefix, fn.Results),
-		},
-		Body: c.mockFunc(typePrefix, fieldSuffix, fn),
-		Decs: stdFuncDec(),
-	}
+	return Fn(fnName).
+		Recv(Field(Star(Id(recv))).Names(Id(mockReceiverIdent)).Obj).
+		ParamFieldList(cloneAndNameUnnamed(paramPrefix, fn.Params)).
+		ResultFieldList(cloneAndNameUnnamed(resultPrefix, fn.Results)).
+		Body(c.mockFunc(typePrefix, fieldSuffix, fn)...).
+		Decs(stdFuncDec()).Obj
 }
 
 // RecorderMethods generates a recorder implementation of a method and
 // associated return method
-func (c *Converter) RecorderMethods(typeName string, fn Func) (funcDecls []Decl) {
-	return []Decl{
+func (c *Converter) RecorderMethods(typeName string, fn Func) (funcDecls []dst.Decl) {
+	decls := []dst.Decl{
 		c.recorderFn(typeName, fn),
+	}
+
+	decls = append(decls,
 		c.recorderReturnFn(typeName, fn),
 		c.recorderTimesFn(typeName, fn),
 		c.recorderAnyTimesFn(typeName, fn),
-	}
+	)
+
+	return decls
 }
 
 // ResetMethod generates a method to reset the mock's state
-func (c *Converter) ResetMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
+func (c *Converter) ResetMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
 	mName := c.mockName(typeSpec.Name.Name)
 
-	var stmts []Stmt
+	var stmts []dst.Stmt
 	for _, fn := range funcs {
 		typePrefix := mName
 		fieldSuffix := ""
-		if _, ok := typeSpec.Type.(*InterfaceType); ok {
+		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
 			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
 			fieldSuffix = "_" + fn.Name
 		}
 
 		pName := fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent)
 
-		stmts = append(stmts, &AssignStmt{
-			Lhs: []Expr{&SelectorExpr{
-				X:   NewIdent(mockReceiverIdent),
-				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
-			}},
-			Tok: token.ASSIGN,
-			Rhs: []Expr{&CompositeLit{Type: &MapType{
-				Key: NewIdent(pName),
-				Value: &StarExpr{
-					X: NewIdent(fmt.Sprintf("%s_%s", typePrefix, resultMgrSuffix)),
-				},
-			}}},
-		})
+		stmts = append(stmts, Assign(Sel(Id(mockReceiverIdent)).
+			Dot(Id(c.export(resultsByParamsIdent+fieldSuffix))).Obj).
+			Tok(token.ASSIGN).
+			Rhs(Comp(MapType(Id(pName)).
+				Value(Star(Idf("%s_%s", typePrefix, resultMgrSuffix))).Obj).Obj).Obj)
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(mockReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(mName)},
-		}}},
-		Name: NewIdent(resetFnName),
-		Type: &FuncType{},
-		Body: &BlockStmt{List: stmts},
-		Decs: fnDeclDec("// %s resets the state of the mock", resetFnName),
-	}
+	return Fn(resetFnName).
+		Recv(Field(Star(Id(mName))).Names(Id(mockReceiverIdent)).Obj).
+		Body(stmts...).
+		Decs(fnDeclDec("// %s resets the state of the mock", resetFnName)).Obj
 }
 
 // AssertMethod generates a method to assert all expectations are met
-func (c *Converter) AssertMethod(typeSpec *TypeSpec, funcs []Func) (funcDecl *FuncDecl) {
+func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
 	mName := c.mockName(typeSpec.Name.Name)
 
-	var stmts []Stmt
+	var stmts []dst.Stmt
 	for _, fn := range funcs {
 		fieldSuffix := ""
-		if _, ok := typeSpec.Type.(*InterfaceType); ok {
+		if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
 			fieldSuffix = "_" + fn.Name
 		}
 
-		stmts = append(stmts, &RangeStmt{
-			Key:   NewIdent("_"),
-			Value: NewIdent(resultsIdent),
-			Tok:   token.DEFINE,
-			X: &SelectorExpr{
-				X:   NewIdent(mockReceiverIdent),
-				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix))},
-			Body: &BlockStmt{List: []Stmt{
-				&AssignStmt{
-					Lhs: []Expr{NewIdent(missingIdent)},
-					Tok: token.DEFINE,
-					Rhs: []Expr{&BinaryExpr{
-						X: &CallExpr{
-							Fun: NewIdent(lenFnName),
-							Args: []Expr{&SelectorExpr{
-								X:   NewIdent(resultsIdent),
-								Sel: NewIdent(c.exportName(resultsIdent)),
-							}},
-						},
-						Op: token.SUB,
-						Y: &CallExpr{
-							Fun: NewIdent(intType),
-							Args: []Expr{&CallExpr{
-								Fun: &Ident{
-									Name: "LoadUint32",
-									Path: syncAtomicPkg,
-								},
-								Args: []Expr{&UnaryExpr{
-									Op: token.AND,
-									X: &SelectorExpr{
-										X:   NewIdent(resultsIdent),
-										Sel: NewIdent(c.exportName(indexIdent)),
-									},
-								}},
-							}},
-						},
-					}},
-				},
-				&IfStmt{
-					Cond: &BinaryExpr{
-						X: &BinaryExpr{
-							X:  NewIdent(missingIdent),
-							Op: token.EQL,
-							Y:  &BasicLit{Kind: token.INT, Value: "1"},
-						},
-						Op: token.LAND,
-						Y: &BinaryExpr{
-							X: &SelectorExpr{
-								X:   NewIdent(resultsIdent),
-								Sel: NewIdent(c.exportName(anyTimesIdent)),
-							},
-							Op: token.EQL,
-							Y:  NewIdent("true"),
-						},
-					},
-					Body: &BlockStmt{List: []Stmt{&BranchStmt{Tok: token.CONTINUE}}},
-				},
-				&IfStmt{
-					Cond: &BinaryExpr{
-						X:  NewIdent(missingIdent),
-						Op: token.GTR,
-						Y:  &BasicLit{Kind: token.INT, Value: "0"},
-					},
-					Body: &BlockStmt{List: []Stmt{
-						&ExprStmt{X: &CallExpr{
-							Fun: &SelectorExpr{
-								X: &SelectorExpr{
-									X: &SelectorExpr{
-										X:   NewIdent(mockReceiverIdent),
-										Sel: NewIdent(c.exportName(sceneIdent)),
-									},
-									Sel: NewIdent(moqTType),
-								},
-								Sel: NewIdent(errorfFnName),
-							},
-							Args: []Expr{
-								&BasicLit{
-									Kind:  token.STRING,
-									Value: "\"Expected %d additional call(s) with parameters %#v\"",
-								},
-								NewIdent(missingIdent),
-								&SelectorExpr{
-									X:   NewIdent(resultsIdent),
-									Sel: NewIdent(c.exportName(paramsIdent)),
-								},
-							},
-						}},
-					}},
-				},
-			}},
-		})
+		stmts = append(stmts, Range(Sel(Id(mockReceiverIdent)).
+			Dot(Id(c.export(resultsByParamsIdent+fieldSuffix))).Obj).
+			Key(Id("_")).
+			Value(Id(resultsIdent)).
+			Tok(token.DEFINE).
+			Body(
+				Assign(Id(missingIdent)).
+					Tok(token.DEFINE).
+					Rhs(Bin(Call(Id(lenFnName)).Args(Sel(Id(resultsIdent)).
+						Dot(Id(c.export(resultsIdent))).Obj).Obj).
+						Op(token.SUB).
+						Y(Call(Id(intType)).Args(
+							Call(IdPath("LoadUint32", syncAtomicPkg)).Args(Un(
+								token.AND,
+								Sel(Id(resultsIdent)).
+									Dot(Id(c.export(indexIdent))).Obj)).Obj).Obj).Obj).Obj,
+				If(Bin(Bin(Id(missingIdent)).Op(token.EQL).
+					Y(LitInt(1)).Obj).
+					Op(token.LAND).
+					Y(Bin(Sel(Id(resultsIdent)).
+						Dot(Id(c.export(anyTimesIdent))).Obj).
+						Op(token.EQL).
+						Y(Id("true")).Obj).Obj).
+					Body(Continue()).Obj,
+				If(Bin(Id(missingIdent)).Op(token.GTR).Y(LitInt(0)).Obj).
+					Body(
+						Expr(Call(Sel(Sel(Sel(Id(mockReceiverIdent)).
+							Dot(Id(c.export(sceneIdent))).Obj).
+							Dot(Id(moqTType)).Obj).Dot(Id(errorfFnName)).Obj).
+							Args(
+								LitString("Expected %d additional call(s) with parameters %#v"),
+								Id(missingIdent),
+								Sel(Id(resultsIdent)).Dot(Id(c.export(paramsIdent))).Obj).Obj),
+					).Obj,
+			).Obj)
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(mockReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(mName)},
-		}}},
-		Name: NewIdent(assertFnName),
-		Type: &FuncType{},
-		Body: &BlockStmt{List: stmts},
-		Decs: fnDeclDec("// %s asserts that all expectations have been met",
-			assertFnName),
-	}
+	return Fn(assertFnName).
+		Recv(Field(Star(Id(mName))).Names(Id(mockReceiverIdent)).Obj).
+		Body(stmts...).
+		Decs(fnDeclDec("// %s asserts that all expectations have been met",
+			assertFnName)).Obj
 }
 
-func (c *Converter) baseMockFieldList(typeSpec *TypeSpec, funcs []Func) []*Field {
-	var fields []*Field
-
-	fields = append(fields, &Field{
-		Names: []*Ident{NewIdent(c.exportName(sceneIdent))},
-		Type:  &StarExpr{X: &Ident{Name: sceneType, Path: moqPkg}},
-	})
-	fields = append(fields, &Field{
-		Names: []*Ident{NewIdent(c.exportName(configIdent))},
-		Type:  &Ident{Name: mockConfigType, Path: moqPkg},
-	})
-
-	mName := c.mockName(typeSpec.Name.Name)
-	for _, fn := range funcs {
-		typePrefix := mName
-		fieldSuffix := ""
-		if _, ok := typeSpec.Type.(*InterfaceType); ok {
-			typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
-			fieldSuffix = "_" + fn.Name
-		}
-		fields = c.baseMockFieldsPerFn(fields, typePrefix, fieldSuffix)
-	}
-
-	return fields
-}
-
-func (c *Converter) baseMockFieldsPerFn(
-	fields []*Field, typePrefix, fieldSuffix string,
-) []*Field {
-	pName := c.exportName(fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent))
-	fields = append(fields, &Field{
-		Names: []*Ident{NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix))},
-		Type: &MapType{
-			Key: NewIdent(pName),
-			Value: &StarExpr{
-				X: NewIdent(fmt.Sprintf("%s_%s", typePrefix, resultMgrSuffix)),
-			},
-		},
-	})
-
-	// TODO: param chans
-	//fields = append(fields, &Field{
-	//	Names: []*Ident{NewIdent(c.exportName(paramsIdent + fieldSuffix))},
-	//	Type:  &ChanType{Dir: SEND | RECV, Value: NewIdent(pName)},
-	//})
-
-	return fields
-}
-
-func isComparable(expr Expr) bool {
+func isComparable(expr dst.Expr) bool {
 	// TODO this logic needs to be expanded -- also should check structs recursively
 	switch expr.(type) {
-	case *ArrayType, *MapType, *Ellipsis:
+	case *dst.ArrayType, *dst.MapType, *dst.Ellipsis:
 		return false
 	}
 
@@ -561,32 +354,26 @@ func isComparable(expr Expr) bool {
 }
 
 func (c *Converter) methodStruct(
-	typeName, prefix, label string, fieldList *FieldList,
-) *GenDecl {
+	typeName, prefix, label string, fieldList *dst.FieldList,
+) *dst.GenDecl {
 	unnamedPrefix, comparable := labelDirection(label)
 	fieldList = cloneNilableFieldList(fieldList)
 
 	if fieldList == nil {
 		// Result field lists can be nil (rather than containing an empty
 		// list). Struct field lists cannot be nil.
-		fieldList = &FieldList{}
+		fieldList = FieldList()
 	} else {
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
-				f.Names = []*Ident{NewIdent(fmt.Sprintf("%s%d", unnamedPrefix, n+1))}
+				f.Names = []*dst.Ident{Idf("%s%d", unnamedPrefix, n+1)}
 			}
 
 			for nn := range f.Names {
-				f.Names[nn] = NewIdent(c.exportName(f.Names[nn].Name))
+				f.Names[nn] = Id(c.export(f.Names[nn].Name))
 			}
 
-			if comparable && !isComparable(f.Type) {
-				// Non-comparable params are represented as a deep hash
-				f.Type = &Ident{Path: hashPkg, Name: "Hash"}
-			} else if ellipsis, ok := f.Type.(*Ellipsis); ok {
-				// Ellipsis params are represented as a slice
-				f.Type = &ArrayType{Elt: ellipsis.Elt}
-			}
+			f.Type = comparableType(comparable, f.Type)
 		}
 	}
 
@@ -596,607 +383,286 @@ func (c *Converter) methodStruct(
 	}
 
 	structName := fmt.Sprintf("%s_%s", prefix, label)
-	return &GenDecl{
-		Tok: token.TYPE,
-		Specs: []Spec{&TypeSpec{
-			Name: NewIdent(structName),
-			Type: &StructType{Fields: fieldList},
-		}},
-		Decs: genDeclDec("// %s holds the %s of the %s type",
-			structName, goDocDesc, typeName),
-	}
+	return Struct(structName).FieldList(fieldList).Decs(genDeclDec(
+		"// %s holds the %s of the %s type",
+		structName, goDocDesc, typeName)).Obj
 }
 
-func (c *Converter) resultMgrStruct(typeName, prefix string) *GenDecl {
+func comparableType(needComparable bool, typ dst.Expr) dst.Expr {
+	if needComparable && !isComparable(typ) {
+		// Non-comparable params are represented as a deep hash
+		return IdPath("Hash", hashPkg)
+	} else if ellipsis, ok := typ.(*dst.Ellipsis); ok {
+		// Ellipsis params are represented as a slice (when not comparable)
+		return Slice(ellipsis.Elt)
+	}
+
+	return typ
+}
+
+func (c *Converter) resultMgrStruct(typeName, prefix string) *dst.GenDecl {
 	structName := fmt.Sprintf("%s_%s", prefix, resultMgrSuffix)
 
-	return &GenDecl{
-		Tok: token.TYPE,
-		Specs: []Spec{&TypeSpec{
-			Name: NewIdent(structName),
-			Type: &StructType{Fields: &FieldList{List: []*Field{
-				{
-					Names: []*Ident{NewIdent(c.exportName(paramsIdent))},
-					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsIdent)),
-				},
-				{
-					Names: []*Ident{NewIdent(c.exportName(resultsIdent))},
-					Type: &ArrayType{Elt: &StarExpr{
-						X: NewIdent(c.exportName(fmt.Sprintf(
-							"%s_%s", prefix, resultsIdent))),
-					}},
-				},
-				{
-					Names: []*Ident{NewIdent(c.exportName(indexIdent))},
-					Type:  NewIdent("uint32"),
-				},
-				{
-					Names: []*Ident{NewIdent(c.exportName(anyTimesIdent))},
-					Type:  NewIdent("bool"),
-				},
-			}}},
-		}},
-		Decs: genDeclDec("// %s manages multiple results and the state of the %s type",
-			structName,
-			typeName),
-	}
+	return Struct(structName).Fields(
+		Field(Idf("%s_%s", prefix, paramsIdent)).
+			Names(Id(c.export(paramsIdent))).Obj,
+		Field(Slice(Star(Id(c.export(fmt.Sprintf(
+			"%s_%s", prefix, resultsIdent)))))).
+			Names(Id(c.export(resultsIdent))).Obj,
+		Field(Id("uint32")).Names(Id(c.export(indexIdent))).Obj,
+		Field(Id("bool")).Names(Id(c.export(anyTimesIdent))).Obj,
+	).Decs(genDeclDec(
+		"// %s manages multiple results and the state of the %s type",
+		structName,
+		typeName)).Obj
 }
 
-func (c *Converter) fnRecorderStruct(typeName string, prefix string) *GenDecl {
+func (c *Converter) fnRecorderStruct(typeName string, prefix string) *dst.GenDecl {
 	mName := c.mockName(typeName)
 	structName := fmt.Sprintf("%s_%s", prefix, fnRecorderSuffix)
-	return &GenDecl{
-		Tok: token.TYPE,
-		Specs: []Spec{&TypeSpec{
-			Name: NewIdent(structName),
-			Type: &StructType{Fields: &FieldList{List: []*Field{
-				{
-					Names: []*Ident{NewIdent(c.exportName(paramsIdent))},
-					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsIdent)),
-				},
-				{
-					Names: []*Ident{NewIdent(c.exportName(paramsKeyIdent))},
-					Type:  NewIdent(fmt.Sprintf("%s_%s", prefix, paramsKeyIdent)),
-				},
-				{
-					Names: []*Ident{NewIdent(c.exportName(resultsIdent))},
-					Type: &StarExpr{
-						X: NewIdent(fmt.Sprintf("%s_%s", prefix, resultMgrSuffix)),
-					},
-				},
-				{
-					Names: []*Ident{NewIdent(c.exportName(mockIdent))},
-					Type:  &StarExpr{X: NewIdent(mName)},
-				},
-			}}},
-		}},
-		Decs: genDeclDec("// %s routes recorded function calls to the %s mock",
-			structName, mName),
-	}
+	return Struct(structName).Fields(
+		Field(Idf("%s_%s", prefix, paramsIdent)).
+			Names(Id(c.export(paramsIdent))).Obj,
+		Field(Idf("%s_%s", prefix, paramsKeyIdent)).
+			Names(Id(c.export(paramsKeyIdent))).Obj,
+		Field(Star(Idf("%s_%s", prefix, resultMgrSuffix))).
+			Names(Id(c.export(resultsIdent))).Obj,
+		Field(Star(Id(mName))).
+			Names(Id(c.export(mockIdent))).Obj,
+	).Decs(genDeclDec("// %s routes recorded function calls to the %s mock",
+		structName, mName)).Obj
 }
 
-func (c *Converter) newMockElements(typeSpec *TypeSpec, funcs []Func) []Expr {
-	var elems []Expr
+func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt {
+	stateSelector := Sel(Id(mockReceiverIdent)).Dot(Id(c.export(mockIdent))).Obj
 
-	elems = append(elems, &KeyValueExpr{
-		Key:   NewIdent(c.exportName(sceneIdent)),
-		Value: NewIdent(sceneIdent),
-		Decs:  kvExprDec(None),
-	})
-	elems = append(elems, &KeyValueExpr{
-		Key:   NewIdent(c.exportName(configIdent)),
-		Value: &StarExpr{X: NewIdent(configIdent)},
-		Decs:  kvExprDec(None),
-	})
-
-	// TODO: param chans
-	//mName := c.mockName(typeSpec.Name.Name)
-	//for _, fn := range funcs {
-	//	typePrefix := mName
-	//	fieldSuffix := ""
-	//	if _, ok := typeSpec.Type.(*InterfaceType); ok {
-	//		typePrefix = fmt.Sprintf("%s_%s", mName, fn.Name)
-	//		fieldSuffix = "_" + fn.Name
-	//	}
-	//	elems = append(elems, &KeyValueExpr{
-	//		Key: NewIdent(c.exportName(paramsIdent + fieldSuffix)),
-	//		Value: &CallExpr{
-	//			Fun: NewIdent("make"),
-	//			Args: []Expr{
-	//				&ChanType{
-	//					Dir: SEND | RECV,
-	//					Value: NewIdent(
-	//						fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
-	//				},
-	//				&BasicLit{Kind: token.INT, Value: "100"},
-	//			},
-	//		},
-	//		Decs: kvExprDec(None),
-	//	})
-	//}
-
-	return elems
-}
-
-func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) *BlockStmt {
-	stateSelector := &SelectorExpr{
-		X:   NewIdent(mockReceiverIdent),
-		Sel: NewIdent(c.exportName(mockIdent)),
-	}
-	stmts := []Stmt{
-		&AssignStmt{
-			Lhs: []Expr{NewIdent(paramsIdent)},
-			Tok: token.DEFINE,
-			Rhs: []Expr{&CompositeLit{
-				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsIdent)),
-				Elts: c.passthroughElements(fn.Params, paramsIdent),
-			}},
-		},
-		&AssignStmt{
-			Lhs: []Expr{NewIdent(paramsKeyIdent)},
-			Tok: token.DEFINE,
-			Rhs: []Expr{&CompositeLit{
-				Type: NewIdent(fmt.Sprintf("%s_%s", typePrefix, paramsKeyIdent)),
-				Elts: c.passthroughElements(fn.Params, paramsKeyIdent),
-			}},
-		},
-		// TODO: param chans
-		//&SendStmt{
-		//	Chan: &SelectorExpr{
-		//		X:   Clone(stateSelector).(Expr),
-		//		Sel: NewIdent(c.exportName(paramsIdent + fieldSuffix)),
-		//	},
-		//	Value: NewIdent(paramsIdent),
-		//},
+	stmts := []dst.Stmt{
+		Assign(Id(paramsIdent)).
+			Tok(token.DEFINE).
+			Rhs(Comp(Idf("%s_%s", typePrefix, paramsIdent)).
+				Elts(c.passthroughElements(fn.Params, paramsIdent)...).Obj).Obj,
+		Assign(Id(paramsKeyIdent)).
+			Tok(token.DEFINE).
+			Rhs(Comp(Idf("%s_%s", typePrefix, paramsKeyIdent)).
+				Elts(c.passthroughElements(fn.Params, paramsKeyIdent)...).Obj).Obj,
+		Assign(Id(resultsIdent), Id(okIdent)).
+			Tok(token.DEFINE).
+			Rhs(Index(Sel(Sel(Id(mockReceiverIdent)).Dot(Id(c.export(mockIdent))).Obj).
+				Dot(Idf("%s%s", resultsByParamsIdent, fieldSuffix)).Obj).
+				Sub(Id(paramsKeyIdent)).Obj).Obj,
 	}
 
-	stmts = append(stmts, &AssignStmt{
-		Lhs: []Expr{NewIdent(resultsIdent), NewIdent(okIdent)},
-		Tok: token.DEFINE,
-		Rhs: []Expr{&IndexExpr{
-			X: &SelectorExpr{
-				X:   Clone(stateSelector).(Expr),
-				Sel: NewIdent(c.exportName(resultsByParamsIdent + fieldSuffix)),
-			},
-			Index: NewIdent(paramsKeyIdent),
-		}},
-	})
-	stmts = append(stmts, &IfStmt{
-		Cond: &UnaryExpr{Op: token.NOT, X: NewIdent(okIdent)},
-		Body: &BlockStmt{List: []Stmt{
-			&IfStmt{
-				Cond: &BinaryExpr{
-					X: &SelectorExpr{
-						X: &SelectorExpr{
-							X: &SelectorExpr{
-								X:   NewIdent(mockReceiverIdent),
-								Sel: NewIdent(c.exportName(mockIdent)),
-							},
-							Sel: NewIdent(c.exportName(configIdent)),
-						},
-						Sel: NewIdent(expectationIdent),
-					},
-					Op: token.EQL,
-					Y:  &Ident{Name: strictIdent, Path: moqPkg},
-				},
-				Body: &BlockStmt{List: []Stmt{
-					&ExprStmt{X: &CallExpr{
-						Fun: &SelectorExpr{
-							X: &SelectorExpr{
-								X: &SelectorExpr{
-									X: &SelectorExpr{
-										X:   NewIdent(mockReceiverIdent),
-										Sel: NewIdent(c.exportName(mockIdent)),
-									},
-									Sel: NewIdent(c.exportName(sceneIdent)),
-								},
-								Sel: NewIdent(moqTType),
-							},
-							Sel: NewIdent(fatalfFnName),
-						},
-						Args: []Expr{
-							&BasicLit{
-								Kind:  token.STRING,
-								Value: "\"Unexpected call with parameters %#v\"",
-							},
-							NewIdent(paramsIdent),
-						},
-					}},
-				}},
-			},
-			&ReturnStmt{},
-		}},
-	})
+	stmts = append(stmts,
+		If(Un(token.NOT, Id(okIdent))).Body(
+			If(Bin(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+				Dot(Id(c.export(configIdent))).Obj).
+				Dot(Id(expectationIdent)).Obj).
+				Op(token.EQL).
+				Y(IdPath(strictIdent, moqPkg)).Obj).
+				Body(
+					Expr(Call(Sel(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+						Dot(Id(c.export(sceneIdent))).Obj).
+						Dot(Id(moqTType)).Obj).
+						Dot(Id(fatalfFnName)).Obj).
+						Args(LitString("Unexpected call with parameters %#v"),
+							Id(paramsIdent)).Obj)).Obj,
+			Return(),
+		).Obj)
 
-	stmts = append(stmts, &AssignStmt{
-		Lhs: []Expr{NewIdent(iIdent)},
-		Tok: token.DEFINE,
-		Rhs: []Expr{&BinaryExpr{
-			X: &CallExpr{
-				Fun: NewIdent(intType),
-				Args: []Expr{&CallExpr{
-					Fun: &Ident{Name: "AddUint32", Path: syncAtomicPkg},
-					Args: []Expr{
-						&UnaryExpr{
-							Op: token.AND,
-							X: &SelectorExpr{
-								X:   NewIdent(resultsIdent),
-								Sel: NewIdent(c.exportName(indexIdent)),
-							},
-						},
-						&BasicLit{Kind: token.INT, Value: "1"},
-					},
-				}},
-			},
-			Op: token.SUB,
-			Y:  &BasicLit{Kind: token.INT, Value: "1"},
-		}},
-		Decs: AssignStmtDecorations{NodeDecs: NodeDecs{Before: EmptyLine}},
-	})
-	stmts = append(stmts, &IfStmt{
-		Cond: &BinaryExpr{
-			X:  NewIdent(iIdent),
-			Op: token.GEQ,
-			Y: &CallExpr{
-				Fun: NewIdent(lenFnName),
-				Args: []Expr{&SelectorExpr{
-					X:   NewIdent(resultsIdent),
-					Sel: NewIdent(c.exportName(resultsIdent)),
-				}},
-			},
-		},
-		Body: &BlockStmt{List: []Stmt{
-			&IfStmt{
-				Cond: &UnaryExpr{
-					Op: token.NOT,
-					X: &SelectorExpr{
-						X:   NewIdent(resultsIdent),
-						Sel: NewIdent(c.exportName(anyTimesIdent)),
-					},
-				},
-				Body: &BlockStmt{List: []Stmt{
-					&IfStmt{
-						Cond: &BinaryExpr{
-							X: &SelectorExpr{
-								X: &SelectorExpr{
-									X: &SelectorExpr{
-										X:   NewIdent(mockReceiverIdent),
-										Sel: NewIdent(c.exportName(mockIdent)),
-									},
-									Sel: NewIdent(c.exportName(configIdent)),
-								},
-								Sel: NewIdent(expectationIdent),
-							},
-							Op: token.EQL,
-							Y:  &Ident{Name: strictIdent, Path: moqPkg},
-						},
-						Body: &BlockStmt{List: []Stmt{&ExprStmt{X: &CallExpr{
-							Fun: &SelectorExpr{
-								X: &SelectorExpr{
-									X: &SelectorExpr{
-										X: &SelectorExpr{
-											X:   NewIdent(mockReceiverIdent),
-											Sel: NewIdent(c.exportName(mockIdent)),
-										},
-										Sel: NewIdent(c.exportName(sceneIdent)),
-									},
-									Sel: NewIdent(moqTType),
-								},
-								Sel: NewIdent(fatalfFnName),
-							},
-							Args: []Expr{
-								&BasicLit{
-									Kind:  token.STRING,
-									Value: "\"Too many calls to mock with parameters %#v\"",
-								},
-								NewIdent(paramsIdent),
-							},
-						}}}},
-					},
-					&ReturnStmt{},
-				}},
-			},
-			&AssignStmt{
-				Lhs: []Expr{NewIdent(iIdent)},
-				Tok: token.ASSIGN,
-				Rhs: []Expr{&BinaryExpr{
-					X: &CallExpr{
-						Fun: NewIdent(lenFnName),
-						Args: []Expr{&SelectorExpr{
-							X:   NewIdent(resultsIdent),
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						}},
-					},
-					Op: token.SUB,
-					Y:  &BasicLit{Kind: token.INT, Value: "1"},
-				}},
-			},
-		}},
-	})
+	stmts = append(stmts, Assign(Id(iIdent)).
+		Tok(token.DEFINE).
+		Rhs(Bin(Call(Id(intType)).
+			Args(Call(IdPath("AddUint32", syncAtomicPkg)).Args(Un(
+				token.AND,
+				Sel(Id(resultsIdent)).Dot(Id(c.export(indexIdent))).Obj),
+				LitInt(1)).Obj).Obj).
+			Op(token.SUB).
+			Y(LitInt(1)).Obj).
+		Decs(AssignDecs(dst.EmptyLine).Obj).Obj)
+	stmts = append(stmts,
+		If(Bin(Id(iIdent)).Op(token.GEQ).Y(Call(Id(lenFnName)).
+			Args(Sel(Id(resultsIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).Obj).Obj).
+			Body(
+				If(Un(token.NOT, Sel(Id(resultsIdent)).
+					Dot(Id(c.export(anyTimesIdent))).Obj)).
+					Body(
+						If(Bin(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+							Dot(Id(c.export(configIdent))).Obj).
+							Dot(Id(expectationIdent)).Obj).
+							Op(token.EQL).
+							Y(IdPath(strictIdent, moqPkg)).Obj).
+							Body(Expr(Call(Sel(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+								Dot(Id(c.export(sceneIdent))).Obj).
+								Dot(Id(moqTType)).Obj).
+								Dot(Id(fatalfFnName)).Obj).
+								Args(
+									LitString("Too many calls to mock with parameters %#v"),
+									Id(paramsIdent),
+								).Obj)).Obj,
+						Return(),
+					).Obj,
+				Assign(Id(iIdent)).
+					Tok(token.ASSIGN).
+					Rhs(Bin(Call(Id(lenFnName)).
+						Args(Sel(Id(resultsIdent)).
+							Dot(Id(c.export(resultsIdent))).Obj).Obj).
+						Op(token.SUB).
+						Y(LitInt(1)).Obj).Obj,
+			).Obj)
 
 	if fn.Results != nil {
-		stmts = append(stmts, &AssignStmt{
-			Lhs: []Expr{NewIdent(resultIdent)},
-			Tok: token.DEFINE,
-			Rhs: []Expr{&IndexExpr{
-				X: &SelectorExpr{
-					X:   NewIdent(resultsIdent),
-					Sel: NewIdent(c.exportName(resultsIdent)),
-				},
-				Index: NewIdent(iIdent),
-			}},
-		})
+		stmts = append(stmts, Assign(Id(resultIdent)).
+			Tok(token.DEFINE).
+			Rhs(Index(Sel(Id(resultsIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).Sub(Id(iIdent)).Obj).Obj)
 		stmts = append(stmts, c.assignResult(fn.Results)...)
 	}
 
-	stmts = append(stmts, &ReturnStmt{})
+	stmts = append(stmts, Return())
 
-	return &BlockStmt{List: stmts}
+	return stmts
 }
 
-func (c *Converter) recorderFn(typeName string, fn Func) *FuncDecl {
+func (c *Converter) recorderFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.mockName(typeName)
 
 	recvType := fmt.Sprintf("%s_%s", mName, recorderIdent)
 	fnName := fn.Name
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
 	typePrefix := fmt.Sprintf("%s_%s", mName, fn.Name)
-	var mockVal Expr = &SelectorExpr{
-		X:   NewIdent(mockReceiverIdent),
-		Sel: NewIdent(c.exportName(mockIdent)),
-	}
+	var mockVal dst.Expr = Sel(Id(mockReceiverIdent)).
+		Dot(Id(c.export(mockIdent))).Obj
 	if fn.Name == "" {
 		recvType = mName
-		fnName = c.exportName(onCallFnName)
+		fnName = c.export(onCallFnName)
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 		typePrefix = mName
-		mockVal = NewIdent(mockReceiverIdent)
+		mockVal = Id(mockReceiverIdent)
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(mockReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(recvType)},
-		}}},
-		Name: NewIdent(fnName),
-		Type: &FuncType{
-			Params: cloneAndNameUnnamed(paramPrefix, fn.Params),
-			Results: &FieldList{List: []*Field{{
-				Type: &StarExpr{X: NewIdent(fnRecName)},
-			}}},
-		},
-		Body: c.recorderFnInterfaceBody(fnRecName, typePrefix, mockVal, fn),
-		Decs: stdFuncDec(),
-	}
+	return Fn(fnName).
+		Recv(Field(Star(Id(recvType))).Names(Id(mockReceiverIdent)).Obj).
+		ParamFieldList(cloneAndNameUnnamed(paramPrefix, fn.Params)).
+		Results(Field(Star(Id(fnRecName))).Obj).
+		Body(c.recorderFnInterfaceBody(fnRecName, typePrefix, mockVal, fn)...).
+		Decs(stdFuncDec()).Obj
 }
 
 func (c *Converter) recorderFnInterfaceBody(
-	fnRecName, typePrefix string, mockValue Expr, fn Func,
-) *BlockStmt {
-	return &BlockStmt{List: []Stmt{&ReturnStmt{
-		Results: []Expr{&UnaryExpr{
-			Op: token.AND,
-			X: &CompositeLit{
-				Type: NewIdent(fnRecName),
-				Elts: []Expr{
-					&KeyValueExpr{
-						Key: NewIdent(c.exportName(paramsIdent)),
-						Value: &CompositeLit{
-							Type: NewIdent(fmt.Sprintf(
-								"%s_%s", typePrefix, paramsIdent)),
-							Elts: c.passthroughElements(fn.Params, paramsIdent),
-						},
-						Decs: kvExprDec(None),
-					},
-					&KeyValueExpr{
-						Key: NewIdent(c.exportName(paramsKeyIdent)),
-						Value: &CompositeLit{
-							Type: NewIdent(fmt.Sprintf(
-								"%s_%s", typePrefix, paramsKeyIdent)),
-							Elts: c.passthroughElements(fn.Params, paramsKeyIdent),
-						},
-						Decs: kvExprDec(None),
-					},
-					&KeyValueExpr{
-						Key:   NewIdent(c.exportName(mockIdent)),
-						Value: mockValue,
-						Decs:  kvExprDec(None),
-					},
-				},
-				Decs: litDec(),
-			},
-		}},
-	}}}
+	fnRecName, typePrefix string, mockValue dst.Expr, fn Func,
+) []dst.Stmt {
+	return []dst.Stmt{Return(Un(
+		token.AND,
+		Comp(Id(fnRecName)).
+			Elts(
+				Key(Id(c.export(paramsIdent))).
+					Value(Comp(Idf("%s_%s", typePrefix, paramsIdent)).
+						Elts(c.passthroughElements(fn.Params, paramsIdent)...).Obj,
+					).Decs(kvExprDec(dst.None)).Obj,
+				Key(Id(c.export(paramsKeyIdent))).
+					Value(Comp(Idf("%s_%s", typePrefix, paramsKeyIdent)).
+						Elts(c.passthroughElements(fn.Params, paramsKeyIdent)...).Obj,
+					).Decs(kvExprDec(dst.None)).Obj,
+				Key(Id(c.export(mockIdent))).
+					Value(mockValue).Decs(kvExprDec(dst.None)).Obj,
+			).Decs(litDec()).Obj,
+	))}
 }
 
-func (c *Converter) recorderReturnFn(typeName string, fn Func) *FuncDecl {
+func (c *Converter) recorderReturnFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
 	results := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultsIdent)
 	resultMgr := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultMgrSuffix)
 	resultsByParams := fmt.Sprintf("%s_%s", resultsByParamsIdent, fn.Name)
-	mockSel := &SelectorExpr{X: &SelectorExpr{
-		X:   NewIdent(recorderReceiverIdent),
-		Sel: NewIdent(c.exportName(mockIdent)),
-	}}
 	if fn.Name == "" {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 		results = fmt.Sprintf("%s_%s", mName, resultsIdent)
 		resultMgr = fmt.Sprintf("%s_%s", mName, resultMgrSuffix)
 		resultsByParams = resultsByParamsIdent
-		mockSel = &SelectorExpr{X: &SelectorExpr{
-			X:   NewIdent(recorderReceiverIdent),
-			Sel: NewIdent(c.exportName(mockIdent)),
-		}}
+		// TODO ???
+		//mockSel := Sel(Sel(NewIdent(recorderReceiverIdent)).
+		//	Dot(NewIdent(c.export(mockIdent))).Obj).Obj
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(recorderReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(fnRecName)},
-		}}},
-		Name: NewIdent(c.exportName(returnFnName)),
-		Type: &FuncType{
-			Params: cloneAndNameUnnamed(resultPrefix, fn.Results),
-			Results: &FieldList{List: []*Field{{
-				Type: &StarExpr{X: NewIdent(fnRecName)},
-			}}},
-		},
-		Body: &BlockStmt{List: []Stmt{
-			&IfStmt{
-				Cond: &BinaryExpr{
-					X: &SelectorExpr{
-						X:   NewIdent(recorderReceiverIdent),
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					},
-					Op: token.EQL,
-					Y:  NewIdent(nilIdent),
-				},
-				Body: &BlockStmt{List: []Stmt{
-					&IfStmt{
-						Init: &AssignStmt{
-							Lhs: []Expr{NewIdent("_"), NewIdent(okIdent)},
-							Tok: token.DEFINE,
-							Rhs: []Expr{&IndexExpr{
-								X: cloneSelect(mockSel, c.exportName(resultsByParams)),
-								Index: &SelectorExpr{
-									X:   NewIdent(recorderReceiverIdent),
-									Sel: NewIdent(c.exportName(paramsKeyIdent)),
-								},
-							}},
-						},
-						Cond: NewIdent(okIdent),
-						Body: &BlockStmt{List: []Stmt{
-							&ExprStmt{X: &CallExpr{
-								Fun: &SelectorExpr{
-									X: &SelectorExpr{
-										X: cloneSelect(
-											mockSel, c.exportName(sceneIdent)),
-										Sel: NewIdent(moqTType),
-									},
-									Sel: NewIdent(fatalfFnName),
-								},
-								Args: []Expr{
-									&BasicLit{
-										Kind:  token.STRING,
-										Value: "\"Expectations already recorded for mock with parameters %#v\"",
-									},
-									&SelectorExpr{
-										X:   NewIdent(recorderReceiverIdent),
-										Sel: NewIdent(c.exportName(paramsIdent)),
-									},
-								},
-							}},
-							&ReturnStmt{Results: []Expr{NewIdent(nilIdent)}},
-						}},
-						Decs: IfStmtDecorations{NodeDecs: NodeDecs{
-							After: EmptyLine,
-						}},
-					},
-					&AssignStmt{
-						Lhs: []Expr{&SelectorExpr{
-							X:   NewIdent(recorderReceiverIdent),
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						}},
-						Tok: token.ASSIGN,
-						Rhs: []Expr{&UnaryExpr{
-							Op: token.AND,
-							X: &CompositeLit{
-								Type: NewIdent(c.exportName(resultMgr)),
-								Elts: []Expr{
-									&KeyValueExpr{
-										Key: NewIdent(c.exportName(paramsIdent)),
-										Value: &SelectorExpr{
-											X: NewIdent(recorderReceiverIdent),
-											Sel: NewIdent(c.exportName(
-												paramsIdent)),
-										},
-										Decs: kvExprDec(NewLine),
-									},
-									&KeyValueExpr{
-										Key: NewIdent(c.exportName(resultsIdent)),
-										Value: &CompositeLit{Type: &ArrayType{
-											Elt: &StarExpr{
-												X: NewIdent(c.exportName(results)),
-											},
-										}},
-										Decs: kvExprDec(None),
-									},
-									&KeyValueExpr{
-										Key:   NewIdent(c.exportName(indexIdent)),
-										Value: &BasicLit{Kind: token.INT, Value: "0"},
-										Decs:  kvExprDec(None),
-									},
-									&KeyValueExpr{
-										Key:   NewIdent(c.exportName(anyTimesIdent)),
-										Value: NewIdent("false"),
-										Decs:  kvExprDec(None),
-									},
-								},
-							},
-						}},
-					},
-					&AssignStmt{
-						Lhs: []Expr{&IndexExpr{
-							X: &SelectorExpr{
-								X: &SelectorExpr{
-									X:   NewIdent(recorderReceiverIdent),
-									Sel: NewIdent(c.exportName(mockIdent)),
-								},
-								Sel: NewIdent(c.exportName(resultsByParams)),
-							},
-							Index: &SelectorExpr{
-								X:   NewIdent(recorderReceiverIdent),
-								Sel: NewIdent(c.exportName(paramsKeyIdent)),
-							},
-						}},
-						Tok: token.ASSIGN,
-						Rhs: []Expr{&SelectorExpr{
-							X:   NewIdent(recorderReceiverIdent),
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						}},
-					},
-				}},
-			},
-			&AssignStmt{
-				Lhs: []Expr{
-					&SelectorExpr{
-						X: &SelectorExpr{
-							X:   NewIdent(recorderReceiverIdent),
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						},
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					},
-				},
-				Tok: token.ASSIGN,
-				Rhs: []Expr{&CallExpr{
-					Fun: NewIdent("append"),
-					Args: []Expr{
-						&SelectorExpr{
-							X: &SelectorExpr{
-								X:   NewIdent(recorderReceiverIdent),
-								Sel: NewIdent(c.exportName(resultsIdent)),
-							},
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						},
-						&UnaryExpr{
-							Op: token.AND,
-							X: &CompositeLit{
-								Type: NewIdent(c.exportName(results)),
-								Elts: c.passthroughElements(fn.Results, resultsIdent),
-							},
-						},
-					},
-				}},
-			},
-			&ReturnStmt{Results: []Expr{NewIdent(recorderReceiverIdent)}},
-		}},
-		Decs: stdFuncDec(),
-	}
+	mockSel := Sel(Sel(Id(recorderReceiverIdent)).
+		Dot(Id(c.export(mockIdent))).Obj).Obj
+
+	return Fn(c.export(returnFnName)).
+		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
+		ParamFieldList(cloneAndNameUnnamed(resultPrefix, fn.Results)).
+		Results(Field(Star(Id(fnRecName))).Obj).
+		Body(
+			If(Bin(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Op(token.EQL).
+				Y(Id(nilIdent)).Obj).
+				Body(
+					IfInit(Assign(Id("_"), Id(okIdent)).
+						Tok(token.DEFINE).
+						Rhs(Index(cloneSelect(mockSel, c.export(resultsByParams))).
+							Sub(Sel(Id(recorderReceiverIdent)).
+								Dot(Id(c.export(paramsKeyIdent))).Obj).Obj).Obj).
+						Cond(Id(okIdent)).
+						Body(
+							Expr(Call(Sel(Sel(cloneSelect(mockSel, c.export(sceneIdent))).
+								Dot(Id(moqTType)).Obj).
+								Dot(Id(fatalfFnName)).Obj).
+								Args(LitString(
+									"Expectations already recorded for mock with parameters %#v"),
+									Sel(Id(recorderReceiverIdent)).
+										Dot(Id(c.export(paramsIdent))).Obj,
+								).Obj),
+							Return(Id(nilIdent)),
+						).Decs(IfDecs(dst.EmptyLine).Obj).Obj,
+					Assign(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(resultsIdent))).Obj).
+						Tok(token.ASSIGN).
+						Rhs(Un(
+							token.AND,
+							Comp(Id(c.export(resultMgr))).
+								Elts(
+									Key(Id(c.export(paramsIdent))).
+										Value(Sel(Id(recorderReceiverIdent)).
+											Dot(Id(c.export(paramsIdent))).Obj).
+										Decs(kvExprDec(dst.NewLine)).Obj,
+									Key(Id(c.export(resultsIdent))).Value(
+										Comp(Slice(Star(Id(c.export(results))))).Obj).
+										Decs(kvExprDec(dst.None)).Obj,
+									Key(Id(c.export(indexIdent))).Value(
+										LitInt(0)).Decs(kvExprDec(dst.None)).Obj,
+									Key(Id(c.export(anyTimesIdent))).Value(
+										Id("false")).Decs(kvExprDec(dst.None)).Obj,
+								).Obj,
+						)).Obj,
+					Assign(Index(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(mockIdent))).Obj).
+						Dot(Id(c.export(resultsByParams))).Obj).
+						Sub(Sel(Id(recorderReceiverIdent)).
+							Dot(Id(c.export(paramsKeyIdent))).Obj).Obj).
+						Tok(token.ASSIGN).
+						Rhs(Sel(Id(recorderReceiverIdent)).
+							Dot(Id(c.export(resultsIdent))).Obj).Obj,
+				).Obj,
+			Assign(
+				Sel(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Dot(Id(c.export(resultsIdent))).Obj,
+			).
+				Tok(token.ASSIGN).
+				Rhs(Call(Id("append")).Args(Sel(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Dot(Id(c.export(resultsIdent))).Obj,
+					Un(token.AND, Comp(Id(c.export(results))).
+						Elts(c.passthroughElements(fn.Results, resultsIdent)...).Obj)).Obj).Obj,
+			Return(Id(recorderReceiverIdent)),
+		).
+		Decs(stdFuncDec()).Obj
 }
 
-func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
+func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
@@ -1204,128 +670,53 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *FuncDecl {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(recorderReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(fnRecName)},
-		}}},
-		Name: NewIdent(c.exportName(timesFnName)),
-		Type: &FuncType{
-			Params: &FieldList{List: []*Field{{
-				Names: []*Ident{NewIdent(countIdent)},
-				Type:  NewIdent(intType),
-			}}},
-			Results: &FieldList{List: []*Field{{
-				Type: &StarExpr{X: NewIdent(fnRecName)},
-			}}},
-		},
-		Body: &BlockStmt{List: []Stmt{
-			&IfStmt{
-				Cond: &BinaryExpr{
-					X: &SelectorExpr{
-						X:   NewIdent(recorderReceiverIdent),
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					},
-					Op: token.EQL,
-					Y:  NewIdent(nilIdent),
-				},
-				Body: &BlockStmt{List: []Stmt{
-					&ExprStmt{X: &CallExpr{
-						Fun: &SelectorExpr{
-							X: &SelectorExpr{
-								X: &SelectorExpr{
-									X: &SelectorExpr{
-										X:   NewIdent(recorderReceiverIdent),
-										Sel: NewIdent(c.exportName(mockIdent)),
-									},
-									Sel: NewIdent(c.exportName(sceneIdent)),
-								},
-								Sel: NewIdent(moqTType),
-							},
-							Sel: NewIdent(fatalfFnName),
-						},
-						Args: []Expr{&BasicLit{
-							Kind:  token.STRING,
-							Value: "\"Return must be called before calling Times\"",
-						}},
-					}},
-					&ReturnStmt{Results: []Expr{NewIdent(nilIdent)}},
-				}},
-			},
-			&AssignStmt{
-				Lhs: []Expr{NewIdent(lastIdent)},
-				Tok: token.DEFINE,
-				Rhs: []Expr{&IndexExpr{
-					X: &SelectorExpr{
-						X: &SelectorExpr{
-							X:   NewIdent(recorderReceiverIdent),
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						},
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					},
-					Index: &BinaryExpr{
-						X: &CallExpr{
-							Fun: NewIdent(lenFnName),
-							Args: []Expr{&SelectorExpr{
-								X: &SelectorExpr{
-									X:   NewIdent(recorderReceiverIdent),
-									Sel: NewIdent(c.exportName(resultsIdent)),
-								},
-								Sel: NewIdent(c.exportName(resultsIdent)),
-							}},
-						},
-						Op: token.SUB,
-						Y:  &BasicLit{Kind: token.INT, Value: "1"},
-					},
-				}},
-			},
-			&ForStmt{
-				Init: &AssignStmt{
-					Lhs: []Expr{NewIdent("n")},
-					Tok: token.DEFINE,
-					Rhs: []Expr{&BasicLit{Kind: token.INT, Value: "0"}},
-				},
-				Cond: &BinaryExpr{
-					X:  NewIdent("n"),
-					Op: token.LSS,
-					Y: &BinaryExpr{
-						X:  NewIdent(countIdent),
-						Op: token.SUB,
-						Y:  &BasicLit{Kind: token.INT, Value: "1"},
-					},
-				},
-				Post: &IncDecStmt{X: NewIdent("n"), Tok: token.INC},
-				Body: &BlockStmt{List: []Stmt{&AssignStmt{
-					Lhs: []Expr{&SelectorExpr{
-						X: &SelectorExpr{
-							X:   NewIdent(recorderReceiverIdent),
-							Sel: NewIdent(c.exportName(resultsIdent)),
-						},
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					}},
-					Tok: token.ASSIGN,
-					Rhs: []Expr{&CallExpr{
-						Fun: NewIdent("append"),
-						Args: []Expr{
-							&SelectorExpr{
-								X: &SelectorExpr{
-									X:   NewIdent(recorderReceiverIdent),
-									Sel: NewIdent(c.exportName(resultsIdent)),
-								},
-								Sel: NewIdent(c.exportName(resultsIdent)),
-							},
-							NewIdent(lastIdent),
-						},
-					}},
-				}}},
-			},
-			&ReturnStmt{Results: []Expr{NewIdent(recorderReceiverIdent)}},
-		}},
-		Decs: stdFuncDec(),
-	}
+	return Fn(c.export(timesFnName)).
+		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
+		Params(Field(Id(intType)).Names(Id(countIdent)).Obj).
+		Results(Field(Star(Id(fnRecName))).Obj).
+		Body(
+			If(Bin(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Op(token.EQL).
+				Y(Id(nilIdent)).Obj).
+				Body(
+					Expr(Call(Sel(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(mockIdent))).Obj).
+						Dot(Id(c.export(sceneIdent))).Obj).
+						Dot(Id(moqTType)).Obj).Dot(Id(fatalfFnName)).Obj).
+						Args(LitString(
+							"Return must be called before calling Times")).Obj),
+					Return(Id(nilIdent)),
+				).Obj,
+			Assign(Id(lastIdent)).
+				Tok(token.DEFINE).
+				Rhs(Index(Sel(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Sub(Bin(Call(Id(lenFnName)).
+						Args(Sel(Sel(Id(recorderReceiverIdent)).
+							Dot(Id(c.export(resultsIdent))).Obj).
+							Dot(Id(c.export(resultsIdent))).Obj).Obj).
+						Op(token.SUB).
+						Y(LitInt(1)).Obj).Obj).Obj,
+			For(Assign(Id("n")).Tok(token.DEFINE).Rhs(LitInt(0)).Obj).
+				Cond(Bin(Id("n")).Op(token.LSS).
+					Y(Bin(Id(countIdent)).Op(token.SUB).Y(LitInt(1)).Obj).Obj).
+				Post(IncStmt(Id("n"))).
+				Body(Assign(Sel(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Tok(token.ASSIGN).
+					Rhs(Call(Id("append")).Args(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(resultsIdent))).Obj).
+						Dot(Id(c.export(resultsIdent))).Obj,
+						Id(lastIdent)).Obj).Obj).Obj,
+			Return(Id(recorderReceiverIdent)),
+		).
+		Decs(stdFuncDec()).Obj
 }
 
-func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *FuncDecl {
+func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
@@ -1333,86 +724,52 @@ func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *FuncDecl {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
-	return &FuncDecl{
-		Recv: &FieldList{List: []*Field{{
-			Names: []*Ident{NewIdent(recorderReceiverIdent)},
-			Type:  &StarExpr{X: NewIdent(fnRecName)},
-		}}},
-		Name: NewIdent(c.exportName(anyTimesFnName)),
-		Type: &FuncType{Params: &FieldList{}},
-		Body: &BlockStmt{List: []Stmt{
-			&IfStmt{
-				Cond: &BinaryExpr{
-					X: &SelectorExpr{
-						X:   NewIdent(recorderReceiverIdent),
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					},
-					Op: token.EQL,
-					Y:  NewIdent(nilIdent),
-				},
-				Body: &BlockStmt{List: []Stmt{
-					&ExprStmt{X: &CallExpr{
-						Fun: &SelectorExpr{
-							X: &SelectorExpr{
-								X: &SelectorExpr{
-									X: &SelectorExpr{
-										X:   NewIdent(recorderReceiverIdent),
-										Sel: NewIdent(c.exportName(mockIdent)),
-									},
-									Sel: NewIdent(c.exportName(sceneIdent)),
-								},
-								Sel: NewIdent(moqTType),
-							},
-							Sel: NewIdent(fatalfFnName),
-						},
-						Args: []Expr{&BasicLit{
-							Kind:  token.STRING,
-							Value: "\"Return must be called before calling AnyTimes\"",
-						}},
-					}},
-					&ReturnStmt{},
-				}},
-			},
-			&AssignStmt{
-				Lhs: []Expr{&SelectorExpr{
-					X: &SelectorExpr{
-						X:   NewIdent(recorderReceiverIdent),
-						Sel: NewIdent(c.exportName(resultsIdent)),
-					},
-					Sel: NewIdent(c.exportName(anyTimesIdent)),
-				}},
-				Tok: token.ASSIGN,
-				Rhs: []Expr{NewIdent("true")},
-			},
-		}},
-		Decs: stdFuncDec(),
-	}
+	return Fn(c.export(anyTimesFnName)).
+		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
+		Body(
+			If(Bin(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Op(token.EQL).
+				Y(Id(nilIdent)).Obj).
+				Body(
+					Expr(Call(Sel(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(mockIdent))).Obj).
+						Dot(Id(c.export(sceneIdent))).Obj).
+						Dot(Id(moqTType)).Obj).
+						Dot(Id(fatalfFnName)).Obj).
+						Args(LitString(
+							"Return must be called before calling AnyTimes")).Obj),
+					Return(),
+				).Obj,
+			Assign(Sel(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Dot(Id(c.export(anyTimesIdent))).Obj).
+				Tok(token.ASSIGN).
+				Rhs(Id("true")).Obj,
+		).
+		Decs(stdFuncDec()).Obj
 }
 
-func (c *Converter) passthroughElements(fl *FieldList, label string) []Expr {
+func (c *Converter) passthroughElements(fl *dst.FieldList, label string) []dst.Expr {
 	unnamedPrefix, comparable := labelDirection(label)
-	var elts []Expr
+	var elts []dst.Expr
 	if fl != nil {
-		beforeDec := NewLine
+		beforeDec := dst.NewLine
 		fields := fl.List
 		for n, field := range fields {
 			if len(field.Names) == 0 {
 				pName := fmt.Sprintf("%s%d", unnamedPrefix, n+1)
-				elts = append(elts, &KeyValueExpr{
-					Key:   NewIdent(c.exportName(pName)),
-					Value: passthroughValue(pName, field, comparable),
-					Decs:  kvExprDec(beforeDec),
-				})
-				beforeDec = None
+				elts = append(elts, Key(Id(c.export(pName))).Value(
+					passthroughValue(pName, field.Type, comparable)).
+					Decs(kvExprDec(beforeDec)).Obj)
+				beforeDec = dst.None
 			}
 
 			for _, name := range field.Names {
-				elts = append(elts, &KeyValueExpr{
-					Key:   NewIdent(c.exportName(name.Name)),
-					Value: passthroughValue(name.Name, field, comparable),
-					Decs:  kvExprDec(beforeDec),
-				})
-				beforeDec = None
+				elts = append(elts, Key(Id(c.export(name.Name))).Value(
+					passthroughValue(name.Name, field.Type, comparable)).
+					Decs(kvExprDec(beforeDec)).Obj)
+				beforeDec = dst.None
 			}
 		}
 	}
@@ -1420,66 +777,55 @@ func (c *Converter) passthroughElements(fl *FieldList, label string) []Expr {
 	return elts
 }
 
-func passthroughValue(name string, field *Field, comparable bool) Expr {
-	var val Expr
-	val = NewIdent(name)
-	if comparable && !isComparable(field.Type) {
-		val = &CallExpr{
-			Fun:  &Ident{Path: hashPkg, Name: "DeepHash"},
-			Args: []Expr{val},
-		}
+func passthroughValue(name string, typ dst.Expr, comparable bool) dst.Expr {
+	var val dst.Expr
+	val = Id(name)
+	if comparable && !isComparable(typ) {
+		val = Call(IdPath("DeepHash", hashPkg)).Args(val).Obj
 	}
 	return val
 }
 
-func passthroughFields(fields *FieldList) []Expr {
-	var exprs []Expr
+func passthroughFields(fields *dst.FieldList) []dst.Expr {
+	var exprs []dst.Expr
 	for _, f := range fields.List {
 		for _, n := range f.Names {
-			exprs = append(exprs, NewIdent(n.Name))
+			exprs = append(exprs, Id(n.Name))
 		}
 	}
 	return exprs
 }
 
-func (c *Converter) assignResult(resFL *FieldList) []Stmt {
-	var assigns []Stmt
+func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
+	var assigns []dst.Stmt
 	if resFL != nil {
 		results := resFL.List
 		for n, result := range results {
 			if len(result.Names) == 0 {
 				rName := fmt.Sprintf("%s%d", resultPrefix, n+1)
-				assigns = append(assigns, &AssignStmt{
-					Lhs: []Expr{NewIdent(rName)},
-					Tok: token.ASSIGN,
-					Rhs: []Expr{&SelectorExpr{
-						X:   NewIdent(resultIdent),
-						Sel: NewIdent(c.exportName(rName)),
-					}},
-				})
+				assigns = append(assigns, Assign(Id(rName)).
+					Tok(token.ASSIGN).
+					Rhs(Sel(Id(resultIdent)).
+						Dot(Id(c.export(rName))).Obj).Obj)
 			}
 
 			for _, name := range result.Names {
-				assigns = append(assigns, &AssignStmt{
-					Lhs: []Expr{NewIdent(name.Name)},
-					Tok: token.ASSIGN,
-					Rhs: []Expr{&SelectorExpr{
-						X:   NewIdent(resultIdent),
-						Sel: NewIdent(c.exportName(name.Name)),
-					}},
-				})
+				assigns = append(assigns, Assign(Id(name.Name)).
+					Tok(token.ASSIGN).
+					Rhs(Sel(Id(resultIdent)).
+						Dot(Id(c.export(name.Name))).Obj).Obj)
 			}
 		}
 	}
 	return assigns
 }
 
-func cloneAndNameUnnamed(prefix string, fieldList *FieldList) *FieldList {
+func cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList) *dst.FieldList {
 	fieldList = cloneNilableFieldList(fieldList)
 	if fieldList != nil {
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
-				f.Names = []*Ident{NewIdent(fmt.Sprintf("%s%d", prefix, n+1))}
+				f.Names = []*dst.Ident{Idf("%s%d", prefix, n+1)}
 			}
 		}
 	}
@@ -1487,19 +833,19 @@ func cloneAndNameUnnamed(prefix string, fieldList *FieldList) *FieldList {
 }
 
 func (c *Converter) mockName(typeName string) string {
-	return c.exportName(mockIdent + strings.Title(typeName))
+	return c.export(mockIdent + strings.Title(typeName))
 }
 
-func (c *Converter) exportName(name string) string {
-	if c.export {
+func (c *Converter) export(name string) string {
+	if c.isExported {
 		name = strings.Title(name)
 	}
 	return name
 }
 
-func stdFuncDec() FuncDeclDecorations {
-	return FuncDeclDecorations{
-		NodeDecs: NodeDecs{Before: EmptyLine, After: EmptyLine},
+func stdFuncDec() dst.FuncDeclDecorations {
+	return dst.FuncDeclDecorations{
+		NodeDecs: dst.NodeDecs{Before: dst.EmptyLine, After: dst.EmptyLine},
 	}
 }
 
@@ -1521,44 +867,42 @@ func labelDirection(label string) (unnamedPrefix string, comparable bool) {
 	return unnamedPrefix, comparable
 }
 
-func cloneNilableFieldList(fl *FieldList) *FieldList {
+func cloneNilableFieldList(fl *dst.FieldList) *dst.FieldList {
 	if fl != nil {
-		fl = Clone(fl).(*FieldList)
+		fl = dst.Clone(fl).(*dst.FieldList)
 	}
 	return fl
 }
 
-func cloneSelect(x *SelectorExpr, sel string) *SelectorExpr {
-	x = Clone(x).(*SelectorExpr)
-	x.Sel = NewIdent(sel)
+func cloneSelect(x *dst.SelectorExpr, sel string) *dst.SelectorExpr {
+	x = dst.Clone(x).(*dst.SelectorExpr)
+	x.Sel = Id(sel)
 	return x
 }
 
-func genDeclDec(format string, a ...interface{}) GenDeclDecorations {
-	return GenDeclDecorations{
+func genDeclDec(format string, a ...interface{}) dst.GenDeclDecorations {
+	return dst.GenDeclDecorations{
 		NodeDecs: nodeDec(format, a...),
 	}
 }
 
-func fnDeclDec(format string, a ...interface{}) FuncDeclDecorations {
-	return FuncDeclDecorations{
+func fnDeclDec(format string, a ...interface{}) dst.FuncDeclDecorations {
+	return dst.FuncDeclDecorations{
 		NodeDecs: nodeDec(format, a...),
 	}
 }
 
-func nodeDec(format string, a ...interface{}) NodeDecs {
-	return NodeDecs{
-		Before: NewLine,
-		Start:  Decorations{fmt.Sprintf(format, a...)},
+func nodeDec(format string, a ...interface{}) dst.NodeDecs {
+	return dst.NodeDecs{
+		Before: dst.NewLine,
+		Start:  dst.Decorations{fmt.Sprintf(format, a...)},
 	}
 }
 
-func litDec() CompositeLitDecorations {
-	return CompositeLitDecorations{Lbrace: []string{"\n"}}
+func litDec() dst.CompositeLitDecorations {
+	return dst.CompositeLitDecorations{Lbrace: []string{"\n"}}
 }
 
-func kvExprDec(before SpaceType) KeyValueExprDecorations {
-	return KeyValueExprDecorations{
-		NodeDecs: NodeDecs{Before: before, After: NewLine},
-	}
+func kvExprDec(before dst.SpaceType) dst.KeyValueExprDecorations {
+	return KeyValueDecs(before).After(dst.NewLine).Obj
 }

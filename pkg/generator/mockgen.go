@@ -25,7 +25,7 @@ type Converterer interface {
 	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
 	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
 	MethodStructs(typeSpec *dst.TypeSpec, fn Func) (structDecls []dst.Decl)
-	NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
+	NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl)
 	IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
 	FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
 	MockMethod(typeName string, fn Func) (funcDecl *dst.FuncDecl)
@@ -101,7 +101,7 @@ func (g *MockGenerator) Generate(inTypes []string, imp string, testImp bool) (
 
 		decls = append(decls, g.structs(typeSpec, funcs)...)
 
-		decls = append(decls, g.converter.NewFunc(typeSpec, funcs))
+		decls = append(decls, g.converter.NewFunc(typeSpec))
 
 		decls = append(decls, g.methods(typeSpec, pkgPath, funcs)...)
 

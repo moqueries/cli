@@ -252,7 +252,7 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[1]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
+		converterMock.onCall().NewFunc(ifaceSpec1).
 			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
@@ -287,7 +287,7 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().MethodStructs(ifaceSpec2, iface2Funcs[0]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2, iface2Funcs).
+		converterMock.onCall().NewFunc(ifaceSpec2).
 			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
@@ -338,7 +338,7 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
+		converterMock.onCall().NewFunc(ifaceSpec1).
 			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
@@ -362,7 +362,7 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2, []generator.Func{}).
+		converterMock.onCall().NewFunc(ifaceSpec2).
 			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
@@ -408,7 +408,7 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
+		converterMock.onCall().NewFunc(ifaceSpec1).
 			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
@@ -432,7 +432,7 @@ var _ = Describe("MockGen", func() {
 			returnResults(nil)
 		converterMock.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2, []generator.Func{}).
+		converterMock.onCall().NewFunc(ifaceSpec2).
 			returnResults(nil)
 		converterMock.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").

@@ -214,7 +214,7 @@ var _ = Describe("Converter", func() {
 			// ASSEMBLE
 
 			// ACT
-			decl := converter.NewFunc(iSpec, iSpecFuncs)
+			decl := converter.NewFunc(iSpec)
 
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
@@ -226,7 +226,7 @@ var _ = Describe("Converter", func() {
 			// ASSEMBLE
 
 			// ACT
-			decl := converter.NewFunc(fnSpec, fnSpecFuncs)
+			decl := converter.NewFunc(fnSpec)
 
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
