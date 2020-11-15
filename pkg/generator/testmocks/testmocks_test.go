@@ -27,10 +27,17 @@ type results struct {
 
 type adaptor interface {
 	tracksParams() bool
-	expectCall(sParams []string, bParam bool, results ...results) interface{}
+	newRecorder(sParams []string, bParam bool) interface{}
+	any(rec interface{}, sParams, bParam bool) interface{}
+	results(rec interface{}, results ...results) interface{}
 	invokeMockAndExpectResults(sParams []string, bParam bool, res results)
 	bundleParams(sParams []string, bParam bool) interface{}
 	sceneMock() moq.Mock
+}
+
+func expectCall(a adaptor, sParams []string, bParam bool, results ...results) interface{} {
+	rec := a.newRecorder(sParams, bParam)
+	return a.results(rec, results...)
 }
 
 type tableEntry struct {
@@ -124,14 +131,14 @@ var _ = Describe("TestMocks", func() {
 			mockScene.Reset()
 
 			if entry.a.tracksParams() {
-				entry.a.expectCall([]string{"Hello", "there"}, false,
+				expectCall(entry.a, []string{"Hello", "there"}, false,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: nil})
 			if entry.a.tracksParams() {
-				entry.a.expectCall([]string{"Bye", "now"}, true,
+				expectCall(entry.a, []string{"Bye", "now"}, true,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
 
@@ -208,14 +215,14 @@ var _ = Describe("TestMocks", func() {
 			mockScene.Reset()
 
 			if entry.a.tracksParams() {
-				entry.a.expectCall([]string{"Hello", "there"}, false,
+				expectCall(entry.a, []string{"Hello", "there"}, false,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil, times: 4},
 				results{sResults: []string{"green", "purple"}, err: nil})
 			if entry.a.tracksParams() {
-				entry.a.expectCall([]string{"Bye", "now"}, true,
+				expectCall(entry.a, []string{"Bye", "now"}, true,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
 
@@ -250,14 +257,14 @@ var _ = Describe("TestMocks", func() {
 			mockScene.Reset()
 
 			if entry.a.tracksParams() {
-				entry.a.expectCall([]string{"Hello", "there"}, false,
+				expectCall(entry.a, []string{"Hello", "there"}, false,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: nil, anyTimes: true})
 			if entry.a.tracksParams() {
-				entry.a.expectCall([]string{"Bye", "now"}, true,
+				expectCall(entry.a, []string{"Bye", "now"}, true,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
 			}
 
@@ -297,7 +304,7 @@ var _ = Describe("TestMocks", func() {
 				ReturnResults()
 
 			// ACT
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{noReturnResults: true, times: 4})
 
 			// ASSERT
@@ -318,7 +325,7 @@ var _ = Describe("TestMocks", func() {
 				ReturnResults()
 
 			// ACT
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{noReturnResults: true, anyTimes: true})
 
 			// ASSERT
@@ -334,7 +341,7 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: io.EOF})
 
@@ -365,7 +372,7 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"blue", "orange"}, err: nil},
 				results{sResults: []string{"green", "purple"}, err: io.EOF})
 
@@ -392,19 +399,19 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
 			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
 
 			msg := "Expectations already recorded for mock with parameters %#v"
-			params := entry.a.bundleParams([]string{"Hi", "you"}, true)
-			moqTMock.OnCall().Fatalf(msg, params).
+			bParams := entry.a.bundleParams([]string{"Hi", "you"}, true)
+			moqTMock.OnCall().Fatalf(msg, bParams).
 				ReturnResults()
-			fmtMsg := fmt.Sprintf(msg, params)
+			fmtMsg := fmt.Sprintf(msg, bParams)
 
 			// ACT
-			fnRec := entry.a.expectCall([]string{"Hi", "you"}, true,
+			fnRec := expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"red", "purple"}, err: io.EOF})
 
 			// ASSERT
@@ -424,14 +431,14 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
 
 			// ACT
 			entry.a.sceneMock().Reset()
 
 			// ASSERT
-			entry.a.expectCall([]string{"Hi", "you"}, true,
+			expectCall(entry.a, []string{"Hi", "you"}, true,
 				results{sResults: []string{"grey", "indigo"}, err: nil})
 			entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 				results{sResults: []string{"grey", "indigo"}, err: nil})
@@ -439,6 +446,86 @@ var _ = Describe("TestMocks", func() {
 			scene.AssertExpectationsMet()
 			mockScene.AssertExpectationsMet()
 		}
+	})
+
+	Describe("any values", func() {
+		It("ignores a param when instructed to do so", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				if entry.a.tracksParams() {
+					expectCall(entry.a, []string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				rec := entry.a.newRecorder([]string{"Hi", "you"}, true)
+				rec = entry.a.any(rec, true, false)
+				entry.a.results(rec,
+					results{sResults: []string{"blue", "orange"}, err: nil},
+					results{sResults: []string{"green", "purple"}, err: nil})
+				if entry.a.tracksParams() {
+					expectCall(entry.a, []string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				// ACT
+				entry.a.invokeMockAndExpectResults([]string{"Goodbye", "you"}, true,
+					results{sResults: []string{"green", "purple"}, err: nil})
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+			}
+		})
+
+		It("returns an error if any functions are called after returning results", func() {
+			entries, mockScene := entries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				if !entry.a.tracksParams() {
+					// With no params to track, there will be no `any` functions
+					continue
+				}
+				scene.Reset()
+				mockScene.Reset()
+
+				rec := entry.a.newRecorder([]string{"Hi", "you"}, true)
+				rec = entry.a.results(rec,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				msg := "Any functions must be called prior to returning results, parameters: %#v"
+				bParams := entry.a.bundleParams([]string{"Hi", "you"}, true)
+				moqTMock.OnCall().Fatalf(msg, bParams).
+					ReturnResults()
+				fmtMsg := fmt.Sprintf(msg, bParams)
+
+				// ACT
+				rec = entry.a.any(rec, true, false)
+
+				// ASSERT
+				Expect(rec).To(BeNil())
+				scene.AssertExpectationsMet()
+				mockScene.AssertExpectationsMet()
+				if entry.a.tracksParams() {
+					Expect(fmtMsg).To(ContainSubstring("Hi"))
+				}
+			}
+		})
 	})
 
 	Describe("AssertExpectationsMet", func() {
@@ -466,13 +553,13 @@ var _ = Describe("TestMocks", func() {
 				mockScene.Reset()
 
 				if entry.a.tracksParams() {
-					entry.a.expectCall([]string{"Hello", "there"}, false,
+					expectCall(entry.a, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
-				entry.a.expectCall([]string{"Hi", "you"}, true,
+				expectCall(entry.a, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
 				if entry.a.tracksParams() {
-					entry.a.expectCall([]string{"Bye", "now"}, true,
+					expectCall(entry.a, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
@@ -505,13 +592,13 @@ var _ = Describe("TestMocks", func() {
 
 				// ASSEMBLE
 				if entry.a.tracksParams() {
-					entry.a.expectCall([]string{"Hello", "there"}, false,
+					expectCall(entry.a, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
-				entry.a.expectCall([]string{"Hi", "you"}, true,
+				expectCall(entry.a, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
 				if entry.a.tracksParams() {
-					entry.a.expectCall([]string{"Bye", "now"}, true,
+					expectCall(entry.a, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
@@ -551,11 +638,12 @@ var _ = Describe("TestMocks", func() {
 				scene.Reset()
 				mockScene.Reset()
 
-				entry.a.expectCall([]string{"Hi", "you"}, true, results{
-					sResults: []string{"blue", "orange"},
-					err:      nil,
-					anyTimes: true,
-				})
+				expectCall(entry.a, []string{"Hi", "you"}, true,
+					results{
+						sResults: []string{"blue", "orange"},
+						err:      nil,
+						anyTimes: true,
+					})
 
 				// ACT
 				entry.a.sceneMock().AssertExpectationsMet()
@@ -574,11 +662,12 @@ var _ = Describe("TestMocks", func() {
 				mockScene.Reset()
 
 				// ASSEMBLE
-				entry.a.expectCall([]string{"Hi", "you"}, true, results{
-					sResults: []string{"blue", "orange"},
-					err:      nil,
-					anyTimes: true,
-				})
+				expectCall(entry.a, []string{"Hi", "you"}, true,
+					results{
+						sResults: []string{"blue", "orange"},
+						err:      nil,
+						anyTimes: true,
+					})
 
 				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
@@ -600,11 +689,12 @@ var _ = Describe("TestMocks", func() {
 				mockScene.Reset()
 
 				// ASSEMBLE
-				entry.a.expectCall([]string{"Hi", "you"}, true, results{
-					sResults: []string{"blue", "orange"},
-					err:      nil,
-					anyTimes: true,
-				})
+				expectCall(entry.a, []string{"Hi", "you"}, true,
+					results{
+						sResults: []string{"blue", "orange"},
+						err:      nil,
+						anyTimes: true,
+					})
 
 				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
@@ -692,9 +782,9 @@ var _ = Describe("TestMocks", func() {
 		)).To(Succeed())
 	})
 
-	PIt("dumps the DST of an interface mock", func() {
-		filePath := "./moq_usualfn_test.go"
-		outPath := "./moq_usualfn_test_dst.txt"
+	It("dumps the DST of an interface mock", func() {
+		filePath := "./moq_usual_test.go"
+		outPath := "./moq_usual_test_dst.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)

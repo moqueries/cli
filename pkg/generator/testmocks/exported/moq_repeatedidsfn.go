@@ -3,6 +3,7 @@
 package exported
 
 import (
+	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
@@ -13,7 +14,7 @@ import (
 type MockRepeatedIdsFn struct {
 	Scene           *moq.Scene
 	Config          moq.MockConfig
-	ResultsByParams map[MockRepeatedIdsFn_paramsKey]*MockRepeatedIdsFn_resultMgr
+	ResultsByParams []MockRepeatedIdsFn_resultsByParams
 }
 
 // MockRepeatedIdsFn_mock isolates the mock interface of the RepeatedIdsFn type
@@ -38,6 +39,13 @@ type MockRepeatedIdsFn_paramsKey struct {
 	BParam           bool
 }
 
+// MockRepeatedIdsFn_resultsByParams contains the results for a given set of parameters for the RepeatedIdsFn type
+type MockRepeatedIdsFn_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MockRepeatedIdsFn_paramsKey]*MockRepeatedIdsFn_resultMgr
+}
+
 // MockRepeatedIdsFn_resultMgr manages multiple results and the state of the RepeatedIdsFn type
 type MockRepeatedIdsFn_resultMgr struct {
 	Params   MockRepeatedIdsFn_params
@@ -56,6 +64,7 @@ type MockRepeatedIdsFn_results struct {
 type MockRepeatedIdsFn_fnRecorder struct {
 	Params    MockRepeatedIdsFn_params
 	ParamsKey MockRepeatedIdsFn_paramsKey
+	AnyParams uint64
 	Results   *MockRepeatedIdsFn_resultMgr
 	Mock      *MockRepeatedIdsFn
 }
@@ -69,7 +78,6 @@ func NewMockRepeatedIdsFn(scene *moq.Scene, config *moq.MockConfig) *MockRepeate
 		Scene:  scene,
 		Config: *config,
 	}
-	m.Reset()
 	scene.AddMock(m)
 	return m
 }
@@ -88,13 +96,32 @@ func (m *MockRepeatedIdsFn_mock) Fn(sParam1, sParam2 string, bParam bool) (sResu
 		SParam2: sParam2,
 		BParam:  bParam,
 	}
-	paramsKey := MockRepeatedIdsFn_paramsKey{
-		SParam1: sParam1,
-		SParam2: sParam2,
-		BParam:  bParam,
+	var results *MockRepeatedIdsFn_resultMgr
+	for _, resultsByParams := range m.Mock.ResultsByParams {
+		var sParam1Used string
+		if resultsByParams.AnyParams&(1<<0) == 0 {
+			sParam1Used = sParam1
+		}
+		var sParam2Used string
+		if resultsByParams.AnyParams&(1<<1) == 0 {
+			sParam2Used = sParam2
+		}
+		var bParamUsed bool
+		if resultsByParams.AnyParams&(1<<2) == 0 {
+			bParamUsed = bParam
+		}
+		paramsKey := MockRepeatedIdsFn_paramsKey{
+			SParam1: sParam1Used,
+			SParam2: sParam2Used,
+			BParam:  bParamUsed,
+		}
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
 	}
-	results, ok := m.Mock.ResultsByParams[paramsKey]
-	if !ok {
+	if results == nil {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -134,9 +161,79 @@ func (m *MockRepeatedIdsFn) OnCall(sParam1, sParam2 string, bParam bool) *MockRe
 	}
 }
 
+func (r *MockRepeatedIdsFn_fnRecorder) AnySParam1() *MockRepeatedIdsFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 0
+	return r
+}
+
+func (r *MockRepeatedIdsFn_fnRecorder) AnySParam2() *MockRepeatedIdsFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 1
+	return r
+}
+
+func (r *MockRepeatedIdsFn_fnRecorder) AnyBParam() *MockRepeatedIdsFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 2
+	return r
+}
+
 func (r *MockRepeatedIdsFn_fnRecorder) ReturnResults(sResult1, sResult2 string, err error) *MockRepeatedIdsFn_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams[r.ParamsKey]; ok {
+		anyCount := bits.OnesCount64(r.AnyParams)
+		insertAt := -1
+		var results *MockRepeatedIdsFn_resultsByParams
+		for n, res := range r.Mock.ResultsByParams {
+			if res.AnyParams == r.AnyParams {
+				results = &res
+				break
+			}
+			if res.AnyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &MockRepeatedIdsFn_resultsByParams{
+				AnyCount:  anyCount,
+				AnyParams: r.AnyParams,
+				Results:   map[MockRepeatedIdsFn_paramsKey]*MockRepeatedIdsFn_resultMgr{},
+			}
+			r.Mock.ResultsByParams = append(r.Mock.ResultsByParams, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams) {
+				copy(r.Mock.ResultsByParams[insertAt+1:], r.Mock.ResultsByParams[insertAt:0])
+				r.Mock.ResultsByParams[insertAt] = *results
+			}
+		}
+
+		var sParam1Used string
+		if r.AnyParams&(1<<0) == 0 {
+			sParam1Used = r.ParamsKey.SParam1
+		}
+		var sParam2Used string
+		if r.AnyParams&(1<<1) == 0 {
+			sParam2Used = r.ParamsKey.SParam2
+		}
+		var bParamUsed bool
+		if r.AnyParams&(1<<2) == 0 {
+			bParamUsed = r.ParamsKey.BParam
+		}
+		paramsKey := MockRepeatedIdsFn_paramsKey{
+			SParam1: sParam1Used,
+			SParam2: sParam2Used,
+			BParam:  bParamUsed,
+		}
+
+		if _, ok := results.Results[paramsKey]; ok {
 			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
@@ -147,7 +244,7 @@ func (r *MockRepeatedIdsFn_fnRecorder) ReturnResults(sResult1, sResult2 string, 
 			Index:    0,
 			AnyTimes: false,
 		}
-		r.Mock.ResultsByParams[r.ParamsKey] = r.Results
+		results.Results[paramsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockRepeatedIdsFn_results{
 		SResult1: sResult1,
@@ -178,19 +275,19 @@ func (r *MockRepeatedIdsFn_fnRecorder) AnyTimes() {
 }
 
 // Reset resets the state of the mock
-func (m *MockRepeatedIdsFn) Reset() {
-	m.ResultsByParams = map[MockRepeatedIdsFn_paramsKey]*MockRepeatedIdsFn_resultMgr{}
-}
+func (m *MockRepeatedIdsFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MockRepeatedIdsFn) AssertExpectationsMet() {
-	for _, results := range m.ResultsByParams {
-		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-		if missing == 1 && results.AnyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+	for _, res := range m.ResultsByParams {
+		for _, results := range res.Results {
+			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
+			if missing == 1 && results.AnyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
 		}
 	}
 }

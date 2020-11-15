@@ -11,21 +11,36 @@ type usualAdaptor struct{ m *mockUsual }
 
 func (a *usualAdaptor) tracksParams() bool { return true }
 
-func (a *usualAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.onCall().Usual(sParams[0], bParam)
+func (a *usualAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.onCall().Usual(sParams[0], bParam)
+}
+
+func (a *usualAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*mockUsual_Usual_fnRecorder)
+	if sParams {
+		cRec = cRec.anySParam()
+	}
+	if bParam {
+		cRec = cRec.anyBParam()
+	}
+	return cRec
+}
+
+func (a *usualAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_Usual_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults(result.sResults[0], result.err)
+			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *usualAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -50,21 +65,36 @@ type exportedUsualAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedUsualAdaptor) tracksParams() bool { return true }
 
-func (a *exportedUsualAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.OnCall().Usual(sParams[0], bParam)
+func (a *exportedUsualAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.OnCall().Usual(sParams[0], bParam)
+}
+
+func (a *exportedUsualAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*exported.MockUsual_Usual_fnRecorder)
+	if sParams {
+		cRec = cRec.AnySParam()
+	}
+	if bParam {
+		cRec = cRec.AnyBParam()
+	}
+	return cRec
+}
+
+func (a *exportedUsualAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_Usual_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults(result.sResults[0], result.err)
+			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedUsualAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -89,21 +119,36 @@ type noNamesAdaptor struct{ m *mockUsual }
 
 func (a *noNamesAdaptor) tracksParams() bool { return true }
 
-func (a *noNamesAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.onCall().NoNames(sParams[0], bParam)
+func (a *noNamesAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.onCall().NoNames(sParams[0], bParam)
+}
+
+func (a *noNamesAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*mockUsual_NoNames_fnRecorder)
+	if sParams {
+		cRec = cRec.anyParam1()
+	}
+	if bParam {
+		cRec = cRec.anyParam2()
+	}
+	return cRec
+}
+
+func (a *noNamesAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_NoNames_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults(result.sResults[0], result.err)
+			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *noNamesAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -128,21 +173,36 @@ type exportedNoNamesAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedNoNamesAdaptor) tracksParams() bool { return true }
 
-func (a *exportedNoNamesAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.OnCall().NoNames(sParams[0], bParam)
+func (a *exportedNoNamesAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.OnCall().NoNames(sParams[0], bParam)
+}
+
+func (a *exportedNoNamesAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*exported.MockUsual_NoNames_fnRecorder)
+	if sParams {
+		cRec = cRec.AnyParam1()
+	}
+	if bParam {
+		cRec = cRec.AnyParam2()
+	}
+	return cRec
+}
+
+func (a *exportedNoNamesAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_NoNames_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults(result.sResults[0], result.err)
+			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedNoNamesAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -167,21 +227,36 @@ type noResultsAdaptor struct{ m *mockUsual }
 
 func (a *noResultsAdaptor) tracksParams() bool { return true }
 
-func (a *noResultsAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.onCall().NoResults(sParams[0], bParam)
+func (a *noResultsAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.onCall().NoResults(sParams[0], bParam)
+}
+
+func (a *noResultsAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*mockUsual_NoResults_fnRecorder)
+	if sParams {
+		cRec = cRec.anySParam()
+	}
+	if bParam {
+		cRec = cRec.anyBParam()
+	}
+	return cRec
+}
+
+func (a *noResultsAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_NoResults_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults()
+			cRec = cRec.returnResults()
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *noResultsAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, _ results) {
@@ -200,21 +275,36 @@ type exportedNoResultsAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedNoResultsAdaptor) tracksParams() bool { return true }
 
-func (a *exportedNoResultsAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.OnCall().NoResults(sParams[0], bParam)
+func (a *exportedNoResultsAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.OnCall().NoResults(sParams[0], bParam)
+}
+
+func (a *exportedNoResultsAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*exported.MockUsual_NoResults_fnRecorder)
+	if sParams {
+		cRec = cRec.AnySParam()
+	}
+	if bParam {
+		cRec = cRec.AnyBParam()
+	}
+	return cRec
+}
+
+func (a *exportedNoResultsAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_NoResults_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults()
+			cRec = cRec.ReturnResults()
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedNoResultsAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, _ results) {
@@ -233,21 +323,29 @@ type noParamsAdaptor struct{ m *mockUsual }
 
 func (a *noParamsAdaptor) tracksParams() bool { return false }
 
-func (a *noParamsAdaptor) expectCall(_ []string, _ bool, results ...results) interface{} {
-	rec := a.m.onCall().NoParams()
+func (a *noParamsAdaptor) newRecorder([]string, bool) interface{} {
+	return a.m.onCall().NoParams()
+}
+
+func (a *noParamsAdaptor) any(rec interface{}, _, _ bool) interface{} {
+	return rec
+}
+
+func (a *noParamsAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_NoParams_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults(result.sResults[0], result.err)
+			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *noParamsAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res results) {
@@ -272,21 +370,29 @@ type exportedNoParamsAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedNoParamsAdaptor) tracksParams() bool { return false }
 
-func (a *exportedNoParamsAdaptor) expectCall(_ []string, _ bool, results ...results) interface{} {
-	rec := a.m.OnCall().NoParams()
+func (a *exportedNoParamsAdaptor) newRecorder([]string, bool) interface{} {
+	return a.m.OnCall().NoParams()
+}
+
+func (a *exportedNoParamsAdaptor) any(rec interface{}, _, _ bool) interface{} {
+	return rec
+}
+
+func (a *exportedNoParamsAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_NoParams_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults(result.sResults[0], result.err)
+			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedNoParamsAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res results) {
@@ -311,21 +417,29 @@ type nothingAdaptor struct{ m *mockUsual }
 
 func (a *nothingAdaptor) tracksParams() bool { return false }
 
-func (a *nothingAdaptor) expectCall(_ []string, _ bool, results ...results) interface{} {
-	rec := a.m.onCall().Nothing()
+func (a *nothingAdaptor) newRecorder([]string, bool) interface{} {
+	return a.m.onCall().Nothing()
+}
+
+func (a *nothingAdaptor) any(rec interface{}, _, _ bool) interface{} {
+	return rec
+}
+
+func (a *nothingAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_Nothing_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults()
+			cRec = cRec.returnResults()
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *nothingAdaptor) invokeMockAndExpectResults([]string, bool, results) {
@@ -344,21 +458,29 @@ type exportedNothingAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedNothingAdaptor) tracksParams() bool { return false }
 
-func (a *exportedNothingAdaptor) expectCall(_ []string, _ bool, results ...results) interface{} {
-	rec := a.m.OnCall().Nothing()
+func (a *exportedNothingAdaptor) newRecorder([]string, bool) interface{} {
+	return a.m.OnCall().Nothing()
+}
+
+func (a *exportedNothingAdaptor) any(rec interface{}, _, _ bool) interface{} {
+	return rec
+}
+
+func (a *exportedNothingAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_Nothing_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults()
+			cRec = cRec.ReturnResults()
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedNothingAdaptor) invokeMockAndExpectResults([]string, bool, results) {
@@ -377,21 +499,36 @@ type variadicAdaptor struct{ m *mockUsual }
 
 func (a *variadicAdaptor) tracksParams() bool { return true }
 
-func (a *variadicAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.onCall().Variadic(bParam, sParams...)
+func (a *variadicAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.onCall().Variadic(bParam, sParams...)
+}
+
+func (a *variadicAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*mockUsual_Variadic_fnRecorder)
+	if sParams {
+		cRec = cRec.anyArgs()
+	}
+	if bParam {
+		cRec = cRec.anyOther()
+	}
+	return cRec
+}
+
+func (a *variadicAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_Variadic_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults(result.sResults[0], result.err)
+			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *variadicAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -416,21 +553,36 @@ type exportedVariadicAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedVariadicAdaptor) tracksParams() bool { return true }
 
-func (a *exportedVariadicAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.OnCall().Variadic(bParam, sParams...)
+func (a *exportedVariadicAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.OnCall().Variadic(bParam, sParams...)
+}
+
+func (a *exportedVariadicAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*exported.MockUsual_Variadic_fnRecorder)
+	if sParams {
+		cRec = cRec.AnyArgs()
+	}
+	if bParam {
+		cRec = cRec.AnyOther()
+	}
+	return cRec
+}
+
+func (a *exportedVariadicAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_Variadic_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults(result.sResults[0], result.err)
+			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -455,21 +607,36 @@ type repeatedIdsAdaptor struct{ m *mockUsual }
 
 func (a *repeatedIdsAdaptor) tracksParams() bool { return true }
 
-func (a *repeatedIdsAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.onCall().RepeatedIds(sParams[0], sParams[1], bParam)
+func (a *repeatedIdsAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.onCall().RepeatedIds(sParams[0], sParams[1], bParam)
+}
+
+func (a *repeatedIdsAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*mockUsual_RepeatedIds_fnRecorder)
+	if sParams {
+		cRec = cRec.anySParam1()
+	}
+	if bParam {
+		cRec = cRec.anyBParam()
+	}
+	return cRec
+}
+
+func (a *repeatedIdsAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*mockUsual_RepeatedIds_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.returnResults(result.sResults[0], result.sResults[1], result.err)
+			cRec = cRec.returnResults(result.sResults[0], result.sResults[1], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.times(result.times)
+			cRec = cRec.times(result.times)
 		}
 		if result.anyTimes {
-			rec.anyTimes()
-			rec = nil
+			cRec.anyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *repeatedIdsAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -495,21 +662,36 @@ type exportedRepeatedIdsAdaptor struct{ m *exported.MockUsual }
 
 func (a *exportedRepeatedIdsAdaptor) tracksParams() bool { return true }
 
-func (a *exportedRepeatedIdsAdaptor) expectCall(sParams []string, bParam bool, results ...results) interface{} {
-	rec := a.m.OnCall().RepeatedIds(sParams[0], sParams[1], bParam)
+func (a *exportedRepeatedIdsAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
+	return a.m.OnCall().RepeatedIds(sParams[0], sParams[1], bParam)
+}
+
+func (a *exportedRepeatedIdsAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
+	cRec := rec.(*exported.MockUsual_RepeatedIds_fnRecorder)
+	if sParams {
+		cRec = cRec.AnySParam1()
+	}
+	if bParam {
+		cRec = cRec.AnyBParam()
+	}
+	return cRec
+}
+
+func (a *exportedRepeatedIdsAdaptor) results(rec interface{}, results ...results) interface{} {
+	cRec := rec.(*exported.MockUsual_RepeatedIds_fnRecorder)
 	for _, result := range results {
 		if !result.noReturnResults {
-			rec = rec.ReturnResults(result.sResults[0], result.sResults[1], result.err)
+			cRec = cRec.ReturnResults(result.sResults[0], result.sResults[1], result.err)
 		}
 		if result.times > 0 {
-			rec = rec.Times(result.times)
+			cRec = cRec.Times(result.times)
 		}
 		if result.anyTimes {
-			rec.AnyTimes()
-			rec = nil
+			cRec.AnyTimes()
+			cRec = nil
 		}
 	}
-	return rec
+	return cRec
 }
 
 func (a *exportedRepeatedIdsAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {

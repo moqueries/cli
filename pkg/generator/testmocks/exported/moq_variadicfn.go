@@ -3,6 +3,7 @@
 package exported
 
 import (
+	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
@@ -14,7 +15,7 @@ import (
 type MockVariadicFn struct {
 	Scene           *moq.Scene
 	Config          moq.MockConfig
-	ResultsByParams map[MockVariadicFn_paramsKey]*MockVariadicFn_resultMgr
+	ResultsByParams []MockVariadicFn_resultsByParams
 }
 
 // MockVariadicFn_mock isolates the mock interface of the VariadicFn type
@@ -39,6 +40,13 @@ type MockVariadicFn_paramsKey struct {
 	Args  hash.Hash
 }
 
+// MockVariadicFn_resultsByParams contains the results for a given set of parameters for the VariadicFn type
+type MockVariadicFn_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MockVariadicFn_paramsKey]*MockVariadicFn_resultMgr
+}
+
 // MockVariadicFn_resultMgr manages multiple results and the state of the VariadicFn type
 type MockVariadicFn_resultMgr struct {
 	Params   MockVariadicFn_params
@@ -57,6 +65,7 @@ type MockVariadicFn_results struct {
 type MockVariadicFn_fnRecorder struct {
 	Params    MockVariadicFn_params
 	ParamsKey MockVariadicFn_paramsKey
+	AnyParams uint64
 	Results   *MockVariadicFn_resultMgr
 	Mock      *MockVariadicFn
 }
@@ -70,7 +79,6 @@ func NewMockVariadicFn(scene *moq.Scene, config *moq.MockConfig) *MockVariadicFn
 		Scene:  scene,
 		Config: *config,
 	}
-	m.Reset()
 	scene.AddMock(m)
 	return m
 }
@@ -88,12 +96,27 @@ func (m *MockVariadicFn_mock) Fn(other bool, args ...string) (sResult string, er
 		Other: other,
 		Args:  args,
 	}
-	paramsKey := MockVariadicFn_paramsKey{
-		Other: other,
-		Args:  hash.DeepHash(args),
+	var results *MockVariadicFn_resultMgr
+	for _, resultsByParams := range m.Mock.ResultsByParams {
+		var otherUsed bool
+		if resultsByParams.AnyParams&(1<<0) == 0 {
+			otherUsed = other
+		}
+		var argsUsed hash.Hash
+		if resultsByParams.AnyParams&(1<<1) == 0 {
+			argsUsed = hash.DeepHash(args)
+		}
+		paramsKey := MockVariadicFn_paramsKey{
+			Other: otherUsed,
+			Args:  argsUsed,
+		}
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
 	}
-	results, ok := m.Mock.ResultsByParams[paramsKey]
-	if !ok {
+	if results == nil {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -130,9 +153,65 @@ func (m *MockVariadicFn) OnCall(other bool, args ...string) *MockVariadicFn_fnRe
 	}
 }
 
+func (r *MockVariadicFn_fnRecorder) AnyOther() *MockVariadicFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 0
+	return r
+}
+
+func (r *MockVariadicFn_fnRecorder) AnyArgs() *MockVariadicFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 1
+	return r
+}
+
 func (r *MockVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *MockVariadicFn_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams[r.ParamsKey]; ok {
+		anyCount := bits.OnesCount64(r.AnyParams)
+		insertAt := -1
+		var results *MockVariadicFn_resultsByParams
+		for n, res := range r.Mock.ResultsByParams {
+			if res.AnyParams == r.AnyParams {
+				results = &res
+				break
+			}
+			if res.AnyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &MockVariadicFn_resultsByParams{
+				AnyCount:  anyCount,
+				AnyParams: r.AnyParams,
+				Results:   map[MockVariadicFn_paramsKey]*MockVariadicFn_resultMgr{},
+			}
+			r.Mock.ResultsByParams = append(r.Mock.ResultsByParams, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams) {
+				copy(r.Mock.ResultsByParams[insertAt+1:], r.Mock.ResultsByParams[insertAt:0])
+				r.Mock.ResultsByParams[insertAt] = *results
+			}
+		}
+
+		var otherUsed bool
+		if r.AnyParams&(1<<0) == 0 {
+			otherUsed = r.ParamsKey.Other
+		}
+		var argsUsed hash.Hash
+		if r.AnyParams&(1<<1) == 0 {
+			argsUsed = r.ParamsKey.Args
+		}
+		paramsKey := MockVariadicFn_paramsKey{
+			Other: otherUsed,
+			Args:  argsUsed,
+		}
+
+		if _, ok := results.Results[paramsKey]; ok {
 			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
@@ -143,7 +222,7 @@ func (r *MockVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *Mo
 			Index:    0,
 			AnyTimes: false,
 		}
-		r.Mock.ResultsByParams[r.ParamsKey] = r.Results
+		results.Results[paramsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockVariadicFn_results{
 		SResult: sResult,
@@ -173,19 +252,19 @@ func (r *MockVariadicFn_fnRecorder) AnyTimes() {
 }
 
 // Reset resets the state of the mock
-func (m *MockVariadicFn) Reset() {
-	m.ResultsByParams = map[MockVariadicFn_paramsKey]*MockVariadicFn_resultMgr{}
-}
+func (m *MockVariadicFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MockVariadicFn) AssertExpectationsMet() {
-	for _, results := range m.ResultsByParams {
-		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-		if missing == 1 && results.AnyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+	for _, res := range m.ResultsByParams {
+		for _, results := range res.Results {
+			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
+			if missing == 1 && results.AnyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
 		}
 	}
 }

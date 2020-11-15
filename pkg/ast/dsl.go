@@ -44,6 +44,12 @@ func AssignDecs(before dst.SpaceType) AssignDecsDSL {
 	}}
 }
 
+// After adds whitespace after an assign statement
+func (d AssignDecsDSL) After(after dst.SpaceType) AssignDecsDSL {
+	d.Obj.After = after
+	return d
+}
+
 // BinDSL translates to a dst.BinaryExpr
 type BinDSL struct{ Obj *dst.BinaryExpr }
 
@@ -441,8 +447,28 @@ func (d SelDSL) Dot(sel *dst.Ident) SelDSL {
 	return d
 }
 
-// Slice returns a dst.ArrayType representing a slice
-func Slice(elt dst.Expr) *dst.ArrayType {
+// SliceExprDSL translates to a dst.SliceExpr
+type SliceExprDSL struct{ Obj *dst.SliceExpr }
+
+// SliceExpr creates a new slice expression
+func SliceExpr(x dst.Expr) SliceExprDSL {
+	return SliceExprDSL{Obj: &dst.SliceExpr{X: x}}
+}
+
+// Low specifies the low expression of a slice expression
+func (d SliceExprDSL) Low(low dst.Expr) SliceExprDSL {
+	d.Obj.Low = low
+	return d
+}
+
+// High specifies the high expression of a slice expression
+func (d SliceExprDSL) High(high dst.Expr) SliceExprDSL {
+	d.Obj.High = high
+	return d
+}
+
+// SliceType returns a dst.ArrayType representing a slice
+func SliceType(elt dst.Expr) *dst.ArrayType {
 	return &dst.ArrayType{Elt: elt}
 }
 

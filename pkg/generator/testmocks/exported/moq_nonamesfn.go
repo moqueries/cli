@@ -3,6 +3,7 @@
 package exported
 
 import (
+	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
@@ -13,7 +14,7 @@ import (
 type MockNoNamesFn struct {
 	Scene           *moq.Scene
 	Config          moq.MockConfig
-	ResultsByParams map[MockNoNamesFn_paramsKey]*MockNoNamesFn_resultMgr
+	ResultsByParams []MockNoNamesFn_resultsByParams
 }
 
 // MockNoNamesFn_mock isolates the mock interface of the NoNamesFn type
@@ -28,14 +29,21 @@ type MockNoNamesFn_recorder struct {
 
 // MockNoNamesFn_params holds the params of the NoNamesFn type
 type MockNoNamesFn_params struct {
-	SParam string
-	BParam bool
+	Param1 string
+	Param2 bool
 }
 
 // MockNoNamesFn_paramsKey holds the map key params of the NoNamesFn type
 type MockNoNamesFn_paramsKey struct {
-	SParam string
-	BParam bool
+	Param1 string
+	Param2 bool
+}
+
+// MockNoNamesFn_resultsByParams contains the results for a given set of parameters for the NoNamesFn type
+type MockNoNamesFn_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MockNoNamesFn_paramsKey]*MockNoNamesFn_resultMgr
 }
 
 // MockNoNamesFn_resultMgr manages multiple results and the state of the NoNamesFn type
@@ -48,14 +56,15 @@ type MockNoNamesFn_resultMgr struct {
 
 // MockNoNamesFn_results holds the results of the NoNamesFn type
 type MockNoNamesFn_results struct {
-	SResult string
-	Err     error
+	Result1 string
+	Result2 error
 }
 
 // MockNoNamesFn_fnRecorder routes recorded function calls to the MockNoNamesFn mock
 type MockNoNamesFn_fnRecorder struct {
 	Params    MockNoNamesFn_params
 	ParamsKey MockNoNamesFn_paramsKey
+	AnyParams uint64
 	Results   *MockNoNamesFn_resultMgr
 	Mock      *MockNoNamesFn
 }
@@ -69,30 +78,44 @@ func NewMockNoNamesFn(scene *moq.Scene, config *moq.MockConfig) *MockNoNamesFn {
 		Scene:  scene,
 		Config: *config,
 	}
-	m.Reset()
 	scene.AddMock(m)
 	return m
 }
 
 // Mock returns the mock implementation of the NoNamesFn type
 func (m *MockNoNamesFn) Mock() testmocks.NoNamesFn {
-	return func(sParam string, bParam bool) (sResult string, err error) {
+	return func(param1 string, param2 bool) (string, error) {
 		mock := &MockNoNamesFn_mock{Mock: m}
-		return mock.Fn(sParam, bParam)
+		return mock.Fn(param1, param2)
 	}
 }
 
-func (m *MockNoNamesFn_mock) Fn(sParam string, bParam bool) (sResult string, err error) {
+func (m *MockNoNamesFn_mock) Fn(param1 string, param2 bool) (result1 string, result2 error) {
 	params := MockNoNamesFn_params{
-		SParam: sParam,
-		BParam: bParam,
+		Param1: param1,
+		Param2: param2,
 	}
-	paramsKey := MockNoNamesFn_paramsKey{
-		SParam: sParam,
-		BParam: bParam,
+	var results *MockNoNamesFn_resultMgr
+	for _, resultsByParams := range m.Mock.ResultsByParams {
+		var param1Used string
+		if resultsByParams.AnyParams&(1<<0) == 0 {
+			param1Used = param1
+		}
+		var param2Used bool
+		if resultsByParams.AnyParams&(1<<1) == 0 {
+			param2Used = param2
+		}
+		paramsKey := MockNoNamesFn_paramsKey{
+			Param1: param1Used,
+			Param2: param2Used,
+		}
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
 	}
-	results, ok := m.Mock.ResultsByParams[paramsKey]
-	if !ok {
+	if results == nil {
 		if m.Mock.Config.Expectation == moq.Strict {
 			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -110,28 +133,84 @@ func (m *MockNoNamesFn_mock) Fn(sParam string, bParam bool) (sResult string, err
 		i = len(results.Results) - 1
 	}
 	result := results.Results[i]
-	sResult = result.SResult
-	err = result.Err
+	result1 = result.Result1
+	result2 = result.Result2
 	return
 }
 
-func (m *MockNoNamesFn) OnCall(sParam string, bParam bool) *MockNoNamesFn_fnRecorder {
+func (m *MockNoNamesFn) OnCall(param1 string, param2 bool) *MockNoNamesFn_fnRecorder {
 	return &MockNoNamesFn_fnRecorder{
 		Params: MockNoNamesFn_params{
-			SParam: sParam,
-			BParam: bParam,
+			Param1: param1,
+			Param2: param2,
 		},
 		ParamsKey: MockNoNamesFn_paramsKey{
-			SParam: sParam,
-			BParam: bParam,
+			Param1: param1,
+			Param2: param2,
 		},
 		Mock: m,
 	}
 }
 
-func (r *MockNoNamesFn_fnRecorder) ReturnResults(sResult string, err error) *MockNoNamesFn_fnRecorder {
+func (r *MockNoNamesFn_fnRecorder) AnyParam1() *MockNoNamesFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 0
+	return r
+}
+
+func (r *MockNoNamesFn_fnRecorder) AnyParam2() *MockNoNamesFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
+	r.AnyParams |= 1 << 1
+	return r
+}
+
+func (r *MockNoNamesFn_fnRecorder) ReturnResults(result1 string, result2 error) *MockNoNamesFn_fnRecorder {
 	if r.Results == nil {
-		if _, ok := r.Mock.ResultsByParams[r.ParamsKey]; ok {
+		anyCount := bits.OnesCount64(r.AnyParams)
+		insertAt := -1
+		var results *MockNoNamesFn_resultsByParams
+		for n, res := range r.Mock.ResultsByParams {
+			if res.AnyParams == r.AnyParams {
+				results = &res
+				break
+			}
+			if res.AnyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &MockNoNamesFn_resultsByParams{
+				AnyCount:  anyCount,
+				AnyParams: r.AnyParams,
+				Results:   map[MockNoNamesFn_paramsKey]*MockNoNamesFn_resultMgr{},
+			}
+			r.Mock.ResultsByParams = append(r.Mock.ResultsByParams, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams) {
+				copy(r.Mock.ResultsByParams[insertAt+1:], r.Mock.ResultsByParams[insertAt:0])
+				r.Mock.ResultsByParams[insertAt] = *results
+			}
+		}
+
+		var param1Used string
+		if r.AnyParams&(1<<0) == 0 {
+			param1Used = r.ParamsKey.Param1
+		}
+		var param2Used bool
+		if r.AnyParams&(1<<1) == 0 {
+			param2Used = r.ParamsKey.Param2
+		}
+		paramsKey := MockNoNamesFn_paramsKey{
+			Param1: param1Used,
+			Param2: param2Used,
+		}
+
+		if _, ok := results.Results[paramsKey]; ok {
 			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
 			return nil
 		}
@@ -142,11 +221,11 @@ func (r *MockNoNamesFn_fnRecorder) ReturnResults(sResult string, err error) *Moc
 			Index:    0,
 			AnyTimes: false,
 		}
-		r.Mock.ResultsByParams[r.ParamsKey] = r.Results
+		results.Results[paramsKey] = r.Results
 	}
 	r.Results.Results = append(r.Results.Results, &MockNoNamesFn_results{
-		SResult: sResult,
-		Err:     err,
+		Result1: result1,
+		Result2: result2,
 	})
 	return r
 }
@@ -172,19 +251,19 @@ func (r *MockNoNamesFn_fnRecorder) AnyTimes() {
 }
 
 // Reset resets the state of the mock
-func (m *MockNoNamesFn) Reset() {
-	m.ResultsByParams = map[MockNoNamesFn_paramsKey]*MockNoNamesFn_resultMgr{}
-}
+func (m *MockNoNamesFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MockNoNamesFn) AssertExpectationsMet() {
-	for _, results := range m.ResultsByParams {
-		missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-		if missing == 1 && results.AnyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+	for _, res := range m.ResultsByParams {
+		for _, results := range res.Results {
+			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
+			if missing == 1 && results.AnyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
 		}
 	}
 }

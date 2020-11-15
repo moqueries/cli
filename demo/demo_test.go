@@ -2,6 +2,8 @@ package demo_test
 
 import (
 	"errors"
+	"math"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -111,6 +113,110 @@ func TestChangedMyMindIHateIt(t *testing.T) {
 	err := d.WriteFavorites([]int{7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+
+	scene.AssertExpectationsMet()
+}
+
+func TestNoGadgets(t *testing.T) {
+	scene := moq.NewScene(t)
+	writerMock := newMockWriter(scene, nil)
+	storeMock := newMockStore(scene, nil)
+
+	storeMock.onCall().AllWidgetsIds().
+		returnResults([]int{42, 43}, nil)
+
+	storeMock.onCall().GadgetsByWidgetId(0).anyWidgetId().
+		returnResults(nil, nil).times(2)
+
+	d := demo.FavWriter{
+		W:     writerMock.mock(),
+		Store: storeMock.mock(),
+	}
+
+	expected := map[int]demo.Widget{
+		42: {Id: 42, GadgetsByColor: map[string]demo.Gadget{}},
+		43: {Id: 43, GadgetsByColor: map[string]demo.Gadget{}},
+	}
+
+	widgets, err := d.Load(math.MaxUint32)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if !reflect.DeepEqual(widgets, expected) {
+		t.Errorf("unexpected difference in loaded widgets: %#v", widgets)
+	}
+
+	scene.AssertExpectationsMet()
+}
+
+func TestLightGadgets(t *testing.T) {
+	scene := moq.NewScene(t)
+	writerMock := newMockWriter(scene, nil)
+	storeMock := newMockStore(scene, nil)
+
+	storeMock.onCall().AllWidgetsIds().
+		returnResults([]int{42, 43}, nil)
+
+	g1 := demo.Gadget{
+		Id:       4201,
+		WidgetId: 42,
+		Color:    "red",
+		Weight:   200,
+	}
+	g2 := demo.Gadget{
+		Id:       4202,
+		WidgetId: 42,
+		Color:    "blue",
+		Weight:   201,
+	}
+	storeMock.onCall().LightGadgetsByWidgetId(42, 0).anyMaxWeight().
+		returnResults([]demo.Gadget{g1, g2}, nil)
+	g3 := demo.Gadget{
+		Id:       4301,
+		WidgetId: 43,
+		Color:    "grey",
+		Weight:   100,
+	}
+	g4 := demo.Gadget{
+		Id:       4302,
+		WidgetId: 43,
+		Color:    "heliotrope",
+		Weight:   101,
+	}
+	storeMock.onCall().LightGadgetsByWidgetId(0, 0).anyWidgetId().anyMaxWeight().
+		returnResults([]demo.Gadget{g3, g4}, nil)
+
+	d := demo.FavWriter{
+		W:     writerMock.mock(),
+		Store: storeMock.mock(),
+	}
+
+	expected := map[int]demo.Widget{
+		42: {
+			Id: 42,
+			GadgetsByColor: map[string]demo.Gadget{
+				"red":  g1,
+				"blue": g2,
+			},
+		},
+		43: {
+			Id: 43,
+			GadgetsByColor: map[string]demo.Gadget{
+				"grey":       g3,
+				"heliotrope": g4,
+			},
+		},
+	}
+
+	widgets, err := d.Load(8382)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if !reflect.DeepEqual(widgets, expected) {
+		t.Errorf("unexpected difference in loaded widgets: %#v", widgets)
 	}
 
 	scene.AssertExpectationsMet()

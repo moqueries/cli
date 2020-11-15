@@ -10,7 +10,7 @@ type UsualFn func(sParam string, bParam bool) (sResult string, err error)
 //go:generate moqueries --destination exported/moq_nonamesfn.go --export NoNamesFn
 
 // NoNamesFn is a typical function type
-type NoNamesFn func(sParam string, bParam bool) (sResult string, err error)
+type NoNamesFn func(string, bool) (string, error)
 
 //go:generate moqueries --destination moq_noresultsfn_test.go NoResultsFn
 //go:generate moqueries --destination exported/moq_noresultsfn.go --export NoResultsFn

@@ -3,6 +3,7 @@
 package moq_test
 
 import (
+	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/pkg/moq"
@@ -12,8 +13,8 @@ import (
 type mockMock struct {
 	scene                                 *moq.Scene
 	config                                moq.MockConfig
-	resultsByParams_Reset                 map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr
-	resultsByParams_AssertExpectationsMet map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr
+	resultsByParams_Reset                 []mockMock_Reset_resultsByParams
+	resultsByParams_AssertExpectationsMet []mockMock_AssertExpectationsMet_resultsByParams
 }
 
 // mockMock_mock isolates the mock interface of the Mock type
@@ -32,6 +33,13 @@ type mockMock_Reset_params struct{}
 // mockMock_Reset_paramsKey holds the map key params of the Mock type
 type mockMock_Reset_paramsKey struct{}
 
+// mockMock_Reset_resultsByParams contains the results for a given set of parameters for the Mock type
+type mockMock_Reset_resultsByParams struct {
+	anyCount  int
+	anyParams uint64
+	results   map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr
+}
+
 // mockMock_Reset_resultMgr manages multiple results and the state of the Mock type
 type mockMock_Reset_resultMgr struct {
 	params   mockMock_Reset_params
@@ -48,6 +56,7 @@ type mockMock_Reset_results struct {
 type mockMock_Reset_fnRecorder struct {
 	params    mockMock_Reset_params
 	paramsKey mockMock_Reset_paramsKey
+	anyParams uint64
 	results   *mockMock_Reset_resultMgr
 	mock      *mockMock
 }
@@ -57,6 +66,13 @@ type mockMock_AssertExpectationsMet_params struct{}
 
 // mockMock_AssertExpectationsMet_paramsKey holds the map key params of the Mock type
 type mockMock_AssertExpectationsMet_paramsKey struct{}
+
+// mockMock_AssertExpectationsMet_resultsByParams contains the results for a given set of parameters for the Mock type
+type mockMock_AssertExpectationsMet_resultsByParams struct {
+	anyCount  int
+	anyParams uint64
+	results   map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr
+}
 
 // mockMock_AssertExpectationsMet_resultMgr manages multiple results and the state of the Mock type
 type mockMock_AssertExpectationsMet_resultMgr struct {
@@ -74,6 +90,7 @@ type mockMock_AssertExpectationsMet_results struct {
 type mockMock_AssertExpectationsMet_fnRecorder struct {
 	params    mockMock_AssertExpectationsMet_params
 	paramsKey mockMock_AssertExpectationsMet_paramsKey
+	anyParams uint64
 	results   *mockMock_AssertExpectationsMet_resultMgr
 	mock      *mockMock
 }
@@ -87,7 +104,6 @@ func newMockMock(scene *moq.Scene, config *moq.MockConfig) *mockMock {
 		scene:  scene,
 		config: *config,
 	}
-	m.Reset()
 	scene.AddMock(m)
 	return m
 }
@@ -101,9 +117,16 @@ func (m *mockMock) mock() *mockMock_mock {
 
 func (m *mockMock_mock) Reset() {
 	params := mockMock_Reset_params{}
-	paramsKey := mockMock_Reset_paramsKey{}
-	results, ok := m.mock.resultsByParams_Reset[paramsKey]
-	if !ok {
+	var results *mockMock_Reset_resultMgr
+	for _, resultsByParams := range m.mock.resultsByParams_Reset {
+		paramsKey := mockMock_Reset_paramsKey{}
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -125,9 +148,16 @@ func (m *mockMock_mock) Reset() {
 
 func (m *mockMock_mock) AssertExpectationsMet() {
 	params := mockMock_AssertExpectationsMet_params{}
-	paramsKey := mockMock_AssertExpectationsMet_paramsKey{}
-	results, ok := m.mock.resultsByParams_AssertExpectationsMet[paramsKey]
-	if !ok {
+	var results *mockMock_AssertExpectationsMet_resultMgr
+	for _, resultsByParams := range m.mock.resultsByParams_AssertExpectationsMet {
+		paramsKey := mockMock_AssertExpectationsMet_paramsKey{}
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -164,7 +194,34 @@ func (m *mockMock_recorder) Reset() *mockMock_Reset_fnRecorder {
 
 func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_Reset[r.paramsKey]; ok {
+		anyCount := bits.OnesCount64(r.anyParams)
+		insertAt := -1
+		var results *mockMock_Reset_resultsByParams
+		for n, res := range r.mock.resultsByParams_Reset {
+			if res.anyParams == r.anyParams {
+				results = &res
+				break
+			}
+			if res.anyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &mockMock_Reset_resultsByParams{
+				anyCount:  anyCount,
+				anyParams: r.anyParams,
+				results:   map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr{},
+			}
+			r.mock.resultsByParams_Reset = append(r.mock.resultsByParams_Reset, *results)
+			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_Reset) {
+				copy(r.mock.resultsByParams_Reset[insertAt+1:], r.mock.resultsByParams_Reset[insertAt:0])
+				r.mock.resultsByParams_Reset[insertAt] = *results
+			}
+		}
+
+		paramsKey := mockMock_Reset_paramsKey{}
+
+		if _, ok := results.results[paramsKey]; ok {
 			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
@@ -175,7 +232,7 @@ func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 			index:    0,
 			anyTimes: false,
 		}
-		r.mock.resultsByParams_Reset[r.paramsKey] = r.results
+		results.results[paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockMock_Reset_results{})
 	return r
@@ -211,7 +268,34 @@ func (m *mockMock_recorder) AssertExpectationsMet() *mockMock_AssertExpectations
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_AssertExpectationsMet_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_AssertExpectationsMet[r.paramsKey]; ok {
+		anyCount := bits.OnesCount64(r.anyParams)
+		insertAt := -1
+		var results *mockMock_AssertExpectationsMet_resultsByParams
+		for n, res := range r.mock.resultsByParams_AssertExpectationsMet {
+			if res.anyParams == r.anyParams {
+				results = &res
+				break
+			}
+			if res.anyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &mockMock_AssertExpectationsMet_resultsByParams{
+				anyCount:  anyCount,
+				anyParams: r.anyParams,
+				results:   map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr{},
+			}
+			r.mock.resultsByParams_AssertExpectationsMet = append(r.mock.resultsByParams_AssertExpectationsMet, *results)
+			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_AssertExpectationsMet) {
+				copy(r.mock.resultsByParams_AssertExpectationsMet[insertAt+1:], r.mock.resultsByParams_AssertExpectationsMet[insertAt:0])
+				r.mock.resultsByParams_AssertExpectationsMet[insertAt] = *results
+			}
+		}
+
+		paramsKey := mockMock_AssertExpectationsMet_paramsKey{}
+
+		if _, ok := results.results[paramsKey]; ok {
 			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
@@ -222,7 +306,7 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_As
 			index:    0,
 			anyTimes: false,
 		}
-		r.mock.resultsByParams_AssertExpectationsMet[r.paramsKey] = r.results
+		results.results[paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockMock_AssertExpectationsMet_results{})
 	return r
@@ -250,28 +334,32 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) anyTimes() {
 
 // Reset resets the state of the mock
 func (m *mockMock) Reset() {
-	m.resultsByParams_Reset = map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr{}
-	m.resultsByParams_AssertExpectationsMet = map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr{}
+	m.resultsByParams_Reset = nil
+	m.resultsByParams_AssertExpectationsMet = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockMock) AssertExpectationsMet() {
-	for _, results := range m.resultsByParams_Reset {
-		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-		if missing == 1 && results.anyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+	for _, res := range m.resultsByParams_Reset {
+		for _, results := range res.results {
+			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+			if missing == 1 && results.anyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+			}
 		}
 	}
-	for _, results := range m.resultsByParams_AssertExpectationsMet {
-		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-		if missing == 1 && results.anyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+	for _, res := range m.resultsByParams_AssertExpectationsMet {
+		for _, results := range res.results {
+			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+			if missing == 1 && results.anyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+			}
 		}
 	}
 }

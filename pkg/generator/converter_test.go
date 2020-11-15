@@ -176,7 +176,7 @@ var _ = Describe("Converter", func() {
 			decls := converter.MethodStructs(iSpec, fn)
 
 			// ASSERT
-			Expect(decls).To(HaveLen(5))
+			Expect(decls).To(HaveLen(6))
 			decl, ok := decls[0].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
@@ -192,16 +192,22 @@ var _ = Describe("Converter", func() {
 			decl, ok = decls[2].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
+			Expect(decl.Decs.Start[0]).To(Equal("// mockPublicInterface_Func1_resultsByParams " +
+				"contains the results for a given set of parameters for the PublicInterface type"))
+
+			decl, ok = decls[3].(*dst.GenDecl)
+			Expect(ok).To(BeTrue())
+			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal("// mockPublicInterface_Func1_resultMgr " +
 				"manages multiple results and the state of the PublicInterface type"))
 
-			decl, ok = decls[3].(*dst.GenDecl)
+			decl, ok = decls[4].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
 				"// mockPublicInterface_Func1_results holds the results of the PublicInterface type"))
 
-			decl, ok = decls[4].(*dst.GenDecl)
+			decl, ok = decls[5].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal("// mockPublicInterface_Func1_fnRecorder " +

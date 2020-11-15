@@ -3,6 +3,7 @@
 package demo_test
 
 import (
+	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/pkg/hash"
@@ -13,7 +14,7 @@ import (
 type mockWriter struct {
 	scene                 *moq.Scene
 	config                moq.MockConfig
-	resultsByParams_Write map[mockWriter_Write_paramsKey]*mockWriter_Write_resultMgr
+	resultsByParams_Write []mockWriter_Write_resultsByParams
 }
 
 // mockWriter_mock isolates the mock interface of the Writer type
@@ -31,6 +32,13 @@ type mockWriter_Write_params struct{ p []byte }
 
 // mockWriter_Write_paramsKey holds the map key params of the Writer type
 type mockWriter_Write_paramsKey struct{ p hash.Hash }
+
+// mockWriter_Write_resultsByParams contains the results for a given set of parameters for the Writer type
+type mockWriter_Write_resultsByParams struct {
+	anyCount  int
+	anyParams uint64
+	results   map[mockWriter_Write_paramsKey]*mockWriter_Write_resultMgr
+}
 
 // mockWriter_Write_resultMgr manages multiple results and the state of the Writer type
 type mockWriter_Write_resultMgr struct {
@@ -50,6 +58,7 @@ type mockWriter_Write_results struct {
 type mockWriter_Write_fnRecorder struct {
 	params    mockWriter_Write_params
 	paramsKey mockWriter_Write_paramsKey
+	anyParams uint64
 	results   *mockWriter_Write_resultMgr
 	mock      *mockWriter
 }
@@ -63,7 +72,6 @@ func newMockWriter(scene *moq.Scene, config *moq.MockConfig) *mockWriter {
 		scene:  scene,
 		config: *config,
 	}
-	m.Reset()
 	scene.AddMock(m)
 	return m
 }
@@ -79,11 +87,22 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	params := mockWriter_Write_params{
 		p: p,
 	}
-	paramsKey := mockWriter_Write_paramsKey{
-		p: hash.DeepHash(p),
+	var results *mockWriter_Write_resultMgr
+	for _, resultsByParams := range m.mock.resultsByParams_Write {
+		var pUsed hash.Hash
+		if resultsByParams.anyParams&(1<<0) == 0 {
+			pUsed = hash.DeepHash(p)
+		}
+		paramsKey := mockWriter_Write_paramsKey{
+			p: pUsed,
+		}
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
 	}
-	results, ok := m.mock.resultsByParams_Write[paramsKey]
-	if !ok {
+	if results == nil {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -125,9 +144,51 @@ func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 	}
 }
 
+func (r *mockWriter_Write_fnRecorder) anyP() *mockWriter_Write_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
+	r.anyParams |= 1 << 0
+	return r
+}
+
 func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWriter_Write_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams_Write[r.paramsKey]; ok {
+		anyCount := bits.OnesCount64(r.anyParams)
+		insertAt := -1
+		var results *mockWriter_Write_resultsByParams
+		for n, res := range r.mock.resultsByParams_Write {
+			if res.anyParams == r.anyParams {
+				results = &res
+				break
+			}
+			if res.anyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &mockWriter_Write_resultsByParams{
+				anyCount:  anyCount,
+				anyParams: r.anyParams,
+				results:   map[mockWriter_Write_paramsKey]*mockWriter_Write_resultMgr{},
+			}
+			r.mock.resultsByParams_Write = append(r.mock.resultsByParams_Write, *results)
+			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_Write) {
+				copy(r.mock.resultsByParams_Write[insertAt+1:], r.mock.resultsByParams_Write[insertAt:0])
+				r.mock.resultsByParams_Write[insertAt] = *results
+			}
+		}
+
+		var pUsed hash.Hash
+		if r.anyParams&(1<<0) == 0 {
+			pUsed = r.paramsKey.p
+		}
+		paramsKey := mockWriter_Write_paramsKey{
+			p: pUsed,
+		}
+
+		if _, ok := results.results[paramsKey]; ok {
 			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
@@ -138,7 +199,7 @@ func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWrite
 			index:    0,
 			anyTimes: false,
 		}
-		r.mock.resultsByParams_Write[r.paramsKey] = r.results
+		results.results[paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockWriter_Write_results{
 		n:   n,
@@ -168,19 +229,19 @@ func (r *mockWriter_Write_fnRecorder) anyTimes() {
 }
 
 // Reset resets the state of the mock
-func (m *mockWriter) Reset() {
-	m.resultsByParams_Write = map[mockWriter_Write_paramsKey]*mockWriter_Write_resultMgr{}
-}
+func (m *mockWriter) Reset() { m.resultsByParams_Write = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockWriter) AssertExpectationsMet() {
-	for _, results := range m.resultsByParams_Write {
-		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-		if missing == 1 && results.anyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+	for _, res := range m.resultsByParams_Write {
+		for _, results := range res.results {
+			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+			if missing == 1 && results.anyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+			}
 		}
 	}
 }

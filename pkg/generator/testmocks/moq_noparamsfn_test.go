@@ -3,6 +3,7 @@
 package testmocks_test
 
 import (
+	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
@@ -13,7 +14,7 @@ import (
 type mockNoParamsFn struct {
 	scene           *moq.Scene
 	config          moq.MockConfig
-	resultsByParams map[mockNoParamsFn_paramsKey]*mockNoParamsFn_resultMgr
+	resultsByParams []mockNoParamsFn_resultsByParams
 }
 
 // mockNoParamsFn_mock isolates the mock interface of the NoParamsFn type
@@ -31,6 +32,13 @@ type mockNoParamsFn_params struct{}
 
 // mockNoParamsFn_paramsKey holds the map key params of the NoParamsFn type
 type mockNoParamsFn_paramsKey struct{}
+
+// mockNoParamsFn_resultsByParams contains the results for a given set of parameters for the NoParamsFn type
+type mockNoParamsFn_resultsByParams struct {
+	anyCount  int
+	anyParams uint64
+	results   map[mockNoParamsFn_paramsKey]*mockNoParamsFn_resultMgr
+}
 
 // mockNoParamsFn_resultMgr manages multiple results and the state of the NoParamsFn type
 type mockNoParamsFn_resultMgr struct {
@@ -50,6 +58,7 @@ type mockNoParamsFn_results struct {
 type mockNoParamsFn_fnRecorder struct {
 	params    mockNoParamsFn_params
 	paramsKey mockNoParamsFn_paramsKey
+	anyParams uint64
 	results   *mockNoParamsFn_resultMgr
 	mock      *mockNoParamsFn
 }
@@ -63,7 +72,6 @@ func newMockNoParamsFn(scene *moq.Scene, config *moq.MockConfig) *mockNoParamsFn
 		scene:  scene,
 		config: *config,
 	}
-	m.Reset()
 	scene.AddMock(m)
 	return m
 }
@@ -75,9 +83,16 @@ func (m *mockNoParamsFn) mock() testmocks.NoParamsFn {
 
 func (m *mockNoParamsFn_mock) fn() (sResult string, err error) {
 	params := mockNoParamsFn_params{}
-	paramsKey := mockNoParamsFn_paramsKey{}
-	results, ok := m.mock.resultsByParams[paramsKey]
-	if !ok {
+	var results *mockNoParamsFn_resultMgr
+	for _, resultsByParams := range m.mock.resultsByParams {
+		paramsKey := mockNoParamsFn_paramsKey{}
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
 		if m.mock.config.Expectation == moq.Strict {
 			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
 		}
@@ -110,7 +125,34 @@ func (m *mockNoParamsFn) onCall() *mockNoParamsFn_fnRecorder {
 
 func (r *mockNoParamsFn_fnRecorder) returnResults(sResult string, err error) *mockNoParamsFn_fnRecorder {
 	if r.results == nil {
-		if _, ok := r.mock.resultsByParams[r.paramsKey]; ok {
+		anyCount := bits.OnesCount64(r.anyParams)
+		insertAt := -1
+		var results *mockNoParamsFn_resultsByParams
+		for n, res := range r.mock.resultsByParams {
+			if res.anyParams == r.anyParams {
+				results = &res
+				break
+			}
+			if res.anyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &mockNoParamsFn_resultsByParams{
+				anyCount:  anyCount,
+				anyParams: r.anyParams,
+				results:   map[mockNoParamsFn_paramsKey]*mockNoParamsFn_resultMgr{},
+			}
+			r.mock.resultsByParams = append(r.mock.resultsByParams, *results)
+			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams) {
+				copy(r.mock.resultsByParams[insertAt+1:], r.mock.resultsByParams[insertAt:0])
+				r.mock.resultsByParams[insertAt] = *results
+			}
+		}
+
+		paramsKey := mockNoParamsFn_paramsKey{}
+
+		if _, ok := results.results[paramsKey]; ok {
 			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
 			return nil
 		}
@@ -121,7 +163,7 @@ func (r *mockNoParamsFn_fnRecorder) returnResults(sResult string, err error) *mo
 			index:    0,
 			anyTimes: false,
 		}
-		r.mock.resultsByParams[r.paramsKey] = r.results
+		results.results[paramsKey] = r.results
 	}
 	r.results.results = append(r.results.results, &mockNoParamsFn_results{
 		sResult: sResult,
@@ -151,19 +193,19 @@ func (r *mockNoParamsFn_fnRecorder) anyTimes() {
 }
 
 // Reset resets the state of the mock
-func (m *mockNoParamsFn) Reset() {
-	m.resultsByParams = map[mockNoParamsFn_paramsKey]*mockNoParamsFn_resultMgr{}
-}
+func (m *mockNoParamsFn) Reset() { m.resultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *mockNoParamsFn) AssertExpectationsMet() {
-	for _, results := range m.resultsByParams {
-		missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-		if missing == 1 && results.anyTimes == true {
-			continue
-		}
-		if missing > 0 {
-			m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
+			if missing == 1 && results.anyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+			}
 		}
 	}
 }
