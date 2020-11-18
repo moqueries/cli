@@ -22,11 +22,6 @@ type MockRepeatedIdsFn_mock struct {
 	Mock *MockRepeatedIdsFn
 }
 
-// MockRepeatedIdsFn_recorder isolates the recorder interface of the RepeatedIdsFn type
-type MockRepeatedIdsFn_recorder struct {
-	Mock *MockRepeatedIdsFn
-}
-
 // MockRepeatedIdsFn_params holds the params of the RepeatedIdsFn type
 type MockRepeatedIdsFn_params struct {
 	SParam1, SParam2 string
@@ -58,6 +53,7 @@ type MockRepeatedIdsFn_resultMgr struct {
 type MockRepeatedIdsFn_results struct {
 	SResult1, SResult2 string
 	Err                error
+	Moq_Sequence       uint32
 }
 
 // MockRepeatedIdsFn_fnRecorder routes recorded function calls to the MockRepeatedIdsFn mock
@@ -65,6 +61,7 @@ type MockRepeatedIdsFn_fnRecorder struct {
 	Params    MockRepeatedIdsFn_params
 	ParamsKey MockRepeatedIdsFn_paramsKey
 	AnyParams uint64
+	Sequence  bool
 	Results   *MockRepeatedIdsFn_resultMgr
 	Mock      *MockRepeatedIdsFn
 }
@@ -138,7 +135,15 @@ func (m *MockRepeatedIdsFn_mock) Fn(sParam1, sParam2 string, bParam bool) (sResu
 		}
 		i = len(results.Results) - 1
 	}
+
 	result := results.Results[i]
+	if result.Moq_Sequence != 0 {
+		sequence := m.Mock.Scene.NextMockSequence()
+		if result.Moq_Sequence != sequence {
+			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	sResult1 = result.SResult1
 	sResult2 = result.SResult2
 	err = result.Err
@@ -157,7 +162,8 @@ func (m *MockRepeatedIdsFn) OnCall(sParam1, sParam2 string, bParam bool) *MockRe
 			SParam2: sParam2,
 			BParam:  bParam,
 		},
-		Mock: m,
+		Sequence: m.Config.Sequence == moq.SeqDefaultOn,
+		Mock:     m,
 	}
 }
 
@@ -185,6 +191,16 @@ func (r *MockRepeatedIdsFn_fnRecorder) AnyBParam() *MockRepeatedIdsFn_fnRecorder
 		return nil
 	}
 	r.AnyParams |= 1 << 2
+	return r
+}
+
+func (r *MockRepeatedIdsFn_fnRecorder) Seq() *MockRepeatedIdsFn_fnRecorder {
+	r.Sequence = true
+	return r
+}
+
+func (r *MockRepeatedIdsFn_fnRecorder) NoSeq() *MockRepeatedIdsFn_fnRecorder {
+	r.Sequence = false
 	return r
 }
 
@@ -246,10 +262,17 @@ func (r *MockRepeatedIdsFn_fnRecorder) ReturnResults(sResult1, sResult2 string, 
 		}
 		results.Results[paramsKey] = r.Results
 	}
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
 	r.Results.Results = append(r.Results.Results, &MockRepeatedIdsFn_results{
-		SResult1: sResult1,
-		SResult2: sResult2,
-		Err:      err,
+		SResult1:     sResult1,
+		SResult2:     sResult2,
+		Err:          err,
+		Moq_Sequence: sequence,
 	})
 	return r
 }
@@ -261,6 +284,14 @@ func (r *MockRepeatedIdsFn_fnRecorder) Times(count int) *MockRepeatedIdsFn_fnRec
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.Moq_Sequence != 0 {
+			last = &MockRepeatedIdsFn_results{
+				SResult1:     last.SResult1,
+				SResult2:     last.SResult2,
+				Err:          last.Err,
+				Moq_Sequence: r.Mock.Scene.NextRecorderSequence(),
+			}
+		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r

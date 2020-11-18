@@ -52,8 +52,9 @@ type mockStore_AllWidgetsIds_resultMgr struct {
 
 // mockStore_AllWidgetsIds_results holds the results of the Store type
 type mockStore_AllWidgetsIds_results struct {
-	result1 []int
-	result2 error
+	result1      []int
+	result2      error
+	moq_sequence uint32
 }
 
 // mockStore_AllWidgetsIds_fnRecorder routes recorded function calls to the mockStore mock
@@ -61,6 +62,7 @@ type mockStore_AllWidgetsIds_fnRecorder struct {
 	params    mockStore_AllWidgetsIds_params
 	paramsKey mockStore_AllWidgetsIds_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockStore_AllWidgetsIds_resultMgr
 	mock      *mockStore
 }
@@ -88,8 +90,9 @@ type mockStore_GadgetsByWidgetId_resultMgr struct {
 
 // mockStore_GadgetsByWidgetId_results holds the results of the Store type
 type mockStore_GadgetsByWidgetId_results struct {
-	result1 []demo.Gadget
-	result2 error
+	result1      []demo.Gadget
+	result2      error
+	moq_sequence uint32
 }
 
 // mockStore_GadgetsByWidgetId_fnRecorder routes recorded function calls to the mockStore mock
@@ -97,6 +100,7 @@ type mockStore_GadgetsByWidgetId_fnRecorder struct {
 	params    mockStore_GadgetsByWidgetId_params
 	paramsKey mockStore_GadgetsByWidgetId_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockStore_GadgetsByWidgetId_resultMgr
 	mock      *mockStore
 }
@@ -130,8 +134,9 @@ type mockStore_LightGadgetsByWidgetId_resultMgr struct {
 
 // mockStore_LightGadgetsByWidgetId_results holds the results of the Store type
 type mockStore_LightGadgetsByWidgetId_results struct {
-	result1 []demo.Gadget
-	result2 error
+	result1      []demo.Gadget
+	result2      error
+	moq_sequence uint32
 }
 
 // mockStore_LightGadgetsByWidgetId_fnRecorder routes recorded function calls to the mockStore mock
@@ -139,6 +144,7 @@ type mockStore_LightGadgetsByWidgetId_fnRecorder struct {
 	params    mockStore_LightGadgetsByWidgetId_params
 	paramsKey mockStore_LightGadgetsByWidgetId_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockStore_LightGadgetsByWidgetId_resultMgr
 	mock      *mockStore
 }
@@ -191,7 +197,15 @@ func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	result1 = result.result1
 	result2 = result.result2
 	return
@@ -233,7 +247,15 @@ func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget,
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	result1 = result.result1
 	result2 = result.result2
 	return
@@ -281,7 +303,15 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	result1 = result.result1
 	result2 = result.result2
 	return
@@ -298,8 +328,19 @@ func (m *mockStore_recorder) AllWidgetsIds() *mockStore_AllWidgetsIds_fnRecorder
 	return &mockStore_AllWidgetsIds_fnRecorder{
 		params:    mockStore_AllWidgetsIds_params{},
 		paramsKey: mockStore_AllWidgetsIds_paramsKey{},
+		sequence:  m.mock.config.Sequence == moq.SeqDefaultOn,
 		mock:      m.mock,
 	}
+}
+
+func (r *mockStore_AllWidgetsIds_fnRecorder) seq() *mockStore_AllWidgetsIds_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockStore_AllWidgetsIds_fnRecorder) noSeq() *mockStore_AllWidgetsIds_fnRecorder {
+	r.sequence = false
+	return r
 }
 
 func (r *mockStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result2 error) *mockStore_AllWidgetsIds_fnRecorder {
@@ -344,9 +385,16 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockStore_AllWidgetsIds_results{
-		result1: result1,
-		result2: result2,
+		result1:      result1,
+		result2:      result2,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -358,6 +406,13 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) times(count int) *mockStore_AllWidg
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockStore_AllWidgetsIds_results{
+				result1:      last.result1,
+				result2:      last.result2,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -379,7 +434,8 @@ func (m *mockStore_recorder) GadgetsByWidgetId(widgetId int) *mockStore_GadgetsB
 		paramsKey: mockStore_GadgetsByWidgetId_paramsKey{
 			widgetId: widgetId,
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -389,6 +445,16 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) anyWidgetId() *mockStore_Gadget
 		return nil
 	}
 	r.anyParams |= 1 << 0
+	return r
+}
+
+func (r *mockStore_GadgetsByWidgetId_fnRecorder) seq() *mockStore_GadgetsByWidgetId_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockStore_GadgetsByWidgetId_fnRecorder) noSeq() *mockStore_GadgetsByWidgetId_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -440,9 +506,16 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Ga
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockStore_GadgetsByWidgetId_results{
-		result1: result1,
-		result2: result2,
+		result1:      result1,
+		result2:      result2,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -454,6 +527,13 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) times(count int) *mockStore_Gad
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockStore_GadgetsByWidgetId_results{
+				result1:      last.result1,
+				result2:      last.result2,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -477,7 +557,8 @@ func (m *mockStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint
 			widgetId:  widgetId,
 			maxWeight: maxWeight,
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -496,6 +577,16 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) anyMaxWeight() *mockStore_
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) seq() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) noSeq() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -552,9 +643,16 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []de
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockStore_LightGadgetsByWidgetId_results{
-		result1: result1,
-		result2: result2,
+		result1:      result1,
+		result2:      result2,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -566,6 +664,13 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *mockStor
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockStore_LightGadgetsByWidgetId_results{
+				result1:      last.result1,
+				result2:      last.result2,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r

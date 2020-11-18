@@ -22,11 +22,6 @@ type MockNothingFn_mock struct {
 	Mock *MockNothingFn
 }
 
-// MockNothingFn_recorder isolates the recorder interface of the NothingFn type
-type MockNothingFn_recorder struct {
-	Mock *MockNothingFn
-}
-
 // MockNothingFn_params holds the params of the NothingFn type
 type MockNothingFn_params struct{}
 
@@ -50,6 +45,7 @@ type MockNothingFn_resultMgr struct {
 
 // MockNothingFn_results holds the results of the NothingFn type
 type MockNothingFn_results struct {
+	Moq_Sequence uint32
 }
 
 // MockNothingFn_fnRecorder routes recorded function calls to the MockNothingFn mock
@@ -57,6 +53,7 @@ type MockNothingFn_fnRecorder struct {
 	Params    MockNothingFn_params
 	ParamsKey MockNothingFn_paramsKey
 	AnyParams uint64
+	Sequence  bool
 	Results   *MockNothingFn_resultMgr
 	Mock      *MockNothingFn
 }
@@ -107,6 +104,15 @@ func (m *MockNothingFn_mock) Fn() {
 		}
 		i = len(results.Results) - 1
 	}
+
+	result := results.Results[i]
+	if result.Moq_Sequence != 0 {
+		sequence := m.Mock.Scene.NextMockSequence()
+		if result.Moq_Sequence != sequence {
+			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -114,8 +120,19 @@ func (m *MockNothingFn) OnCall() *MockNothingFn_fnRecorder {
 	return &MockNothingFn_fnRecorder{
 		Params:    MockNothingFn_params{},
 		ParamsKey: MockNothingFn_paramsKey{},
+		Sequence:  m.Config.Sequence == moq.SeqDefaultOn,
 		Mock:      m,
 	}
+}
+
+func (r *MockNothingFn_fnRecorder) Seq() *MockNothingFn_fnRecorder {
+	r.Sequence = true
+	return r
+}
+
+func (r *MockNothingFn_fnRecorder) NoSeq() *MockNothingFn_fnRecorder {
+	r.Sequence = false
+	return r
 }
 
 func (r *MockNothingFn_fnRecorder) ReturnResults() *MockNothingFn_fnRecorder {
@@ -160,7 +177,13 @@ func (r *MockNothingFn_fnRecorder) ReturnResults() *MockNothingFn_fnRecorder {
 		}
 		results.Results[paramsKey] = r.Results
 	}
-	r.Results.Results = append(r.Results.Results, &MockNothingFn_results{})
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, &MockNothingFn_results{Moq_Sequence: sequence})
 	return r
 }
 
@@ -171,6 +194,9 @@ func (r *MockNothingFn_fnRecorder) Times(count int) *MockNothingFn_fnRecorder {
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.Moq_Sequence != 0 {
+			last = &MockNothingFn_results{Moq_Sequence: r.Mock.Scene.NextRecorderSequence()}
+		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r

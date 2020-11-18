@@ -50,8 +50,9 @@ type mockWriter_Write_resultMgr struct {
 
 // mockWriter_Write_results holds the results of the Writer type
 type mockWriter_Write_results struct {
-	n   int
-	err error
+	n            int
+	err          error
+	moq_sequence uint32
 }
 
 // mockWriter_Write_fnRecorder routes recorded function calls to the mockWriter mock
@@ -59,6 +60,7 @@ type mockWriter_Write_fnRecorder struct {
 	params    mockWriter_Write_params
 	paramsKey mockWriter_Write_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockWriter_Write_resultMgr
 	mock      *mockWriter
 }
@@ -119,7 +121,15 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	n = result.n
 	err = result.err
 	return
@@ -140,7 +150,8 @@ func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
 		paramsKey: mockWriter_Write_paramsKey{
 			p: hash.DeepHash(p),
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -150,6 +161,16 @@ func (r *mockWriter_Write_fnRecorder) anyP() *mockWriter_Write_fnRecorder {
 		return nil
 	}
 	r.anyParams |= 1 << 0
+	return r
+}
+
+func (r *mockWriter_Write_fnRecorder) seq() *mockWriter_Write_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockWriter_Write_fnRecorder) noSeq() *mockWriter_Write_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -201,9 +222,16 @@ func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWrite
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockWriter_Write_results{
-		n:   n,
-		err: err,
+		n:            n,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -215,6 +243,13 @@ func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecor
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockWriter_Write_results{
+				n:            last.n,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r

@@ -62,8 +62,9 @@ type mockUsual_Usual_resultMgr struct {
 
 // mockUsual_Usual_results holds the results of the Usual type
 type mockUsual_Usual_results struct {
-	sResult string
-	err     error
+	sResult      string
+	err          error
+	moq_sequence uint32
 }
 
 // mockUsual_Usual_fnRecorder routes recorded function calls to the mockUsual mock
@@ -71,6 +72,7 @@ type mockUsual_Usual_fnRecorder struct {
 	params    mockUsual_Usual_params
 	paramsKey mockUsual_Usual_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_Usual_resultMgr
 	mock      *mockUsual
 }
@@ -104,8 +106,9 @@ type mockUsual_NoNames_resultMgr struct {
 
 // mockUsual_NoNames_results holds the results of the Usual type
 type mockUsual_NoNames_results struct {
-	result1 string
-	result2 error
+	result1      string
+	result2      error
+	moq_sequence uint32
 }
 
 // mockUsual_NoNames_fnRecorder routes recorded function calls to the mockUsual mock
@@ -113,6 +116,7 @@ type mockUsual_NoNames_fnRecorder struct {
 	params    mockUsual_NoNames_params
 	paramsKey mockUsual_NoNames_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_NoNames_resultMgr
 	mock      *mockUsual
 }
@@ -146,6 +150,7 @@ type mockUsual_NoResults_resultMgr struct {
 
 // mockUsual_NoResults_results holds the results of the Usual type
 type mockUsual_NoResults_results struct {
+	moq_sequence uint32
 }
 
 // mockUsual_NoResults_fnRecorder routes recorded function calls to the mockUsual mock
@@ -153,6 +158,7 @@ type mockUsual_NoResults_fnRecorder struct {
 	params    mockUsual_NoResults_params
 	paramsKey mockUsual_NoResults_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_NoResults_resultMgr
 	mock      *mockUsual
 }
@@ -180,8 +186,9 @@ type mockUsual_NoParams_resultMgr struct {
 
 // mockUsual_NoParams_results holds the results of the Usual type
 type mockUsual_NoParams_results struct {
-	sResult string
-	err     error
+	sResult      string
+	err          error
+	moq_sequence uint32
 }
 
 // mockUsual_NoParams_fnRecorder routes recorded function calls to the mockUsual mock
@@ -189,6 +196,7 @@ type mockUsual_NoParams_fnRecorder struct {
 	params    mockUsual_NoParams_params
 	paramsKey mockUsual_NoParams_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_NoParams_resultMgr
 	mock      *mockUsual
 }
@@ -216,6 +224,7 @@ type mockUsual_Nothing_resultMgr struct {
 
 // mockUsual_Nothing_results holds the results of the Usual type
 type mockUsual_Nothing_results struct {
+	moq_sequence uint32
 }
 
 // mockUsual_Nothing_fnRecorder routes recorded function calls to the mockUsual mock
@@ -223,6 +232,7 @@ type mockUsual_Nothing_fnRecorder struct {
 	params    mockUsual_Nothing_params
 	paramsKey mockUsual_Nothing_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_Nothing_resultMgr
 	mock      *mockUsual
 }
@@ -256,8 +266,9 @@ type mockUsual_Variadic_resultMgr struct {
 
 // mockUsual_Variadic_results holds the results of the Usual type
 type mockUsual_Variadic_results struct {
-	sResult string
-	err     error
+	sResult      string
+	err          error
+	moq_sequence uint32
 }
 
 // mockUsual_Variadic_fnRecorder routes recorded function calls to the mockUsual mock
@@ -265,6 +276,7 @@ type mockUsual_Variadic_fnRecorder struct {
 	params    mockUsual_Variadic_params
 	paramsKey mockUsual_Variadic_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_Variadic_resultMgr
 	mock      *mockUsual
 }
@@ -300,6 +312,7 @@ type mockUsual_RepeatedIds_resultMgr struct {
 type mockUsual_RepeatedIds_results struct {
 	sResult1, sResult2 string
 	err                error
+	moq_sequence       uint32
 }
 
 // mockUsual_RepeatedIds_fnRecorder routes recorded function calls to the mockUsual mock
@@ -307,6 +320,7 @@ type mockUsual_RepeatedIds_fnRecorder struct {
 	params    mockUsual_RepeatedIds_params
 	paramsKey mockUsual_RepeatedIds_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsual_RepeatedIds_resultMgr
 	mock      *mockUsual
 }
@@ -373,7 +387,15 @@ func (m *mockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err 
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	sResult = result.sResult
 	err = result.err
 	return
@@ -421,7 +443,15 @@ func (m *mockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, re
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	result1 = result.result1
 	result2 = result.result2
 	return
@@ -469,6 +499,15 @@ func (m *mockUsual_mock) NoResults(sParam string, bParam bool) {
 		}
 		i = len(results.results) - 1
 	}
+
+	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -500,7 +539,15 @@ func (m *mockUsual_mock) NoParams() (sResult string, err error) {
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	sResult = result.sResult
 	err = result.err
 	return
@@ -534,6 +581,15 @@ func (m *mockUsual_mock) Nothing() {
 		}
 		i = len(results.results) - 1
 	}
+
+	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -579,7 +635,15 @@ func (m *mockUsual_mock) Variadic(other bool, args ...string) (sResult string, e
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	sResult = result.sResult
 	err = result.err
 	return
@@ -633,7 +697,15 @@ func (m *mockUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sRes
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	sResult1 = result.sResult1
 	sResult2 = result.sResult2
 	err = result.err
@@ -657,7 +729,8 @@ func (m *mockUsual_recorder) Usual(sParam string, bParam bool) *mockUsual_Usual_
 			sParam: sParam,
 			bParam: bParam,
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -676,6 +749,16 @@ func (r *mockUsual_Usual_fnRecorder) anyBParam() *mockUsual_Usual_fnRecorder {
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockUsual_Usual_fnRecorder) seq() *mockUsual_Usual_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_Usual_fnRecorder) noSeq() *mockUsual_Usual_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -732,9 +815,16 @@ func (r *mockUsual_Usual_fnRecorder) returnResults(sResult string, err error) *m
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockUsual_Usual_results{
-		sResult: sResult,
-		err:     err,
+		sResult:      sResult,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -746,6 +836,13 @@ func (r *mockUsual_Usual_fnRecorder) times(count int) *mockUsual_Usual_fnRecorde
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_Usual_results{
+				sResult:      last.sResult,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -769,7 +866,8 @@ func (m *mockUsual_recorder) NoNames(param1 string, param2 bool) *mockUsual_NoNa
 			param1: param1,
 			param2: param2,
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -788,6 +886,16 @@ func (r *mockUsual_NoNames_fnRecorder) anyParam2() *mockUsual_NoNames_fnRecorder
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockUsual_NoNames_fnRecorder) seq() *mockUsual_NoNames_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_NoNames_fnRecorder) noSeq() *mockUsual_NoNames_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -844,9 +952,16 @@ func (r *mockUsual_NoNames_fnRecorder) returnResults(result1 string, result2 err
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockUsual_NoNames_results{
-		result1: result1,
-		result2: result2,
+		result1:      result1,
+		result2:      result2,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -858,6 +973,13 @@ func (r *mockUsual_NoNames_fnRecorder) times(count int) *mockUsual_NoNames_fnRec
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_NoNames_results{
+				result1:      last.result1,
+				result2:      last.result2,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -881,7 +1003,8 @@ func (m *mockUsual_recorder) NoResults(sParam string, bParam bool) *mockUsual_No
 			sParam: sParam,
 			bParam: bParam,
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -900,6 +1023,16 @@ func (r *mockUsual_NoResults_fnRecorder) anyBParam() *mockUsual_NoResults_fnReco
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockUsual_NoResults_fnRecorder) seq() *mockUsual_NoResults_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_NoResults_fnRecorder) noSeq() *mockUsual_NoResults_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -956,7 +1089,13 @@ func (r *mockUsual_NoResults_fnRecorder) returnResults() *mockUsual_NoResults_fn
 		}
 		results.results[paramsKey] = r.results
 	}
-	r.results.results = append(r.results.results, &mockUsual_NoResults_results{})
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, &mockUsual_NoResults_results{moq_sequence: sequence})
 	return r
 }
 
@@ -967,6 +1106,9 @@ func (r *mockUsual_NoResults_fnRecorder) times(count int) *mockUsual_NoResults_f
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_NoResults_results{moq_sequence: r.mock.scene.NextRecorderSequence()}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -984,8 +1126,19 @@ func (m *mockUsual_recorder) NoParams() *mockUsual_NoParams_fnRecorder {
 	return &mockUsual_NoParams_fnRecorder{
 		params:    mockUsual_NoParams_params{},
 		paramsKey: mockUsual_NoParams_paramsKey{},
+		sequence:  m.mock.config.Sequence == moq.SeqDefaultOn,
 		mock:      m.mock,
 	}
+}
+
+func (r *mockUsual_NoParams_fnRecorder) seq() *mockUsual_NoParams_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_NoParams_fnRecorder) noSeq() *mockUsual_NoParams_fnRecorder {
+	r.sequence = false
+	return r
 }
 
 func (r *mockUsual_NoParams_fnRecorder) returnResults(sResult string, err error) *mockUsual_NoParams_fnRecorder {
@@ -1030,9 +1183,16 @@ func (r *mockUsual_NoParams_fnRecorder) returnResults(sResult string, err error)
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockUsual_NoParams_results{
-		sResult: sResult,
-		err:     err,
+		sResult:      sResult,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -1044,6 +1204,13 @@ func (r *mockUsual_NoParams_fnRecorder) times(count int) *mockUsual_NoParams_fnR
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_NoParams_results{
+				sResult:      last.sResult,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -1061,8 +1228,19 @@ func (m *mockUsual_recorder) Nothing() *mockUsual_Nothing_fnRecorder {
 	return &mockUsual_Nothing_fnRecorder{
 		params:    mockUsual_Nothing_params{},
 		paramsKey: mockUsual_Nothing_paramsKey{},
+		sequence:  m.mock.config.Sequence == moq.SeqDefaultOn,
 		mock:      m.mock,
 	}
+}
+
+func (r *mockUsual_Nothing_fnRecorder) seq() *mockUsual_Nothing_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_Nothing_fnRecorder) noSeq() *mockUsual_Nothing_fnRecorder {
+	r.sequence = false
+	return r
 }
 
 func (r *mockUsual_Nothing_fnRecorder) returnResults() *mockUsual_Nothing_fnRecorder {
@@ -1107,7 +1285,13 @@ func (r *mockUsual_Nothing_fnRecorder) returnResults() *mockUsual_Nothing_fnReco
 		}
 		results.results[paramsKey] = r.results
 	}
-	r.results.results = append(r.results.results, &mockUsual_Nothing_results{})
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, &mockUsual_Nothing_results{moq_sequence: sequence})
 	return r
 }
 
@@ -1118,6 +1302,9 @@ func (r *mockUsual_Nothing_fnRecorder) times(count int) *mockUsual_Nothing_fnRec
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_Nothing_results{moq_sequence: r.mock.scene.NextRecorderSequence()}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -1141,7 +1328,8 @@ func (m *mockUsual_recorder) Variadic(other bool, args ...string) *mockUsual_Var
 			other: other,
 			args:  hash.DeepHash(args),
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -1160,6 +1348,16 @@ func (r *mockUsual_Variadic_fnRecorder) anyArgs() *mockUsual_Variadic_fnRecorder
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockUsual_Variadic_fnRecorder) seq() *mockUsual_Variadic_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_Variadic_fnRecorder) noSeq() *mockUsual_Variadic_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -1216,9 +1414,16 @@ func (r *mockUsual_Variadic_fnRecorder) returnResults(sResult string, err error)
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockUsual_Variadic_results{
-		sResult: sResult,
-		err:     err,
+		sResult:      sResult,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -1230,6 +1435,13 @@ func (r *mockUsual_Variadic_fnRecorder) times(count int) *mockUsual_Variadic_fnR
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_Variadic_results{
+				sResult:      last.sResult,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -1255,7 +1467,8 @@ func (m *mockUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *
 			sParam2: sParam2,
 			bParam:  bParam,
 		},
-		mock: m.mock,
+		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
+		mock:     m.mock,
 	}
 }
 
@@ -1283,6 +1496,16 @@ func (r *mockUsual_RepeatedIds_fnRecorder) anyBParam() *mockUsual_RepeatedIds_fn
 		return nil
 	}
 	r.anyParams |= 1 << 2
+	return r
+}
+
+func (r *mockUsual_RepeatedIds_fnRecorder) seq() *mockUsual_RepeatedIds_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsual_RepeatedIds_fnRecorder) noSeq() *mockUsual_RepeatedIds_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -1344,10 +1567,17 @@ func (r *mockUsual_RepeatedIds_fnRecorder) returnResults(sResult1, sResult2 stri
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockUsual_RepeatedIds_results{
-		sResult1: sResult1,
-		sResult2: sResult2,
-		err:      err,
+		sResult1:     sResult1,
+		sResult2:     sResult2,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -1359,6 +1589,14 @@ func (r *mockUsual_RepeatedIds_fnRecorder) times(count int) *mockUsual_RepeatedI
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsual_RepeatedIds_results{
+				sResult1:     last.sResult1,
+				sResult2:     last.sResult2,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r

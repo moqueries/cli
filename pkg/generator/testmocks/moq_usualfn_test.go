@@ -22,11 +22,6 @@ type mockUsualFn_mock struct {
 	mock *mockUsualFn
 }
 
-// mockUsualFn_recorder isolates the recorder interface of the UsualFn type
-type mockUsualFn_recorder struct {
-	mock *mockUsualFn
-}
-
 // mockUsualFn_params holds the params of the UsualFn type
 type mockUsualFn_params struct {
 	sParam string
@@ -56,8 +51,9 @@ type mockUsualFn_resultMgr struct {
 
 // mockUsualFn_results holds the results of the UsualFn type
 type mockUsualFn_results struct {
-	sResult string
-	err     error
+	sResult      string
+	err          error
+	moq_sequence uint32
 }
 
 // mockUsualFn_fnRecorder routes recorded function calls to the mockUsualFn mock
@@ -65,6 +61,7 @@ type mockUsualFn_fnRecorder struct {
 	params    mockUsualFn_params
 	paramsKey mockUsualFn_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockUsualFn_resultMgr
 	mock      *mockUsualFn
 }
@@ -132,7 +129,15 @@ func (m *mockUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err e
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	sResult = result.sResult
 	err = result.err
 	return
@@ -148,7 +153,8 @@ func (m *mockUsualFn) onCall(sParam string, bParam bool) *mockUsualFn_fnRecorder
 			sParam: sParam,
 			bParam: bParam,
 		},
-		mock: m,
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		mock:     m,
 	}
 }
 
@@ -167,6 +173,16 @@ func (r *mockUsualFn_fnRecorder) anyBParam() *mockUsualFn_fnRecorder {
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockUsualFn_fnRecorder) seq() *mockUsualFn_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockUsualFn_fnRecorder) noSeq() *mockUsualFn_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -223,9 +239,16 @@ func (r *mockUsualFn_fnRecorder) returnResults(sResult string, err error) *mockU
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockUsualFn_results{
-		sResult: sResult,
-		err:     err,
+		sResult:      sResult,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -237,6 +260,13 @@ func (r *mockUsualFn_fnRecorder) times(count int) *mockUsualFn_fnRecorder {
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockUsualFn_results{
+				sResult:      last.sResult,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r

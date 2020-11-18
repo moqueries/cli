@@ -50,6 +50,7 @@ type mockMock_Reset_resultMgr struct {
 
 // mockMock_Reset_results holds the results of the Mock type
 type mockMock_Reset_results struct {
+	moq_sequence uint32
 }
 
 // mockMock_Reset_fnRecorder routes recorded function calls to the mockMock mock
@@ -57,6 +58,7 @@ type mockMock_Reset_fnRecorder struct {
 	params    mockMock_Reset_params
 	paramsKey mockMock_Reset_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockMock_Reset_resultMgr
 	mock      *mockMock
 }
@@ -84,6 +86,7 @@ type mockMock_AssertExpectationsMet_resultMgr struct {
 
 // mockMock_AssertExpectationsMet_results holds the results of the Mock type
 type mockMock_AssertExpectationsMet_results struct {
+	moq_sequence uint32
 }
 
 // mockMock_AssertExpectationsMet_fnRecorder routes recorded function calls to the mockMock mock
@@ -91,6 +94,7 @@ type mockMock_AssertExpectationsMet_fnRecorder struct {
 	params    mockMock_AssertExpectationsMet_params
 	paramsKey mockMock_AssertExpectationsMet_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockMock_AssertExpectationsMet_resultMgr
 	mock      *mockMock
 }
@@ -143,6 +147,15 @@ func (m *mockMock_mock) Reset() {
 		}
 		i = len(results.results) - 1
 	}
+
+	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -174,6 +187,15 @@ func (m *mockMock_mock) AssertExpectationsMet() {
 		}
 		i = len(results.results) - 1
 	}
+
+	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -188,8 +210,19 @@ func (m *mockMock_recorder) Reset() *mockMock_Reset_fnRecorder {
 	return &mockMock_Reset_fnRecorder{
 		params:    mockMock_Reset_params{},
 		paramsKey: mockMock_Reset_paramsKey{},
+		sequence:  m.mock.config.Sequence == moq.SeqDefaultOn,
 		mock:      m.mock,
 	}
+}
+
+func (r *mockMock_Reset_fnRecorder) seq() *mockMock_Reset_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockMock_Reset_fnRecorder) noSeq() *mockMock_Reset_fnRecorder {
+	r.sequence = false
+	return r
 }
 
 func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
@@ -234,7 +267,13 @@ func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 		}
 		results.results[paramsKey] = r.results
 	}
-	r.results.results = append(r.results.results, &mockMock_Reset_results{})
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, &mockMock_Reset_results{moq_sequence: sequence})
 	return r
 }
 
@@ -245,6 +284,9 @@ func (r *mockMock_Reset_fnRecorder) times(count int) *mockMock_Reset_fnRecorder 
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockMock_Reset_results{moq_sequence: r.mock.scene.NextRecorderSequence()}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
@@ -262,8 +304,19 @@ func (m *mockMock_recorder) AssertExpectationsMet() *mockMock_AssertExpectations
 	return &mockMock_AssertExpectationsMet_fnRecorder{
 		params:    mockMock_AssertExpectationsMet_params{},
 		paramsKey: mockMock_AssertExpectationsMet_paramsKey{},
+		sequence:  m.mock.config.Sequence == moq.SeqDefaultOn,
 		mock:      m.mock,
 	}
+}
+
+func (r *mockMock_AssertExpectationsMet_fnRecorder) seq() *mockMock_AssertExpectationsMet_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockMock_AssertExpectationsMet_fnRecorder) noSeq() *mockMock_AssertExpectationsMet_fnRecorder {
+	r.sequence = false
+	return r
 }
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_AssertExpectationsMet_fnRecorder {
@@ -308,7 +361,13 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_As
 		}
 		results.results[paramsKey] = r.results
 	}
-	r.results.results = append(r.results.results, &mockMock_AssertExpectationsMet_results{})
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, &mockMock_AssertExpectationsMet_results{moq_sequence: sequence})
 	return r
 }
 
@@ -319,6 +378,9 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) times(count int) *mockMock_A
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockMock_AssertExpectationsMet_results{moq_sequence: r.mock.scene.NextRecorderSequence()}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r

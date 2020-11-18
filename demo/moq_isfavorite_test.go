@@ -22,11 +22,6 @@ type mockIsFavorite_mock struct {
 	mock *mockIsFavorite
 }
 
-// mockIsFavorite_recorder isolates the recorder interface of the IsFavorite type
-type mockIsFavorite_recorder struct {
-	mock *mockIsFavorite
-}
-
 // mockIsFavorite_params holds the params of the IsFavorite type
 type mockIsFavorite_params struct{ n int }
 
@@ -50,7 +45,8 @@ type mockIsFavorite_resultMgr struct {
 
 // mockIsFavorite_results holds the results of the IsFavorite type
 type mockIsFavorite_results struct {
-	result1 bool
+	result1      bool
+	moq_sequence uint32
 }
 
 // mockIsFavorite_fnRecorder routes recorded function calls to the mockIsFavorite mock
@@ -58,6 +54,7 @@ type mockIsFavorite_fnRecorder struct {
 	params    mockIsFavorite_params
 	paramsKey mockIsFavorite_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockIsFavorite_resultMgr
 	mock      *mockIsFavorite
 }
@@ -116,7 +113,15 @@ func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	result1 = result.result1
 	return
 }
@@ -129,7 +134,8 @@ func (m *mockIsFavorite) onCall(n int) *mockIsFavorite_fnRecorder {
 		paramsKey: mockIsFavorite_paramsKey{
 			n: n,
 		},
-		mock: m,
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		mock:     m,
 	}
 }
 
@@ -139,6 +145,16 @@ func (r *mockIsFavorite_fnRecorder) anyN() *mockIsFavorite_fnRecorder {
 		return nil
 	}
 	r.anyParams |= 1 << 0
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) seq() *mockIsFavorite_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) noSeq() *mockIsFavorite_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -190,8 +206,15 @@ func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockIsFavorite_results{
-		result1: result1,
+		result1:      result1,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -203,6 +226,12 @@ func (r *mockIsFavorite_fnRecorder) times(count int) *mockIsFavorite_fnRecorder 
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockIsFavorite_results{
+				result1:      last.result1,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r

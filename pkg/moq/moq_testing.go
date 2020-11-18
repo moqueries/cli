@@ -56,6 +56,7 @@ type MockMoqT_Errorf_resultMgr struct {
 
 // MockMoqT_Errorf_results holds the results of the MoqT type
 type MockMoqT_Errorf_results struct {
+	Moq_Sequence uint32
 }
 
 // MockMoqT_Errorf_fnRecorder routes recorded function calls to the MockMoqT mock
@@ -63,6 +64,7 @@ type MockMoqT_Errorf_fnRecorder struct {
 	Params    MockMoqT_Errorf_params
 	ParamsKey MockMoqT_Errorf_paramsKey
 	AnyParams uint64
+	Sequence  bool
 	Results   *MockMoqT_Errorf_resultMgr
 	Mock      *MockMoqT
 }
@@ -96,6 +98,7 @@ type MockMoqT_Fatalf_resultMgr struct {
 
 // MockMoqT_Fatalf_results holds the results of the MoqT type
 type MockMoqT_Fatalf_results struct {
+	Moq_Sequence uint32
 }
 
 // MockMoqT_Fatalf_fnRecorder routes recorded function calls to the MockMoqT mock
@@ -103,6 +106,7 @@ type MockMoqT_Fatalf_fnRecorder struct {
 	Params    MockMoqT_Fatalf_params
 	ParamsKey MockMoqT_Fatalf_paramsKey
 	AnyParams uint64
+	Sequence  bool
 	Results   *MockMoqT_Fatalf_resultMgr
 	Mock      *MockMoqT
 }
@@ -169,6 +173,15 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 		}
 		i = len(results.Results) - 1
 	}
+
+	result := results.Results[i]
+	if result.Moq_Sequence != 0 {
+		sequence := m.Mock.Scene.NextMockSequence()
+		if result.Moq_Sequence != sequence {
+			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -214,6 +227,15 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 		}
 		i = len(results.Results) - 1
 	}
+
+	result := results.Results[i]
+	if result.Moq_Sequence != 0 {
+		sequence := m.Mock.Scene.NextMockSequence()
+		if result.Moq_Sequence != sequence {
+			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	return
 }
 
@@ -234,7 +256,8 @@ func (m *MockMoqT_recorder) Errorf(format string, args ...interface{}) *MockMoqT
 			Format: format,
 			Args:   hash.DeepHash(args),
 		},
-		Mock: m.Mock,
+		Sequence: m.Mock.Config.Sequence == SeqDefaultOn,
+		Mock:     m.Mock,
 	}
 }
 
@@ -253,6 +276,16 @@ func (r *MockMoqT_Errorf_fnRecorder) AnyArgs() *MockMoqT_Errorf_fnRecorder {
 		return nil
 	}
 	r.AnyParams |= 1 << 1
+	return r
+}
+
+func (r *MockMoqT_Errorf_fnRecorder) Seq() *MockMoqT_Errorf_fnRecorder {
+	r.Sequence = true
+	return r
+}
+
+func (r *MockMoqT_Errorf_fnRecorder) NoSeq() *MockMoqT_Errorf_fnRecorder {
+	r.Sequence = false
 	return r
 }
 
@@ -309,7 +342,13 @@ func (r *MockMoqT_Errorf_fnRecorder) ReturnResults() *MockMoqT_Errorf_fnRecorder
 		}
 		results.Results[paramsKey] = r.Results
 	}
-	r.Results.Results = append(r.Results.Results, &MockMoqT_Errorf_results{})
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, &MockMoqT_Errorf_results{Moq_Sequence: sequence})
 	return r
 }
 
@@ -320,6 +359,9 @@ func (r *MockMoqT_Errorf_fnRecorder) Times(count int) *MockMoqT_Errorf_fnRecorde
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.Moq_Sequence != 0 {
+			last = &MockMoqT_Errorf_results{Moq_Sequence: r.Mock.Scene.NextRecorderSequence()}
+		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r
@@ -343,7 +385,8 @@ func (m *MockMoqT_recorder) Fatalf(format string, args ...interface{}) *MockMoqT
 			Format: format,
 			Args:   hash.DeepHash(args),
 		},
-		Mock: m.Mock,
+		Sequence: m.Mock.Config.Sequence == SeqDefaultOn,
+		Mock:     m.Mock,
 	}
 }
 
@@ -362,6 +405,16 @@ func (r *MockMoqT_Fatalf_fnRecorder) AnyArgs() *MockMoqT_Fatalf_fnRecorder {
 		return nil
 	}
 	r.AnyParams |= 1 << 1
+	return r
+}
+
+func (r *MockMoqT_Fatalf_fnRecorder) Seq() *MockMoqT_Fatalf_fnRecorder {
+	r.Sequence = true
+	return r
+}
+
+func (r *MockMoqT_Fatalf_fnRecorder) NoSeq() *MockMoqT_Fatalf_fnRecorder {
+	r.Sequence = false
 	return r
 }
 
@@ -418,7 +471,13 @@ func (r *MockMoqT_Fatalf_fnRecorder) ReturnResults() *MockMoqT_Fatalf_fnRecorder
 		}
 		results.Results[paramsKey] = r.Results
 	}
-	r.Results.Results = append(r.Results.Results, &MockMoqT_Fatalf_results{})
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, &MockMoqT_Fatalf_results{Moq_Sequence: sequence})
 	return r
 }
 
@@ -429,6 +488,9 @@ func (r *MockMoqT_Fatalf_fnRecorder) Times(count int) *MockMoqT_Fatalf_fnRecorde
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.Moq_Sequence != 0 {
+			last = &MockMoqT_Fatalf_results{Moq_Sequence: r.Mock.Scene.NextRecorderSequence()}
+		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r

@@ -23,11 +23,6 @@ type mockLoadTypesFn_mock struct {
 	mock *mockLoadTypesFn
 }
 
-// mockLoadTypesFn_recorder isolates the recorder interface of the LoadTypesFn type
-type mockLoadTypesFn_recorder struct {
-	mock *mockLoadTypesFn
-}
-
 // mockLoadTypesFn_params holds the params of the LoadTypesFn type
 type mockLoadTypesFn_params struct {
 	pkg           string
@@ -57,9 +52,10 @@ type mockLoadTypesFn_resultMgr struct {
 
 // mockLoadTypesFn_results holds the results of the LoadTypesFn type
 type mockLoadTypesFn_results struct {
-	typeSpecs []*dst.TypeSpec
-	pkgPath   string
-	err       error
+	typeSpecs    []*dst.TypeSpec
+	pkgPath      string
+	err          error
+	moq_sequence uint32
 }
 
 // mockLoadTypesFn_fnRecorder routes recorded function calls to the mockLoadTypesFn mock
@@ -67,6 +63,7 @@ type mockLoadTypesFn_fnRecorder struct {
 	params    mockLoadTypesFn_params
 	paramsKey mockLoadTypesFn_paramsKey
 	anyParams uint64
+	sequence  bool
 	results   *mockLoadTypesFn_resultMgr
 	mock      *mockLoadTypesFn
 }
@@ -136,7 +133,15 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 		}
 		i = len(results.results) - 1
 	}
+
 	result := results.results[i]
+	if result.moq_sequence != 0 {
+		sequence := m.mock.scene.NextMockSequence()
+		if result.moq_sequence != sequence {
+			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
 	typeSpecs = result.typeSpecs
 	pkgPath = result.pkgPath
 	err = result.err
@@ -153,7 +158,8 @@ func (m *mockLoadTypesFn) onCall(pkg string, loadTestTypes bool) *mockLoadTypesF
 			pkg:           pkg,
 			loadTestTypes: loadTestTypes,
 		},
-		mock: m,
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		mock:     m,
 	}
 }
 
@@ -172,6 +178,16 @@ func (r *mockLoadTypesFn_fnRecorder) anyLoadTestTypes() *mockLoadTypesFn_fnRecor
 		return nil
 	}
 	r.anyParams |= 1 << 1
+	return r
+}
+
+func (r *mockLoadTypesFn_fnRecorder) seq() *mockLoadTypesFn_fnRecorder {
+	r.sequence = true
+	return r
+}
+
+func (r *mockLoadTypesFn_fnRecorder) noSeq() *mockLoadTypesFn_fnRecorder {
+	r.sequence = false
 	return r
 }
 
@@ -229,10 +245,17 @@ func (r *mockLoadTypesFn_fnRecorder) returnResults(
 		}
 		results.results[paramsKey] = r.results
 	}
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
 	r.results.results = append(r.results.results, &mockLoadTypesFn_results{
-		typeSpecs: typeSpecs,
-		pkgPath:   pkgPath,
-		err:       err,
+		typeSpecs:    typeSpecs,
+		pkgPath:      pkgPath,
+		err:          err,
+		moq_sequence: sequence,
 	})
 	return r
 }
@@ -244,6 +267,14 @@ func (r *mockLoadTypesFn_fnRecorder) times(count int) *mockLoadTypesFn_fnRecorde
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
+		if last.moq_sequence != 0 {
+			last = &mockLoadTypesFn_results{
+				typeSpecs:    last.typeSpecs,
+				pkgPath:      last.pkgPath,
+				err:          last.err,
+				moq_sequence: r.mock.scene.NextRecorderSequence(),
+			}
+		}
 		r.results.results = append(r.results.results, last)
 	}
 	return r
