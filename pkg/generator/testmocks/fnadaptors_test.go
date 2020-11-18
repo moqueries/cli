@@ -29,6 +29,12 @@ func (a *usualFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} 
 func (a *usualFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockUsualFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
@@ -83,6 +89,12 @@ func (a *exportedUsualFnAdaptor) any(rec interface{}, sParams, bParam bool) inte
 func (a *exportedUsualFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockUsualFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
@@ -137,6 +149,12 @@ func (a *noNamesFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{
 func (a *noNamesFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockNoNamesFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
@@ -191,6 +209,12 @@ func (a *exportedNoNamesFnAdaptor) any(rec interface{}, sParams, bParam bool) in
 func (a *exportedNoNamesFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockNoNamesFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
@@ -245,6 +269,12 @@ func (a *noResultsFnAdaptor) any(rec interface{}, sParams, bParam bool) interfac
 func (a *noResultsFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockNoResultsFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults()
 		}
@@ -293,6 +323,12 @@ func (a *exportedNoResultsFnAdaptor) any(rec interface{}, sParams, bParam bool) 
 func (a *exportedNoResultsFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockNoResultsFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults()
 		}
@@ -334,6 +370,12 @@ func (a *noParamsFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
 func (a *noParamsFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockNoParamsFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
@@ -381,6 +423,12 @@ func (a *exportedNoParamsFnAdaptor) any(rec interface{}, _, _ bool) interface{} 
 func (a *exportedNoParamsFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockNoParamsFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
@@ -428,6 +476,12 @@ func (a *nothingFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
 func (a *nothingFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockNothingFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults()
 		}
@@ -469,6 +523,12 @@ func (a *exportedNothingFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
 func (a *exportedNothingFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockNothingFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults()
 		}
@@ -517,6 +577,12 @@ func (a *variadicFnAdaptor) any(rec interface{}, sParams, bParam bool) interface
 func (a *variadicFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockVariadicFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults(result.sResults[0], result.err)
 		}
@@ -571,6 +637,12 @@ func (a *exportedVariadicFnAdaptor) any(rec interface{}, sParams, bParam bool) i
 func (a *exportedVariadicFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockVariadicFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults(result.sResults[0], result.err)
 		}
@@ -625,6 +697,12 @@ func (a *repeatedIdsFnAdaptor) any(rec interface{}, sParams, bParam bool) interf
 func (a *repeatedIdsFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*mockRepeatedIdsFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.seq()
+		}
+		if result.noSeq {
+			cRec = cRec.noSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.returnResults(result.sResults[0], result.sResults[1], result.err)
 		}
@@ -680,6 +758,12 @@ func (a *exportedRepeatedIdsFnAdaptor) any(rec interface{}, sParams, bParam bool
 func (a *exportedRepeatedIdsFnAdaptor) results(rec interface{}, results ...results) interface{} {
 	cRec := rec.(*exported.MockRepeatedIdsFn_fnRecorder)
 	for _, result := range results {
+		if result.seq {
+			cRec = cRec.Seq()
+		}
+		if result.noSeq {
+			cRec = cRec.NoSeq()
+		}
 		if !result.noReturnResults {
 			cRec = cRec.ReturnResults(result.sResults[0], result.sResults[1], result.err)
 		}

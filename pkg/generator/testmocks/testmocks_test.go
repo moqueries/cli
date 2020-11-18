@@ -23,6 +23,8 @@ type results struct {
 	noReturnResults bool
 	times           int
 	anyTimes        bool
+	seq             bool
+	noSeq           bool
 }
 
 type adaptor interface {
@@ -707,6 +709,193 @@ var _ = Describe("TestMocks", func() {
 				// ASSERT
 				scene.AssertExpectationsMet()
 				mockScene.AssertExpectationsMet()
+			}
+		})
+	})
+
+	Describe("sequences", func() {
+		It("passes when sequences are correct", func() {
+			entries, mockScene := entries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOn})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				if entry.a.tracksParams() {
+					expectCall(entry.a, []string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+				expectCall(entry.a, []string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil},
+					results{sResults: []string{"green", "purple"}, err: nil})
+				if entry.a.tracksParams() {
+					expectCall(entry.a, []string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				// ACT
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"green", "purple"}, err: nil})
+
+				if entry.a.tracksParams() {
+					entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+						results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				}
+
+				// ASSERT
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("fails when sequences are incorrect", func() {
+			entries, mockScene := entries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOn})
+			for _, entry := range entries {
+				// ASSEMBLE
+				if !entry.a.tracksParams() {
+					// With no params to track, hard to make conflicting calls
+					continue
+				}
+				scene.Reset()
+				mockScene.Reset()
+
+				expectCall(entry.a, []string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				expectCall(entry.a, []string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				msg := "Call sequence does not match %#v"
+				params1 := entry.a.bundleParams([]string{"Hi", "you"}, true)
+				moqTMock.OnCall().Fatalf(msg, params1).
+					ReturnResults()
+				fmtMsg := fmt.Sprintf(msg, params1)
+				params2 := entry.a.bundleParams([]string{"Hello", "there"}, false)
+				moqTMock.OnCall().Errorf("Expected %d additional call(s) with parameters %#v", 1, params2).
+					ReturnResults()
+
+				// ACT
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				// ASSERT
+				Expect(fmtMsg).To(ContainSubstring("Hi"))
+
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("can have sequences turned on for select calls", func() {
+			entries, mockScene := entries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOff})
+			for _, entry := range entries {
+				// ASSEMBLE
+				if !entry.a.tracksParams() {
+					// With no params to track, hard to make conflicting calls
+					continue
+				}
+				scene.Reset()
+				mockScene.Reset()
+
+				expectCall(entry.a, []string{"Eh", "you"}, true, results{
+					sResults: []string{"grey", "brown"}, err: nil})
+				expectCall(entry.a, []string{"Hello", "there"}, false, results{
+					sResults: []string{"red", "yellow"}, err: io.EOF, seq: true})
+				expectCall(entry.a, []string{"Hi", "you"}, true, results{
+					sResults: []string{"blue", "orange"}, err: nil, seq: true})
+				expectCall(entry.a, []string{"Bye", "now"}, true, results{
+					sResults: []string{"silver", "black"}, err: nil})
+
+				entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+					results{sResults: []string{"silver", "black"}, err: nil})
+
+				// ACT
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				// ASSERT
+				entry.a.invokeMockAndExpectResults([]string{"Eh", "you"}, true,
+					results{sResults: []string{"grey", "brown"}, err: nil})
+
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("can have sequences turned off for select calls", func() {
+			entries, mockScene := entries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOn})
+			for _, entry := range entries {
+				// ASSEMBLE
+				if !entry.a.tracksParams() {
+					// With no params to track, hard to make conflicting calls
+					continue
+				}
+				scene.Reset()
+				mockScene.Reset()
+
+				expectCall(entry.a, []string{"Eh", "you"}, true, results{
+					sResults: []string{"grey", "brown"}, err: nil, noSeq: true})
+				expectCall(entry.a, []string{"Hello", "there"}, false, results{
+					sResults: []string{"red", "yellow"}, err: io.EOF})
+				expectCall(entry.a, []string{"Hi", "you"}, true, results{
+					sResults: []string{"blue", "orange"}, err: nil})
+				expectCall(entry.a, []string{"Bye", "now"}, true, results{
+					sResults: []string{"silver", "black"}, err: nil, noSeq: true})
+
+				entry.a.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
+					results{sResults: []string{"silver", "black"}, err: nil})
+
+				// ACT
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				entry.a.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				// ASSERT
+				entry.a.invokeMockAndExpectResults([]string{"Eh", "you"}, true,
+					results{sResults: []string{"grey", "brown"}, err: nil})
+
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("reserves multiple sequences when times is called", func() {
+			entries, mockScene := entries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOn})
+			for _, entry := range entries {
+				// ASSEMBLE
+				if !entry.a.tracksParams() {
+					// With no params to track, hard to make conflicting calls
+					continue
+				}
+				scene.Reset()
+				mockScene.Reset()
+
+				expectCall(entry.a, []string{"Hello", "there"}, false, results{
+					sResults: []string{"red", "yellow"}, err: io.EOF, times: 2})
+
+				// ACT
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				entry.a.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+
+				// ASSERT
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
 			}
 		})
 	})

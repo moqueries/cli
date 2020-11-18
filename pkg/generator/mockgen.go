@@ -260,7 +260,11 @@ func (g *MockGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl
 	decls := []dst.Decl{
 		g.converter.BaseStruct(typeSpec, funcs),
 		g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent),
-		g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent),
+	}
+
+	if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+		decls = append(decls,
+			g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent))
 	}
 
 	for _, fn := range funcs {

@@ -1,9 +1,13 @@
 package moq
 
+import "sync/atomic"
+
 // Scene stores a collection of mocks so that they can work together
 type Scene struct {
-	MoqT  MoqT
-	mocks []Mock
+	MoqT            MoqT
+	mocks           []Mock
+	nextRecorderSeq uint32
+	nextMockSeq     uint32
 }
 
 //go:generate moqueries --destination moq_mock_test.go Mock
@@ -26,7 +30,9 @@ type MoqT interface {
 // NewScene creates a new scene with no mocks
 func NewScene(t MoqT) *Scene {
 	return &Scene{
-		MoqT: t,
+		MoqT:            t,
+		nextRecorderSeq: 0,
+		nextMockSeq:     0,
 	}
 }
 
@@ -49,4 +55,12 @@ func (s *Scene) AssertExpectationsMet() {
 	for _, m := range s.mocks {
 		m.AssertExpectationsMet()
 	}
+}
+
+func (s *Scene) NextRecorderSequence() uint32 {
+	return atomic.AddUint32(&s.nextRecorderSeq, 1)
+}
+
+func (s *Scene) NextMockSequence() uint32 {
+	return atomic.AddUint32(&s.nextMockSeq, 1)
 }
