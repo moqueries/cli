@@ -39,12 +39,17 @@ func Error(msg string, err error) {
 	errLogger.Printf(msg+": %v", err)
 }
 
+// Errorf logs a formatted message
+func Errorf(format string, args ...interface{}) {
+	errLogger.Printf(format, args...)
+}
+
 // Panic logs a message with an error then panics
 func Panic(msg string, err error) {
 	log.Panicf(msg+": %v", err)
 }
 
-// Panicf logs a message then panics
+// Panicf logs a formatted message then panics
 func Panicf(format string, args ...interface{}) {
 	log.Panicf(format, args...)
 }

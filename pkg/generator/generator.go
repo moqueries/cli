@@ -65,9 +65,12 @@ func generate(req GenerateRequest) error {
 
 	destDir := filepath.Dir(req.Destination)
 	if _, err = os.Stat(destDir); os.IsNotExist(err) {
-		err = os.Mkdir(destDir, os.ModePerm)
+		err = os.MkdirAll(destDir, os.ModePerm)
 		if err != nil {
-			logs.Error("Error creating destination directory", err)
+			wd, _ := os.Getwd()
+			logs.Errorf(
+				"Error creating destination directory %s from working director %s: %v",
+				destDir, wd, err)
 		}
 	}
 
