@@ -11,42 +11,8 @@ type usualFnAdaptor struct{ m *mockUsualFn }
 
 func (a *usualFnAdaptor) tracksParams() bool { return true }
 
-func (a *usualFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.onCall(sParams[0], bParam)
-}
-
-func (a *usualFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*mockUsualFn_fnRecorder)
-	if sParams {
-		cRec = cRec.anySParam()
-	}
-	if bParam {
-		cRec = cRec.anyBParam()
-	}
-	return cRec
-}
-
-func (a *usualFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockUsualFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *usualFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &usualFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
 func (a *usualFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -67,46 +33,47 @@ func (a *usualFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type usualFnRecorder struct{ r *mockUsualFn_fnRecorder }
+
+func (r *usualFnRecorder) anySParam() {
+	r.r = r.r.anySParam()
+}
+
+func (r *usualFnRecorder) anyBParam() {
+	r.r = r.r.anyBParam()
+}
+
+func (r *usualFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *usualFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *usualFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *usualFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *usualFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *usualFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedUsualFnAdaptor struct{ m *exported.MockUsualFn }
 
 func (a *exportedUsualFnAdaptor) tracksParams() bool { return true }
 
-func (a *exportedUsualFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.OnCall(sParams[0], bParam)
-}
-
-func (a *exportedUsualFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*exported.MockUsualFn_fnRecorder)
-	if sParams {
-		cRec = cRec.AnySParam()
-	}
-	if bParam {
-		cRec = cRec.AnyBParam()
-	}
-	return cRec
-}
-
-func (a *exportedUsualFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockUsualFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedUsualFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedUsualFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
 func (a *exportedUsualFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -127,46 +94,49 @@ func (a *exportedUsualFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type exportedUsualFnRecorder struct {
+	r *exported.MockUsualFn_fnRecorder
+}
+
+func (r *exportedUsualFnRecorder) anySParam() {
+	r.r = r.r.AnySParam()
+}
+
+func (r *exportedUsualFnRecorder) anyBParam() {
+	r.r = r.r.AnyBParam()
+}
+
+func (r *exportedUsualFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedUsualFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedUsualFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedUsualFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedUsualFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedUsualFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type noNamesFnAdaptor struct{ m *mockNoNamesFn }
 
 func (a *noNamesFnAdaptor) tracksParams() bool { return true }
 
-func (a *noNamesFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.onCall(sParams[0], bParam)
-}
-
-func (a *noNamesFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*mockNoNamesFn_fnRecorder)
-	if sParams {
-		cRec = cRec.anyParam1()
-	}
-	if bParam {
-		cRec = cRec.anyParam2()
-	}
-	return cRec
-}
-
-func (a *noNamesFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockNoNamesFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *noNamesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &noNamesFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
 func (a *noNamesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -187,46 +157,47 @@ func (a *noNamesFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type noNamesFnRecorder struct{ r *mockNoNamesFn_fnRecorder }
+
+func (r *noNamesFnRecorder) anySParam() {
+	r.r = r.r.anyParam1()
+}
+
+func (r *noNamesFnRecorder) anyBParam() {
+	r.r = r.r.anyParam2()
+}
+
+func (r *noNamesFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *noNamesFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *noNamesFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *noNamesFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *noNamesFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *noNamesFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedNoNamesFnAdaptor struct{ m *exported.MockNoNamesFn }
 
 func (a *exportedNoNamesFnAdaptor) tracksParams() bool { return true }
 
-func (a *exportedNoNamesFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.OnCall(sParams[0], bParam)
-}
-
-func (a *exportedNoNamesFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*exported.MockNoNamesFn_fnRecorder)
-	if sParams {
-		cRec = cRec.AnyParam1()
-	}
-	if bParam {
-		cRec = cRec.AnyParam2()
-	}
-	return cRec
-}
-
-func (a *exportedNoNamesFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockNoNamesFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedNoNamesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedNoNamesFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
 func (a *exportedNoNamesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -247,46 +218,49 @@ func (a *exportedNoNamesFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type exportedNoNamesFnRecorder struct {
+	r *exported.MockNoNamesFn_fnRecorder
+}
+
+func (r *exportedNoNamesFnRecorder) anySParam() {
+	r.r = r.r.AnyParam1()
+}
+
+func (r *exportedNoNamesFnRecorder) anyBParam() {
+	r.r = r.r.AnyParam2()
+}
+
+func (r *exportedNoNamesFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedNoNamesFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedNoNamesFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedNoNamesFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedNoNamesFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedNoNamesFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type noResultsFnAdaptor struct{ m *mockNoResultsFn }
 
 func (a *noResultsFnAdaptor) tracksParams() bool { return true }
 
-func (a *noResultsFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.onCall(sParams[0], bParam)
-}
-
-func (a *noResultsFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*mockNoResultsFn_fnRecorder)
-	if sParams {
-		cRec = cRec.anySParam()
-	}
-	if bParam {
-		cRec = cRec.anyBParam()
-	}
-	return cRec
-}
-
-func (a *noResultsFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockNoResultsFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults()
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *noResultsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &noResultsFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
 func (a *noResultsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, _ results) {
@@ -301,46 +275,47 @@ func (a *noResultsFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type noResultsFnRecorder struct{ r *mockNoResultsFn_fnRecorder }
+
+func (r *noResultsFnRecorder) anySParam() {
+	r.r = r.r.anySParam()
+}
+
+func (r *noResultsFnRecorder) anyBParam() {
+	r.r = r.r.anyBParam()
+}
+
+func (r *noResultsFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *noResultsFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *noResultsFnRecorder) returnResults([]string, error) {
+	r.r = r.r.returnResults()
+}
+
+func (r *noResultsFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *noResultsFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *noResultsFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedNoResultsFnAdaptor struct{ m *exported.MockNoResultsFn }
 
 func (a *exportedNoResultsFnAdaptor) tracksParams() bool { return true }
 
-func (a *exportedNoResultsFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.OnCall(sParams[0], bParam)
-}
-
-func (a *exportedNoResultsFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*exported.MockNoResultsFn_fnRecorder)
-	if sParams {
-		cRec = cRec.AnySParam()
-	}
-	if bParam {
-		cRec = cRec.AnyBParam()
-	}
-	return cRec
-}
-
-func (a *exportedNoResultsFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockNoResultsFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults()
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedNoResultsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedNoResultsFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
 func (a *exportedNoResultsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, _ results) {
@@ -355,39 +330,49 @@ func (a *exportedNoResultsFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type exportedNoResultsFnRecorder struct {
+	r *exported.MockNoResultsFn_fnRecorder
+}
+
+func (r *exportedNoResultsFnRecorder) anySParam() {
+	r.r = r.r.AnySParam()
+}
+
+func (r *exportedNoResultsFnRecorder) anyBParam() {
+	r.r = r.r.AnyBParam()
+}
+
+func (r *exportedNoResultsFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedNoResultsFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedNoResultsFnRecorder) returnResults([]string, error) {
+	r.r = r.r.ReturnResults()
+}
+
+func (r *exportedNoResultsFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedNoResultsFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedNoResultsFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type noParamsFnAdaptor struct{ m *mockNoParamsFn }
 
 func (a *noParamsFnAdaptor) tracksParams() bool { return false }
 
-func (a *noParamsFnAdaptor) newRecorder([]string, bool) interface{} {
-	return a.m.onCall()
-}
-
-func (a *noParamsFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
-	return rec
-}
-
-func (a *noParamsFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockNoParamsFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *noParamsFnAdaptor) newRecorder([]string, bool) recorder {
+	return &noParamsFnRecorder{r: a.m.onCall()}
 }
 
 func (a *noParamsFnAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res results) {
@@ -408,39 +393,43 @@ func (a *noParamsFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type noParamsFnRecorder struct{ r *mockNoParamsFn_fnRecorder }
+
+func (r *noParamsFnRecorder) anySParam() {}
+
+func (r *noParamsFnRecorder) anyBParam() {}
+
+func (r *noParamsFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *noParamsFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *noParamsFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *noParamsFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *noParamsFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *noParamsFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedNoParamsFnAdaptor struct{ m *exported.MockNoParamsFn }
 
 func (a *exportedNoParamsFnAdaptor) tracksParams() bool { return false }
 
-func (a *exportedNoParamsFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.OnCall()
-}
-
-func (a *exportedNoParamsFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
-	return rec
-}
-
-func (a *exportedNoParamsFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockNoParamsFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedNoParamsFnAdaptor) newRecorder([]string, bool) recorder {
+	return &exportedNoParamsFnRecorder{r: a.m.OnCall()}
 }
 
 func (a *exportedNoParamsFnAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res results) {
@@ -461,39 +450,45 @@ func (a *exportedNoParamsFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type exportedNoParamsFnRecorder struct {
+	r *exported.MockNoParamsFn_fnRecorder
+}
+
+func (r *exportedNoParamsFnRecorder) anySParam() {}
+
+func (r *exportedNoParamsFnRecorder) anyBParam() {}
+
+func (r *exportedNoParamsFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedNoParamsFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedNoParamsFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedNoParamsFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedNoParamsFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedNoParamsFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type nothingFnAdaptor struct{ m *mockNothingFn }
 
 func (a *nothingFnAdaptor) tracksParams() bool { return false }
 
-func (a *nothingFnAdaptor) newRecorder([]string, bool) interface{} {
-	return a.m.onCall()
-}
-
-func (a *nothingFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
-	return rec
-}
-
-func (a *nothingFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockNothingFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults()
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *nothingFnAdaptor) newRecorder([]string, bool) recorder {
+	return &nothingFnRecorder{r: a.m.onCall()}
 }
 
 func (a *nothingFnAdaptor) invokeMockAndExpectResults([]string, bool, results) {
@@ -508,39 +503,43 @@ func (a *nothingFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type nothingFnRecorder struct{ r *mockNothingFn_fnRecorder }
+
+func (r *nothingFnRecorder) anySParam() {}
+
+func (r *nothingFnRecorder) anyBParam() {}
+
+func (r *nothingFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *nothingFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *nothingFnRecorder) returnResults([]string, error) {
+	r.r = r.r.returnResults()
+}
+
+func (r *nothingFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *nothingFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *nothingFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedNothingFnAdaptor struct{ m *exported.MockNothingFn }
 
 func (a *exportedNothingFnAdaptor) tracksParams() bool { return false }
 
-func (a *exportedNothingFnAdaptor) newRecorder([]string, bool) interface{} {
-	return a.m.OnCall()
-}
-
-func (a *exportedNothingFnAdaptor) any(rec interface{}, _, _ bool) interface{} {
-	return rec
-}
-
-func (a *exportedNothingFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockNothingFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults()
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedNothingFnAdaptor) newRecorder([]string, bool) recorder {
+	return &exportedNothingFnRecorder{r: a.m.OnCall()}
 }
 
 func (a *exportedNothingFnAdaptor) invokeMockAndExpectResults([]string, bool, results) {
@@ -555,46 +554,45 @@ func (a *exportedNothingFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type exportedNothingFnRecorder struct {
+	r *exported.MockNothingFn_fnRecorder
+}
+
+func (r *exportedNothingFnRecorder) anySParam() {}
+
+func (r *exportedNothingFnRecorder) anyBParam() {}
+
+func (r *exportedNothingFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedNothingFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedNothingFnRecorder) returnResults([]string, error) {
+	r.r = r.r.ReturnResults()
+}
+
+func (r *exportedNothingFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedNothingFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedNothingFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type variadicFnAdaptor struct{ m *mockVariadicFn }
 
 func (a *variadicFnAdaptor) tracksParams() bool { return true }
 
-func (a *variadicFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.onCall(bParam, sParams...)
-}
-
-func (a *variadicFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*mockVariadicFn_fnRecorder)
-	if sParams {
-		cRec = cRec.anyArgs()
-	}
-	if bParam {
-		cRec = cRec.anyOther()
-	}
-	return cRec
-}
-
-func (a *variadicFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockVariadicFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *variadicFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &variadicFnRecorder{r: a.m.onCall(bParam, sParams...)}
 }
 
 func (a *variadicFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -615,46 +613,47 @@ func (a *variadicFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type variadicFnRecorder struct{ r *mockVariadicFn_fnRecorder }
+
+func (r *variadicFnRecorder) anySParam() {
+	r.r = r.r.anyArgs()
+}
+
+func (r *variadicFnRecorder) anyBParam() {
+	r.r = r.r.anyOther()
+}
+
+func (r *variadicFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *variadicFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *variadicFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *variadicFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *variadicFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *variadicFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedVariadicFnAdaptor struct{ m *exported.MockVariadicFn }
 
 func (a *exportedVariadicFnAdaptor) tracksParams() bool { return true }
 
-func (a *exportedVariadicFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.OnCall(bParam, sParams...)
-}
-
-func (a *exportedVariadicFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*exported.MockVariadicFn_fnRecorder)
-	if sParams {
-		cRec = cRec.AnyArgs()
-	}
-	if bParam {
-		cRec = cRec.AnyOther()
-	}
-	return cRec
-}
-
-func (a *exportedVariadicFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockVariadicFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults(result.sResults[0], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedVariadicFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedVariadicFnRecorder{r: a.m.OnCall(bParam, sParams...)}
 }
 
 func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -675,46 +674,49 @@ func (a *exportedVariadicFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type exportedVariadicFnRecorder struct {
+	r *exported.MockVariadicFn_fnRecorder
+}
+
+func (r *exportedVariadicFnRecorder) anySParam() {
+	r.r = r.r.AnyArgs()
+}
+
+func (r *exportedVariadicFnRecorder) anyBParam() {
+	r.r = r.r.AnyOther()
+}
+
+func (r *exportedVariadicFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedVariadicFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedVariadicFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedVariadicFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedVariadicFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedVariadicFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type repeatedIdsFnAdaptor struct{ m *mockRepeatedIdsFn }
 
 func (a *repeatedIdsFnAdaptor) tracksParams() bool { return true }
 
-func (a *repeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.onCall(sParams[0], sParams[1], bParam)
-}
-
-func (a *repeatedIdsFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*mockRepeatedIdsFn_fnRecorder)
-	if sParams {
-		cRec = cRec.anySParam1()
-	}
-	if bParam {
-		cRec = cRec.anyBParam()
-	}
-	return cRec
-}
-
-func (a *repeatedIdsFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*mockRepeatedIdsFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.seq()
-		}
-		if result.noSeq {
-			cRec = cRec.noSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.returnResults(result.sResults[0], result.sResults[1], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.times(result.times)
-		}
-		if result.anyTimes {
-			cRec.anyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *repeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &repeatedIdsFnRecorder{r: a.m.onCall(sParams[0], sParams[1], bParam)}
 }
 
 func (a *repeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -736,46 +738,47 @@ func (a *repeatedIdsFnAdaptor) sceneMock() moq.Mock {
 	return a.m
 }
 
+type repeatedIdsFnRecorder struct{ r *mockRepeatedIdsFn_fnRecorder }
+
+func (r *repeatedIdsFnRecorder) anySParam() {
+	r.r = r.r.anySParam1()
+}
+
+func (r *repeatedIdsFnRecorder) anyBParam() {
+	r.r = r.r.anyBParam()
+}
+
+func (r *repeatedIdsFnRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *repeatedIdsFnRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *repeatedIdsFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], sResults[1], err)
+}
+
+func (r *repeatedIdsFnRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *repeatedIdsFnRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *repeatedIdsFnRecorder) isNil() bool {
+	return r.r == nil
+}
+
 type exportedRepeatedIdsFnAdaptor struct{ m *exported.MockRepeatedIdsFn }
 
 func (a *exportedRepeatedIdsFnAdaptor) tracksParams() bool { return true }
 
-func (a *exportedRepeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool) interface{} {
-	return a.m.OnCall(sParams[0], sParams[1], bParam)
-}
-
-func (a *exportedRepeatedIdsFnAdaptor) any(rec interface{}, sParams, bParam bool) interface{} {
-	cRec := rec.(*exported.MockRepeatedIdsFn_fnRecorder)
-	if sParams {
-		cRec = cRec.AnySParam1()
-	}
-	if bParam {
-		cRec = cRec.AnyBParam()
-	}
-	return cRec
-}
-
-func (a *exportedRepeatedIdsFnAdaptor) results(rec interface{}, results ...results) interface{} {
-	cRec := rec.(*exported.MockRepeatedIdsFn_fnRecorder)
-	for _, result := range results {
-		if result.seq {
-			cRec = cRec.Seq()
-		}
-		if result.noSeq {
-			cRec = cRec.NoSeq()
-		}
-		if !result.noReturnResults {
-			cRec = cRec.ReturnResults(result.sResults[0], result.sResults[1], result.err)
-		}
-		if result.times > 0 {
-			cRec = cRec.Times(result.times)
-		}
-		if result.anyTimes {
-			cRec.AnyTimes()
-			cRec = nil
-		}
-	}
-	return cRec
+func (a *exportedRepeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedRepeatedIdsFnRecorder{r: a.m.OnCall(sParams[0], sParams[1], bParam)}
 }
 
 func (a *exportedRepeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
@@ -795,4 +798,41 @@ func (a *exportedRepeatedIdsFnAdaptor) bundleParams(sParams []string, bParam boo
 
 func (a *exportedRepeatedIdsFnAdaptor) sceneMock() moq.Mock {
 	return a.m
+}
+
+type exportedRepeatedIdsFnRecorder struct {
+	r *exported.MockRepeatedIdsFn_fnRecorder
+}
+
+func (r *exportedRepeatedIdsFnRecorder) anySParam() {
+	r.r = r.r.AnySParam1()
+}
+
+func (r *exportedRepeatedIdsFnRecorder) anyBParam() {
+	r.r = r.r.AnyBParam()
+}
+
+func (r *exportedRepeatedIdsFnRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedRepeatedIdsFnRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedRepeatedIdsFnRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], sResults[1], err)
+}
+
+func (r *exportedRepeatedIdsFnRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedRepeatedIdsFnRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedRepeatedIdsFnRecorder) isNil() bool {
+	return r.r == nil
 }
