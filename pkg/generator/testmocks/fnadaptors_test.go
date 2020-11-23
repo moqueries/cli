@@ -9,6 +9,8 @@ import (
 
 type usualFnAdaptor struct{ m *mockUsualFn }
 
+func (a *usualFnAdaptor) exported() bool { return false }
+
 func (a *usualFnAdaptor) tracksParams() bool { return true }
 
 func (a *usualFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -69,6 +71,8 @@ func (r *usualFnRecorder) isNil() bool {
 }
 
 type exportedUsualFnAdaptor struct{ m *exported.MockUsualFn }
+
+func (a *exportedUsualFnAdaptor) exported() bool { return true }
 
 func (a *exportedUsualFnAdaptor) tracksParams() bool { return true }
 
@@ -133,6 +137,8 @@ func (r *exportedUsualFnRecorder) isNil() bool {
 
 type noNamesFnAdaptor struct{ m *mockNoNamesFn }
 
+func (a *noNamesFnAdaptor) exported() bool { return false }
+
 func (a *noNamesFnAdaptor) tracksParams() bool { return true }
 
 func (a *noNamesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -193,6 +199,8 @@ func (r *noNamesFnRecorder) isNil() bool {
 }
 
 type exportedNoNamesFnAdaptor struct{ m *exported.MockNoNamesFn }
+
+func (a *exportedNoNamesFnAdaptor) exported() bool { return true }
 
 func (a *exportedNoNamesFnAdaptor) tracksParams() bool { return true }
 
@@ -257,6 +265,8 @@ func (r *exportedNoNamesFnRecorder) isNil() bool {
 
 type noResultsFnAdaptor struct{ m *mockNoResultsFn }
 
+func (a *noResultsFnAdaptor) exported() bool { return false }
+
 func (a *noResultsFnAdaptor) tracksParams() bool { return true }
 
 func (a *noResultsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -311,6 +321,8 @@ func (r *noResultsFnRecorder) isNil() bool {
 }
 
 type exportedNoResultsFnAdaptor struct{ m *exported.MockNoResultsFn }
+
+func (a *exportedNoResultsFnAdaptor) exported() bool { return true }
 
 func (a *exportedNoResultsFnAdaptor) tracksParams() bool { return true }
 
@@ -369,6 +381,8 @@ func (r *exportedNoResultsFnRecorder) isNil() bool {
 
 type noParamsFnAdaptor struct{ m *mockNoParamsFn }
 
+func (a *noParamsFnAdaptor) exported() bool { return false }
+
 func (a *noParamsFnAdaptor) tracksParams() bool { return false }
 
 func (a *noParamsFnAdaptor) newRecorder([]string, bool) recorder {
@@ -425,6 +439,8 @@ func (r *noParamsFnRecorder) isNil() bool {
 }
 
 type exportedNoParamsFnAdaptor struct{ m *exported.MockNoParamsFn }
+
+func (a *exportedNoParamsFnAdaptor) exported() bool { return true }
 
 func (a *exportedNoParamsFnAdaptor) tracksParams() bool { return false }
 
@@ -485,6 +501,8 @@ func (r *exportedNoParamsFnRecorder) isNil() bool {
 
 type nothingFnAdaptor struct{ m *mockNothingFn }
 
+func (a *nothingFnAdaptor) exported() bool { return false }
+
 func (a *nothingFnAdaptor) tracksParams() bool { return false }
 
 func (a *nothingFnAdaptor) newRecorder([]string, bool) recorder {
@@ -535,6 +553,8 @@ func (r *nothingFnRecorder) isNil() bool {
 }
 
 type exportedNothingFnAdaptor struct{ m *exported.MockNothingFn }
+
+func (a *exportedNothingFnAdaptor) exported() bool { return true }
 
 func (a *exportedNothingFnAdaptor) tracksParams() bool { return false }
 
@@ -588,6 +608,8 @@ func (r *exportedNothingFnRecorder) isNil() bool {
 }
 
 type variadicFnAdaptor struct{ m *mockVariadicFn }
+
+func (a *variadicFnAdaptor) exported() bool { return false }
 
 func (a *variadicFnAdaptor) tracksParams() bool { return true }
 
@@ -649,6 +671,8 @@ func (r *variadicFnRecorder) isNil() bool {
 }
 
 type exportedVariadicFnAdaptor struct{ m *exported.MockVariadicFn }
+
+func (a *exportedVariadicFnAdaptor) exported() bool { return true }
 
 func (a *exportedVariadicFnAdaptor) tracksParams() bool { return true }
 
@@ -713,6 +737,8 @@ func (r *exportedVariadicFnRecorder) isNil() bool {
 
 type repeatedIdsFnAdaptor struct{ m *mockRepeatedIdsFn }
 
+func (a *repeatedIdsFnAdaptor) exported() bool { return false }
+
 func (a *repeatedIdsFnAdaptor) tracksParams() bool { return true }
 
 func (a *repeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -774,6 +800,8 @@ func (r *repeatedIdsFnRecorder) isNil() bool {
 }
 
 type exportedRepeatedIdsFnAdaptor struct{ m *exported.MockRepeatedIdsFn }
+
+func (a *exportedRepeatedIdsFnAdaptor) exported() bool { return true }
 
 func (a *exportedRepeatedIdsFnAdaptor) tracksParams() bool { return true }
 

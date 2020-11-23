@@ -9,6 +9,8 @@ import (
 
 type usualAdaptor struct{ m *mockUsual }
 
+func (a *usualAdaptor) exported() bool { return false }
+
 func (a *usualAdaptor) tracksParams() bool { return true }
 
 func (a *usualAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -69,6 +71,8 @@ func (r *usualRecorder) isNil() bool {
 }
 
 type exportedUsualAdaptor struct{ m *exported.MockUsual }
+
+func (a *exportedUsualAdaptor) exported() bool { return true }
 
 func (a *exportedUsualAdaptor) tracksParams() bool { return true }
 
@@ -133,6 +137,8 @@ func (r *exportedUsualRecorder) isNil() bool {
 
 type noNamesAdaptor struct{ m *mockUsual }
 
+func (a *noNamesAdaptor) exported() bool { return false }
+
 func (a *noNamesAdaptor) tracksParams() bool { return true }
 
 func (a *noNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -193,6 +199,8 @@ func (r *noNamesRecorder) isNil() bool {
 }
 
 type exportedNoNamesAdaptor struct{ m *exported.MockUsual }
+
+func (a *exportedNoNamesAdaptor) exported() bool { return true }
 
 func (a *exportedNoNamesAdaptor) tracksParams() bool { return true }
 
@@ -257,6 +265,8 @@ func (r *exportedNoNamesRecorder) isNil() bool {
 
 type noResultsAdaptor struct{ m *mockUsual }
 
+func (a *noResultsAdaptor) exported() bool { return false }
+
 func (a *noResultsAdaptor) tracksParams() bool { return true }
 
 func (a *noResultsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -314,6 +324,8 @@ func (r *noResultsRecorder) isNil() bool {
 
 type exportedNoResultsAdaptor struct{ m *exported.MockUsual }
 
+func (a *exportedNoResultsAdaptor) exported() bool { return true }
+
 func (a *exportedNoResultsAdaptor) tracksParams() bool { return true }
 
 func (a *exportedNoResultsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -370,6 +382,8 @@ func (r *exportedNoResultsRecorder) isNil() bool {
 }
 
 type noParamsAdaptor struct{ m *mockUsual }
+
+func (a *noParamsAdaptor) exported() bool { return false }
 
 func (a *noParamsAdaptor) tracksParams() bool { return false }
 
@@ -430,6 +444,8 @@ func (r *noParamsRecorder) isNil() bool {
 
 type exportedNoParamsAdaptor struct{ m *exported.MockUsual }
 
+func (a *exportedNoParamsAdaptor) exported() bool { return true }
+
 func (a *exportedNoParamsAdaptor) tracksParams() bool { return false }
 
 func (a *exportedNoParamsAdaptor) newRecorder([]string, bool) recorder {
@@ -489,6 +505,8 @@ func (r *exportedNoParamsRecorder) isNil() bool {
 
 type nothingAdaptor struct{ m *mockUsual }
 
+func (a *nothingAdaptor) exported() bool { return false }
+
 func (a *nothingAdaptor) tracksParams() bool { return false }
 
 func (a *nothingAdaptor) newRecorder([]string, bool) recorder {
@@ -539,6 +557,8 @@ func (r *nothingRecorder) isNil() bool {
 }
 
 type exportedNothingAdaptor struct{ m *exported.MockUsual }
+
+func (a *exportedNothingAdaptor) exported() bool { return true }
 
 func (a *exportedNothingAdaptor) tracksParams() bool { return false }
 
@@ -592,6 +612,8 @@ func (r *exportedNothingRecorder) isNil() bool {
 }
 
 type variadicAdaptor struct{ m *mockUsual }
+
+func (a *variadicAdaptor) exported() bool { return false }
 
 func (a *variadicAdaptor) tracksParams() bool { return true }
 
@@ -656,6 +678,8 @@ func (r *variadicRecorder) isNil() bool {
 
 type exportedVariadicAdaptor struct{ m *exported.MockUsual }
 
+func (a *exportedVariadicAdaptor) exported() bool { return true }
+
 func (a *exportedVariadicAdaptor) tracksParams() bool { return true }
 
 func (a *exportedVariadicAdaptor) newRecorder(sParams []string, bParam bool) recorder {
@@ -718,6 +742,8 @@ func (r *exportedVariadicRecorder) isNil() bool {
 }
 
 type repeatedIdsAdaptor struct{ m *mockUsual }
+
+func (a *repeatedIdsAdaptor) exported() bool { return false }
 
 func (a *repeatedIdsAdaptor) tracksParams() bool { return true }
 
@@ -782,6 +808,8 @@ func (r *repeatedIdsRecorder) isNil() bool {
 }
 
 type exportedRepeatedIdsAdaptor struct{ m *exported.MockUsual }
+
+func (a *exportedRepeatedIdsAdaptor) exported() bool { return true }
 
 func (a *exportedRepeatedIdsAdaptor) tracksParams() bool { return true }
 

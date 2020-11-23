@@ -801,9 +801,6 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 		resultMgr = fmt.Sprintf("%s_%s", mName, resultMgrSuffix)
 		paramsKey = fmt.Sprintf("%s_%s", mName, paramsKeyIdent)
 		resultsByParams = resultsByParamsIdent
-		// TODO ???
-		//mockSel := Sel(Sel(NewIdent(recorderReceiverIdent)).
-		//	Dot(NewIdent(c.export(mockIdent))).Obj).Obj
 	}
 
 	mockSel := Sel(Sel(Id(recorderReceiverIdent)).
@@ -1054,6 +1051,13 @@ func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *dst.FuncDecl {
 }
 
 func (c *Converter) recorderSeqFns(typeName string, fn Func) []dst.Decl {
+	return []dst.Decl{
+		c.recorderSeqFn("seq", "true", typeName, fn),
+		c.recorderSeqFn("noSeq", "false", typeName, fn),
+	}
+}
+
+func (c *Converter) recorderSeqFn(fnName, assign, typeName string, fn Func) *dst.FuncDecl {
 	mName := c.mockName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
@@ -1061,32 +1065,34 @@ func (c *Converter) recorderSeqFns(typeName string, fn Func) []dst.Decl {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
-	return []dst.Decl{
-		Fn(c.export("seq")).
-			Results(Field(Star(Id(fnRecName))).Obj).
-			Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-			Body(
-				Assign(Sel(Id(recorderReceiverIdent)).
-					Dot(Id(c.export(sequenceIdent))).Obj).
-					Tok(token.ASSIGN).
-					Rhs(Id("true")).
-					Decs(AssignDecs(dst.NewLine).Obj).Obj,
-				Return(Id(recorderReceiverIdent)),
-			).
-			Decs(stdFuncDec()).Obj,
-		Fn(c.export("noSeq")).
-			Results(Field(Star(Id(fnRecName))).Obj).
-			Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-			Body(
-				Assign(Sel(Id(recorderReceiverIdent)).
-					Dot(Id(c.export(sequenceIdent))).Obj).
-					Tok(token.ASSIGN).
-					Rhs(Id("false")).
-					Decs(AssignDecs(dst.NewLine).Obj).Obj,
-				Return(Id(recorderReceiverIdent)),
-			).
-			Decs(stdFuncDec()).Obj,
-	}
+	fnName = c.export(fnName)
+	return Fn(fnName).
+		Results(Field(Star(Id(fnRecName))).Obj).
+		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
+		Body(
+			If(Bin(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Op(token.NEQ).
+				Y(Id(nilIdent)).Obj).
+				Body(
+					Expr(Call(Sel(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(mockIdent))).Obj).
+						Dot(Id(c.export(sceneIdent))).Obj).
+						Dot(Id(moqTType)).Obj).
+						Dot(Id(fatalfFnName)).Obj).
+						Args(LitString(fmt.Sprintf(
+							"%s must be called prior to returning results, parameters: %%#v", fnName)),
+							Sel(Id(recorderReceiverIdent)).
+								Dot(Id(c.export(paramsIdent))).Obj).Obj),
+					Return(Id(nilIdent)),
+				).Obj,
+			Assign(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(sequenceIdent))).Obj).
+				Tok(token.ASSIGN).
+				Rhs(Id(assign)).
+				Decs(AssignDecs(dst.NewLine).Obj).Obj,
+			Return(Id(recorderReceiverIdent)),
+		).Decs(stdFuncDec()).Obj
 }
 
 func (c *Converter) passthroughElements(
