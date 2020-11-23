@@ -902,47 +902,39 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 				// Passing through as params not paramsKey as hashing is already done
 				Elts(c.passthroughElements(fn.Params, paramsIdent, "Used", nil)...).Obj).
 			Decs(AssignDecs(dst.None).After(dst.EmptyLine).Obj).Obj,
-		IfInit(Assign(Id("_"), Id(okIdent)).
-			Tok(token.DEFINE).
+		Var(Value(Id("bool")).Names(Id(okIdent)).Obj),
+		Assign(Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(resultsIdent))).Obj, Id(okIdent)).
+			Tok(token.ASSIGN).
 			Rhs(Index(Sel(Id(resultsIdent)).Dot(Id(c.export(resultsIdent))).Obj).
-				Sub(Id(paramsKeyIdent)).Obj).Obj).
-			Cond(Id(okIdent)).
+				Sub(Id(paramsKeyIdent)).Obj).Obj,
+		If(Un(token.NOT, Id(okIdent))).
 			Body(
-				Expr(Call(Sel(Sel(cloneSelect(mockSel, c.export(sceneIdent))).
-					Dot(Id(moqTType)).Obj).
-					Dot(Id(fatalfFnName)).Obj).
-					Args(LitString(
-						"Expectations already recorded for mock with parameters %#v"),
-						Sel(Id(recorderReceiverIdent)).
-							Dot(Id(c.export(paramsIdent))).Obj,
-					).Obj),
-				Return(Id(nilIdent)),
-			).Decs(IfDecs(dst.EmptyLine).Obj).Obj,
-		Assign(Sel(Id(recorderReceiverIdent)).
-			Dot(Id(c.export(resultsIdent))).Obj).
-			Tok(token.ASSIGN).
-			Rhs(Un(
-				token.AND,
-				Comp(Id(c.export(resultMgr))).
-					Elts(
-						Key(Id(c.export(paramsIdent))).
-							Value(Sel(Id(recorderReceiverIdent)).
-								Dot(Id(c.export(paramsIdent))).Obj).
-							Decs(kvExprDec(dst.NewLine)).Obj,
-						Key(Id(c.export(resultsIdent))).Value(
-							Comp(SliceType(Star(Id(c.export(results))))).Obj).
-							Decs(kvExprDec(dst.None)).Obj,
-						Key(Id(c.export(indexIdent))).Value(
-							LitInt(0)).Decs(kvExprDec(dst.None)).Obj,
-						Key(Id(c.export(anyTimesIdent))).Value(
-							Id("false")).Decs(kvExprDec(dst.None)).Obj,
-					).Obj,
-			)).Obj,
-		Assign(Index(Sel(Id(resultsIdent)).Dot(Id(c.export(resultsIdent))).Obj).
-			Sub(Id(paramsKeyIdent)).Obj).
-			Tok(token.ASSIGN).
-			Rhs(Sel(Id(recorderReceiverIdent)).
-				Dot(Id(c.export(resultsIdent))).Obj).Obj,
+				Assign(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(resultsIdent))).Obj).
+					Tok(token.ASSIGN).
+					Rhs(Un(
+						token.AND,
+						Comp(Id(c.export(resultMgr))).
+							Elts(
+								Key(Id(c.export(paramsIdent))).
+									Value(Sel(Id(recorderReceiverIdent)).
+										Dot(Id(c.export(paramsIdent))).Obj).
+									Decs(kvExprDec(dst.NewLine)).Obj,
+								Key(Id(c.export(resultsIdent))).Value(
+									Comp(SliceType(Star(Id(c.export(results))))).Obj).
+									Decs(kvExprDec(dst.None)).Obj,
+								Key(Id(c.export(indexIdent))).Value(
+									LitInt(0)).Decs(kvExprDec(dst.None)).Obj,
+								Key(Id(c.export(anyTimesIdent))).Value(
+									Id("false")).Decs(kvExprDec(dst.None)).Obj,
+							).Obj,
+					)).Obj,
+				Assign(Index(Sel(Id(resultsIdent)).Dot(Id(c.export(resultsIdent))).Obj).
+					Sub(Id(paramsKeyIdent)).Obj).
+					Tok(token.ASSIGN).
+					Rhs(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(resultsIdent))).Obj).Obj,
+			).Obj,
 	)
 
 	return stmts

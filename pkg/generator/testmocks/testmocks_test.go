@@ -377,7 +377,7 @@ var _ = Describe("TestMocks", func() {
 		}
 	})
 
-	It("fails if expectations are set more than once for the same parameter set", func() {
+	It("adds additional results when an expectation has already been set", func() {
 		entries, mockScene := tableEntries(moqTMock, moq.MockConfig{})
 		for _, entry := range entries {
 			// ASSEMBLE
@@ -386,27 +386,19 @@ var _ = Describe("TestMocks", func() {
 
 			expectCall(entry, []string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
-			entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
-				results{sResults: []string{"green", "purple"}, err: nil})
 
-			msg := "Expectations already recorded for mock with parameters %#v"
-			bParams := entry.bundleParams([]string{"Hi", "you"}, true)
-			moqTMock.OnCall().Fatalf(msg, bParams).
-				ReturnResults()
-			fmtMsg := fmt.Sprintf(msg, bParams)
-
-			rec := entry.newRecorder([]string{"Hi", "you"}, true)
+			expectCall(entry, []string{"Hi", "you"}, true,
+				results{sResults: []string{"red", "blue"}, err: nil})
 
 			// ACT
-			rec.returnResults([]string{"red", "purple"}, io.EOF)
+			entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"green", "purple"}, err: nil})
+			entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+				results{sResults: []string{"red", "blue"}, err: nil})
 
 			// ASSERT
-			Expect(rec.isNil()).To(BeTrue())
 			scene.AssertExpectationsMet()
 			mockScene.AssertExpectationsMet()
-			if entry.tracksParams() {
-				Expect(fmtMsg).To(ContainSubstring("Hi"))
-			}
 		}
 	})
 
