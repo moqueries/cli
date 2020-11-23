@@ -1124,18 +1124,17 @@ func (r *mockConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.Ge
 			funcs:    funcsUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_BaseStruct_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_BaseStruct_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_BaseStruct_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_BaseStruct_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1267,18 +1266,17 @@ func (r *mockConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *d
 			suffix:   suffixUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_IsolationStruct_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_IsolationStruct_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_IsolationStruct_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_IsolationStruct_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1410,18 +1408,17 @@ func (r *mockConverterer_MethodStructs_fnRecorder) returnResults(structDecls []d
 			fn:       fnUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_MethodStructs_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_MethodStructs_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_MethodStructs_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_MethodStructs_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1537,18 +1534,17 @@ func (r *mockConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDec
 			typeSpec: typeSpecUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_NewFunc_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_NewFunc_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_NewFunc_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_NewFunc_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1696,18 +1692,17 @@ func (r *mockConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *d
 			fnName:   fnNameUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_IsolationAccessor_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_IsolationAccessor_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_IsolationAccessor_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_IsolationAccessor_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1855,18 +1850,17 @@ func (r *mockConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.Fun
 			fn:       fnUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_FuncClosure_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_FuncClosure_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_FuncClosure_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_FuncClosure_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1998,18 +1992,17 @@ func (r *mockConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.Func
 			fn:       fnUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_MockMethod_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_MockMethod_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_MockMethod_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_MockMethod_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -2141,18 +2134,17 @@ func (r *mockConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []d
 			fn:       fnUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_RecorderMethods_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_RecorderMethods_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_RecorderMethods_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_RecorderMethods_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -2284,18 +2276,17 @@ func (r *mockConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.Fun
 			funcs:    funcsUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_ResetMethod_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_ResetMethod_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_ResetMethod_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_ResetMethod_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -2427,18 +2418,17 @@ func (r *mockConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.Fu
 			funcs:    funcsUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockConverterer_AssertMethod_resultMgr{
+				params:   r.params,
+				results:  []*mockConverterer_AssertMethod_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockConverterer_AssertMethod_resultMgr{
-			params:   r.params,
-			results:  []*mockConverterer_AssertMethod_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32

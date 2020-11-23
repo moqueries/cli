@@ -810,18 +810,17 @@ func (r *mockUsual_Usual_fnRecorder) returnResults(sResult string, err error) *m
 			bParam: bParamUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_Usual_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_Usual_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_Usual_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_Usual_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -955,18 +954,17 @@ func (r *mockUsual_NoNames_fnRecorder) returnResults(result1 string, result2 err
 			param2: param2Used,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_NoNames_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_NoNames_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_NoNames_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_NoNames_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1100,18 +1098,17 @@ func (r *mockUsual_NoResults_fnRecorder) returnResults() *mockUsual_NoResults_fn
 			bParam: bParamUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_NoResults_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_NoResults_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_NoResults_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_NoResults_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1202,18 +1199,17 @@ func (r *mockUsual_NoParams_fnRecorder) returnResults(sResult string, err error)
 
 		paramsKey := mockUsual_NoParams_paramsKey{}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_NoParams_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_NoParams_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_NoParams_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_NoParams_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1312,18 +1308,17 @@ func (r *mockUsual_Nothing_fnRecorder) returnResults() *mockUsual_Nothing_fnReco
 
 		paramsKey := mockUsual_Nothing_paramsKey{}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_Nothing_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_Nothing_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_Nothing_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_Nothing_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1449,18 +1444,17 @@ func (r *mockUsual_Variadic_fnRecorder) returnResults(sResult string, err error)
 			args:  argsUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_Variadic_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_Variadic_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_Variadic_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_Variadic_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -1610,18 +1604,17 @@ func (r *mockUsual_RepeatedIds_fnRecorder) returnResults(sResult1, sResult2 stri
 			bParam:  bParamUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockUsual_RepeatedIds_resultMgr{
+				params:   r.params,
+				results:  []*mockUsual_RepeatedIds_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockUsual_RepeatedIds_resultMgr{
-			params:   r.params,
-			results:  []*mockUsual_RepeatedIds_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32

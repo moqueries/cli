@@ -380,18 +380,17 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result
 
 		paramsKey := mockStore_AllWidgetsIds_paramsKey{}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockStore_AllWidgetsIds_resultMgr{
+				params:   r.params,
+				results:  []*mockStore_AllWidgetsIds_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockStore_AllWidgetsIds_resultMgr{
-			params:   r.params,
-			results:  []*mockStore_AllWidgetsIds_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -509,18 +508,17 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Ga
 			widgetId: widgetIdUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockStore_GadgetsByWidgetId_resultMgr{
+				params:   r.params,
+				results:  []*mockStore_GadgetsByWidgetId_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockStore_GadgetsByWidgetId_resultMgr{
-			params:   r.params,
-			results:  []*mockStore_GadgetsByWidgetId_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -654,18 +652,17 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []de
 			maxWeight: maxWeightUsed,
 		}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockStore_LightGadgetsByWidgetId_resultMgr{
+				params:   r.params,
+				results:  []*mockStore_LightGadgetsByWidgetId_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockStore_LightGadgetsByWidgetId_resultMgr{
-			params:   r.params,
-			results:  []*mockStore_LightGadgetsByWidgetId_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32

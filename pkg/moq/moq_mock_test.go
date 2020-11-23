@@ -262,18 +262,17 @@ func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 
 		paramsKey := mockMock_Reset_paramsKey{}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockMock_Reset_resultMgr{
+				params:   r.params,
+				results:  []*mockMock_Reset_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockMock_Reset_resultMgr{
-			params:   r.params,
-			results:  []*mockMock_Reset_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32
@@ -364,18 +363,17 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_As
 
 		paramsKey := mockMock_AssertExpectationsMet_paramsKey{}
 
-		if _, ok := results.results[paramsKey]; ok {
-			r.mock.scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.params)
-			return nil
+		var ok bool
+		r.results, ok = results.results[paramsKey]
+		if !ok {
+			r.results = &mockMock_AssertExpectationsMet_resultMgr{
+				params:   r.params,
+				results:  []*mockMock_AssertExpectationsMet_results{},
+				index:    0,
+				anyTimes: false,
+			}
+			results.results[paramsKey] = r.results
 		}
-
-		r.results = &mockMock_AssertExpectationsMet_resultMgr{
-			params:   r.params,
-			results:  []*mockMock_AssertExpectationsMet_results{},
-			index:    0,
-			anyTimes: false,
-		}
-		results.results[paramsKey] = r.results
 	}
 
 	var sequence uint32

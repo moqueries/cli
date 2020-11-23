@@ -172,18 +172,17 @@ func (r *MockNothingFn_fnRecorder) ReturnResults() *MockNothingFn_fnRecorder {
 
 		paramsKey := MockNothingFn_paramsKey{}
 
-		if _, ok := results.Results[paramsKey]; ok {
-			r.Mock.Scene.MoqT.Fatalf("Expectations already recorded for mock with parameters %#v", r.Params)
-			return nil
+		var ok bool
+		r.Results, ok = results.Results[paramsKey]
+		if !ok {
+			r.Results = &MockNothingFn_resultMgr{
+				Params:   r.Params,
+				Results:  []*MockNothingFn_results{},
+				Index:    0,
+				AnyTimes: false,
+			}
+			results.Results[paramsKey] = r.Results
 		}
-
-		r.Results = &MockNothingFn_resultMgr{
-			Params:   r.Params,
-			Results:  []*MockNothingFn_results{},
-			Index:    0,
-			AnyTimes: false,
-		}
-		results.Results[paramsKey] = r.Results
 	}
 
 	var sequence uint32
