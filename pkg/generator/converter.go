@@ -552,10 +552,14 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 			Sel(Sel(Sel(Id(mockReceiverIdent)).
 				Dot(Id(c.export(mockIdent))).Obj).Dot(Id(c.export(sceneIdent))).Obj).
 				Dot(Id("NextMockSequence")).Obj).Obj).Obj,
-		If(Bin(Sel(Id(resultIdent)).Dot(
-			Idf("%s_%s", c.export(moqIdent), c.export(sequenceIdent))).Obj).
-			Op(token.NEQ).
-			Y(Id(sequenceIdent)).Obj).Body(
+		If(Bin(Paren(Bin(Un(token.NOT, Sel(Id(resultsIdent)).
+			Dot(Id(c.export(anyTimesIdent))).Obj)).Op(token.LAND).
+			Y(Bin(Sel(Id(resultIdent)).Dot(
+				Idf("%s_%s", c.export(moqIdent), c.export(sequenceIdent))).Obj).
+				Op(token.NEQ).Y(Id(sequenceIdent)).Obj).Obj)).Op(token.LOR).
+			Y(Bin(Sel(Id(resultIdent)).
+				Dot(Idf("%s_%s", c.export(moqIdent), c.export(sequenceIdent))).Obj).
+				Op(token.GTR).Y(Id(sequenceIdent)).Obj).Obj).Body(
 			Expr(Call(Sel(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
 				Dot(Id(c.export(sceneIdent))).Obj).
 				Dot(Id(moqTType)).Obj).

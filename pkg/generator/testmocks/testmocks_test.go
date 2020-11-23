@@ -957,6 +957,32 @@ var _ = Describe("TestMocks", func() {
 				scene.AssertExpectationsMet()
 			}
 		})
+
+		It("allows sequences to work with anyTimes", func() {
+			entries, mockScene := tableEntries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOn})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hello", "there"}, false)
+				rec.returnResults([]string{"red", "yellow"}, io.EOF)
+				rec.anyTimes()
+
+				// ACT
+				entry.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				entry.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+				entry.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
+					results{sResults: []string{"red", "yellow"}, err: io.EOF})
+
+				// ASSERT
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
 	})
 
 	PIt("generates mocks", func() {
