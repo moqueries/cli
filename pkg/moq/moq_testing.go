@@ -177,7 +177,7 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 	result := results.Results[i]
 	if result.Moq_Sequence != 0 {
 		sequence := m.Mock.Scene.NextMockSequence()
-		if result.Moq_Sequence != sequence {
+		if (!results.AnyTimes && result.Moq_Sequence != sequence) || result.Moq_Sequence > sequence {
 			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -231,7 +231,7 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 	result := results.Results[i]
 	if result.Moq_Sequence != 0 {
 		sequence := m.Mock.Scene.NextMockSequence()
-		if result.Moq_Sequence != sequence {
+		if (!results.AnyTimes && result.Moq_Sequence != sequence) || result.Moq_Sequence > sequence {
 			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}

@@ -516,7 +516,7 @@ func (m *mockConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []genera
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -571,7 +571,7 @@ func (m *mockConverterer_mock) IsolationStruct(typeName, suffix string) (structD
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -626,7 +626,7 @@ func (m *mockConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generato
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -675,7 +675,7 @@ func (m *mockConverterer_mock) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.Fu
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -736,7 +736,7 @@ func (m *mockConverterer_mock) IsolationAccessor(typeName, suffix, fnName string
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -797,7 +797,7 @@ func (m *mockConverterer_mock) FuncClosure(typeName, pkgPath string, fn generato
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -852,7 +852,7 @@ func (m *mockConverterer_mock) MockMethod(typeName string, fn generator.Func) (f
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -907,7 +907,7 @@ func (m *mockConverterer_mock) RecorderMethods(typeName string, fn generator.Fun
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -962,7 +962,7 @@ func (m *mockConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []gener
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -1017,7 +1017,7 @@ func (m *mockConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []gene
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}

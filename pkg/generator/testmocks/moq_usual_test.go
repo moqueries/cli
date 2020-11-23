@@ -391,7 +391,7 @@ func (m *mockUsual_mock) Usual(sParam string, bParam bool) (sResult string, err 
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -447,7 +447,7 @@ func (m *mockUsual_mock) NoNames(param1 string, param2 bool) (result1 string, re
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -503,7 +503,7 @@ func (m *mockUsual_mock) NoResults(sParam string, bParam bool) {
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -543,7 +543,7 @@ func (m *mockUsual_mock) NoParams() (sResult string, err error) {
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -585,7 +585,7 @@ func (m *mockUsual_mock) Nothing() {
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -639,7 +639,7 @@ func (m *mockUsual_mock) Variadic(other bool, args ...string) (sResult string, e
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -701,7 +701,7 @@ func (m *mockUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sRes
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}

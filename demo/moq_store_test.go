@@ -201,7 +201,7 @@ func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -251,7 +251,7 @@ func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget,
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -307,7 +307,7 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}

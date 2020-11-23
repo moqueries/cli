@@ -125,7 +125,7 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}

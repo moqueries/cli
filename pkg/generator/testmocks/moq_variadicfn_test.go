@@ -134,7 +134,7 @@ func (m *mockVariadicFn_mock) fn(other bool, args ...string) (sResult string, er
 	result := results.results[i]
 	if result.moq_sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if result.moq_sequence != sequence {
+		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
