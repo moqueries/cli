@@ -182,11 +182,19 @@ func (r *mockLoadTypesFn_fnRecorder) anyLoadTestTypes() *mockLoadTypesFn_fnRecor
 }
 
 func (r *mockLoadTypesFn_fnRecorder) seq() *mockLoadTypesFn_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockLoadTypesFn_fnRecorder) noSeq() *mockLoadTypesFn_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }

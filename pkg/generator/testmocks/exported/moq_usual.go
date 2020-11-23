@@ -753,11 +753,19 @@ func (r *MockUsual_Usual_fnRecorder) AnyBParam() *MockUsual_Usual_fnRecorder {
 }
 
 func (r *MockUsual_Usual_fnRecorder) Seq() *MockUsual_Usual_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_Usual_fnRecorder) NoSeq() *MockUsual_Usual_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -890,11 +898,19 @@ func (r *MockUsual_NoNames_fnRecorder) AnyParam2() *MockUsual_NoNames_fnRecorder
 }
 
 func (r *MockUsual_NoNames_fnRecorder) Seq() *MockUsual_NoNames_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_NoNames_fnRecorder) NoSeq() *MockUsual_NoNames_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -1027,11 +1043,19 @@ func (r *MockUsual_NoResults_fnRecorder) AnyBParam() *MockUsual_NoResults_fnReco
 }
 
 func (r *MockUsual_NoResults_fnRecorder) Seq() *MockUsual_NoResults_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_NoResults_fnRecorder) NoSeq() *MockUsual_NoResults_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -1132,11 +1156,19 @@ func (m *MockUsual_recorder) NoParams() *MockUsual_NoParams_fnRecorder {
 }
 
 func (r *MockUsual_NoParams_fnRecorder) Seq() *MockUsual_NoParams_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_NoParams_fnRecorder) NoSeq() *MockUsual_NoParams_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -1234,11 +1266,19 @@ func (m *MockUsual_recorder) Nothing() *MockUsual_Nothing_fnRecorder {
 }
 
 func (r *MockUsual_Nothing_fnRecorder) Seq() *MockUsual_Nothing_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_Nothing_fnRecorder) NoSeq() *MockUsual_Nothing_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -1352,11 +1392,19 @@ func (r *MockUsual_Variadic_fnRecorder) AnyArgs() *MockUsual_Variadic_fnRecorder
 }
 
 func (r *MockUsual_Variadic_fnRecorder) Seq() *MockUsual_Variadic_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_Variadic_fnRecorder) NoSeq() *MockUsual_Variadic_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -1500,11 +1548,19 @@ func (r *MockUsual_RepeatedIds_fnRecorder) AnyBParam() *MockUsual_RepeatedIds_fn
 }
 
 func (r *MockUsual_RepeatedIds_fnRecorder) Seq() *MockUsual_RepeatedIds_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockUsual_RepeatedIds_fnRecorder) NoSeq() *MockUsual_RepeatedIds_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }

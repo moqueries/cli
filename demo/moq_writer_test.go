@@ -165,11 +165,19 @@ func (r *mockWriter_Write_fnRecorder) anyP() *mockWriter_Write_fnRecorder {
 }
 
 func (r *mockWriter_Write_fnRecorder) seq() *mockWriter_Write_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockWriter_Write_fnRecorder) noSeq() *mockWriter_Write_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }

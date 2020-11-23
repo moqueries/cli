@@ -280,11 +280,19 @@ func (r *MockMoqT_Errorf_fnRecorder) AnyArgs() *MockMoqT_Errorf_fnRecorder {
 }
 
 func (r *MockMoqT_Errorf_fnRecorder) Seq() *MockMoqT_Errorf_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockMoqT_Errorf_fnRecorder) NoSeq() *MockMoqT_Errorf_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
@@ -409,11 +417,19 @@ func (r *MockMoqT_Fatalf_fnRecorder) AnyArgs() *MockMoqT_Fatalf_fnRecorder {
 }
 
 func (r *MockMoqT_Fatalf_fnRecorder) Seq() *MockMoqT_Fatalf_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockMoqT_Fatalf_fnRecorder) NoSeq() *MockMoqT_Fatalf_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }

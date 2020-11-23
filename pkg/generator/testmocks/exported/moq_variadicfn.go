@@ -178,11 +178,19 @@ func (r *MockVariadicFn_fnRecorder) AnyArgs() *MockVariadicFn_fnRecorder {
 }
 
 func (r *MockVariadicFn_fnRecorder) Seq() *MockVariadicFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockVariadicFn_fnRecorder) NoSeq() *MockVariadicFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }

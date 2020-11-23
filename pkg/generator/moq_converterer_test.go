@@ -1067,11 +1067,19 @@ func (r *mockConverterer_BaseStruct_fnRecorder) anyFuncs() *mockConverterer_Base
 }
 
 func (r *mockConverterer_BaseStruct_fnRecorder) seq() *mockConverterer_BaseStruct_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_BaseStruct_fnRecorder) noSeq() *mockConverterer_BaseStruct_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -1202,11 +1210,19 @@ func (r *mockConverterer_IsolationStruct_fnRecorder) anySuffix() *mockConvertere
 }
 
 func (r *mockConverterer_IsolationStruct_fnRecorder) seq() *mockConverterer_IsolationStruct_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_IsolationStruct_fnRecorder) noSeq() *mockConverterer_IsolationStruct_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -1337,11 +1353,19 @@ func (r *mockConverterer_MethodStructs_fnRecorder) anyFn() *mockConverterer_Meth
 }
 
 func (r *mockConverterer_MethodStructs_fnRecorder) seq() *mockConverterer_MethodStructs_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_MethodStructs_fnRecorder) noSeq() *mockConverterer_MethodStructs_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -1461,11 +1485,19 @@ func (r *mockConverterer_NewFunc_fnRecorder) anyTypeSpec() *mockConverterer_NewF
 }
 
 func (r *mockConverterer_NewFunc_fnRecorder) seq() *mockConverterer_NewFunc_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_NewFunc_fnRecorder) noSeq() *mockConverterer_NewFunc_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -1602,11 +1634,19 @@ func (r *mockConverterer_IsolationAccessor_fnRecorder) anyFnName() *mockConverte
 }
 
 func (r *mockConverterer_IsolationAccessor_fnRecorder) seq() *mockConverterer_IsolationAccessor_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_IsolationAccessor_fnRecorder) noSeq() *mockConverterer_IsolationAccessor_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -1753,11 +1793,19 @@ func (r *mockConverterer_FuncClosure_fnRecorder) anyFn() *mockConverterer_FuncCl
 }
 
 func (r *mockConverterer_FuncClosure_fnRecorder) seq() *mockConverterer_FuncClosure_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_FuncClosure_fnRecorder) noSeq() *mockConverterer_FuncClosure_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -1893,11 +1941,19 @@ func (r *mockConverterer_MockMethod_fnRecorder) anyFn() *mockConverterer_MockMet
 }
 
 func (r *mockConverterer_MockMethod_fnRecorder) seq() *mockConverterer_MockMethod_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_MockMethod_fnRecorder) noSeq() *mockConverterer_MockMethod_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -2028,11 +2084,19 @@ func (r *mockConverterer_RecorderMethods_fnRecorder) anyFn() *mockConverterer_Re
 }
 
 func (r *mockConverterer_RecorderMethods_fnRecorder) seq() *mockConverterer_RecorderMethods_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_RecorderMethods_fnRecorder) noSeq() *mockConverterer_RecorderMethods_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -2163,11 +2227,19 @@ func (r *mockConverterer_ResetMethod_fnRecorder) anyFuncs() *mockConverterer_Res
 }
 
 func (r *mockConverterer_ResetMethod_fnRecorder) seq() *mockConverterer_ResetMethod_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_ResetMethod_fnRecorder) noSeq() *mockConverterer_ResetMethod_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -2298,11 +2370,19 @@ func (r *mockConverterer_AssertMethod_fnRecorder) anyFuncs() *mockConverterer_As
 }
 
 func (r *mockConverterer_AssertMethod_fnRecorder) seq() *mockConverterer_AssertMethod_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockConverterer_AssertMethod_fnRecorder) noSeq() *mockConverterer_AssertMethod_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }

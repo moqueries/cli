@@ -216,11 +216,19 @@ func (m *mockMock_recorder) Reset() *mockMock_Reset_fnRecorder {
 }
 
 func (r *mockMock_Reset_fnRecorder) seq() *mockMock_Reset_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockMock_Reset_fnRecorder) noSeq() *mockMock_Reset_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -310,11 +318,19 @@ func (m *mockMock_recorder) AssertExpectationsMet() *mockMock_AssertExpectations
 }
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) seq() *mockMock_AssertExpectationsMet_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) noSeq() *mockMock_AssertExpectationsMet_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }

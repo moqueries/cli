@@ -334,11 +334,19 @@ func (m *mockStore_recorder) AllWidgetsIds() *mockStore_AllWidgetsIds_fnRecorder
 }
 
 func (r *mockStore_AllWidgetsIds_fnRecorder) seq() *mockStore_AllWidgetsIds_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockStore_AllWidgetsIds_fnRecorder) noSeq() *mockStore_AllWidgetsIds_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -449,11 +457,19 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) anyWidgetId() *mockStore_Gadget
 }
 
 func (r *mockStore_GadgetsByWidgetId_fnRecorder) seq() *mockStore_GadgetsByWidgetId_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockStore_GadgetsByWidgetId_fnRecorder) noSeq() *mockStore_GadgetsByWidgetId_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }
@@ -581,11 +597,19 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) anyMaxWeight() *mockStore_
 }
 
 func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) seq() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = true
 	return r
 }
 
 func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) noSeq() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+	if r.results != nil {
+		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		return nil
+	}
 	r.sequence = false
 	return r
 }

@@ -170,11 +170,19 @@ func (r *MockNoResultsFn_fnRecorder) AnyBParam() *MockNoResultsFn_fnRecorder {
 }
 
 func (r *MockNoResultsFn_fnRecorder) Seq() *MockNoResultsFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = true
 	return r
 }
 
 func (r *MockNoResultsFn_fnRecorder) NoSeq() *MockNoResultsFn_fnRecorder {
+	if r.Results != nil {
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		return nil
+	}
 	r.Sequence = false
 	return r
 }
