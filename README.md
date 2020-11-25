@@ -92,6 +92,27 @@ isFavMock.onCall(7).
     returnResults(false).anyTimes()
 ```
 
+### Asserting call sequences
+Some test writers want to make sure not only were certain calls made but also that the calls were made in an exact order. If you want to assert that all calls for a test are to be in order, just set the mock's [default to use sequences](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L97) on all calls via the `MockConfig` value:
+```go
+config := moq.MockConfig{Sequence: moq.SeqDefaultOn}
+```
+
+Now the calls to all mocks using the above config must be in the exact sequence. The sequence of expectations must match the sequence of calls to the mock.
+
+If there are just a few calls that must be in a specific order relative to each other, [call the `seq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L262-L264) when recording expectations:
+```go
+isFavMock.onCall(1).seq().returnResults(false)
+isFavMock.onCall(2).seq().returnResults(false)
+isFavMock.onCall(3).seq().returnResults(true)
+```
+
+This is basically overriding the default so that just the calls specified use a sequence. You can also turn off sequences on a per-call basis when the default is to use sequences on all calls [using the `noSeq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L292-L293):
+```go
+writerMock.onCall().Write([]byte("3")).noSeq().
+    returnResults(1, nil)
+```
+
 ### Passing the mock to production code
 Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L26-L29), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
 ```go

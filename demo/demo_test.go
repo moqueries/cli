@@ -92,6 +92,38 @@ func TestChangedMyMindILikeIt(t *testing.T) {
 	scene.AssertExpectationsMet()
 }
 
+func TestChangedMyMindImNotSure(t *testing.T) {
+	scene := moq.NewScene(t)
+	config := moq.MockConfig{Sequence: moq.SeqDefaultOn}
+	isFavMock := newMockIsFavorite(scene, &config)
+	writerMock := newMockWriter(scene, &config)
+
+	isFavMock.onCall(7).
+		returnResults(false).times(3)
+	isFavMock.onCall(3).
+		returnResults(false)
+
+	isFavMock.onCall(7).
+		returnResults(true)
+	writerMock.onCall().Write([]byte("7")).
+		returnResults(1, nil)
+
+	isFavMock.onCall(7).
+		returnResults(false).times(2)
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{7, 7, 7, 3, 7, 7, 7})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	scene.AssertExpectationsMet()
+}
+
 func TestChangedMyMindIHateIt(t *testing.T) {
 	scene := moq.NewScene(t)
 	isFavMock := newMockIsFavorite(scene, nil)
@@ -220,4 +252,55 @@ func TestLightGadgets(t *testing.T) {
 	}
 
 	scene.AssertExpectationsMet()
+}
+
+func TestOnlyWriteFavoriteNumbersSeqBySeq(t *testing.T) {
+	scene := moq.NewScene(t)
+	isFavMock := newMockIsFavorite(scene, nil)
+	writerMock := newMockWriter(scene, nil)
+
+	isFavMock.onCall(1).seq().returnResults(false)
+	isFavMock.onCall(2).seq().returnResults(false)
+	isFavMock.onCall(3).seq().returnResults(true)
+
+	writerMock.onCall().Write([]byte("3")).
+		returnResults(1, nil)
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{1, 2, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	writerMock.AssertExpectationsMet()
+}
+
+func TestOnlyWriteFavoriteNumbersSeqByNoSeq(t *testing.T) {
+	scene := moq.NewScene(t)
+	config := moq.MockConfig{Sequence: moq.SeqDefaultOn}
+	isFavMock := newMockIsFavorite(scene, &config)
+	writerMock := newMockWriter(scene, &config)
+
+	isFavMock.onCall(1).returnResults(false)
+	isFavMock.onCall(2).returnResults(false)
+	isFavMock.onCall(3).returnResults(true)
+
+	writerMock.onCall().Write([]byte("3")).noSeq().
+		returnResults(1, nil)
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{1, 2, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	writerMock.AssertExpectationsMet()
 }
