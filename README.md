@@ -136,7 +136,7 @@ isFavFn := func(n int) bool {
 }
 ```
 
-Now you can replace both the `returnResults` and `andDo` calls with [a single call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L83) to `doReturnResults`:
+Now you can replace both the `returnResults` and `andDo` calls with [a single call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L352) to `doReturnResults`:
 ```go
 isFavMock.onCall(0).anyN().doReturnResults(isFavFn).anyTimes()
 ```
@@ -153,7 +153,7 @@ d := demo.FavWriter{
 ```
 
 ### Nice vs. Strict
-Sometimes your mocks will get lots of function calls with lots of different parameters &mdash; maybe more calls than you can (or want) to configure. Nice mocks trigger special logic that allow them to return zero values for any unexpected calls. [Creating a nice mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L41-L42) is as simple as supplying a little configuration to the `new` method (the value was `nil` above which defaults to creating strict mocks):
+Sometimes your mocks will get lots of function calls with lots of different parameters &mdash; maybe more calls than you can (or want) to configure. Nice mocks trigger special logic that allow them to return zero values for any unexpected calls. [Creating a nice mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L42-L43) is as simple as supplying a little configuration to the `new` method (the value was `nil` above which defaults to creating strict mocks):
 ```go
 isFavMock := newMockIsFavorite(
     scene, &moq.MockConfig{Expectation: moq.Nice})
