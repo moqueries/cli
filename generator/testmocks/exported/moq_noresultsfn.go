@@ -6,8 +6,8 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"github.com/myshkin5/moqueries/pkg/generator/testmocks"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/generator/testmocks"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 // MockNoResultsFn holds the state of a mock of the NoResultsFn type

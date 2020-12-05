@@ -10,8 +10,8 @@ import (
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
 
-	"github.com/myshkin5/moqueries/pkg/ast"
-	"github.com/myshkin5/moqueries/pkg/logs"
+	"github.com/myshkin5/moqueries/ast"
+	"github.com/myshkin5/moqueries/logs"
 )
 
 // GenerateRequest contains all of the parameters needed to call Generate

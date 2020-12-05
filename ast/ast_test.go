@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/ast"
+	"github.com/myshkin5/moqueries/ast"
 )
 
 var _ = Describe("Ast", func() {
@@ -20,7 +20,7 @@ var _ = Describe("Ast", func() {
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
-			Expect(dir).To(HaveSuffix("github.com/myshkin5/moqueries/pkg/ast"))
+			Expect(dir).To(HaveSuffix("github.com/myshkin5/moqueries/ast"))
 		})
 
 		It("finds the package dir of an external module", func() {
@@ -90,7 +90,7 @@ var _ = Describe("Ast", func() {
 			// ASSEMBLE
 
 			// ACT
-			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/pkg/generator", false)
+			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/generator", false)
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
@@ -103,7 +103,7 @@ var _ = Describe("Ast", func() {
 			}
 			Expect(iTypes).To(HaveLen(1))
 			Expect(iTypes[0].Name.Name).To(Equal("Converterer"))
-			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/pkg/generator"))
+			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/generator"))
 
 			var baseStruct *dst.FuncType
 			for _, field := range iTypes[0].Type.(*dst.InterfaceType).Methods.List {
@@ -114,14 +114,14 @@ var _ = Describe("Ast", func() {
 			Expect(baseStruct).NotTo(BeNil())
 			Expect(baseStruct.Params.List[1].Names[0].Name).To(Equal("funcs"))
 			funcIdent := baseStruct.Params.List[1].Type.(*dst.ArrayType).Elt.(*dst.Ident)
-			Expect(funcIdent.Path).To(Equal("github.com/myshkin5/moqueries/pkg/generator"))
+			Expect(funcIdent.Path).To(Equal("github.com/myshkin5/moqueries/generator"))
 		})
 
 		It("loads test types", func() {
 			// ASSEMBLE
 
 			// ACT
-			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/pkg/ast", true)
+			typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/ast", true)
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
@@ -134,7 +134,7 @@ var _ = Describe("Ast", func() {
 			}
 			Expect(fTypes).To(HaveLen(1))
 			Expect(fTypes[0].Name.Name).To(Equal("TestFn"))
-			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/pkg/ast.test"))
+			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/ast.test"))
 		})
 	})
 })

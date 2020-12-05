@@ -7,14 +7,14 @@ import (
 
 	"github.com/dave/dst"
 
-	. "github.com/myshkin5/moqueries/pkg/ast"
-	"github.com/myshkin5/moqueries/pkg/logs"
+	. "github.com/myshkin5/moqueries/ast"
+	"github.com/myshkin5/moqueries/logs"
 )
 
 const (
 	moqueriesPkg  = "github.com/myshkin5/moqueries"
-	hashPkg       = moqueriesPkg + "/pkg/hash"
-	moqPkg        = moqueriesPkg + "/pkg/moq"
+	hashPkg       = moqueriesPkg + "/hash"
+	moqPkg        = moqueriesPkg + "/moq"
 	syncAtomicPkg = "sync/atomic"
 
 	intType        = "int"

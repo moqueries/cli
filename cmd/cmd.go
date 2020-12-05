@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/pkg/logs"
+	"github.com/myshkin5/moqueries/logs"
 )
 
 const (

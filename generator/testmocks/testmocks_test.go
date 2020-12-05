@@ -13,9 +13,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/generator"
-	"github.com/myshkin5/moqueries/pkg/generator/testmocks/exported"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/generator/testmocks/exported"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 type results struct {

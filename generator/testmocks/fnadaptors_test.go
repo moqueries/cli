@@ -3,8 +3,8 @@ package testmocks_test
 import (
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/generator/testmocks/exported"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/generator/testmocks/exported"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 type usualFnAdaptor struct{ m *mockUsualFn }

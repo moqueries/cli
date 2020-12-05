@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 var _ = Describe("Scene", func() {

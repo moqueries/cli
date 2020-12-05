@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/myshkin5/moqueries/demo"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 func TestOnlyWriteFavoriteNumbers(t *testing.T) {

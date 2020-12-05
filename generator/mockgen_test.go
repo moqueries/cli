@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/generator"
-	"github.com/myshkin5/moqueries/pkg/logs"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/logs"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 var _ = Describe("MockGen", func() {
@@ -213,7 +213,7 @@ var _ = Describe("MockGen", func() {
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
 				Name: "privateInterface",
-				Path: "github.com/myshkin5/moqueries/pkg/generator",
+				Path: "github.com/myshkin5/moqueries/generator",
 			},
 		})
 		ifaceMethods2.List = append(ifaceMethods2.List, &dst.Field{
@@ -227,7 +227,7 @@ var _ = Describe("MockGen", func() {
 				ifaceSpec1,
 				ifaceSpec2,
 			},
-			"github.com/myshkin5/moqueries/pkg/generator",
+			"github.com/myshkin5/moqueries/generator",
 			nil,
 		)
 		loadTypesFnMock.onCall("io", false).
@@ -325,7 +325,7 @@ var _ = Describe("MockGen", func() {
 		loadTypesFnMock.onCall(".", true).
 			returnResults(
 				[]*dst.TypeSpec{ifaceSpec1, ifaceSpec2},
-				"github.com/myshkin5/moqueries/pkg/generator",
+				"github.com/myshkin5/moqueries/generator",
 				nil,
 			)
 
@@ -393,10 +393,10 @@ var _ = Describe("MockGen", func() {
 	It("loads tests types when importing a test package", func() {
 		// ASSEMBLE
 		loadTypesFnMock.onCall(
-			"github.com/myshkin5/moqueries/pkg/generator", true).
+			"github.com/myshkin5/moqueries/generator", true).
 			returnResults(
 				[]*dst.TypeSpec{ifaceSpec1, ifaceSpec2},
-				"github.com/myshkin5/moqueries/pkg/generator",
+				"github.com/myshkin5/moqueries/generator",
 				nil)
 
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
@@ -455,7 +455,7 @@ var _ = Describe("MockGen", func() {
 		// ACT
 		_, _, err := gen.Generate(
 			[]string{"PublicInterface", "privateInterface"},
-			"github.com/myshkin5/moqueries/pkg/generator_test",
+			"github.com/myshkin5/moqueries/generator_test",
 			false)
 
 		// ASSERT
@@ -466,7 +466,7 @@ var _ = Describe("MockGen", func() {
 		// ASSEMBLE
 		loadTypesFnMock.onCall(".", false).returnResults(
 			[]*dst.TypeSpec{{Name: dst.NewIdent("SomethingElseInterface")}},
-			"github.com/myshkin5/moqueries/pkg/generator",
+			"github.com/myshkin5/moqueries/generator",
 			nil,
 		)
 		gen := generator.New(
@@ -491,7 +491,7 @@ var _ = Describe("MockGen", func() {
 		// ASSEMBLE
 		loadErr := errors.New("ast is not happy")
 		loadTypesFnMock.onCall(".", false).returnResults(
-			nil, "github.com/myshkin5/moqueries/pkg/generator", loadErr)
+			nil, "github.com/myshkin5/moqueries/generator", loadErr)
 		gen := generator.New(
 			false,
 			"",

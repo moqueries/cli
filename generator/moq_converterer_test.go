@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 
 	"github.com/dave/dst"
-	"github.com/myshkin5/moqueries/pkg/generator"
-	"github.com/myshkin5/moqueries/pkg/hash"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/hash"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 // mockConverterer holds the state of a mock of the Converterer type

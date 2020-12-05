@@ -6,8 +6,8 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"github.com/myshkin5/moqueries/pkg/hash"
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/hash"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 // mockUsual holds the state of a mock of the Usual type

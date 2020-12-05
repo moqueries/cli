@@ -6,7 +6,7 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"github.com/myshkin5/moqueries/pkg/moq"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 // mockMock holds the state of a mock of the Mock type

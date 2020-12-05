@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/pkg/generator"
-	"github.com/myshkin5/moqueries/pkg/logs"
+	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/logs"
 )
 
 // generate gathers details on the environment and calls the generator

@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/pkg/generator"
+	"github.com/myshkin5/moqueries/generator"
 )
 
 var _ = Describe("Converter", func() {
@@ -163,7 +163,7 @@ var _ = Describe("Converter", func() {
 			expectedParams := dst.Clone(func1Params).(*dst.FieldList)
 			// Map params are represented as a deep hash when the struct is comparable
 			expectedParams.List[3].Type = &dst.Ident{
-				Path: "github.com/myshkin5/moqueries/pkg/hash",
+				Path: "github.com/myshkin5/moqueries/hash",
 				Name: "Hash",
 			}
 			fn := generator.Func{
@@ -266,7 +266,7 @@ var _ = Describe("Converter", func() {
 			// ASSEMBLE
 
 			// ACT
-			decl := converter.FuncClosure("MyFn", "github.com/myshkin5/moqueries/pkg/generator", fnSpecFuncs[0])
+			decl := converter.FuncClosure("MyFn", "github.com/myshkin5/moqueries/generator", fnSpecFuncs[0])
 
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))

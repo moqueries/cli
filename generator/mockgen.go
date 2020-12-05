@@ -11,7 +11,7 @@ import (
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/goast"
 
-	"github.com/myshkin5/moqueries/pkg/logs"
+	"github.com/myshkin5/moqueries/logs"
 )
 
 const (
