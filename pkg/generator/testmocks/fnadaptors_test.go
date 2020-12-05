@@ -57,6 +57,24 @@ func (r *usualFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
+func (r *usualFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *usualFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
+}
+
 func (r *usualFnRecorder) times(count int) {
 	r.r = r.r.times(count)
 }
@@ -122,6 +140,24 @@ func (r *exportedUsualFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
+func (r *exportedUsualFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *exportedUsualFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
+}
+
 func (r *exportedUsualFnRecorder) times(count int) {
 	r.r = r.r.Times(count)
 }
@@ -183,6 +219,24 @@ func (r *noNamesFnRecorder) noSeq() {
 
 func (r *noNamesFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *noNamesFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *noNamesFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
 }
 
 func (r *noNamesFnRecorder) times(count int) {
@@ -250,6 +304,24 @@ func (r *exportedNoNamesFnRecorder) returnResults(sResults []string, err error) 
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
+func (r *exportedNoNamesFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *exportedNoNamesFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
+}
+
 func (r *exportedNoNamesFnRecorder) times(count int) {
 	r.r = r.r.Times(count)
 }
@@ -305,6 +377,23 @@ func (r *noResultsFnRecorder) noSeq() {
 
 func (r *noResultsFnRecorder) returnResults([]string, error) {
 	r.r = r.r.returnResults()
+}
+
+func (r *noResultsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *noResultsFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
 }
 
 func (r *noResultsFnRecorder) times(count int) {
@@ -366,6 +455,23 @@ func (r *exportedNoResultsFnRecorder) returnResults([]string, error) {
 	r.r = r.r.ReturnResults()
 }
 
+func (r *exportedNoResultsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *exportedNoResultsFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
 func (r *exportedNoResultsFnRecorder) times(count int) {
 	r.r = r.r.Times(count)
 }
@@ -423,6 +529,20 @@ func (r *noParamsFnRecorder) noSeq() {
 
 func (r *noParamsFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *noParamsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func() {
+		fn()
+	})
+}
+
+func (r *noParamsFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func() (string, error) {
+		fn()
+		return sResults[0], err
+	})
 }
 
 func (r *noParamsFnRecorder) times(count int) {
@@ -486,6 +606,20 @@ func (r *exportedNoParamsFnRecorder) returnResults(sResults []string, err error)
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
+func (r *exportedNoParamsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func() {
+		fn()
+	})
+}
+
+func (r *exportedNoParamsFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func() (string, error) {
+		fn()
+		return sResults[0], err
+	})
+}
+
 func (r *exportedNoParamsFnRecorder) times(count int) {
 	r.r = r.r.Times(count)
 }
@@ -537,6 +671,19 @@ func (r *nothingFnRecorder) noSeq() {
 
 func (r *nothingFnRecorder) returnResults([]string, error) {
 	r.r = r.r.returnResults()
+}
+
+func (r *nothingFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func() {
+		fn()
+	})
+}
+
+func (r *nothingFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func() {
+		fn()
+	})
 }
 
 func (r *nothingFnRecorder) times(count int) {
@@ -592,6 +739,19 @@ func (r *exportedNothingFnRecorder) noSeq() {
 
 func (r *exportedNothingFnRecorder) returnResults([]string, error) {
 	r.r = r.r.ReturnResults()
+}
+
+func (r *exportedNothingFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func() {
+		fn()
+	})
+}
+
+func (r *exportedNothingFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func() {
+		fn()
+	})
 }
 
 func (r *exportedNothingFnRecorder) times(count int) {
@@ -655,6 +815,24 @@ func (r *variadicFnRecorder) noSeq() {
 
 func (r *variadicFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *variadicFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(other bool, args ...string) {
+		fn()
+		Expect(args).To(Equal(expectedSParams))
+		Expect(other).To(Equal(expectedBParam))
+	})
+}
+
+func (r *variadicFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(other bool, args ...string) (string, error) {
+		fn()
+		Expect(args).To(Equal(expectedSParams))
+		Expect(other).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
 }
 
 func (r *variadicFnRecorder) times(count int) {
@@ -722,6 +900,24 @@ func (r *exportedVariadicFnRecorder) returnResults(sResults []string, err error)
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
+func (r *exportedVariadicFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(other bool, args ...string) {
+		fn()
+		Expect(args).To(Equal(expectedSParams))
+		Expect(other).To(Equal(expectedBParam))
+	})
+}
+
+func (r *exportedVariadicFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(other bool, args ...string) (string, error) {
+		fn()
+		Expect(args).To(Equal(expectedSParams))
+		Expect(other).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
+}
+
 func (r *exportedVariadicFnRecorder) times(count int) {
 	r.r = r.r.Times(count)
 }
@@ -784,6 +980,26 @@ func (r *repeatedIdsFnRecorder) noSeq() {
 
 func (r *repeatedIdsFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], sResults[1], err)
+}
+
+func (r *repeatedIdsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam1, sParam2 string, bParam bool) {
+		fn()
+		Expect(sParam1).To(Equal(expectedSParams[0]))
+		Expect(sParam2).To(Equal(expectedSParams[1]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *repeatedIdsFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
+		fn()
+		Expect(sParam1).To(Equal(expectedSParams[0]))
+		Expect(sParam2).To(Equal(expectedSParams[1]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], sResults[1], err
+	})
 }
 
 func (r *repeatedIdsFnRecorder) times(count int) {
@@ -850,6 +1066,26 @@ func (r *exportedRepeatedIdsFnRecorder) noSeq() {
 
 func (r *exportedRepeatedIdsFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.ReturnResults(sResults[0], sResults[1], err)
+}
+
+func (r *exportedRepeatedIdsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(sParam1, sParam2 string, bParam bool) {
+		fn()
+		Expect(sParam1).To(Equal(expectedSParams[0]))
+		Expect(sParam2).To(Equal(expectedSParams[1]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *exportedRepeatedIdsFnRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
+		fn()
+		Expect(sParam1).To(Equal(expectedSParams[0]))
+		Expect(sParam2).To(Equal(expectedSParams[1]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], sResults[1], err
+	})
 }
 
 func (r *exportedRepeatedIdsFnRecorder) times(count int) {

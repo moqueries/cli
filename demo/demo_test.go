@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -300,6 +301,86 @@ func TestOnlyWriteFavoriteNumbersSeqByNoSeq(t *testing.T) {
 	err := d.WriteFavorites([]int{1, 2, 3})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+
+	writerMock.AssertExpectationsMet()
+}
+
+func TestOnlyWriteFavoriteNumbersWithDoFn(t *testing.T) {
+	scene := moq.NewScene(t)
+	isFavMock := newMockIsFavorite(scene, nil)
+	writerMock := newMockWriter(scene, nil)
+
+	sum := 0
+	sumFn := func(n int) {
+		sum += n
+	}
+
+	isFavMock.onCall(1).returnResults(false).andDo(sumFn)
+	isFavMock.onCall(2).returnResults(false).andDo(sumFn)
+	isFavMock.onCall(3).returnResults(true).andDo(sumFn)
+
+	writerMock.onCall().Write([]byte("3")).
+		returnResults(1, nil)
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{1, 2, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if sum != 6 {
+		t.Errorf("unexpected sum: %d", sum)
+	}
+
+	writerMock.AssertExpectationsMet()
+}
+
+func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
+	scene := moq.NewScene(t)
+	isFavMock := newMockIsFavorite(scene, nil)
+	writerMock := newMockWriter(scene, nil)
+
+	isFavFn := func(n int) bool {
+		return n%2 == 0
+	}
+
+	isFavMock.onCall(0).anyN().doReturnResults(isFavFn).anyTimes()
+
+	bytesWritten := 0
+	var capturedFavs []int
+	writeFn := func(p []byte) (n int, err error) {
+		bytesWritten += len(p)
+		fav, err := strconv.Atoi(string(p))
+		if err != nil {
+			t.Errorf("error parsing fav number: %v", p)
+		}
+		capturedFavs = append(capturedFavs, fav)
+		return 0, nil
+	}
+
+	writerMock.onCall().Write(nil).anyP().doReturnResults(writeFn).anyTimes()
+
+	d := demo.FavWriter{
+		IsFav: isFavMock.mock(),
+		W:     writerMock.mock(),
+	}
+
+	err := d.WriteFavorites([]int{1, 2, 3, 4, 5, 6})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if bytesWritten != 3 {
+		t.Errorf("unexpected bytes written: %d", bytesWritten)
+	}
+
+	if !reflect.DeepEqual(capturedFavs, []int{2, 4, 6}) {
+		t.Errorf("unexpected captured favorites: %v", capturedFavs)
 	}
 
 	writerMock.AssertExpectationsMet()

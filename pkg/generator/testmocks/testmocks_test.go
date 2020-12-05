@@ -38,6 +38,8 @@ type recorder interface {
 	seq()
 	noSeq()
 	returnResults(sResults []string, err error)
+	andDo(fn func(), sParams []string, bParam bool)
+	doReturnResults(fn func(), sParams []string, bParam bool, sResults []string, err error)
 	times(count int)
 	anyTimes()
 	isNil() bool
@@ -282,8 +284,12 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			// ASSEMBLE
-			moqTMock.OnCall().Fatalf("Return must be called before calling Times").
+			msg := fmt.Sprintf("%s or %s must be called before calling %s",
+				export("returnResults", entry),
+				export("doReturnResults", entry),
+				export("times", entry))
+
+			moqTMock.OnCall().Fatalf(msg).
 				ReturnResults()
 
 			rec := entry.newRecorder([]string{"Hi", "you"}, true)
@@ -304,8 +310,12 @@ var _ = Describe("TestMocks", func() {
 			scene.Reset()
 			mockScene.Reset()
 
-			// ASSEMBLE
-			moqTMock.OnCall().Fatalf("Return must be called before calling AnyTimes").
+			msg := fmt.Sprintf("%s or %s must be called before calling %s",
+				export("returnResults", entry),
+				export("doReturnResults", entry),
+				export("anyTimes", entry))
+
+			moqTMock.OnCall().Fatalf(msg).
 				ReturnResults()
 
 			rec := entry.newRecorder([]string{"Hi", "you"}, true)
@@ -486,7 +496,16 @@ var _ = Describe("TestMocks", func() {
 				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
 
-				msg := "Any functions must be called prior to returning results, parameters: %#v"
+				rrFn := "returnResults"
+				drrFn := "doReturnResults"
+				if entry.exported() {
+					rrFn = strings.Title(rrFn)
+					drrFn = strings.Title(drrFn)
+				}
+
+				msg := fmt.Sprintf(
+					"Any functions must be called before %s or %s calls, parameters: %%#v",
+					rrFn, drrFn)
 				bParams := entry.bundleParams([]string{"Hi", "you"}, true)
 				moqTMock.OnCall().Fatalf(msg, bParams).
 					ReturnResults()
@@ -815,12 +834,10 @@ var _ = Describe("TestMocks", func() {
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.returnResults(result.sResults, result.err)
 
-				fn := "seq"
-				if entry.exported() {
-					fn = strings.Title(fn)
-				}
-
-				msg := fn + " must be called prior to returning results, parameters: %#v"
+				msg := fmt.Sprintf("%s must be called before %s or %s calls, parameters: %%#v",
+					export("seq", entry),
+					export("returnResults", entry),
+					export("doReturnResults", entry))
 				bParams := entry.bundleParams([]string{"Hello", "there"}, false)
 				moqTMock.OnCall().Fatalf(msg, bParams).
 					ReturnResults()
@@ -852,12 +869,10 @@ var _ = Describe("TestMocks", func() {
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.returnResults(result.sResults, result.err)
 
-				fn := "noSeq"
-				if entry.exported() {
-					fn = strings.Title(fn)
-				}
-
-				msg := fn + " must be called prior to returning results, parameters: %#v"
+				msg := fmt.Sprintf("%s must be called before %s or %s calls, parameters: %%#v",
+					export("noSeq", entry),
+					export("returnResults", entry),
+					export("doReturnResults", entry))
 				bParams := entry.bundleParams([]string{"Hello", "there"}, false)
 				moqTMock.OnCall().Fatalf(msg, bParams).
 					ReturnResults()
@@ -977,6 +992,138 @@ var _ = Describe("TestMocks", func() {
 		})
 	})
 
+	Describe("do functions", func() {
+		It("can call different do functions when configured to do so", func() {
+			entries, mockScene := tableEntries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				var firstCall bool
+				rec.andDo(func() {
+					firstCall = true
+				}, []string{"Hi", "you"}, true)
+				rec.returnResults([]string{"green", "purple"}, nil)
+				var secondCall bool
+				rec.andDo(func() {
+					secondCall = true
+				}, []string{"Hi", "you"}, true)
+
+				// ACT
+				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				Expect(firstCall).To(BeTrue())
+				Expect(secondCall).To(BeFalse())
+				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"green", "purple"}, err: nil})
+
+				// ASSERT
+				Expect(secondCall).To(BeTrue())
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("fails if andDo is called without calling returnResults first", func() {
+			entries, mockScene := tableEntries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				msg := fmt.Sprintf("%s must be called before calling %s",
+					export("returnResults", entry), export("andDo", entry))
+				moqTMock.OnCall().Fatalf(msg).
+					ReturnResults()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+
+				// ACT
+				rec.andDo(func() {}, []string{"Hi", "you"}, true)
+
+				// ASSERT
+				Expect(rec.isNil()).To(BeTrue())
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("can derive return values from doReturnResults functions when configured to do so", func() {
+			entries, mockScene := tableEntries(moqTMock, moq.MockConfig{})
+			for _, entry := range entries {
+				// ASSEMBLE
+				scene.Reset()
+				mockScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				var firstCall bool
+				rec.doReturnResults(func() {
+					firstCall = true
+				}, []string{"Hi", "you"}, true, []string{"blue", "orange"}, nil)
+				var secondCall bool
+				rec.doReturnResults(func() {
+					secondCall = true
+				}, []string{"Hi", "you"}, true, []string{"green", "purple"}, nil)
+
+				// ACT
+				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+				Expect(firstCall).To(BeTrue())
+				Expect(secondCall).To(BeFalse())
+				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"green", "purple"}, err: nil})
+
+				// ASSERT
+				Expect(secondCall).To(BeTrue())
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+
+		It("fails when sequences are incorrect with a doReturnResults function", func() {
+			entries, mockScene := tableEntries(
+				moqTMock, moq.MockConfig{Sequence: moq.SeqDefaultOn})
+			for _, entry := range entries {
+				// ASSEMBLE
+				if !entry.tracksParams() {
+					// With no params to track, hard to make conflicting calls
+					continue
+				}
+				scene.Reset()
+				mockScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hello", "there"}, false)
+				rec.doReturnResults(
+					func() {}, []string{"Hello", "there"}, false, []string{"red", "yellow"}, io.EOF)
+				rec = entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.doReturnResults(
+					func() {}, []string{"Hi", "you"}, true, []string{"blue", "orange"}, nil)
+
+				msg := "Call sequence does not match %#v"
+				params1 := entry.bundleParams([]string{"Hi", "you"}, true)
+				moqTMock.OnCall().Fatalf(msg, params1).
+					ReturnResults()
+				fmtMsg := fmt.Sprintf(msg, params1)
+				params2 := entry.bundleParams([]string{"Hello", "there"}, false)
+				moqTMock.OnCall().Errorf("Expected %d additional call(s) with parameters %#v", 1, params2).
+					ReturnResults()
+
+				// ACT
+				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				// ASSERT
+				Expect(fmtMsg).To(ContainSubstring("Hi"))
+
+				mockScene.AssertExpectationsMet()
+				scene.AssertExpectationsMet()
+			}
+		})
+	})
+
 	PIt("generates mocks", func() {
 		// NB: Keep in sync with types.go go:generate directives
 
@@ -1049,8 +1196,8 @@ var _ = Describe("TestMocks", func() {
 	})
 
 	It("dumps the DST of an interface mock", func() {
-		filePath := "./moq_usual_test.go"
-		outPath := "./moq_usual_test_dst.txt"
+		filePath := "./exported/moq_usualfn.go"
+		outPath := "./moq_usualfn_test_dst.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)
@@ -1065,3 +1212,10 @@ var _ = Describe("TestMocks", func() {
 		Expect(dst.Fprint(outFile, dstFile, dst.NotNilFilter)).To(Succeed())
 	})
 })
+
+func export(id string, a adaptor) string {
+	if a.exported() {
+		id = strings.Title(id)
+	}
+	return id
+}

@@ -128,9 +128,28 @@ func Continue() *dst.BranchStmt {
 	return &dst.BranchStmt{Tok: token.CONTINUE}
 }
 
-// Expr returns a dst.ExprStmt
-func Expr(x dst.Expr) *dst.ExprStmt {
-	return &dst.ExprStmt{X: x}
+// ExprDSL translates to a dst.ExprStmt
+type ExprDSL struct{ Obj *dst.ExprStmt }
+
+// Expr returns a new ExprDSL
+func Expr(x dst.Expr) ExprDSL {
+	return ExprDSL{Obj: &dst.ExprStmt{X: x}}
+}
+
+// Decs adds decorations to a ExprDSL
+func (d ExprDSL) Decs(decs dst.ExprStmtDecorations) ExprDSL {
+	d.Obj.Decs = decs
+	return d
+}
+
+// ExprDecsDSL translates to a dst.ExprStmtDecorations
+type ExprDecsDSL struct{ Obj dst.ExprStmtDecorations }
+
+// ExprDecs creates a new ExprDecsDSL
+func ExprDecs(after dst.SpaceType) ExprDecsDSL {
+	return ExprDecsDSL{Obj: dst.ExprStmtDecorations{
+		NodeDecs: dst.NodeDecs{After: after},
+	}}
 }
 
 // FieldDSL translates to a dst.Field
@@ -166,8 +185,8 @@ func (d FuncDSL) Recv(fields ...*dst.Field) FuncDSL {
 	return d
 }
 
-// ParamFieldList specifies a parameter FieldList for a function
-func (d FuncDSL) ParamFieldList(fieldList *dst.FieldList) FuncDSL {
+// ParamList specifies a parameter FieldList for a function
+func (d FuncDSL) ParamList(fieldList *dst.FieldList) FuncDSL {
 	d.Obj.Type.Params = fieldList
 	return d
 }
@@ -178,8 +197,8 @@ func (d FuncDSL) Params(fields ...*dst.Field) FuncDSL {
 	return d
 }
 
-// ResultFieldList specifies a result FieldList for a function
-func (d FuncDSL) ResultFieldList(fieldList *dst.FieldList) FuncDSL {
+// ResultList specifies a result FieldList for a function
+func (d FuncDSL) ResultList(fieldList *dst.FieldList) FuncDSL {
 	d.Obj.Type.Results = fieldList
 	return d
 }
@@ -199,6 +218,22 @@ func (d FuncDSL) Body(list ...dst.Stmt) FuncDSL {
 // Decs adds decorations to a FuncDSL
 func (d FuncDSL) Decs(decs dst.FuncDeclDecorations) FuncDSL {
 	d.Obj.Decs = decs
+	return d
+}
+
+// FuncTypeDSL translates to a dst.FuncType
+type FuncTypeDSL struct {
+	Obj *dst.FuncType
+}
+
+// FuncType creates a new FuncTypeDSL
+func FuncType(fieldList *dst.FieldList) FuncTypeDSL {
+	return FuncTypeDSL{Obj: &dst.FuncType{Params: fieldList}}
+}
+
+// ResultList specifies a dst.FieldList for a func type's results
+func (d FuncTypeDSL) ResultList(fieldList *dst.FieldList) FuncTypeDSL {
+	d.Obj.Results = fieldList
 	return d
 }
 
@@ -377,6 +412,14 @@ func LitString(value string) *dst.BasicLit {
 	return &dst.BasicLit{Kind: token.STRING, Value: "\"" + value + "\""}
 }
 
+// LitStringf returns a formatted dst.BasicLit with a literal string value
+func LitStringf(format string, a ...interface{}) *dst.BasicLit {
+	return &dst.BasicLit{
+		Kind:  token.STRING,
+		Value: fmt.Sprintf("\""+format+"\"", a...),
+	}
+}
+
 // MapTypeDSL translates to a dst.MapType
 type MapTypeDSL struct{ Obj *dst.MapType }
 
@@ -477,38 +520,53 @@ func Star(x dst.Expr) *dst.StarExpr {
 	return &dst.StarExpr{X: x}
 }
 
-// StructDSL translates to a dst.GenDecl containing a struct type
+// StructDSL translates to a dst.StructType
 type StructDSL struct {
-	Obj      *dst.GenDecl
-	typeSpec *dst.TypeSpec
+	Obj *dst.StructType
 }
 
-// Struct creates a new StructDSL
-func Struct(name string) StructDSL {
-	typeSpec := &dst.TypeSpec{Name: Id(name)}
-	return StructDSL{
+// Struct returns a dst.StructType
+func Struct(fields ...*dst.Field) *dst.StructType {
+	return &dst.StructType{Fields: FieldList(fields...)}
+}
+
+// StructFromList returns a dst.StructType given a dst.FieldList
+func StructFromList(fieldList *dst.FieldList) *dst.StructType {
+	return &dst.StructType{Fields: fieldList}
+}
+
+// TypeSpecDSL translates to a dst.TypeSpec
+type TypeSpecDSL struct {
+	Obj *dst.TypeSpec
+}
+
+// TypeSpec creates a new TypeSpecDSL
+func TypeSpec(name string) TypeSpecDSL {
+	return TypeSpecDSL{Obj: &dst.TypeSpec{Name: Id(name)}}
+}
+
+func (d TypeSpecDSL) Type(typ dst.Expr) TypeSpecDSL {
+	d.Obj.Type = typ
+	return d
+}
+
+// TypeDeclDSL translates to various types into a dst.GenDecl
+type TypeDeclDSL struct {
+	Obj *dst.GenDecl
+}
+
+// TypeDecl creates a new TypeDeclDSL
+func TypeDecl(typeSpec *dst.TypeSpec) TypeDeclDSL {
+	return TypeDeclDSL{
 		Obj: &dst.GenDecl{
 			Tok:   token.TYPE,
 			Specs: []dst.Spec{typeSpec},
 		},
-		typeSpec: typeSpec,
 	}
 }
 
-// FieldList specifies a dst.FieldList for a struct
-func (d StructDSL) FieldList(fieldList *dst.FieldList) StructDSL {
-	d.typeSpec.Type = &dst.StructType{Fields: fieldList}
-	return d
-}
-
-// Fields specifies fields for a struct
-func (d StructDSL) Fields(fields ...*dst.Field) StructDSL {
-	d.typeSpec.Type = &dst.StructType{Fields: FieldList(fields...)}
-	return d
-}
-
-// Decs adds decorations to a StructDSL
-func (d StructDSL) Decs(decs dst.GenDeclDecorations) StructDSL {
+// Decs adds decorations to a TypeDeclDSL
+func (d TypeDeclDSL) Decs(decs dst.GenDeclDecorations) TypeDeclDSL {
 	d.Obj.Decs = decs
 	return d
 }
