@@ -37,20 +37,27 @@ type mockMock_Reset_paramsKey struct{}
 type mockMock_Reset_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr
+	results   map[mockMock_Reset_paramsKey]*mockMock_Reset_results
 }
 
-// mockMock_Reset_resultMgr manages multiple results and the state of the Mock type
-type mockMock_Reset_resultMgr struct {
-	params   mockMock_Reset_params
-	results  []*mockMock_Reset_results
-	index    uint32
-	anyTimes bool
-}
+// mockMock_Reset_doFn defines the type of function needed when calling andDo for the Mock type
+type mockMock_Reset_doFn func()
+
+// mockMock_Reset_doReturnFn defines the type of function needed when calling doReturnResults for the Mock type
+type mockMock_Reset_doReturnFn func()
 
 // mockMock_Reset_results holds the results of the Mock type
 type mockMock_Reset_results struct {
-	moq_sequence uint32
+	params  mockMock_Reset_params
+	results []struct {
+		values *struct {
+		}
+		sequence   uint32
+		doFn       mockMock_Reset_doFn
+		doReturnFn mockMock_Reset_doReturnFn
+	}
+	index    uint32
+	anyTimes bool
 }
 
 // mockMock_Reset_fnRecorder routes recorded function calls to the mockMock mock
@@ -59,7 +66,7 @@ type mockMock_Reset_fnRecorder struct {
 	paramsKey mockMock_Reset_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockMock_Reset_resultMgr
+	results   *mockMock_Reset_results
 	mock      *mockMock
 }
 
@@ -73,20 +80,27 @@ type mockMock_AssertExpectationsMet_paramsKey struct{}
 type mockMock_AssertExpectationsMet_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr
+	results   map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_results
 }
 
-// mockMock_AssertExpectationsMet_resultMgr manages multiple results and the state of the Mock type
-type mockMock_AssertExpectationsMet_resultMgr struct {
-	params   mockMock_AssertExpectationsMet_params
-	results  []*mockMock_AssertExpectationsMet_results
-	index    uint32
-	anyTimes bool
-}
+// mockMock_AssertExpectationsMet_doFn defines the type of function needed when calling andDo for the Mock type
+type mockMock_AssertExpectationsMet_doFn func()
+
+// mockMock_AssertExpectationsMet_doReturnFn defines the type of function needed when calling doReturnResults for the Mock type
+type mockMock_AssertExpectationsMet_doReturnFn func()
 
 // mockMock_AssertExpectationsMet_results holds the results of the Mock type
 type mockMock_AssertExpectationsMet_results struct {
-	moq_sequence uint32
+	params  mockMock_AssertExpectationsMet_params
+	results []struct {
+		values *struct {
+		}
+		sequence   uint32
+		doFn       mockMock_AssertExpectationsMet_doFn
+		doReturnFn mockMock_AssertExpectationsMet_doReturnFn
+	}
+	index    uint32
+	anyTimes bool
 }
 
 // mockMock_AssertExpectationsMet_fnRecorder routes recorded function calls to the mockMock mock
@@ -95,7 +109,7 @@ type mockMock_AssertExpectationsMet_fnRecorder struct {
 	paramsKey mockMock_AssertExpectationsMet_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockMock_AssertExpectationsMet_resultMgr
+	results   *mockMock_AssertExpectationsMet_results
 	mock      *mockMock
 }
 
@@ -121,7 +135,7 @@ func (m *mockMock) mock() *mockMock_mock {
 
 func (m *mockMock_mock) Reset() {
 	params := mockMock_Reset_params{}
-	var results *mockMock_Reset_resultMgr
+	var results *mockMock_Reset_results
 	for _, resultsByParams := range m.mock.resultsByParams_Reset {
 		paramsKey := mockMock_Reset_paramsKey{}
 		var ok bool
@@ -149,19 +163,26 @@ func (m *mockMock_mock) Reset() {
 	}
 
 	result := results.results[i]
-	if result.moq_sequence != 0 {
+	if result.sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
+		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
+	if result.doFn != nil {
+		result.doFn()
+	}
+
+	if result.doReturnFn != nil {
+		result.doReturnFn()
+	}
 	return
 }
 
 func (m *mockMock_mock) AssertExpectationsMet() {
 	params := mockMock_AssertExpectationsMet_params{}
-	var results *mockMock_AssertExpectationsMet_resultMgr
+	var results *mockMock_AssertExpectationsMet_results
 	for _, resultsByParams := range m.mock.resultsByParams_AssertExpectationsMet {
 		paramsKey := mockMock_AssertExpectationsMet_paramsKey{}
 		var ok bool
@@ -189,13 +210,20 @@ func (m *mockMock_mock) AssertExpectationsMet() {
 	}
 
 	result := results.results[i]
-	if result.moq_sequence != 0 {
+	if result.sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
+		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
+	if result.doFn != nil {
+		result.doFn()
+	}
+
+	if result.doReturnFn != nil {
+		result.doReturnFn()
+	}
 	return
 }
 
@@ -217,7 +245,7 @@ func (m *mockMock_recorder) Reset() *mockMock_Reset_fnRecorder {
 
 func (r *mockMock_Reset_fnRecorder) seq() *mockMock_Reset_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
@@ -226,7 +254,7 @@ func (r *mockMock_Reset_fnRecorder) seq() *mockMock_Reset_fnRecorder {
 
 func (r *mockMock_Reset_fnRecorder) noSeq() *mockMock_Reset_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
@@ -234,6 +262,56 @@ func (r *mockMock_Reset_fnRecorder) noSeq() *mockMock_Reset_fnRecorder {
 }
 
 func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+		}
+		sequence   uint32
+		doFn       mockMock_Reset_doFn
+		doReturnFn mockMock_Reset_doReturnFn
+	}{
+		values: &struct {
+		}{},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *mockMock_Reset_fnRecorder) andDo(fn mockMock_Reset_doFn) *mockMock_Reset_fnRecorder {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *mockMock_Reset_fnRecorder) doReturnResults(fn mockMock_Reset_doReturnFn) *mockMock_Reset_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+		}
+		sequence   uint32
+		doFn       mockMock_Reset_doFn
+		doReturnFn mockMock_Reset_doReturnFn
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *mockMock_Reset_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
@@ -251,7 +329,7 @@ func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 			results = &mockMock_Reset_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockMock_Reset_paramsKey]*mockMock_Reset_resultMgr{},
+				results:   map[mockMock_Reset_paramsKey]*mockMock_Reset_results{},
 			}
 			r.mock.resultsByParams_Reset = append(r.mock.resultsByParams_Reset, *results)
 			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_Reset) {
@@ -265,34 +343,36 @@ func (r *mockMock_Reset_fnRecorder) returnResults() *mockMock_Reset_fnRecorder {
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockMock_Reset_resultMgr{
+			r.results = &mockMock_Reset_results{
 				params:   r.params,
-				results:  []*mockMock_Reset_results{},
+				results:  nil,
 				index:    0,
 				anyTimes: false,
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, &mockMock_Reset_results{moq_sequence: sequence})
-	return r
 }
 
 func (r *mockMock_Reset_fnRecorder) times(count int) *mockMock_Reset_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
-		if last.moq_sequence != 0 {
-			last = &mockMock_Reset_results{moq_sequence: r.mock.scene.NextRecorderSequence()}
+		if last.sequence != 0 {
+			last = struct {
+				values *struct {
+				}
+				sequence   uint32
+				doFn       mockMock_Reset_doFn
+				doReturnFn mockMock_Reset_doReturnFn
+			}{
+				values: &struct {
+				}{},
+				sequence: r.mock.scene.NextRecorderSequence(),
+			}
 		}
 		r.results.results = append(r.results.results, last)
 	}
@@ -301,7 +381,7 @@ func (r *mockMock_Reset_fnRecorder) times(count int) *mockMock_Reset_fnRecorder 
 
 func (r *mockMock_Reset_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true
@@ -318,7 +398,7 @@ func (m *mockMock_recorder) AssertExpectationsMet() *mockMock_AssertExpectations
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) seq() *mockMock_AssertExpectationsMet_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
@@ -327,7 +407,7 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) seq() *mockMock_AssertExpect
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) noSeq() *mockMock_AssertExpectationsMet_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
@@ -335,6 +415,56 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) noSeq() *mockMock_AssertExpe
 }
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_AssertExpectationsMet_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+		}
+		sequence   uint32
+		doFn       mockMock_AssertExpectationsMet_doFn
+		doReturnFn mockMock_AssertExpectationsMet_doReturnFn
+	}{
+		values: &struct {
+		}{},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *mockMock_AssertExpectationsMet_fnRecorder) andDo(fn mockMock_AssertExpectationsMet_doFn) *mockMock_AssertExpectationsMet_fnRecorder {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *mockMock_AssertExpectationsMet_fnRecorder) doReturnResults(fn mockMock_AssertExpectationsMet_doReturnFn) *mockMock_AssertExpectationsMet_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+		}
+		sequence   uint32
+		doFn       mockMock_AssertExpectationsMet_doFn
+		doReturnFn mockMock_AssertExpectationsMet_doReturnFn
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *mockMock_AssertExpectationsMet_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
@@ -352,7 +482,7 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_As
 			results = &mockMock_AssertExpectationsMet_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_resultMgr{},
+				results:   map[mockMock_AssertExpectationsMet_paramsKey]*mockMock_AssertExpectationsMet_results{},
 			}
 			r.mock.resultsByParams_AssertExpectationsMet = append(r.mock.resultsByParams_AssertExpectationsMet, *results)
 			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_AssertExpectationsMet) {
@@ -366,34 +496,36 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) returnResults() *mockMock_As
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockMock_AssertExpectationsMet_resultMgr{
+			r.results = &mockMock_AssertExpectationsMet_results{
 				params:   r.params,
-				results:  []*mockMock_AssertExpectationsMet_results{},
+				results:  nil,
 				index:    0,
 				anyTimes: false,
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, &mockMock_AssertExpectationsMet_results{moq_sequence: sequence})
-	return r
 }
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) times(count int) *mockMock_AssertExpectationsMet_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
-		if last.moq_sequence != 0 {
-			last = &mockMock_AssertExpectationsMet_results{moq_sequence: r.mock.scene.NextRecorderSequence()}
+		if last.sequence != 0 {
+			last = struct {
+				values *struct {
+				}
+				sequence   uint32
+				doFn       mockMock_AssertExpectationsMet_doFn
+				doReturnFn mockMock_AssertExpectationsMet_doReturnFn
+			}{
+				values: &struct {
+				}{},
+				sequence: r.mock.scene.NextRecorderSequence(),
+			}
 		}
 		r.results.results = append(r.results.results, last)
 	}
@@ -402,7 +534,7 @@ func (r *mockMock_AssertExpectationsMet_fnRecorder) times(count int) *mockMock_A
 
 func (r *mockMock_AssertExpectationsMet_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true

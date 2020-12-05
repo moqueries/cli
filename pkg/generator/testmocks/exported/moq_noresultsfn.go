@@ -38,20 +38,27 @@ type MockNoResultsFn_paramsKey struct {
 type MockNoResultsFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
-	Results   map[MockNoResultsFn_paramsKey]*MockNoResultsFn_resultMgr
+	Results   map[MockNoResultsFn_paramsKey]*MockNoResultsFn_results
 }
 
-// MockNoResultsFn_resultMgr manages multiple results and the state of the NoResultsFn type
-type MockNoResultsFn_resultMgr struct {
-	Params   MockNoResultsFn_params
-	Results  []*MockNoResultsFn_results
-	Index    uint32
-	AnyTimes bool
-}
+// MockNoResultsFn_doFn defines the type of function needed when calling AndDo for the NoResultsFn type
+type MockNoResultsFn_doFn func(sParam string, bParam bool)
+
+// MockNoResultsFn_doReturnFn defines the type of function needed when calling DoReturnResults for the NoResultsFn type
+type MockNoResultsFn_doReturnFn func(sParam string, bParam bool)
 
 // MockNoResultsFn_results holds the results of the NoResultsFn type
 type MockNoResultsFn_results struct {
-	Moq_Sequence uint32
+	Params  MockNoResultsFn_params
+	Results []struct {
+		Values *struct {
+		}
+		Sequence   uint32
+		DoFn       MockNoResultsFn_doFn
+		DoReturnFn MockNoResultsFn_doReturnFn
+	}
+	Index    uint32
+	AnyTimes bool
 }
 
 // MockNoResultsFn_fnRecorder routes recorded function calls to the MockNoResultsFn mock
@@ -60,7 +67,7 @@ type MockNoResultsFn_fnRecorder struct {
 	ParamsKey MockNoResultsFn_paramsKey
 	AnyParams uint64
 	Sequence  bool
-	Results   *MockNoResultsFn_resultMgr
+	Results   *MockNoResultsFn_results
 	Mock      *MockNoResultsFn
 }
 
@@ -87,7 +94,7 @@ func (m *MockNoResultsFn_mock) Fn(sParam string, bParam bool) {
 		SParam: sParam,
 		BParam: bParam,
 	}
-	var results *MockNoResultsFn_resultMgr
+	var results *MockNoResultsFn_results
 	for _, resultsByParams := range m.Mock.ResultsByParams {
 		var sParamUsed string
 		if resultsByParams.AnyParams&(1<<0) == 0 {
@@ -126,13 +133,20 @@ func (m *MockNoResultsFn_mock) Fn(sParam string, bParam bool) {
 	}
 
 	result := results.Results[i]
-	if result.Moq_Sequence != 0 {
+	if result.Sequence != 0 {
 		sequence := m.Mock.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Moq_Sequence != sequence) || result.Moq_Sequence > sequence {
+		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
+	if result.DoFn != nil {
+		result.DoFn(sParam, bParam)
+	}
+
+	if result.DoReturnFn != nil {
+		result.DoReturnFn(sParam, bParam)
+	}
 	return
 }
 
@@ -153,7 +167,7 @@ func (m *MockNoResultsFn) OnCall(sParam string, bParam bool) *MockNoResultsFn_fn
 
 func (r *MockNoResultsFn_fnRecorder) AnySParam() *MockNoResultsFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 0
@@ -162,7 +176,7 @@ func (r *MockNoResultsFn_fnRecorder) AnySParam() *MockNoResultsFn_fnRecorder {
 
 func (r *MockNoResultsFn_fnRecorder) AnyBParam() *MockNoResultsFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 1
@@ -171,7 +185,7 @@ func (r *MockNoResultsFn_fnRecorder) AnyBParam() *MockNoResultsFn_fnRecorder {
 
 func (r *MockNoResultsFn_fnRecorder) Seq() *MockNoResultsFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = true
@@ -180,7 +194,7 @@ func (r *MockNoResultsFn_fnRecorder) Seq() *MockNoResultsFn_fnRecorder {
 
 func (r *MockNoResultsFn_fnRecorder) NoSeq() *MockNoResultsFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = false
@@ -188,6 +202,56 @@ func (r *MockNoResultsFn_fnRecorder) NoSeq() *MockNoResultsFn_fnRecorder {
 }
 
 func (r *MockNoResultsFn_fnRecorder) ReturnResults() *MockNoResultsFn_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+		}
+		Sequence   uint32
+		DoFn       MockNoResultsFn_doFn
+		DoReturnFn MockNoResultsFn_doReturnFn
+	}{
+		Values: &struct {
+		}{},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MockNoResultsFn_fnRecorder) AndDo(fn MockNoResultsFn_doFn) *MockNoResultsFn_fnRecorder {
+	if r.Results == nil {
+		r.Mock.Scene.MoqT.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MockNoResultsFn_fnRecorder) DoReturnResults(fn MockNoResultsFn_doReturnFn) *MockNoResultsFn_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+		}
+		Sequence   uint32
+		DoFn       MockNoResultsFn_doFn
+		DoReturnFn MockNoResultsFn_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MockNoResultsFn_fnRecorder) FindResults() {
 	if r.Results == nil {
 		anyCount := bits.OnesCount64(r.AnyParams)
 		insertAt := -1
@@ -205,7 +269,7 @@ func (r *MockNoResultsFn_fnRecorder) ReturnResults() *MockNoResultsFn_fnRecorder
 			results = &MockNoResultsFn_resultsByParams{
 				AnyCount:  anyCount,
 				AnyParams: r.AnyParams,
-				Results:   map[MockNoResultsFn_paramsKey]*MockNoResultsFn_resultMgr{},
+				Results:   map[MockNoResultsFn_paramsKey]*MockNoResultsFn_results{},
 			}
 			r.Mock.ResultsByParams = append(r.Mock.ResultsByParams, *results)
 			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams) {
@@ -230,34 +294,36 @@ func (r *MockNoResultsFn_fnRecorder) ReturnResults() *MockNoResultsFn_fnRecorder
 		var ok bool
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
-			r.Results = &MockNoResultsFn_resultMgr{
+			r.Results = &MockNoResultsFn_results{
 				Params:   r.Params,
-				Results:  []*MockNoResultsFn_results{},
+				Results:  nil,
 				Index:    0,
 				AnyTimes: false,
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Mock.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, &MockNoResultsFn_results{Moq_Sequence: sequence})
-	return r
 }
 
 func (r *MockNoResultsFn_fnRecorder) Times(count int) *MockNoResultsFn_fnRecorder {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("Return must be called before calling Times")
+		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
 		return nil
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
 	for n := 0; n < count-1; n++ {
-		if last.Moq_Sequence != 0 {
-			last = &MockNoResultsFn_results{Moq_Sequence: r.Mock.Scene.NextRecorderSequence()}
+		if last.Sequence != 0 {
+			last = struct {
+				Values *struct {
+				}
+				Sequence   uint32
+				DoFn       MockNoResultsFn_doFn
+				DoReturnFn MockNoResultsFn_doReturnFn
+			}{
+				Values: &struct {
+				}{},
+				Sequence: r.Mock.Scene.NextRecorderSequence(),
+			}
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
@@ -266,7 +332,7 @@ func (r *MockNoResultsFn_fnRecorder) Times(count int) *MockNoResultsFn_fnRecorde
 
 func (r *MockNoResultsFn_fnRecorder) AnyTimes() {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
 		return
 	}
 	r.Results.AnyTimes = true

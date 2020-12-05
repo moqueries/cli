@@ -32,21 +32,28 @@ type mockIsFavorite_paramsKey struct{ n int }
 type mockIsFavorite_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockIsFavorite_paramsKey]*mockIsFavorite_resultMgr
+	results   map[mockIsFavorite_paramsKey]*mockIsFavorite_results
 }
 
-// mockIsFavorite_resultMgr manages multiple results and the state of the IsFavorite type
-type mockIsFavorite_resultMgr struct {
-	params   mockIsFavorite_params
-	results  []*mockIsFavorite_results
-	index    uint32
-	anyTimes bool
-}
+// mockIsFavorite_doFn defines the type of function needed when calling andDo for the IsFavorite type
+type mockIsFavorite_doFn func(n int)
+
+// mockIsFavorite_doReturnFn defines the type of function needed when calling doReturnResults for the IsFavorite type
+type mockIsFavorite_doReturnFn func(n int) bool
 
 // mockIsFavorite_results holds the results of the IsFavorite type
 type mockIsFavorite_results struct {
-	result1      bool
-	moq_sequence uint32
+	params  mockIsFavorite_params
+	results []struct {
+		values *struct {
+			result1 bool
+		}
+		sequence   uint32
+		doFn       mockIsFavorite_doFn
+		doReturnFn mockIsFavorite_doReturnFn
+	}
+	index    uint32
+	anyTimes bool
 }
 
 // mockIsFavorite_fnRecorder routes recorded function calls to the mockIsFavorite mock
@@ -55,7 +62,7 @@ type mockIsFavorite_fnRecorder struct {
 	paramsKey mockIsFavorite_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockIsFavorite_resultMgr
+	results   *mockIsFavorite_results
 	mock      *mockIsFavorite
 }
 
@@ -81,7 +88,7 @@ func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
 	params := mockIsFavorite_params{
 		n: n,
 	}
-	var results *mockIsFavorite_resultMgr
+	var results *mockIsFavorite_results
 	for _, resultsByParams := range m.mock.resultsByParams {
 		var nUsed int
 		if resultsByParams.anyParams&(1<<0) == 0 {
@@ -115,14 +122,23 @@ func (m *mockIsFavorite_mock) fn(n int) (result1 bool) {
 	}
 
 	result := results.results[i]
-	if result.moq_sequence != 0 {
+	if result.sequence != 0 {
 		sequence := m.mock.scene.NextMockSequence()
-		if (!results.anyTimes && result.moq_sequence != sequence) || result.moq_sequence > sequence {
+		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
-	result1 = result.result1
+	if result.doFn != nil {
+		result.doFn(n)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+	}
+	if result.doReturnFn != nil {
+		result1 = result.doReturnFn(n)
+	}
 	return
 }
 
@@ -141,7 +157,7 @@ func (m *mockIsFavorite) onCall(n int) *mockIsFavorite_fnRecorder {
 
 func (r *mockIsFavorite_fnRecorder) anyN() *mockIsFavorite_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 0
@@ -150,7 +166,7 @@ func (r *mockIsFavorite_fnRecorder) anyN() *mockIsFavorite_fnRecorder {
 
 func (r *mockIsFavorite_fnRecorder) seq() *mockIsFavorite_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
@@ -159,7 +175,7 @@ func (r *mockIsFavorite_fnRecorder) seq() *mockIsFavorite_fnRecorder {
 
 func (r *mockIsFavorite_fnRecorder) noSeq() *mockIsFavorite_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called prior to returning results, parameters: %#v", r.params)
+		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
@@ -167,6 +183,61 @@ func (r *mockIsFavorite_fnRecorder) noSeq() *mockIsFavorite_fnRecorder {
 }
 
 func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 bool
+		}
+		sequence   uint32
+		doFn       mockIsFavorite_doFn
+		doReturnFn mockIsFavorite_doReturnFn
+	}{
+		values: &struct {
+			result1 bool
+		}{
+			result1: result1,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) andDo(fn mockIsFavorite_doFn) *mockIsFavorite_fnRecorder {
+	if r.results == nil {
+		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) doReturnResults(fn mockIsFavorite_doReturnFn) *mockIsFavorite_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.mock.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 bool
+		}
+		sequence   uint32
+		doFn       mockIsFavorite_doFn
+		doReturnFn mockIsFavorite_doReturnFn
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *mockIsFavorite_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
@@ -184,7 +255,7 @@ func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_
 			results = &mockIsFavorite_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockIsFavorite_paramsKey]*mockIsFavorite_resultMgr{},
+				results:   map[mockIsFavorite_paramsKey]*mockIsFavorite_results{},
 			}
 			r.mock.resultsByParams = append(r.mock.resultsByParams, *results)
 			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams) {
@@ -204,39 +275,39 @@ func (r *mockIsFavorite_fnRecorder) returnResults(result1 bool) *mockIsFavorite_
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockIsFavorite_resultMgr{
+			r.results = &mockIsFavorite_results{
 				params:   r.params,
-				results:  []*mockIsFavorite_results{},
+				results:  nil,
 				index:    0,
 				anyTimes: false,
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, &mockIsFavorite_results{
-		result1:      result1,
-		moq_sequence: sequence,
-	})
-	return r
 }
 
 func (r *mockIsFavorite_fnRecorder) times(count int) *mockIsFavorite_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("Return must be called before calling Times")
+		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
 	for n := 0; n < count-1; n++ {
-		if last.moq_sequence != 0 {
-			last = &mockIsFavorite_results{
-				result1:      last.result1,
-				moq_sequence: r.mock.scene.NextRecorderSequence(),
+		if last.sequence != 0 {
+			last = struct {
+				values *struct {
+					result1 bool
+				}
+				sequence   uint32
+				doFn       mockIsFavorite_doFn
+				doReturnFn mockIsFavorite_doReturnFn
+			}{
+				values: &struct {
+					result1 bool
+				}{
+					result1: last.values.result1,
+				},
+				sequence: r.mock.scene.NextRecorderSequence(),
 			}
 		}
 		r.results.results = append(r.results.results, last)
@@ -246,7 +317,7 @@ func (r *mockIsFavorite_fnRecorder) times(count int) *mockIsFavorite_fnRecorder 
 
 func (r *mockIsFavorite_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true

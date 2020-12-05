@@ -39,22 +39,29 @@ type MockVariadicFn_paramsKey struct {
 type MockVariadicFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
-	Results   map[MockVariadicFn_paramsKey]*MockVariadicFn_resultMgr
+	Results   map[MockVariadicFn_paramsKey]*MockVariadicFn_results
 }
 
-// MockVariadicFn_resultMgr manages multiple results and the state of the VariadicFn type
-type MockVariadicFn_resultMgr struct {
-	Params   MockVariadicFn_params
-	Results  []*MockVariadicFn_results
-	Index    uint32
-	AnyTimes bool
-}
+// MockVariadicFn_doFn defines the type of function needed when calling AndDo for the VariadicFn type
+type MockVariadicFn_doFn func(other bool, args ...string)
+
+// MockVariadicFn_doReturnFn defines the type of function needed when calling DoReturnResults for the VariadicFn type
+type MockVariadicFn_doReturnFn func(other bool, args ...string) (sResult string, err error)
 
 // MockVariadicFn_results holds the results of the VariadicFn type
 type MockVariadicFn_results struct {
-	SResult      string
-	Err          error
-	Moq_Sequence uint32
+	Params  MockVariadicFn_params
+	Results []struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MockVariadicFn_doFn
+		DoReturnFn MockVariadicFn_doReturnFn
+	}
+	Index    uint32
+	AnyTimes bool
 }
 
 // MockVariadicFn_fnRecorder routes recorded function calls to the MockVariadicFn mock
@@ -63,7 +70,7 @@ type MockVariadicFn_fnRecorder struct {
 	ParamsKey MockVariadicFn_paramsKey
 	AnyParams uint64
 	Sequence  bool
-	Results   *MockVariadicFn_resultMgr
+	Results   *MockVariadicFn_results
 	Mock      *MockVariadicFn
 }
 
@@ -93,7 +100,7 @@ func (m *MockVariadicFn_mock) Fn(other bool, args ...string) (sResult string, er
 		Other: other,
 		Args:  args,
 	}
-	var results *MockVariadicFn_resultMgr
+	var results *MockVariadicFn_results
 	for _, resultsByParams := range m.Mock.ResultsByParams {
 		var otherUsed bool
 		if resultsByParams.AnyParams&(1<<0) == 0 {
@@ -132,15 +139,24 @@ func (m *MockVariadicFn_mock) Fn(other bool, args ...string) (sResult string, er
 	}
 
 	result := results.Results[i]
-	if result.Moq_Sequence != 0 {
+	if result.Sequence != 0 {
 		sequence := m.Mock.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Moq_Sequence != sequence) || result.Moq_Sequence > sequence {
+		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
-	sResult = result.SResult
-	err = result.Err
+	if result.DoFn != nil {
+		result.DoFn(other, args...)
+	}
+
+	if result.Values != nil {
+		sResult = result.Values.SResult
+		err = result.Values.Err
+	}
+	if result.DoReturnFn != nil {
+		sResult, err = result.DoReturnFn(other, args...)
+	}
 	return
 }
 
@@ -161,7 +177,7 @@ func (m *MockVariadicFn) OnCall(other bool, args ...string) *MockVariadicFn_fnRe
 
 func (r *MockVariadicFn_fnRecorder) AnyOther() *MockVariadicFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 0
@@ -170,7 +186,7 @@ func (r *MockVariadicFn_fnRecorder) AnyOther() *MockVariadicFn_fnRecorder {
 
 func (r *MockVariadicFn_fnRecorder) AnyArgs() *MockVariadicFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 1
@@ -179,7 +195,7 @@ func (r *MockVariadicFn_fnRecorder) AnyArgs() *MockVariadicFn_fnRecorder {
 
 func (r *MockVariadicFn_fnRecorder) Seq() *MockVariadicFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Seq must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = true
@@ -188,7 +204,7 @@ func (r *MockVariadicFn_fnRecorder) Seq() *MockVariadicFn_fnRecorder {
 
 func (r *MockVariadicFn_fnRecorder) NoSeq() *MockVariadicFn_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called prior to returning results, parameters: %#v", r.Params)
+		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = false
@@ -196,6 +212,65 @@ func (r *MockVariadicFn_fnRecorder) NoSeq() *MockVariadicFn_fnRecorder {
 }
 
 func (r *MockVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *MockVariadicFn_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MockVariadicFn_doFn
+		DoReturnFn MockVariadicFn_doReturnFn
+	}{
+		Values: &struct {
+			SResult string
+			Err     error
+		}{
+			SResult: sResult,
+			Err:     err,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MockVariadicFn_fnRecorder) AndDo(fn MockVariadicFn_doFn) *MockVariadicFn_fnRecorder {
+	if r.Results == nil {
+		r.Mock.Scene.MoqT.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MockVariadicFn_fnRecorder) DoReturnResults(fn MockVariadicFn_doReturnFn) *MockVariadicFn_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Mock.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MockVariadicFn_doFn
+		DoReturnFn MockVariadicFn_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MockVariadicFn_fnRecorder) FindResults() {
 	if r.Results == nil {
 		anyCount := bits.OnesCount64(r.AnyParams)
 		insertAt := -1
@@ -213,7 +288,7 @@ func (r *MockVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *Mo
 			results = &MockVariadicFn_resultsByParams{
 				AnyCount:  anyCount,
 				AnyParams: r.AnyParams,
-				Results:   map[MockVariadicFn_paramsKey]*MockVariadicFn_resultMgr{},
+				Results:   map[MockVariadicFn_paramsKey]*MockVariadicFn_results{},
 			}
 			r.Mock.ResultsByParams = append(r.Mock.ResultsByParams, *results)
 			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams) {
@@ -238,41 +313,42 @@ func (r *MockVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *Mo
 		var ok bool
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
-			r.Results = &MockVariadicFn_resultMgr{
+			r.Results = &MockVariadicFn_results{
 				Params:   r.Params,
-				Results:  []*MockVariadicFn_results{},
+				Results:  nil,
 				Index:    0,
 				AnyTimes: false,
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Mock.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, &MockVariadicFn_results{
-		SResult:      sResult,
-		Err:          err,
-		Moq_Sequence: sequence,
-	})
-	return r
 }
 
 func (r *MockVariadicFn_fnRecorder) Times(count int) *MockVariadicFn_fnRecorder {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("Return must be called before calling Times")
+		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
 		return nil
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
 	for n := 0; n < count-1; n++ {
-		if last.Moq_Sequence != 0 {
-			last = &MockVariadicFn_results{
-				SResult:      last.SResult,
-				Err:          last.Err,
-				Moq_Sequence: r.Mock.Scene.NextRecorderSequence(),
+		if last.Sequence != 0 {
+			last = struct {
+				Values *struct {
+					SResult string
+					Err     error
+				}
+				Sequence   uint32
+				DoFn       MockVariadicFn_doFn
+				DoReturnFn MockVariadicFn_doReturnFn
+			}{
+				Values: &struct {
+					SResult string
+					Err     error
+				}{
+					SResult: last.Values.SResult,
+					Err:     last.Values.Err,
+				},
+				Sequence: r.Mock.Scene.NextRecorderSequence(),
 			}
 		}
 		r.Results.Results = append(r.Results.Results, last)
@@ -282,7 +358,7 @@ func (r *MockVariadicFn_fnRecorder) Times(count int) *MockVariadicFn_fnRecorder 
 
 func (r *MockVariadicFn_fnRecorder) AnyTimes() {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("Return must be called before calling AnyTimes")
+		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
 		return
 	}
 	r.Results.AnyTimes = true
