@@ -24,7 +24,7 @@ type GenerateRequest struct {
 	TestImport  bool
 }
 
-// Generate generates a mock
+// Generate generates a moq
 func Generate(reqs ...GenerateRequest) error {
 	for _, req := range reqs {
 		err := generate(req)
@@ -37,7 +37,7 @@ func Generate(reqs ...GenerateRequest) error {
 
 func generate(req GenerateRequest) error {
 	if req.Export && strings.HasSuffix(req.Destination, "_test.go") {
-		logs.Warn("Exported mock in a test file will not be accessible in" +
+		logs.Warn("Exported moq in a test file will not be accessible in" +
 			" other packages. Remove --export option or set the --destination" +
 			" to a non-test file.")
 	}
@@ -47,7 +47,7 @@ func generate(req GenerateRequest) error {
 
 	_, file, err := gen.Generate(req.Types, req.Import, req.TestImport)
 	if err != nil {
-		return fmt.Errorf("error generating mocks: %w", err)
+		return fmt.Errorf("error generating moqs: %w", err)
 	}
 
 	tempFile, err := ioutil.TempFile("", "*.go")
@@ -77,7 +77,7 @@ func generate(req GenerateRequest) error {
 	restorer := decorator.NewRestorerWithImports(destDir, gopackages.New(destDir))
 	err = restorer.Fprint(tempFile, file)
 	if err != nil {
-		return fmt.Errorf("invalid mock: %w", err)
+		return fmt.Errorf("invalid moq: %w", err)
 	}
 
 	err = os.Rename(tempFile.Name(), req.Destination)

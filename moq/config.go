@@ -1,11 +1,11 @@
 package moq
 
-// ExpectationMode determines the behavior of a mock when a method is invoked
+// ExpectationMode determines the behavior of a moq when a method is invoked
 // with no matching expectations
 type ExpectationMode int
 
 const (
-	// Strict mode causes a mock to validate each method invocation
+	// Strict mode causes a moq to validate each method invocation
 	Strict ExpectationMode = iota
 	// Nice mode will return zero values for any unexpected invocation
 	Nice
@@ -24,8 +24,8 @@ const (
 	SeqDefaultOn
 )
 
-// MockConfig is passed to add generated mocks to configure the mock
-type MockConfig struct {
+// Config is passed to a moq to provide configuration for the moq
+type Config struct {
 	Expectation ExpectationMode
 	Sequence    SequenceMode
 }

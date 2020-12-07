@@ -12,11 +12,11 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-var _ = Describe("MockGen", func() {
+var _ = Describe("MoqGenerator", func() {
 	var (
-		scene           *moq.Scene
-		loadTypesFnMock *mockLoadTypesFn
-		converterMock   *mockConverterer
+		scene          *moq.Scene
+		loadTypesFnMoq *moqLoadTypesFn
+		converterMoq   *moqConverterer
 
 		ifaceSpec1    *dst.TypeSpec
 		ifaceSpec2    *dst.TypeSpec
@@ -33,8 +33,8 @@ var _ = Describe("MockGen", func() {
 		logs.Init(false)
 
 		scene = moq.NewScene(GinkgoT())
-		loadTypesFnMock = newMockLoadTypesFn(scene, nil)
-		converterMock = newMockConverterer(scene, nil)
+		loadTypesFnMoq = newMoqLoadTypesFn(scene, nil)
+		converterMoq = newMoqConverterer(scene, nil)
 
 		func1Params = &dst.FieldList{List: []*dst.Field{
 			{
@@ -100,15 +100,15 @@ var _ = Describe("MockGen", func() {
 
 	It("always returns a header comment", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
+		loadTypesFnMoq.onCall(".", false).
 			returnResults(nil, "", nil)
 
 		gen := generator.New(
 			false,
 			"",
 			"dir/file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -126,15 +126,15 @@ var _ = Describe("MockGen", func() {
 	It("defaults a test package when not exported"+
 		" and the package isn't specified", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
+		loadTypesFnMoq.onCall(".", false).
 			returnResults(nil, "", nil)
 
 		gen := generator.New(
 			false,
 			"",
 			"dir/file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -147,15 +147,15 @@ var _ = Describe("MockGen", func() {
 	It("defaults a non-test package when exported"+
 		" and the package isn't specified", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
+		loadTypesFnMoq.onCall(".", false).
 			returnResults(nil, "", nil)
 
 		gen := generator.New(
 			true,
 			"",
 			"dir/file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -168,15 +168,15 @@ var _ = Describe("MockGen", func() {
 	It("defaults the package to a test name based on the current"+
 		" directory when it isn't specified and not exported", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
+		loadTypesFnMoq.onCall(".", false).
 			returnResults(nil, "", nil)
 
 		gen := generator.New(
 			false,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -189,15 +189,15 @@ var _ = Describe("MockGen", func() {
 	It("defaults the package to a non-test name based on the current"+
 		" directory when it isn't specified and exported", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).
+		loadTypesFnMoq.onCall(".", false).
 			returnResults(nil, "", nil)
 
 		gen := generator.New(
 			true,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -222,7 +222,7 @@ var _ = Describe("MockGen", func() {
 				Path: "io",
 			},
 		})
-		loadTypesFnMock.onCall(".", false).returnResults(
+		loadTypesFnMoq.onCall(".", false).returnResults(
 			[]*dst.TypeSpec{
 				ifaceSpec1,
 				ifaceSpec2,
@@ -230,7 +230,7 @@ var _ = Describe("MockGen", func() {
 			"github.com/myshkin5/moqueries/generator",
 			nil,
 		)
-		loadTypesFnMock.onCall("io", false).
+		loadTypesFnMoq.onCall("io", false).
 			returnResults([]*dst.TypeSpec{readerSpec}, "io", nil)
 		ifaceFuncs := []generator.Func{
 			{Name: "Func1", Params: func1Params},
@@ -240,77 +240,77 @@ var _ = Describe("MockGen", func() {
 				Results: readFnType.Results,
 			},
 		}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
 			returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
 				Name: dst.NewIdent("pub-decl"),
 			}}})
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
+		converterMoq.onCall().IsolationStruct("PublicInterface", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
+		converterMoq.onCall().IsolationStruct("PublicInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
+		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[1]).
+		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[1]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1).
+		converterMoq.onCall().NewFunc(ifaceSpec1).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
+		converterMoq.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[1]).
+		converterMoq.onCall().MockMethod("PublicInterface", ifaceFuncs[1]).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
+		converterMoq.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
+		converterMoq.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[1]).
 			returnResults(nil)
-		converterMock.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
-		converterMock.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
 		iface2Funcs := []generator.Func{{
 			Name:    "Read",
 			Params:  readFnType.Params,
 			Results: readFnType.Results,
 		}}
-		converterMock.onCall().BaseStruct(ifaceSpec2, iface2Funcs).
+		converterMoq.onCall().BaseStruct(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "mock").
+		converterMoq.onCall().IsolationStruct("privateInterface", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "recorder").
+		converterMoq.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec2, iface2Funcs[0]).
+		converterMoq.onCall().MethodStructs(ifaceSpec2, iface2Funcs[0]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2).
+		converterMoq.onCall().NewFunc(ifaceSpec2).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().MockMethod("privateInterface", iface2Funcs[0]).
+		converterMoq.onCall().MockMethod("privateInterface", iface2Funcs[0]).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
+		converterMoq.onCall().RecorderMethods(
 			"privateInterface", iface2Funcs[0]).
 			returnResults(nil)
-		converterMock.onCall().ResetMethod(ifaceSpec2, iface2Funcs).
+		converterMoq.onCall().ResetMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
-		converterMock.onCall().AssertMethod(ifaceSpec2, iface2Funcs).
+		converterMoq.onCall().AssertMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 
 		gen := generator.New(
 			false,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, _, err := gen.Generate(
@@ -322,7 +322,7 @@ var _ = Describe("MockGen", func() {
 
 	It("loads tests types when requested", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", true).
+		loadTypesFnMoq.onCall(".", true).
 			returnResults(
 				[]*dst.TypeSpec{ifaceSpec1, ifaceSpec2},
 				"github.com/myshkin5/moqueries/generator",
@@ -330,57 +330,57 @@ var _ = Describe("MockGen", func() {
 			)
 
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
+		converterMoq.onCall().IsolationStruct("PublicInterface", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
+		converterMoq.onCall().IsolationStruct("PublicInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
+		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1).
+		converterMoq.onCall().NewFunc(ifaceSpec1).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
+		converterMoq.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
+		converterMoq.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
-		converterMock.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
 
-		converterMock.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "mock").
+		converterMoq.onCall().IsolationStruct("privateInterface", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "recorder").
+		converterMoq.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2).
+		converterMoq.onCall().NewFunc(ifaceSpec2).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMock.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
-		converterMock.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
 
 		gen := generator.New(
 			false,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, _, err := gen.Generate(
@@ -392,7 +392,7 @@ var _ = Describe("MockGen", func() {
 
 	It("loads tests types when importing a test package", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(
+		loadTypesFnMoq.onCall(
 			"github.com/myshkin5/moqueries/generator", true).
 			returnResults(
 				[]*dst.TypeSpec{ifaceSpec1, ifaceSpec2},
@@ -400,57 +400,57 @@ var _ = Describe("MockGen", func() {
 				nil)
 
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMock.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "mock").
+		converterMoq.onCall().IsolationStruct("PublicInterface", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("PublicInterface", "recorder").
+		converterMoq.onCall().IsolationStruct("PublicInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
+		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec1).
+		converterMoq.onCall().NewFunc(ifaceSpec1).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
+		converterMoq.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMock.onCall().RecorderMethods(
+		converterMoq.onCall().RecorderMethods(
 			"PublicInterface", ifaceFuncs[0]).
 			returnResults(nil)
-		converterMock.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
-		converterMock.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
 
-		converterMock.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "mock").
+		converterMoq.onCall().IsolationStruct("privateInterface", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationStruct("privateInterface", "recorder").
+		converterMoq.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMock.onCall().NewFunc(ifaceSpec2).
+		converterMoq.onCall().NewFunc(ifaceSpec2).
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
 			returnResults(nil)
-		converterMock.onCall().IsolationAccessor(
+		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMock.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
-		converterMock.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
 
 		gen := generator.New(
 			false,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		_, _, err := gen.Generate(
@@ -464,7 +464,7 @@ var _ = Describe("MockGen", func() {
 
 	It("returns an error when the interface can't be found", func() {
 		// ASSEMBLE
-		loadTypesFnMock.onCall(".", false).returnResults(
+		loadTypesFnMoq.onCall(".", false).returnResults(
 			[]*dst.TypeSpec{{Name: dst.NewIdent("SomethingElseInterface")}},
 			"github.com/myshkin5/moqueries/generator",
 			nil,
@@ -473,8 +473,8 @@ var _ = Describe("MockGen", func() {
 			false,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		fSet, file, err := gen.Generate(
@@ -490,14 +490,14 @@ var _ = Describe("MockGen", func() {
 	It("returns an ast error when the interfaces can't be loaded", func() {
 		// ASSEMBLE
 		loadErr := errors.New("ast is not happy")
-		loadTypesFnMock.onCall(".", false).returnResults(
+		loadTypesFnMoq.onCall(".", false).returnResults(
 			nil, "github.com/myshkin5/moqueries/generator", loadErr)
 		gen := generator.New(
 			false,
 			"",
 			"file_test.go",
-			loadTypesFnMock.mock(),
-			converterMock.mock())
+			loadTypesFnMoq.mock(),
+			converterMoq.mock())
 
 		// ACT
 		fSet, file, err := gen.Generate(

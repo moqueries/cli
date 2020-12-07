@@ -2,65 +2,69 @@ package moq
 
 import "sync/atomic"
 
-// Scene stores a collection of mocks so that they can work together
+// Scene stores a collection of moqs so that they can work together
 type Scene struct {
-	MoqT            MoqT
-	mocks           []Mock
+	T               T
+	moqs            []Moq
 	nextRecorderSeq uint32
 	nextMockSeq     uint32
 }
 
-//go:generate moqueries --destination moq_mock_test.go Mock
+//go:generate moqueries --destination moq_moq_test.go Moq
 
-// Mock is implemented by all mocks so that they can work in a scene
-type Mock interface {
+// Moq is implemented by all moqs so that they can integrate with a scene
+type Moq interface {
 	Reset()
 	AssertExpectationsMet()
 }
 
-//go:generate moqueries --destination moq_testing.go --export MoqT
+//go:generate moqueries --destination moq_testing.go --export T
 
-// MoqT is that interface defining standard library *testing.T methods used by
+// T is the interface defining standard library *testing.T methods used by
 // Moqueries
-type MoqT interface {
+type T interface {
 	Errorf(format string, args ...interface{})
 	Fatalf(format string, args ...interface{})
 }
 
-// NewScene creates a new scene with no mocks
-func NewScene(t MoqT) *Scene {
+// NewScene creates a new empty scene with no moqs
+func NewScene(t T) *Scene {
 	return &Scene{
-		MoqT:            t,
+		T:               t,
 		nextRecorderSeq: 0,
 		nextMockSeq:     0,
 	}
 }
 
-// AddMock adds a mock to a scene
-func (s *Scene) AddMock(m Mock) {
-	s.mocks = append(s.mocks, m)
+// AddMoq adds a moq to a scene
+func (s *Scene) AddMoq(m Moq) {
+	s.moqs = append(s.moqs, m)
 }
 
-// Reset resets the state of all mocks in the scene so that they can be used in
+// Reset resets the state of all moqs in the scene so that they can be used in
 // another test
 func (s *Scene) Reset() {
-	for _, m := range s.mocks {
+	for _, m := range s.moqs {
 		m.Reset()
 	}
 }
 
-// AssertExpectationsMet asserts that all expectations for all mock in the
+// AssertExpectationsMet asserts that all expectations for all moqs in the
 // scene are met
 func (s *Scene) AssertExpectationsMet() {
-	for _, m := range s.mocks {
+	for _, m := range s.moqs {
 		m.AssertExpectationsMet()
 	}
 }
 
+// NextRecorderSequence returns the next sequence value for a recorder when
+// recording expectations
 func (s *Scene) NextRecorderSequence() uint32 {
 	return atomic.AddUint32(&s.nextRecorderSeq, 1)
 }
 
+// NextMockSequence returns the next sequence value when a call is being made
+// to a mock
 func (s *Scene) NextMockSequence() uint32 {
 	return atomic.AddUint32(&s.nextMockSeq, 1)
 }

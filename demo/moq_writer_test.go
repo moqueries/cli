@@ -10,99 +10,99 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// mockWriter holds the state of a mock of the Writer type
-type mockWriter struct {
+// moqWriter holds the state of a moq of the Writer type
+type moqWriter struct {
 	scene                 *moq.Scene
-	config                moq.MockConfig
-	resultsByParams_Write []mockWriter_Write_resultsByParams
+	config                moq.Config
+	resultsByParams_Write []moqWriter_Write_resultsByParams
 }
 
-// mockWriter_mock isolates the mock interface of the Writer type
-type mockWriter_mock struct {
-	mock *mockWriter
+// moqWriter_mock isolates the mock interface of the Writer type
+type moqWriter_mock struct {
+	moq *moqWriter
 }
 
-// mockWriter_recorder isolates the recorder interface of the Writer type
-type mockWriter_recorder struct {
-	mock *mockWriter
+// moqWriter_recorder isolates the recorder interface of the Writer type
+type moqWriter_recorder struct {
+	moq *moqWriter
 }
 
-// mockWriter_Write_params holds the params of the Writer type
-type mockWriter_Write_params struct{ p []byte }
+// moqWriter_Write_params holds the params of the Writer type
+type moqWriter_Write_params struct{ p []byte }
 
-// mockWriter_Write_paramsKey holds the map key params of the Writer type
-type mockWriter_Write_paramsKey struct{ p hash.Hash }
+// moqWriter_Write_paramsKey holds the map key params of the Writer type
+type moqWriter_Write_paramsKey struct{ p hash.Hash }
 
-// mockWriter_Write_resultsByParams contains the results for a given set of parameters for the Writer type
-type mockWriter_Write_resultsByParams struct {
+// moqWriter_Write_resultsByParams contains the results for a given set of parameters for the Writer type
+type moqWriter_Write_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockWriter_Write_paramsKey]*mockWriter_Write_results
+	results   map[moqWriter_Write_paramsKey]*moqWriter_Write_results
 }
 
-// mockWriter_Write_doFn defines the type of function needed when calling andDo for the Writer type
-type mockWriter_Write_doFn func(p []byte)
+// moqWriter_Write_doFn defines the type of function needed when calling andDo for the Writer type
+type moqWriter_Write_doFn func(p []byte)
 
-// mockWriter_Write_doReturnFn defines the type of function needed when calling doReturnResults for the Writer type
-type mockWriter_Write_doReturnFn func(p []byte) (n int, err error)
+// moqWriter_Write_doReturnFn defines the type of function needed when calling doReturnResults for the Writer type
+type moqWriter_Write_doReturnFn func(p []byte) (n int, err error)
 
-// mockWriter_Write_results holds the results of the Writer type
-type mockWriter_Write_results struct {
-	params  mockWriter_Write_params
+// moqWriter_Write_results holds the results of the Writer type
+type moqWriter_Write_results struct {
+	params  moqWriter_Write_params
 	results []struct {
 		values *struct {
 			n   int
 			err error
 		}
 		sequence   uint32
-		doFn       mockWriter_Write_doFn
-		doReturnFn mockWriter_Write_doReturnFn
+		doFn       moqWriter_Write_doFn
+		doReturnFn moqWriter_Write_doReturnFn
 	}
 	index    uint32
 	anyTimes bool
 }
 
-// mockWriter_Write_fnRecorder routes recorded function calls to the mockWriter mock
-type mockWriter_Write_fnRecorder struct {
-	params    mockWriter_Write_params
-	paramsKey mockWriter_Write_paramsKey
+// moqWriter_Write_fnRecorder routes recorded function calls to the moqWriter moq
+type moqWriter_Write_fnRecorder struct {
+	params    moqWriter_Write_params
+	paramsKey moqWriter_Write_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockWriter_Write_results
-	mock      *mockWriter
+	results   *moqWriter_Write_results
+	moq       *moqWriter
 }
 
-// newMockWriter creates a new mock of the Writer type
-func newMockWriter(scene *moq.Scene, config *moq.MockConfig) *mockWriter {
+// newMoqWriter creates a new moq of the Writer type
+func newMoqWriter(scene *moq.Scene, config *moq.Config) *moqWriter {
 	if config == nil {
-		config = &moq.MockConfig{}
+		config = &moq.Config{}
 	}
-	m := &mockWriter{
+	m := &moqWriter{
 		scene:  scene,
 		config: *config,
 	}
-	scene.AddMock(m)
+	scene.AddMoq(m)
 	return m
 }
 
 // mock returns the mock implementation of the Writer type
-func (m *mockWriter) mock() *mockWriter_mock {
-	return &mockWriter_mock{
-		mock: m,
+func (m *moqWriter) mock() *moqWriter_mock {
+	return &moqWriter_mock{
+		moq: m,
 	}
 }
 
-func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
-	params := mockWriter_Write_params{
+func (m *moqWriter_mock) Write(p []byte) (n int, err error) {
+	params := moqWriter_Write_params{
 		p: p,
 	}
-	var results *mockWriter_Write_results
-	for _, resultsByParams := range m.mock.resultsByParams_Write {
+	var results *moqWriter_Write_results
+	for _, resultsByParams := range m.moq.resultsByParams_Write {
 		var pUsed hash.Hash
 		if resultsByParams.anyParams&(1<<0) == 0 {
 			pUsed = hash.DeepHash(p)
 		}
-		paramsKey := mockWriter_Write_paramsKey{
+		paramsKey := moqWriter_Write_paramsKey{
 			p: pUsed,
 		}
 		var ok bool
@@ -112,8 +112,8 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 		}
 	}
 	if results == nil {
-		if m.mock.config.Expectation == moq.Strict {
-			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -121,8 +121,8 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == moq.Strict {
-				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -131,9 +131,9 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 
 	result := results.results[i]
 	if result.sequence != 0 {
-		sequence := m.mock.scene.NextMockSequence()
+		sequence := m.moq.scene.NextMockSequence()
 		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -152,58 +152,58 @@ func (m *mockWriter_mock) Write(p []byte) (n int, err error) {
 }
 
 // onCall returns the recorder implementation of the Writer type
-func (m *mockWriter) onCall() *mockWriter_recorder {
-	return &mockWriter_recorder{
-		mock: m,
+func (m *moqWriter) onCall() *moqWriter_recorder {
+	return &moqWriter_recorder{
+		moq: m,
 	}
 }
 
-func (m *mockWriter_recorder) Write(p []byte) *mockWriter_Write_fnRecorder {
-	return &mockWriter_Write_fnRecorder{
-		params: mockWriter_Write_params{
+func (m *moqWriter_recorder) Write(p []byte) *moqWriter_Write_fnRecorder {
+	return &moqWriter_Write_fnRecorder{
+		params: moqWriter_Write_params{
 			p: p,
 		},
-		paramsKey: mockWriter_Write_paramsKey{
+		paramsKey: moqWriter_Write_paramsKey{
 			p: hash.DeepHash(p),
 		},
-		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
-		mock:     m.mock,
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
 	}
 }
 
-func (r *mockWriter_Write_fnRecorder) anyP() *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) anyP() *moqWriter_Write_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 0
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) seq() *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) seq() *moqWriter_Write_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) noSeq() *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) noSeq() *moqWriter_Write_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) returnResults(n int, err error) *moqWriter_Write_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -212,8 +212,8 @@ func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWrite
 			err error
 		}
 		sequence   uint32
-		doFn       mockWriter_Write_doFn
-		doReturnFn mockWriter_Write_doReturnFn
+		doFn       moqWriter_Write_doFn
+		doReturnFn moqWriter_Write_doReturnFn
 	}{
 		values: &struct {
 			n   int
@@ -227,9 +227,9 @@ func (r *mockWriter_Write_fnRecorder) returnResults(n int, err error) *mockWrite
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) andDo(fn mockWriter_Write_doFn) *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) andDo(fn moqWriter_Write_doFn) *moqWriter_Write_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
 	}
 	last := &r.results.results[len(r.results.results)-1]
@@ -237,12 +237,12 @@ func (r *mockWriter_Write_fnRecorder) andDo(fn mockWriter_Write_doFn) *mockWrite
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) doReturnResults(fn mockWriter_Write_doReturnFn) *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) doReturnResults(fn moqWriter_Write_doReturnFn) *moqWriter_Write_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -251,18 +251,18 @@ func (r *mockWriter_Write_fnRecorder) doReturnResults(fn mockWriter_Write_doRetu
 			err error
 		}
 		sequence   uint32
-		doFn       mockWriter_Write_doFn
-		doReturnFn mockWriter_Write_doReturnFn
+		doFn       moqWriter_Write_doFn
+		doReturnFn moqWriter_Write_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) findResults() {
+func (r *moqWriter_Write_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
-		var results *mockWriter_Write_resultsByParams
-		for n, res := range r.mock.resultsByParams_Write {
+		var results *moqWriter_Write_resultsByParams
+		for n, res := range r.moq.resultsByParams_Write {
 			if res.anyParams == r.anyParams {
 				results = &res
 				break
@@ -272,15 +272,15 @@ func (r *mockWriter_Write_fnRecorder) findResults() {
 			}
 		}
 		if results == nil {
-			results = &mockWriter_Write_resultsByParams{
+			results = &moqWriter_Write_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockWriter_Write_paramsKey]*mockWriter_Write_results{},
+				results:   map[moqWriter_Write_paramsKey]*moqWriter_Write_results{},
 			}
-			r.mock.resultsByParams_Write = append(r.mock.resultsByParams_Write, *results)
-			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_Write) {
-				copy(r.mock.resultsByParams_Write[insertAt+1:], r.mock.resultsByParams_Write[insertAt:0])
-				r.mock.resultsByParams_Write[insertAt] = *results
+			r.moq.resultsByParams_Write = append(r.moq.resultsByParams_Write, *results)
+			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Write) {
+				copy(r.moq.resultsByParams_Write[insertAt+1:], r.moq.resultsByParams_Write[insertAt:0])
+				r.moq.resultsByParams_Write[insertAt] = *results
 			}
 		}
 
@@ -288,14 +288,14 @@ func (r *mockWriter_Write_fnRecorder) findResults() {
 		if r.anyParams&(1<<0) == 0 {
 			pUsed = r.paramsKey.p
 		}
-		paramsKey := mockWriter_Write_paramsKey{
+		paramsKey := moqWriter_Write_paramsKey{
 			p: pUsed,
 		}
 
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockWriter_Write_results{
+			r.results = &moqWriter_Write_results{
 				params:   r.params,
 				results:  nil,
 				index:    0,
@@ -306,9 +306,9 @@ func (r *mockWriter_Write_fnRecorder) findResults() {
 	}
 }
 
-func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) times(count int) *moqWriter_Write_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -320,8 +320,8 @@ func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecor
 					err error
 				}
 				sequence   uint32
-				doFn       mockWriter_Write_doFn
-				doReturnFn mockWriter_Write_doReturnFn
+				doFn       moqWriter_Write_doFn
+				doReturnFn moqWriter_Write_doReturnFn
 			}{
 				values: &struct {
 					n   int
@@ -330,7 +330,7 @@ func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecor
 					n:   last.values.n,
 					err: last.values.err,
 				},
-				sequence: r.mock.scene.NextRecorderSequence(),
+				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
 		r.results.results = append(r.results.results, last)
@@ -338,19 +338,19 @@ func (r *mockWriter_Write_fnRecorder) times(count int) *mockWriter_Write_fnRecor
 	return r
 }
 
-func (r *mockWriter_Write_fnRecorder) anyTimes() {
+func (r *moqWriter_Write_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true
 }
 
-// Reset resets the state of the mock
-func (m *mockWriter) Reset() { m.resultsByParams_Write = nil }
+// Reset resets the state of the moq
+func (m *moqWriter) Reset() { m.resultsByParams_Write = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *mockWriter) AssertExpectationsMet() {
+func (m *moqWriter) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams_Write {
 		for _, results := range res.results {
 			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
@@ -358,7 +358,7 @@ func (m *mockWriter) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
 		}
 	}

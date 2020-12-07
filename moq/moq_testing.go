@@ -9,149 +9,149 @@ import (
 	"github.com/myshkin5/moqueries/hash"
 )
 
-// MockMoqT holds the state of a mock of the MoqT type
-type MockMoqT struct {
+// MoqT holds the state of a moq of the T type
+type MoqT struct {
 	Scene                  *Scene
-	Config                 MockConfig
-	ResultsByParams_Errorf []MockMoqT_Errorf_resultsByParams
-	ResultsByParams_Fatalf []MockMoqT_Fatalf_resultsByParams
+	Config                 Config
+	ResultsByParams_Errorf []MoqT_Errorf_resultsByParams
+	ResultsByParams_Fatalf []MoqT_Fatalf_resultsByParams
 }
 
-// MockMoqT_mock isolates the mock interface of the MoqT type
-type MockMoqT_mock struct {
-	Mock *MockMoqT
+// MoqT_mock isolates the mock interface of the T type
+type MoqT_mock struct {
+	Moq *MoqT
 }
 
-// MockMoqT_recorder isolates the recorder interface of the MoqT type
-type MockMoqT_recorder struct {
-	Mock *MockMoqT
+// MoqT_recorder isolates the recorder interface of the T type
+type MoqT_recorder struct {
+	Moq *MoqT
 }
 
-// MockMoqT_Errorf_params holds the params of the MoqT type
-type MockMoqT_Errorf_params struct {
+// MoqT_Errorf_params holds the params of the T type
+type MoqT_Errorf_params struct {
 	Format string
 	Args   []interface{}
 }
 
-// MockMoqT_Errorf_paramsKey holds the map key params of the MoqT type
-type MockMoqT_Errorf_paramsKey struct {
+// MoqT_Errorf_paramsKey holds the map key params of the T type
+type MoqT_Errorf_paramsKey struct {
 	Format string
 	Args   hash.Hash
 }
 
-// MockMoqT_Errorf_resultsByParams contains the results for a given set of parameters for the MoqT type
-type MockMoqT_Errorf_resultsByParams struct {
+// MoqT_Errorf_resultsByParams contains the results for a given set of parameters for the T type
+type MoqT_Errorf_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
-	Results   map[MockMoqT_Errorf_paramsKey]*MockMoqT_Errorf_results
+	Results   map[MoqT_Errorf_paramsKey]*MoqT_Errorf_results
 }
 
-// MockMoqT_Errorf_doFn defines the type of function needed when calling AndDo for the MoqT type
-type MockMoqT_Errorf_doFn func(format string, args ...interface{})
+// MoqT_Errorf_doFn defines the type of function needed when calling AndDo for the T type
+type MoqT_Errorf_doFn func(format string, args ...interface{})
 
-// MockMoqT_Errorf_doReturnFn defines the type of function needed when calling DoReturnResults for the MoqT type
-type MockMoqT_Errorf_doReturnFn func(format string, args ...interface{})
+// MoqT_Errorf_doReturnFn defines the type of function needed when calling DoReturnResults for the T type
+type MoqT_Errorf_doReturnFn func(format string, args ...interface{})
 
-// MockMoqT_Errorf_results holds the results of the MoqT type
-type MockMoqT_Errorf_results struct {
-	Params  MockMoqT_Errorf_params
+// MoqT_Errorf_results holds the results of the T type
+type MoqT_Errorf_results struct {
+	Params  MoqT_Errorf_params
 	Results []struct {
 		Values *struct {
 		}
 		Sequence   uint32
-		DoFn       MockMoqT_Errorf_doFn
-		DoReturnFn MockMoqT_Errorf_doReturnFn
+		DoFn       MoqT_Errorf_doFn
+		DoReturnFn MoqT_Errorf_doReturnFn
 	}
 	Index    uint32
 	AnyTimes bool
 }
 
-// MockMoqT_Errorf_fnRecorder routes recorded function calls to the MockMoqT mock
-type MockMoqT_Errorf_fnRecorder struct {
-	Params    MockMoqT_Errorf_params
-	ParamsKey MockMoqT_Errorf_paramsKey
+// MoqT_Errorf_fnRecorder routes recorded function calls to the MoqT moq
+type MoqT_Errorf_fnRecorder struct {
+	Params    MoqT_Errorf_params
+	ParamsKey MoqT_Errorf_paramsKey
 	AnyParams uint64
 	Sequence  bool
-	Results   *MockMoqT_Errorf_results
-	Mock      *MockMoqT
+	Results   *MoqT_Errorf_results
+	Moq       *MoqT
 }
 
-// MockMoqT_Fatalf_params holds the params of the MoqT type
-type MockMoqT_Fatalf_params struct {
+// MoqT_Fatalf_params holds the params of the T type
+type MoqT_Fatalf_params struct {
 	Format string
 	Args   []interface{}
 }
 
-// MockMoqT_Fatalf_paramsKey holds the map key params of the MoqT type
-type MockMoqT_Fatalf_paramsKey struct {
+// MoqT_Fatalf_paramsKey holds the map key params of the T type
+type MoqT_Fatalf_paramsKey struct {
 	Format string
 	Args   hash.Hash
 }
 
-// MockMoqT_Fatalf_resultsByParams contains the results for a given set of parameters for the MoqT type
-type MockMoqT_Fatalf_resultsByParams struct {
+// MoqT_Fatalf_resultsByParams contains the results for a given set of parameters for the T type
+type MoqT_Fatalf_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
-	Results   map[MockMoqT_Fatalf_paramsKey]*MockMoqT_Fatalf_results
+	Results   map[MoqT_Fatalf_paramsKey]*MoqT_Fatalf_results
 }
 
-// MockMoqT_Fatalf_doFn defines the type of function needed when calling AndDo for the MoqT type
-type MockMoqT_Fatalf_doFn func(format string, args ...interface{})
+// MoqT_Fatalf_doFn defines the type of function needed when calling AndDo for the T type
+type MoqT_Fatalf_doFn func(format string, args ...interface{})
 
-// MockMoqT_Fatalf_doReturnFn defines the type of function needed when calling DoReturnResults for the MoqT type
-type MockMoqT_Fatalf_doReturnFn func(format string, args ...interface{})
+// MoqT_Fatalf_doReturnFn defines the type of function needed when calling DoReturnResults for the T type
+type MoqT_Fatalf_doReturnFn func(format string, args ...interface{})
 
-// MockMoqT_Fatalf_results holds the results of the MoqT type
-type MockMoqT_Fatalf_results struct {
-	Params  MockMoqT_Fatalf_params
+// MoqT_Fatalf_results holds the results of the T type
+type MoqT_Fatalf_results struct {
+	Params  MoqT_Fatalf_params
 	Results []struct {
 		Values *struct {
 		}
 		Sequence   uint32
-		DoFn       MockMoqT_Fatalf_doFn
-		DoReturnFn MockMoqT_Fatalf_doReturnFn
+		DoFn       MoqT_Fatalf_doFn
+		DoReturnFn MoqT_Fatalf_doReturnFn
 	}
 	Index    uint32
 	AnyTimes bool
 }
 
-// MockMoqT_Fatalf_fnRecorder routes recorded function calls to the MockMoqT mock
-type MockMoqT_Fatalf_fnRecorder struct {
-	Params    MockMoqT_Fatalf_params
-	ParamsKey MockMoqT_Fatalf_paramsKey
+// MoqT_Fatalf_fnRecorder routes recorded function calls to the MoqT moq
+type MoqT_Fatalf_fnRecorder struct {
+	Params    MoqT_Fatalf_params
+	ParamsKey MoqT_Fatalf_paramsKey
 	AnyParams uint64
 	Sequence  bool
-	Results   *MockMoqT_Fatalf_results
-	Mock      *MockMoqT
+	Results   *MoqT_Fatalf_results
+	Moq       *MoqT
 }
 
-// NewMockMoqT creates a new mock of the MoqT type
-func NewMockMoqT(scene *Scene, config *MockConfig) *MockMoqT {
+// NewMoqT creates a new moq of the T type
+func NewMoqT(scene *Scene, config *Config) *MoqT {
 	if config == nil {
-		config = &MockConfig{}
+		config = &Config{}
 	}
-	m := &MockMoqT{
+	m := &MoqT{
 		Scene:  scene,
 		Config: *config,
 	}
-	scene.AddMock(m)
+	scene.AddMoq(m)
 	return m
 }
 
-// Mock returns the mock implementation of the MoqT type
-func (m *MockMoqT) Mock() *MockMoqT_mock {
-	return &MockMoqT_mock{
-		Mock: m,
+// Mock returns the mock implementation of the T type
+func (m *MoqT) Mock() *MoqT_mock {
+	return &MoqT_mock{
+		Moq: m,
 	}
 }
 
-func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
-	params := MockMoqT_Errorf_params{
+func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
+	params := MoqT_Errorf_params{
 		Format: format,
 		Args:   args,
 	}
-	var results *MockMoqT_Errorf_results
-	for _, resultsByParams := range m.Mock.ResultsByParams_Errorf {
+	var results *MoqT_Errorf_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_Errorf {
 		var formatUsed string
 		if resultsByParams.AnyParams&(1<<0) == 0 {
 			formatUsed = format
@@ -160,7 +160,7 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 		if resultsByParams.AnyParams&(1<<1) == 0 {
 			argsUsed = hash.DeepHash(args)
 		}
-		paramsKey := MockMoqT_Errorf_paramsKey{
+		paramsKey := MoqT_Errorf_paramsKey{
 			Format: formatUsed,
 			Args:   argsUsed,
 		}
@@ -171,8 +171,8 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 		}
 	}
 	if results == nil {
-		if m.Mock.Config.Expectation == Strict {
-			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.Moq.Config.Expectation == Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -180,8 +180,8 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
 	if i >= len(results.Results) {
 		if !results.AnyTimes {
-			if m.Mock.Config.Expectation == Strict {
-				m.Mock.Scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.Moq.Config.Expectation == Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -190,9 +190,9 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
-		sequence := m.Mock.Scene.NextMockSequence()
+		sequence := m.Moq.Scene.NextMockSequence()
 		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -206,13 +206,13 @@ func (m *MockMoqT_mock) Errorf(format string, args ...interface{}) {
 	return
 }
 
-func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
-	params := MockMoqT_Fatalf_params{
+func (m *MoqT_mock) Fatalf(format string, args ...interface{}) {
+	params := MoqT_Fatalf_params{
 		Format: format,
 		Args:   args,
 	}
-	var results *MockMoqT_Fatalf_results
-	for _, resultsByParams := range m.Mock.ResultsByParams_Fatalf {
+	var results *MoqT_Fatalf_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_Fatalf {
 		var formatUsed string
 		if resultsByParams.AnyParams&(1<<0) == 0 {
 			formatUsed = format
@@ -221,7 +221,7 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 		if resultsByParams.AnyParams&(1<<1) == 0 {
 			argsUsed = hash.DeepHash(args)
 		}
-		paramsKey := MockMoqT_Fatalf_paramsKey{
+		paramsKey := MoqT_Fatalf_paramsKey{
 			Format: formatUsed,
 			Args:   argsUsed,
 		}
@@ -232,8 +232,8 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 		}
 	}
 	if results == nil {
-		if m.Mock.Config.Expectation == Strict {
-			m.Mock.Scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.Moq.Config.Expectation == Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -241,8 +241,8 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
 	if i >= len(results.Results) {
 		if !results.AnyTimes {
-			if m.Mock.Config.Expectation == Strict {
-				m.Mock.Scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.Moq.Config.Expectation == Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -251,9 +251,9 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
-		sequence := m.Mock.Scene.NextMockSequence()
+		sequence := m.Moq.Scene.NextMockSequence()
 		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Mock.Scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -267,78 +267,78 @@ func (m *MockMoqT_mock) Fatalf(format string, args ...interface{}) {
 	return
 }
 
-// OnCall returns the recorder implementation of the MoqT type
-func (m *MockMoqT) OnCall() *MockMoqT_recorder {
-	return &MockMoqT_recorder{
-		Mock: m,
+// OnCall returns the recorder implementation of the T type
+func (m *MoqT) OnCall() *MoqT_recorder {
+	return &MoqT_recorder{
+		Moq: m,
 	}
 }
 
-func (m *MockMoqT_recorder) Errorf(format string, args ...interface{}) *MockMoqT_Errorf_fnRecorder {
-	return &MockMoqT_Errorf_fnRecorder{
-		Params: MockMoqT_Errorf_params{
+func (m *MoqT_recorder) Errorf(format string, args ...interface{}) *MoqT_Errorf_fnRecorder {
+	return &MoqT_Errorf_fnRecorder{
+		Params: MoqT_Errorf_params{
 			Format: format,
 			Args:   args,
 		},
-		ParamsKey: MockMoqT_Errorf_paramsKey{
+		ParamsKey: MoqT_Errorf_paramsKey{
 			Format: format,
 			Args:   hash.DeepHash(args),
 		},
-		Sequence: m.Mock.Config.Sequence == SeqDefaultOn,
-		Mock:     m.Mock,
+		Sequence: m.Moq.Config.Sequence == SeqDefaultOn,
+		Moq:      m.Moq,
 	}
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) AnyFormat() *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) AnyFormat() *MoqT_Errorf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 0
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) AnyArgs() *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) AnyArgs() *MoqT_Errorf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 1
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) Seq() *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) Seq() *MoqT_Errorf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = true
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) NoSeq() *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) NoSeq() *MoqT_Errorf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = false
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) ReturnResults() *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) ReturnResults() *MoqT_Errorf_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
 	if r.Sequence {
-		sequence = r.Mock.Scene.NextRecorderSequence()
+		sequence = r.Moq.Scene.NextRecorderSequence()
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
 		Values *struct {
 		}
 		Sequence   uint32
-		DoFn       MockMoqT_Errorf_doFn
-		DoReturnFn MockMoqT_Errorf_doReturnFn
+		DoFn       MoqT_Errorf_doFn
+		DoReturnFn MoqT_Errorf_doReturnFn
 	}{
 		Values: &struct {
 		}{},
@@ -347,9 +347,9 @@ func (r *MockMoqT_Errorf_fnRecorder) ReturnResults() *MockMoqT_Errorf_fnRecorder
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) AndDo(fn MockMoqT_Errorf_doFn) *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) AndDo(fn MoqT_Errorf_doFn) *MoqT_Errorf_fnRecorder {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("ReturnResults must be called before calling AndDo")
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
 		return nil
 	}
 	last := &r.Results.Results[len(r.Results.Results)-1]
@@ -357,30 +357,30 @@ func (r *MockMoqT_Errorf_fnRecorder) AndDo(fn MockMoqT_Errorf_doFn) *MockMoqT_Er
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) DoReturnResults(fn MockMoqT_Errorf_doReturnFn) *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) DoReturnResults(fn MoqT_Errorf_doReturnFn) *MoqT_Errorf_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
 	if r.Sequence {
-		sequence = r.Mock.Scene.NextRecorderSequence()
+		sequence = r.Moq.Scene.NextRecorderSequence()
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
 		Values *struct {
 		}
 		Sequence   uint32
-		DoFn       MockMoqT_Errorf_doFn
-		DoReturnFn MockMoqT_Errorf_doReturnFn
+		DoFn       MoqT_Errorf_doFn
+		DoReturnFn MoqT_Errorf_doReturnFn
 	}{Sequence: sequence, DoReturnFn: fn})
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) FindResults() {
+func (r *MoqT_Errorf_fnRecorder) FindResults() {
 	if r.Results == nil {
 		anyCount := bits.OnesCount64(r.AnyParams)
 		insertAt := -1
-		var results *MockMoqT_Errorf_resultsByParams
-		for n, res := range r.Mock.ResultsByParams_Errorf {
+		var results *MoqT_Errorf_resultsByParams
+		for n, res := range r.Moq.ResultsByParams_Errorf {
 			if res.AnyParams == r.AnyParams {
 				results = &res
 				break
@@ -390,15 +390,15 @@ func (r *MockMoqT_Errorf_fnRecorder) FindResults() {
 			}
 		}
 		if results == nil {
-			results = &MockMoqT_Errorf_resultsByParams{
+			results = &MoqT_Errorf_resultsByParams{
 				AnyCount:  anyCount,
 				AnyParams: r.AnyParams,
-				Results:   map[MockMoqT_Errorf_paramsKey]*MockMoqT_Errorf_results{},
+				Results:   map[MoqT_Errorf_paramsKey]*MoqT_Errorf_results{},
 			}
-			r.Mock.ResultsByParams_Errorf = append(r.Mock.ResultsByParams_Errorf, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams_Errorf) {
-				copy(r.Mock.ResultsByParams_Errorf[insertAt+1:], r.Mock.ResultsByParams_Errorf[insertAt:0])
-				r.Mock.ResultsByParams_Errorf[insertAt] = *results
+			r.Moq.ResultsByParams_Errorf = append(r.Moq.ResultsByParams_Errorf, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Errorf) {
+				copy(r.Moq.ResultsByParams_Errorf[insertAt+1:], r.Moq.ResultsByParams_Errorf[insertAt:0])
+				r.Moq.ResultsByParams_Errorf[insertAt] = *results
 			}
 		}
 
@@ -410,7 +410,7 @@ func (r *MockMoqT_Errorf_fnRecorder) FindResults() {
 		if r.AnyParams&(1<<1) == 0 {
 			argsUsed = r.ParamsKey.Args
 		}
-		paramsKey := MockMoqT_Errorf_paramsKey{
+		paramsKey := MoqT_Errorf_paramsKey{
 			Format: formatUsed,
 			Args:   argsUsed,
 		}
@@ -418,7 +418,7 @@ func (r *MockMoqT_Errorf_fnRecorder) FindResults() {
 		var ok bool
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
-			r.Results = &MockMoqT_Errorf_results{
+			r.Results = &MoqT_Errorf_results{
 				Params:   r.Params,
 				Results:  nil,
 				Index:    0,
@@ -429,9 +429,9 @@ func (r *MockMoqT_Errorf_fnRecorder) FindResults() {
 	}
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) Times(count int) *MockMoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) Times(count int) *MoqT_Errorf_fnRecorder {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
 		return nil
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
@@ -441,12 +441,12 @@ func (r *MockMoqT_Errorf_fnRecorder) Times(count int) *MockMoqT_Errorf_fnRecorde
 				Values *struct {
 				}
 				Sequence   uint32
-				DoFn       MockMoqT_Errorf_doFn
-				DoReturnFn MockMoqT_Errorf_doReturnFn
+				DoFn       MoqT_Errorf_doFn
+				DoReturnFn MoqT_Errorf_doReturnFn
 			}{
 				Values: &struct {
 				}{},
-				Sequence: r.Mock.Scene.NextRecorderSequence(),
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
 		r.Results.Results = append(r.Results.Results, last)
@@ -454,79 +454,79 @@ func (r *MockMoqT_Errorf_fnRecorder) Times(count int) *MockMoqT_Errorf_fnRecorde
 	return r
 }
 
-func (r *MockMoqT_Errorf_fnRecorder) AnyTimes() {
+func (r *MoqT_Errorf_fnRecorder) AnyTimes() {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
 		return
 	}
 	r.Results.AnyTimes = true
 }
 
-func (m *MockMoqT_recorder) Fatalf(format string, args ...interface{}) *MockMoqT_Fatalf_fnRecorder {
-	return &MockMoqT_Fatalf_fnRecorder{
-		Params: MockMoqT_Fatalf_params{
+func (m *MoqT_recorder) Fatalf(format string, args ...interface{}) *MoqT_Fatalf_fnRecorder {
+	return &MoqT_Fatalf_fnRecorder{
+		Params: MoqT_Fatalf_params{
 			Format: format,
 			Args:   args,
 		},
-		ParamsKey: MockMoqT_Fatalf_paramsKey{
+		ParamsKey: MoqT_Fatalf_paramsKey{
 			Format: format,
 			Args:   hash.DeepHash(args),
 		},
-		Sequence: m.Mock.Config.Sequence == SeqDefaultOn,
-		Mock:     m.Mock,
+		Sequence: m.Moq.Config.Sequence == SeqDefaultOn,
+		Moq:      m.Moq,
 	}
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) AnyFormat() *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) AnyFormat() *MoqT_Fatalf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 0
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) AnyArgs() *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) AnyArgs() *MoqT_Fatalf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.AnyParams |= 1 << 1
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) Seq() *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) Seq() *MoqT_Fatalf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = true
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) NoSeq() *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) NoSeq() *MoqT_Fatalf_fnRecorder {
 	if r.Results != nil {
-		r.Mock.Scene.MoqT.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
 	r.Sequence = false
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) ReturnResults() *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) ReturnResults() *MoqT_Fatalf_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
 	if r.Sequence {
-		sequence = r.Mock.Scene.NextRecorderSequence()
+		sequence = r.Moq.Scene.NextRecorderSequence()
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
 		Values *struct {
 		}
 		Sequence   uint32
-		DoFn       MockMoqT_Fatalf_doFn
-		DoReturnFn MockMoqT_Fatalf_doReturnFn
+		DoFn       MoqT_Fatalf_doFn
+		DoReturnFn MoqT_Fatalf_doReturnFn
 	}{
 		Values: &struct {
 		}{},
@@ -535,9 +535,9 @@ func (r *MockMoqT_Fatalf_fnRecorder) ReturnResults() *MockMoqT_Fatalf_fnRecorder
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) AndDo(fn MockMoqT_Fatalf_doFn) *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) AndDo(fn MoqT_Fatalf_doFn) *MoqT_Fatalf_fnRecorder {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("ReturnResults must be called before calling AndDo")
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
 		return nil
 	}
 	last := &r.Results.Results[len(r.Results.Results)-1]
@@ -545,30 +545,30 @@ func (r *MockMoqT_Fatalf_fnRecorder) AndDo(fn MockMoqT_Fatalf_doFn) *MockMoqT_Fa
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) DoReturnResults(fn MockMoqT_Fatalf_doReturnFn) *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) DoReturnResults(fn MoqT_Fatalf_doReturnFn) *MoqT_Fatalf_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
 	if r.Sequence {
-		sequence = r.Mock.Scene.NextRecorderSequence()
+		sequence = r.Moq.Scene.NextRecorderSequence()
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
 		Values *struct {
 		}
 		Sequence   uint32
-		DoFn       MockMoqT_Fatalf_doFn
-		DoReturnFn MockMoqT_Fatalf_doReturnFn
+		DoFn       MoqT_Fatalf_doFn
+		DoReturnFn MoqT_Fatalf_doReturnFn
 	}{Sequence: sequence, DoReturnFn: fn})
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) FindResults() {
+func (r *MoqT_Fatalf_fnRecorder) FindResults() {
 	if r.Results == nil {
 		anyCount := bits.OnesCount64(r.AnyParams)
 		insertAt := -1
-		var results *MockMoqT_Fatalf_resultsByParams
-		for n, res := range r.Mock.ResultsByParams_Fatalf {
+		var results *MoqT_Fatalf_resultsByParams
+		for n, res := range r.Moq.ResultsByParams_Fatalf {
 			if res.AnyParams == r.AnyParams {
 				results = &res
 				break
@@ -578,15 +578,15 @@ func (r *MockMoqT_Fatalf_fnRecorder) FindResults() {
 			}
 		}
 		if results == nil {
-			results = &MockMoqT_Fatalf_resultsByParams{
+			results = &MoqT_Fatalf_resultsByParams{
 				AnyCount:  anyCount,
 				AnyParams: r.AnyParams,
-				Results:   map[MockMoqT_Fatalf_paramsKey]*MockMoqT_Fatalf_results{},
+				Results:   map[MoqT_Fatalf_paramsKey]*MoqT_Fatalf_results{},
 			}
-			r.Mock.ResultsByParams_Fatalf = append(r.Mock.ResultsByParams_Fatalf, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Mock.ResultsByParams_Fatalf) {
-				copy(r.Mock.ResultsByParams_Fatalf[insertAt+1:], r.Mock.ResultsByParams_Fatalf[insertAt:0])
-				r.Mock.ResultsByParams_Fatalf[insertAt] = *results
+			r.Moq.ResultsByParams_Fatalf = append(r.Moq.ResultsByParams_Fatalf, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Fatalf) {
+				copy(r.Moq.ResultsByParams_Fatalf[insertAt+1:], r.Moq.ResultsByParams_Fatalf[insertAt:0])
+				r.Moq.ResultsByParams_Fatalf[insertAt] = *results
 			}
 		}
 
@@ -598,7 +598,7 @@ func (r *MockMoqT_Fatalf_fnRecorder) FindResults() {
 		if r.AnyParams&(1<<1) == 0 {
 			argsUsed = r.ParamsKey.Args
 		}
-		paramsKey := MockMoqT_Fatalf_paramsKey{
+		paramsKey := MoqT_Fatalf_paramsKey{
 			Format: formatUsed,
 			Args:   argsUsed,
 		}
@@ -606,7 +606,7 @@ func (r *MockMoqT_Fatalf_fnRecorder) FindResults() {
 		var ok bool
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
-			r.Results = &MockMoqT_Fatalf_results{
+			r.Results = &MoqT_Fatalf_results{
 				Params:   r.Params,
 				Results:  nil,
 				Index:    0,
@@ -617,9 +617,9 @@ func (r *MockMoqT_Fatalf_fnRecorder) FindResults() {
 	}
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) Times(count int) *MockMoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) Times(count int) *MoqT_Fatalf_fnRecorder {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
 		return nil
 	}
 	last := r.Results.Results[len(r.Results.Results)-1]
@@ -629,12 +629,12 @@ func (r *MockMoqT_Fatalf_fnRecorder) Times(count int) *MockMoqT_Fatalf_fnRecorde
 				Values *struct {
 				}
 				Sequence   uint32
-				DoFn       MockMoqT_Fatalf_doFn
-				DoReturnFn MockMoqT_Fatalf_doReturnFn
+				DoFn       MoqT_Fatalf_doFn
+				DoReturnFn MoqT_Fatalf_doReturnFn
 			}{
 				Values: &struct {
 				}{},
-				Sequence: r.Mock.Scene.NextRecorderSequence(),
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
 		r.Results.Results = append(r.Results.Results, last)
@@ -642,19 +642,19 @@ func (r *MockMoqT_Fatalf_fnRecorder) Times(count int) *MockMoqT_Fatalf_fnRecorde
 	return r
 }
 
-func (r *MockMoqT_Fatalf_fnRecorder) AnyTimes() {
+func (r *MoqT_Fatalf_fnRecorder) AnyTimes() {
 	if r.Results == nil {
-		r.Mock.Scene.MoqT.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
 		return
 	}
 	r.Results.AnyTimes = true
 }
 
-// Reset resets the state of the mock
-func (m *MockMoqT) Reset() { m.ResultsByParams_Errorf = nil; m.ResultsByParams_Fatalf = nil }
+// Reset resets the state of the moq
+func (m *MoqT) Reset() { m.ResultsByParams_Errorf = nil; m.ResultsByParams_Fatalf = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *MockMoqT) AssertExpectationsMet() {
+func (m *MoqT) AssertExpectationsMet() {
 	for _, res := range m.ResultsByParams_Errorf {
 		for _, results := range res.Results {
 			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
@@ -662,7 +662,7 @@ func (m *MockMoqT) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
 		}
 	}
@@ -673,7 +673,7 @@ func (m *MockMoqT) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.Scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
 		}
 	}

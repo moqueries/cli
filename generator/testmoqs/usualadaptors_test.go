@@ -1,13 +1,13 @@
-package testmocks_test
+package testmoqs_test
 
 import (
 	. "github.com/onsi/gomega"
 
-	"github.com/myshkin5/moqueries/generator/testmocks/exported"
+	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
 	"github.com/myshkin5/moqueries/moq"
 )
 
-type usualAdaptor struct{ m *mockUsual }
+type usualAdaptor struct{ m *moqUsual }
 
 func (a *usualAdaptor) exported() bool { return false }
 
@@ -28,14 +28,14 @@ func (a *usualAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool,
 }
 
 func (a *usualAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockUsual_Usual_params{sParam: sParams[0], bParam: bParam}
+	return moqUsual_Usual_params{sParam: sParams[0], bParam: bParam}
 }
 
-func (a *usualAdaptor) sceneMock() moq.Mock {
+func (a *usualAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type usualRecorder struct{ r *mockUsual_Usual_fnRecorder }
+type usualRecorder struct{ r *moqUsual_Usual_fnRecorder }
 
 func (r *usualRecorder) anySParam() {
 	r.r = r.r.anySParam()
@@ -88,7 +88,7 @@ func (r *usualRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedUsualAdaptor struct{ m *exported.MockUsual }
+type exportedUsualAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedUsualAdaptor) exported() bool { return true }
 
@@ -109,15 +109,15 @@ func (a *exportedUsualAdaptor) invokeMockAndExpectResults(sParams []string, bPar
 }
 
 func (a *exportedUsualAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockUsual_Usual_params{SParam: sParams[0], BParam: bParam}
+	return exported.MoqUsual_Usual_params{SParam: sParams[0], BParam: bParam}
 }
 
-func (a *exportedUsualAdaptor) sceneMock() moq.Mock {
+func (a *exportedUsualAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedUsualRecorder struct {
-	r *exported.MockUsual_Usual_fnRecorder
+	r *exported.MoqUsual_Usual_fnRecorder
 }
 
 func (r *exportedUsualRecorder) anySParam() {
@@ -171,7 +171,7 @@ func (r *exportedUsualRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type noNamesAdaptor struct{ m *mockUsual }
+type noNamesAdaptor struct{ m *moqUsual }
 
 func (a *noNamesAdaptor) exported() bool { return false }
 
@@ -192,14 +192,14 @@ func (a *noNamesAdaptor) invokeMockAndExpectResults(sParams []string, bParam boo
 }
 
 func (a *noNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockUsual_NoNames_params{param1: sParams[0], param2: bParam}
+	return moqUsual_NoNames_params{param1: sParams[0], param2: bParam}
 }
 
-func (a *noNamesAdaptor) sceneMock() moq.Mock {
+func (a *noNamesAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type noNamesRecorder struct{ r *mockUsual_NoNames_fnRecorder }
+type noNamesRecorder struct{ r *moqUsual_NoNames_fnRecorder }
 
 func (r *noNamesRecorder) anySParam() {
 	r.r = r.r.anyParam1()
@@ -252,7 +252,7 @@ func (r *noNamesRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNoNamesAdaptor struct{ m *exported.MockUsual }
+type exportedNoNamesAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedNoNamesAdaptor) exported() bool { return true }
 
@@ -273,15 +273,15 @@ func (a *exportedNoNamesAdaptor) invokeMockAndExpectResults(sParams []string, bP
 }
 
 func (a *exportedNoNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockUsual_NoNames_params{Param1: sParams[0], Param2: bParam}
+	return exported.MoqUsual_NoNames_params{Param1: sParams[0], Param2: bParam}
 }
 
-func (a *exportedNoNamesAdaptor) sceneMock() moq.Mock {
+func (a *exportedNoNamesAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedNoNamesRecorder struct {
-	r *exported.MockUsual_NoNames_fnRecorder
+	r *exported.MoqUsual_NoNames_fnRecorder
 }
 
 func (r *exportedNoNamesRecorder) anySParam() {
@@ -335,7 +335,7 @@ func (r *exportedNoNamesRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type noResultsAdaptor struct{ m *mockUsual }
+type noResultsAdaptor struct{ m *moqUsual }
 
 func (a *noResultsAdaptor) exported() bool { return false }
 
@@ -350,15 +350,15 @@ func (a *noResultsAdaptor) invokeMockAndExpectResults(sParams []string, bParam b
 }
 
 func (a *noResultsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockUsual_NoResults_params{sParam: sParams[0], bParam: bParam}
+	return moqUsual_NoResults_params{sParam: sParams[0], bParam: bParam}
 }
 
-func (a *noResultsAdaptor) sceneMock() moq.Mock {
+func (a *noResultsAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type noResultsRecorder struct {
-	r *mockUsual_NoResults_fnRecorder
+	r *moqUsual_NoResults_fnRecorder
 }
 
 func (r *noResultsRecorder) anySParam() {
@@ -390,7 +390,7 @@ func (r *noResultsRecorder) andDo(fn func(), expectedSParams []string, expectedB
 }
 
 func (r *noResultsRecorder) doReturnResults(
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) {
 		fn()
 		Expect(sParam).To(Equal(expectedSParams[0]))
@@ -411,7 +411,7 @@ func (r *noResultsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNoResultsAdaptor struct{ m *exported.MockUsual }
+type exportedNoResultsAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedNoResultsAdaptor) exported() bool { return true }
 
@@ -426,15 +426,15 @@ func (a *exportedNoResultsAdaptor) invokeMockAndExpectResults(sParams []string, 
 }
 
 func (a *exportedNoResultsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockUsual_NoResults_params{SParam: sParams[0], BParam: bParam}
+	return exported.MoqUsual_NoResults_params{SParam: sParams[0], BParam: bParam}
 }
 
-func (a *exportedNoResultsAdaptor) sceneMock() moq.Mock {
+func (a *exportedNoResultsAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedNoResultsRecorder struct {
-	r *exported.MockUsual_NoResults_fnRecorder
+	r *exported.MoqUsual_NoResults_fnRecorder
 }
 
 func (r *exportedNoResultsRecorder) anySParam() {
@@ -466,7 +466,7 @@ func (r *exportedNoResultsRecorder) andDo(fn func(), expectedSParams []string, e
 }
 
 func (r *exportedNoResultsRecorder) doReturnResults(
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) {
 		fn()
 		Expect(sParam).To(Equal(expectedSParams[0]))
@@ -487,7 +487,7 @@ func (r *exportedNoResultsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type noParamsAdaptor struct{ m *mockUsual }
+type noParamsAdaptor struct{ m *moqUsual }
 
 func (a *noParamsAdaptor) exported() bool { return false }
 
@@ -508,15 +508,15 @@ func (a *noParamsAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res res
 }
 
 func (a *noParamsAdaptor) bundleParams([]string, bool) interface{} {
-	return mockUsual_NoParams_params{}
+	return moqUsual_NoParams_params{}
 }
 
-func (a *noParamsAdaptor) sceneMock() moq.Mock {
+func (a *noParamsAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type noParamsRecorder struct {
-	r *mockUsual_NoParams_fnRecorder
+	r *moqUsual_NoParams_fnRecorder
 }
 
 func (r *noParamsRecorder) anySParam() {}
@@ -535,14 +535,14 @@ func (r *noParamsRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
-func (r *noParamsRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *noParamsRecorder) andDo(fn func(), _ []string, _ bool) {
 	r.r = r.r.andDo(func() {
 		fn()
 	})
 }
 
 func (r *noParamsRecorder) doReturnResults(
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	fn func(), _ []string, _ bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func() (string, error) {
 		fn()
 		return sResults[0], err
@@ -562,7 +562,7 @@ func (r *noParamsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNoParamsAdaptor struct{ m *exported.MockUsual }
+type exportedNoParamsAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedNoParamsAdaptor) exported() bool { return true }
 
@@ -583,15 +583,15 @@ func (a *exportedNoParamsAdaptor) invokeMockAndExpectResults(_ []string, _ bool,
 }
 
 func (a *exportedNoParamsAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MockUsual_NoParams_params{}
+	return exported.MoqUsual_NoParams_params{}
 }
 
-func (a *exportedNoParamsAdaptor) sceneMock() moq.Mock {
+func (a *exportedNoParamsAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedNoParamsRecorder struct {
-	r *exported.MockUsual_NoParams_fnRecorder
+	r *exported.MoqUsual_NoParams_fnRecorder
 }
 
 func (r *exportedNoParamsRecorder) anySParam() {}
@@ -610,14 +610,14 @@ func (r *exportedNoParamsRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
-func (r *exportedNoParamsRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedNoParamsRecorder) andDo(fn func(), _ []string, _ bool) {
 	r.r = r.r.AndDo(func() {
 		fn()
 	})
 }
 
 func (r *exportedNoParamsRecorder) doReturnResults(
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	fn func(), _ []string, _ bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func() (string, error) {
 		fn()
 		return sResults[0], err
@@ -637,7 +637,7 @@ func (r *exportedNoParamsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type nothingAdaptor struct{ m *mockUsual }
+type nothingAdaptor struct{ m *moqUsual }
 
 func (a *nothingAdaptor) exported() bool { return false }
 
@@ -652,14 +652,14 @@ func (a *nothingAdaptor) invokeMockAndExpectResults([]string, bool, results) {
 }
 
 func (a *nothingAdaptor) bundleParams([]string, bool) interface{} {
-	return mockUsual_Nothing_params{}
+	return moqUsual_Nothing_params{}
 }
 
-func (a *nothingAdaptor) sceneMock() moq.Mock {
+func (a *nothingAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type nothingRecorder struct{ r *mockUsual_Nothing_fnRecorder }
+type nothingRecorder struct{ r *moqUsual_Nothing_fnRecorder }
 
 func (r *nothingRecorder) anySParam() {}
 
@@ -677,14 +677,14 @@ func (r *nothingRecorder) returnResults([]string, error) {
 	r.r = r.r.returnResults()
 }
 
-func (r *nothingRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *nothingRecorder) andDo(fn func(), _ []string, _ bool) {
 	r.r = r.r.andDo(func() {
 		fn()
 	})
 }
 
 func (r *nothingRecorder) doReturnResults(
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	fn func(), _ []string, _ bool, _ []string, _ error) {
 	r.r = r.r.doReturnResults(func() {
 		fn()
 	})
@@ -703,7 +703,7 @@ func (r *nothingRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNothingAdaptor struct{ m *exported.MockUsual }
+type exportedNothingAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedNothingAdaptor) exported() bool { return true }
 
@@ -718,15 +718,15 @@ func (a *exportedNothingAdaptor) invokeMockAndExpectResults([]string, bool, resu
 }
 
 func (a *exportedNothingAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MockUsual_Nothing_params{}
+	return exported.MoqUsual_Nothing_params{}
 }
 
-func (a *exportedNothingAdaptor) sceneMock() moq.Mock {
+func (a *exportedNothingAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedNothingRecorder struct {
-	r *exported.MockUsual_Nothing_fnRecorder
+	r *exported.MoqUsual_Nothing_fnRecorder
 }
 
 func (r *exportedNothingRecorder) anySParam() {}
@@ -745,14 +745,14 @@ func (r *exportedNothingRecorder) returnResults([]string, error) {
 	r.r = r.r.ReturnResults()
 }
 
-func (r *exportedNothingRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedNothingRecorder) andDo(fn func(), _ []string, _ bool) {
 	r.r = r.r.AndDo(func() {
 		fn()
 	})
 }
 
 func (r *exportedNothingRecorder) doReturnResults(
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	fn func(), _ []string, _ bool, _ []string, _ error) {
 	r.r = r.r.DoReturnResults(func() {
 		fn()
 	})
@@ -771,7 +771,7 @@ func (r *exportedNothingRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type variadicAdaptor struct{ m *mockUsual }
+type variadicAdaptor struct{ m *moqUsual }
 
 func (a *variadicAdaptor) exported() bool { return false }
 
@@ -792,15 +792,15 @@ func (a *variadicAdaptor) invokeMockAndExpectResults(sParams []string, bParam bo
 }
 
 func (a *variadicAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockUsual_Variadic_params{args: sParams, other: bParam}
+	return moqUsual_Variadic_params{args: sParams, other: bParam}
 }
 
-func (a *variadicAdaptor) sceneMock() moq.Mock {
+func (a *variadicAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type variadicRecorder struct {
-	r *mockUsual_Variadic_fnRecorder
+	r *moqUsual_Variadic_fnRecorder
 }
 
 func (r *variadicRecorder) anySParam() {
@@ -856,7 +856,7 @@ func (r *variadicRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedVariadicAdaptor struct{ m *exported.MockUsual }
+type exportedVariadicAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedVariadicAdaptor) exported() bool { return true }
 
@@ -866,7 +866,8 @@ func (a *exportedVariadicAdaptor) newRecorder(sParams []string, bParam bool) rec
 	return &exportedVariadicRecorder{r: a.m.OnCall().Variadic(bParam, sParams...)}
 }
 
-func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(
+	sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock().Variadic(bParam, sParams...)
 	Expect(sResult).To(Equal(res.sResults[0]))
 	if res.err == nil {
@@ -877,15 +878,15 @@ func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(sParams []string, b
 }
 
 func (a *exportedVariadicAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockUsual_Variadic_params{Args: sParams, Other: bParam}
+	return exported.MoqUsual_Variadic_params{Args: sParams, Other: bParam}
 }
 
-func (a *exportedVariadicAdaptor) sceneMock() moq.Mock {
+func (a *exportedVariadicAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedVariadicRecorder struct {
-	r *exported.MockUsual_Variadic_fnRecorder
+	r *exported.MoqUsual_Variadic_fnRecorder
 }
 
 func (r *exportedVariadicRecorder) anySParam() {
@@ -941,7 +942,7 @@ func (r *exportedVariadicRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type repeatedIdsAdaptor struct{ m *mockUsual }
+type repeatedIdsAdaptor struct{ m *moqUsual }
 
 func (a *repeatedIdsAdaptor) exported() bool { return false }
 
@@ -963,15 +964,15 @@ func (a *repeatedIdsAdaptor) invokeMockAndExpectResults(sParams []string, bParam
 }
 
 func (a *repeatedIdsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return mockUsual_RepeatedIds_params{sParam1: sParams[0], sParam2: sParams[1], bParam: bParam}
+	return moqUsual_RepeatedIds_params{sParam1: sParams[0], sParam2: sParams[1], bParam: bParam}
 }
 
-func (a *repeatedIdsAdaptor) sceneMock() moq.Mock {
+func (a *repeatedIdsAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type repeatedIdsRecorder struct {
-	r *mockUsual_RepeatedIds_fnRecorder
+	r *moqUsual_RepeatedIds_fnRecorder
 }
 
 func (r *repeatedIdsRecorder) anySParam() {
@@ -1027,7 +1028,7 @@ func (r *repeatedIdsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedRepeatedIdsAdaptor struct{ m *exported.MockUsual }
+type exportedRepeatedIdsAdaptor struct{ m *exported.MoqUsual }
 
 func (a *exportedRepeatedIdsAdaptor) exported() bool { return true }
 
@@ -1049,15 +1050,15 @@ func (a *exportedRepeatedIdsAdaptor) invokeMockAndExpectResults(sParams []string
 }
 
 func (a *exportedRepeatedIdsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MockUsual_RepeatedIds_params{SParam1: sParams[0], SParam2: sParams[1], BParam: bParam}
+	return exported.MoqUsual_RepeatedIds_params{SParam1: sParams[0], SParam2: sParams[1], BParam: bParam}
 }
 
-func (a *exportedRepeatedIdsAdaptor) sceneMock() moq.Mock {
+func (a *exportedRepeatedIdsAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
 type exportedRepeatedIdsRecorder struct {
-	r *exported.MockUsual_RepeatedIds_fnRecorder
+	r *exported.MoqUsual_RepeatedIds_fnRecorder
 }
 
 func (r *exportedRepeatedIdsRecorder) anySParam() {

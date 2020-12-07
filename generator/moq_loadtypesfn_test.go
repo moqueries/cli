@@ -11,47 +11,47 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// mockLoadTypesFn holds the state of a mock of the LoadTypesFn type
-type mockLoadTypesFn struct {
+// moqLoadTypesFn holds the state of a moq of the LoadTypesFn type
+type moqLoadTypesFn struct {
 	scene           *moq.Scene
-	config          moq.MockConfig
-	resultsByParams []mockLoadTypesFn_resultsByParams
+	config          moq.Config
+	resultsByParams []moqLoadTypesFn_resultsByParams
 }
 
-// mockLoadTypesFn_mock isolates the mock interface of the LoadTypesFn type
-type mockLoadTypesFn_mock struct {
-	mock *mockLoadTypesFn
+// moqLoadTypesFn_mock isolates the mock interface of the LoadTypesFn type
+type moqLoadTypesFn_mock struct {
+	moq *moqLoadTypesFn
 }
 
-// mockLoadTypesFn_params holds the params of the LoadTypesFn type
-type mockLoadTypesFn_params struct {
+// moqLoadTypesFn_params holds the params of the LoadTypesFn type
+type moqLoadTypesFn_params struct {
 	pkg           string
 	loadTestTypes bool
 }
 
-// mockLoadTypesFn_paramsKey holds the map key params of the LoadTypesFn type
-type mockLoadTypesFn_paramsKey struct {
+// moqLoadTypesFn_paramsKey holds the map key params of the LoadTypesFn type
+type moqLoadTypesFn_paramsKey struct {
 	pkg           string
 	loadTestTypes bool
 }
 
-// mockLoadTypesFn_resultsByParams contains the results for a given set of parameters for the LoadTypesFn type
-type mockLoadTypesFn_resultsByParams struct {
+// moqLoadTypesFn_resultsByParams contains the results for a given set of parameters for the LoadTypesFn type
+type moqLoadTypesFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockLoadTypesFn_paramsKey]*mockLoadTypesFn_results
+	results   map[moqLoadTypesFn_paramsKey]*moqLoadTypesFn_results
 }
 
-// mockLoadTypesFn_doFn defines the type of function needed when calling andDo for the LoadTypesFn type
-type mockLoadTypesFn_doFn func(pkg string, loadTestTypes bool)
+// moqLoadTypesFn_doFn defines the type of function needed when calling andDo for the LoadTypesFn type
+type moqLoadTypesFn_doFn func(pkg string, loadTestTypes bool)
 
-// mockLoadTypesFn_doReturnFn defines the type of function needed when calling doReturnResults for the LoadTypesFn type
-type mockLoadTypesFn_doReturnFn func(pkg string, loadTestTypes bool) (
+// moqLoadTypesFn_doReturnFn defines the type of function needed when calling doReturnResults for the LoadTypesFn type
+type moqLoadTypesFn_doReturnFn func(pkg string, loadTestTypes bool) (
 	typeSpecs []*dst.TypeSpec, pkgPath string, err error)
 
-// mockLoadTypesFn_results holds the results of the LoadTypesFn type
-type mockLoadTypesFn_results struct {
-	params  mockLoadTypesFn_params
+// moqLoadTypesFn_results holds the results of the LoadTypesFn type
+type moqLoadTypesFn_results struct {
+	params  moqLoadTypesFn_params
 	results []struct {
 		values *struct {
 			typeSpecs []*dst.TypeSpec
@@ -59,53 +59,53 @@ type mockLoadTypesFn_results struct {
 			err       error
 		}
 		sequence   uint32
-		doFn       mockLoadTypesFn_doFn
-		doReturnFn mockLoadTypesFn_doReturnFn
+		doFn       moqLoadTypesFn_doFn
+		doReturnFn moqLoadTypesFn_doReturnFn
 	}
 	index    uint32
 	anyTimes bool
 }
 
-// mockLoadTypesFn_fnRecorder routes recorded function calls to the mockLoadTypesFn mock
-type mockLoadTypesFn_fnRecorder struct {
-	params    mockLoadTypesFn_params
-	paramsKey mockLoadTypesFn_paramsKey
+// moqLoadTypesFn_fnRecorder routes recorded function calls to the moqLoadTypesFn moq
+type moqLoadTypesFn_fnRecorder struct {
+	params    moqLoadTypesFn_params
+	paramsKey moqLoadTypesFn_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockLoadTypesFn_results
-	mock      *mockLoadTypesFn
+	results   *moqLoadTypesFn_results
+	moq       *moqLoadTypesFn
 }
 
-// newMockLoadTypesFn creates a new mock of the LoadTypesFn type
-func newMockLoadTypesFn(scene *moq.Scene, config *moq.MockConfig) *mockLoadTypesFn {
+// newMoqLoadTypesFn creates a new moq of the LoadTypesFn type
+func newMoqLoadTypesFn(scene *moq.Scene, config *moq.Config) *moqLoadTypesFn {
 	if config == nil {
-		config = &moq.MockConfig{}
+		config = &moq.Config{}
 	}
-	m := &mockLoadTypesFn{
+	m := &moqLoadTypesFn{
 		scene:  scene,
 		config: *config,
 	}
-	scene.AddMock(m)
+	scene.AddMoq(m)
 	return m
 }
 
-// mock returns the mock implementation of the LoadTypesFn type
-func (m *mockLoadTypesFn) mock() generator.LoadTypesFn {
+// mock returns the moq implementation of the LoadTypesFn type
+func (m *moqLoadTypesFn) mock() generator.LoadTypesFn {
 	return func(pkg string, loadTestTypes bool) (
 		typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
-		mock := &mockLoadTypesFn_mock{mock: m}
-		return mock.fn(pkg, loadTestTypes)
+		moq := &moqLoadTypesFn_mock{moq: m}
+		return moq.fn(pkg, loadTestTypes)
 	}
 }
 
-func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
+func (m *moqLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 	typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
-	params := mockLoadTypesFn_params{
+	params := moqLoadTypesFn_params{
 		pkg:           pkg,
 		loadTestTypes: loadTestTypes,
 	}
-	var results *mockLoadTypesFn_results
-	for _, resultsByParams := range m.mock.resultsByParams {
+	var results *moqLoadTypesFn_results
+	for _, resultsByParams := range m.moq.resultsByParams {
 		var pkgUsed string
 		if resultsByParams.anyParams&(1<<0) == 0 {
 			pkgUsed = pkg
@@ -114,7 +114,7 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 		if resultsByParams.anyParams&(1<<1) == 0 {
 			loadTestTypesUsed = loadTestTypes
 		}
-		paramsKey := mockLoadTypesFn_paramsKey{
+		paramsKey := moqLoadTypesFn_paramsKey{
 			pkg:           pkgUsed,
 			loadTestTypes: loadTestTypesUsed,
 		}
@@ -125,8 +125,8 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 		}
 	}
 	if results == nil {
-		if m.mock.config.Expectation == moq.Strict {
-			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -134,8 +134,8 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == moq.Strict {
-				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -144,9 +144,9 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 
 	result := results.results[i]
 	if result.sequence != 0 {
-		sequence := m.mock.scene.NextMockSequence()
+		sequence := m.moq.scene.NextMockSequence()
 		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -165,64 +165,64 @@ func (m *mockLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 	return
 }
 
-func (m *mockLoadTypesFn) onCall(pkg string, loadTestTypes bool) *mockLoadTypesFn_fnRecorder {
-	return &mockLoadTypesFn_fnRecorder{
-		params: mockLoadTypesFn_params{
+func (m *moqLoadTypesFn) onCall(pkg string, loadTestTypes bool) *moqLoadTypesFn_fnRecorder {
+	return &moqLoadTypesFn_fnRecorder{
+		params: moqLoadTypesFn_params{
 			pkg:           pkg,
 			loadTestTypes: loadTestTypes,
 		},
-		paramsKey: mockLoadTypesFn_paramsKey{
+		paramsKey: moqLoadTypesFn_paramsKey{
 			pkg:           pkg,
 			loadTestTypes: loadTestTypes,
 		},
 		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		mock:     m,
+		moq:      m,
 	}
 }
 
-func (r *mockLoadTypesFn_fnRecorder) anyPkg() *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) anyPkg() *moqLoadTypesFn_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 0
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) anyLoadTestTypes() *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) anyLoadTestTypes() *moqLoadTypesFn_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 1
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) seq() *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) seq() *moqLoadTypesFn_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) noSeq() *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) noSeq() *moqLoadTypesFn_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) returnResults(
-	typeSpecs []*dst.TypeSpec, pkgPath string, err error) *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) returnResults(
+	typeSpecs []*dst.TypeSpec, pkgPath string, err error) *moqLoadTypesFn_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -232,8 +232,8 @@ func (r *mockLoadTypesFn_fnRecorder) returnResults(
 			err       error
 		}
 		sequence   uint32
-		doFn       mockLoadTypesFn_doFn
-		doReturnFn mockLoadTypesFn_doReturnFn
+		doFn       moqLoadTypesFn_doFn
+		doReturnFn moqLoadTypesFn_doReturnFn
 	}{
 		values: &struct {
 			typeSpecs []*dst.TypeSpec
@@ -249,9 +249,9 @@ func (r *mockLoadTypesFn_fnRecorder) returnResults(
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) andDo(fn mockLoadTypesFn_doFn) *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) andDo(fn moqLoadTypesFn_doFn) *moqLoadTypesFn_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
 	}
 	last := &r.results.results[len(r.results.results)-1]
@@ -259,12 +259,12 @@ func (r *mockLoadTypesFn_fnRecorder) andDo(fn mockLoadTypesFn_doFn) *mockLoadTyp
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) doReturnResults(fn mockLoadTypesFn_doReturnFn) *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) doReturnResults(fn moqLoadTypesFn_doReturnFn) *moqLoadTypesFn_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -274,18 +274,18 @@ func (r *mockLoadTypesFn_fnRecorder) doReturnResults(fn mockLoadTypesFn_doReturn
 			err       error
 		}
 		sequence   uint32
-		doFn       mockLoadTypesFn_doFn
-		doReturnFn mockLoadTypesFn_doReturnFn
+		doFn       moqLoadTypesFn_doFn
+		doReturnFn moqLoadTypesFn_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) findResults() {
+func (r *moqLoadTypesFn_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
-		var results *mockLoadTypesFn_resultsByParams
-		for n, res := range r.mock.resultsByParams {
+		var results *moqLoadTypesFn_resultsByParams
+		for n, res := range r.moq.resultsByParams {
 			if res.anyParams == r.anyParams {
 				results = &res
 				break
@@ -295,15 +295,15 @@ func (r *mockLoadTypesFn_fnRecorder) findResults() {
 			}
 		}
 		if results == nil {
-			results = &mockLoadTypesFn_resultsByParams{
+			results = &moqLoadTypesFn_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockLoadTypesFn_paramsKey]*mockLoadTypesFn_results{},
+				results:   map[moqLoadTypesFn_paramsKey]*moqLoadTypesFn_results{},
 			}
-			r.mock.resultsByParams = append(r.mock.resultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams) {
-				copy(r.mock.resultsByParams[insertAt+1:], r.mock.resultsByParams[insertAt:0])
-				r.mock.resultsByParams[insertAt] = *results
+			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+				copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+				r.moq.resultsByParams[insertAt] = *results
 			}
 		}
 
@@ -315,7 +315,7 @@ func (r *mockLoadTypesFn_fnRecorder) findResults() {
 		if r.anyParams&(1<<1) == 0 {
 			loadTestTypesUsed = r.paramsKey.loadTestTypes
 		}
-		paramsKey := mockLoadTypesFn_paramsKey{
+		paramsKey := moqLoadTypesFn_paramsKey{
 			pkg:           pkgUsed,
 			loadTestTypes: loadTestTypesUsed,
 		}
@@ -323,7 +323,7 @@ func (r *mockLoadTypesFn_fnRecorder) findResults() {
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockLoadTypesFn_results{
+			r.results = &moqLoadTypesFn_results{
 				params:   r.params,
 				results:  nil,
 				index:    0,
@@ -334,9 +334,9 @@ func (r *mockLoadTypesFn_fnRecorder) findResults() {
 	}
 }
 
-func (r *mockLoadTypesFn_fnRecorder) times(count int) *mockLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) times(count int) *moqLoadTypesFn_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -349,8 +349,8 @@ func (r *mockLoadTypesFn_fnRecorder) times(count int) *mockLoadTypesFn_fnRecorde
 					err       error
 				}
 				sequence   uint32
-				doFn       mockLoadTypesFn_doFn
-				doReturnFn mockLoadTypesFn_doReturnFn
+				doFn       moqLoadTypesFn_doFn
+				doReturnFn moqLoadTypesFn_doReturnFn
 			}{
 				values: &struct {
 					typeSpecs []*dst.TypeSpec
@@ -361,7 +361,7 @@ func (r *mockLoadTypesFn_fnRecorder) times(count int) *mockLoadTypesFn_fnRecorde
 					pkgPath:   last.values.pkgPath,
 					err:       last.values.err,
 				},
-				sequence: r.mock.scene.NextRecorderSequence(),
+				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
 		r.results.results = append(r.results.results, last)
@@ -369,19 +369,19 @@ func (r *mockLoadTypesFn_fnRecorder) times(count int) *mockLoadTypesFn_fnRecorde
 	return r
 }
 
-func (r *mockLoadTypesFn_fnRecorder) anyTimes() {
+func (r *moqLoadTypesFn_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true
 }
 
-// Reset resets the state of the mock
-func (m *mockLoadTypesFn) Reset() { m.resultsByParams = nil }
+// Reset resets the state of the moq
+func (m *moqLoadTypesFn) Reset() { m.resultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *mockLoadTypesFn) AssertExpectationsMet() {
+func (m *moqLoadTypesFn) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams {
 		for _, results := range res.results {
 			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
@@ -389,7 +389,7 @@ func (m *mockLoadTypesFn) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
 		}
 	}

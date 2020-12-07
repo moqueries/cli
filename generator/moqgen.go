@@ -20,7 +20,7 @@ const (
 
 //go:generate moqueries --destination moq_converterer_test.go Converterer
 
-// Converterer is the interface used by MockGenerator to invoke a Converter
+// Converterer is the interface used by MoqGenerator to invoke a Converter
 type Converterer interface {
 	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
 	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
@@ -34,8 +34,8 @@ type Converterer interface {
 	AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
 }
 
-// MockGenerator generates mocks
-type MockGenerator struct {
+// MoqGenerator generates moqs
+type MoqGenerator struct {
 	export      bool
 	pkg         string
 	dest        string
@@ -49,14 +49,14 @@ type MockGenerator struct {
 type LoadTypesFn func(pkg string, loadTestTypes bool) (
 	typeSpecs []*dst.TypeSpec, pkgPath string, err error)
 
-// New returns a new MockGenerator
+// New returns a new MoqGenerator
 func New(
 	export bool,
 	pkg, dest string,
 	loadTypesFn LoadTypesFn,
 	converter Converterer,
-) *MockGenerator {
-	return &MockGenerator{
+) *MoqGenerator {
+	return &MoqGenerator{
 		export:      export,
 		pkg:         pkg,
 		dest:        dest,
@@ -65,8 +65,8 @@ func New(
 	}
 }
 
-// Generate generates mocks for the given types in the given destination package
-func (g *MockGenerator) Generate(inTypes []string, imp string, testImp bool) (
+// Generate generates moqs for the given types in the given destination package
+func (g *MoqGenerator) Generate(inTypes []string, imp string, testImp bool) (
 	*token.FileSet,
 	*dst.File,
 	error,
@@ -114,7 +114,7 @@ func (g *MockGenerator) Generate(inTypes []string, imp string, testImp bool) (
 	return fSet, file, err
 }
 
-func (g *MockGenerator) defaultPackage() (string, error) {
+func (g *MoqGenerator) defaultPackage() (string, error) {
 	pkg := g.pkg
 	var err error
 	if pkg == "" {
@@ -149,7 +149,7 @@ func initializeFile(pkg string) (*token.FileSet, *dst.File, error) {
 	return fSet, file, nil
 }
 
-func (g *MockGenerator) findTypes(
+func (g *MoqGenerator) findTypes(
 	inTypes []string,
 	pkg string,
 	loadTestTypes bool,
@@ -186,7 +186,7 @@ func (g *MockGenerator) findTypes(
 
 const testPkgSuffix = "_test"
 
-func (g *MockGenerator) loadTypes(pkg string, loadTestTypes bool) (
+func (g *MoqGenerator) loadTypes(pkg string, loadTestTypes bool) (
 	[]*dst.TypeSpec, string, error,
 ) {
 	if strings.HasSuffix(pkg, testPkgSuffix) {
@@ -196,7 +196,7 @@ func (g *MockGenerator) loadTypes(pkg string, loadTestTypes bool) (
 	return g.loadTypesFn(pkg, loadTestTypes)
 }
 
-func (g *MockGenerator) findFuncs(
+func (g *MoqGenerator) findFuncs(
 	typeSpec *dst.TypeSpec,
 	typesByIdent map[string]*dst.TypeSpec,
 ) ([]Func, error) {
@@ -216,7 +216,7 @@ func (g *MockGenerator) findFuncs(
 	}
 }
 
-func (g *MockGenerator) loadNestedInterfaces(
+func (g *MoqGenerator) loadNestedInterfaces(
 	iType *dst.InterfaceType,
 	typesByIdent map[string]*dst.TypeSpec) ([]Func, error) {
 	var funcs []Func
@@ -256,7 +256,7 @@ func (g *MockGenerator) loadNestedInterfaces(
 	return funcs, nil
 }
 
-func (g *MockGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl {
+func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl {
 	decls := []dst.Decl{
 		g.converter.BaseStruct(typeSpec, funcs),
 		g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent),
@@ -274,7 +274,7 @@ func (g *MockGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl
 	return decls
 }
 
-func (g *MockGenerator) methods(
+func (g *MoqGenerator) methods(
 	typeSpec *dst.TypeSpec, pkgPath string, funcs []Func,
 ) []dst.Decl {
 	var decls []dst.Decl
@@ -300,7 +300,7 @@ func (g *MockGenerator) methods(
 		}
 	case *dst.FuncType:
 		if len(funcs) != 1 {
-			logs.Panicf("Function mocks should have just one function, found: %d",
+			logs.Panicf("Function moqs should have just one function, found: %d",
 				len(funcs))
 		}
 

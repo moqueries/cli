@@ -28,19 +28,23 @@ func init() {
 	rootCmd.PersistentFlags().Bool(debugFlag, false,
 		"If true, debugging output will be logged")
 	rootCmd.PersistentFlags().Bool(exportFlag, false,
-		"If true, mocks will be exported and accessible from other packages")
+		"If true, generated mocks will be exported and accessible from other packages")
 
 	rootCmd.PersistentFlags().String(destinationFlag, "",
-		"File path where mocks are generated relative to directory containing generate directive")
+		"The file path where mocks are generated relative to the directory "+
+			"containing the generate directive (or relative to the current directory)")
 	err := rootCmd.MarkPersistentFlagRequired(destinationFlag)
 	if err != nil {
 		logs.Panic("Error configuring required flag", err)
 	}
 
 	rootCmd.PersistentFlags().String(packageFlag, "",
-		"Package generated code will be created in (defaults to <destination dir>_test)")
+		"The package to generate code into (defaults to the test package of the "+
+			"destination directory when --export=false or the package of the "+
+			"destination directory when --export=true)")
 	rootCmd.PersistentFlags().String(importFlag, ".",
-		"Package containing interface to be mocked (defaults to directory containing generate directive)")
+		"The package containing the type (interface or function type) to be "+
+			"mocked (defaults to the directory containing generate directive)")
 	rootCmd.PersistentFlags().Bool(testImportFlag, false,
 		"Look for the types to be mocked in the test package")
 }

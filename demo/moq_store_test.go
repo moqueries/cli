@@ -10,191 +10,191 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// mockStore holds the state of a mock of the Store type
-type mockStore struct {
+// moqStore holds the state of a moq of the Store type
+type moqStore struct {
 	scene                                  *moq.Scene
-	config                                 moq.MockConfig
-	resultsByParams_AllWidgetsIds          []mockStore_AllWidgetsIds_resultsByParams
-	resultsByParams_GadgetsByWidgetId      []mockStore_GadgetsByWidgetId_resultsByParams
-	resultsByParams_LightGadgetsByWidgetId []mockStore_LightGadgetsByWidgetId_resultsByParams
+	config                                 moq.Config
+	resultsByParams_AllWidgetsIds          []moqStore_AllWidgetsIds_resultsByParams
+	resultsByParams_GadgetsByWidgetId      []moqStore_GadgetsByWidgetId_resultsByParams
+	resultsByParams_LightGadgetsByWidgetId []moqStore_LightGadgetsByWidgetId_resultsByParams
 }
 
-// mockStore_mock isolates the mock interface of the Store type
-type mockStore_mock struct {
-	mock *mockStore
+// moqStore_mock isolates the mock interface of the Store type
+type moqStore_mock struct {
+	moq *moqStore
 }
 
-// mockStore_recorder isolates the recorder interface of the Store type
-type mockStore_recorder struct {
-	mock *mockStore
+// moqStore_recorder isolates the recorder interface of the Store type
+type moqStore_recorder struct {
+	moq *moqStore
 }
 
-// mockStore_AllWidgetsIds_params holds the params of the Store type
-type mockStore_AllWidgetsIds_params struct{}
+// moqStore_AllWidgetsIds_params holds the params of the Store type
+type moqStore_AllWidgetsIds_params struct{}
 
-// mockStore_AllWidgetsIds_paramsKey holds the map key params of the Store type
-type mockStore_AllWidgetsIds_paramsKey struct{}
+// moqStore_AllWidgetsIds_paramsKey holds the map key params of the Store type
+type moqStore_AllWidgetsIds_paramsKey struct{}
 
-// mockStore_AllWidgetsIds_resultsByParams contains the results for a given set of parameters for the Store type
-type mockStore_AllWidgetsIds_resultsByParams struct {
+// moqStore_AllWidgetsIds_resultsByParams contains the results for a given set of parameters for the Store type
+type moqStore_AllWidgetsIds_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockStore_AllWidgetsIds_paramsKey]*mockStore_AllWidgetsIds_results
+	results   map[moqStore_AllWidgetsIds_paramsKey]*moqStore_AllWidgetsIds_results
 }
 
-// mockStore_AllWidgetsIds_doFn defines the type of function needed when calling andDo for the Store type
-type mockStore_AllWidgetsIds_doFn func()
+// moqStore_AllWidgetsIds_doFn defines the type of function needed when calling andDo for the Store type
+type moqStore_AllWidgetsIds_doFn func()
 
-// mockStore_AllWidgetsIds_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
-type mockStore_AllWidgetsIds_doReturnFn func() ([]int, error)
+// moqStore_AllWidgetsIds_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
+type moqStore_AllWidgetsIds_doReturnFn func() ([]int, error)
 
-// mockStore_AllWidgetsIds_results holds the results of the Store type
-type mockStore_AllWidgetsIds_results struct {
-	params  mockStore_AllWidgetsIds_params
+// moqStore_AllWidgetsIds_results holds the results of the Store type
+type moqStore_AllWidgetsIds_results struct {
+	params  moqStore_AllWidgetsIds_params
 	results []struct {
 		values *struct {
 			result1 []int
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_AllWidgetsIds_doFn
-		doReturnFn mockStore_AllWidgetsIds_doReturnFn
+		doFn       moqStore_AllWidgetsIds_doFn
+		doReturnFn moqStore_AllWidgetsIds_doReturnFn
 	}
 	index    uint32
 	anyTimes bool
 }
 
-// mockStore_AllWidgetsIds_fnRecorder routes recorded function calls to the mockStore mock
-type mockStore_AllWidgetsIds_fnRecorder struct {
-	params    mockStore_AllWidgetsIds_params
-	paramsKey mockStore_AllWidgetsIds_paramsKey
+// moqStore_AllWidgetsIds_fnRecorder routes recorded function calls to the moqStore moq
+type moqStore_AllWidgetsIds_fnRecorder struct {
+	params    moqStore_AllWidgetsIds_params
+	paramsKey moqStore_AllWidgetsIds_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockStore_AllWidgetsIds_results
-	mock      *mockStore
+	results   *moqStore_AllWidgetsIds_results
+	moq       *moqStore
 }
 
-// mockStore_GadgetsByWidgetId_params holds the params of the Store type
-type mockStore_GadgetsByWidgetId_params struct{ widgetId int }
+// moqStore_GadgetsByWidgetId_params holds the params of the Store type
+type moqStore_GadgetsByWidgetId_params struct{ widgetId int }
 
-// mockStore_GadgetsByWidgetId_paramsKey holds the map key params of the Store type
-type mockStore_GadgetsByWidgetId_paramsKey struct{ widgetId int }
+// moqStore_GadgetsByWidgetId_paramsKey holds the map key params of the Store type
+type moqStore_GadgetsByWidgetId_paramsKey struct{ widgetId int }
 
-// mockStore_GadgetsByWidgetId_resultsByParams contains the results for a given set of parameters for the Store type
-type mockStore_GadgetsByWidgetId_resultsByParams struct {
+// moqStore_GadgetsByWidgetId_resultsByParams contains the results for a given set of parameters for the Store type
+type moqStore_GadgetsByWidgetId_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockStore_GadgetsByWidgetId_paramsKey]*mockStore_GadgetsByWidgetId_results
+	results   map[moqStore_GadgetsByWidgetId_paramsKey]*moqStore_GadgetsByWidgetId_results
 }
 
-// mockStore_GadgetsByWidgetId_doFn defines the type of function needed when calling andDo for the Store type
-type mockStore_GadgetsByWidgetId_doFn func(widgetId int)
+// moqStore_GadgetsByWidgetId_doFn defines the type of function needed when calling andDo for the Store type
+type moqStore_GadgetsByWidgetId_doFn func(widgetId int)
 
-// mockStore_GadgetsByWidgetId_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
-type mockStore_GadgetsByWidgetId_doReturnFn func(widgetId int) ([]demo.Gadget, error)
+// moqStore_GadgetsByWidgetId_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
+type moqStore_GadgetsByWidgetId_doReturnFn func(widgetId int) ([]demo.Gadget, error)
 
-// mockStore_GadgetsByWidgetId_results holds the results of the Store type
-type mockStore_GadgetsByWidgetId_results struct {
-	params  mockStore_GadgetsByWidgetId_params
+// moqStore_GadgetsByWidgetId_results holds the results of the Store type
+type moqStore_GadgetsByWidgetId_results struct {
+	params  moqStore_GadgetsByWidgetId_params
 	results []struct {
 		values *struct {
 			result1 []demo.Gadget
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_GadgetsByWidgetId_doFn
-		doReturnFn mockStore_GadgetsByWidgetId_doReturnFn
+		doFn       moqStore_GadgetsByWidgetId_doFn
+		doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
 	}
 	index    uint32
 	anyTimes bool
 }
 
-// mockStore_GadgetsByWidgetId_fnRecorder routes recorded function calls to the mockStore mock
-type mockStore_GadgetsByWidgetId_fnRecorder struct {
-	params    mockStore_GadgetsByWidgetId_params
-	paramsKey mockStore_GadgetsByWidgetId_paramsKey
+// moqStore_GadgetsByWidgetId_fnRecorder routes recorded function calls to the moqStore moq
+type moqStore_GadgetsByWidgetId_fnRecorder struct {
+	params    moqStore_GadgetsByWidgetId_params
+	paramsKey moqStore_GadgetsByWidgetId_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockStore_GadgetsByWidgetId_results
-	mock      *mockStore
+	results   *moqStore_GadgetsByWidgetId_results
+	moq       *moqStore
 }
 
-// mockStore_LightGadgetsByWidgetId_params holds the params of the Store type
-type mockStore_LightGadgetsByWidgetId_params struct {
+// moqStore_LightGadgetsByWidgetId_params holds the params of the Store type
+type moqStore_LightGadgetsByWidgetId_params struct {
 	widgetId  int
 	maxWeight uint32
 }
 
-// mockStore_LightGadgetsByWidgetId_paramsKey holds the map key params of the Store type
-type mockStore_LightGadgetsByWidgetId_paramsKey struct {
+// moqStore_LightGadgetsByWidgetId_paramsKey holds the map key params of the Store type
+type moqStore_LightGadgetsByWidgetId_paramsKey struct {
 	widgetId  int
 	maxWeight uint32
 }
 
-// mockStore_LightGadgetsByWidgetId_resultsByParams contains the results for a given set of parameters for the Store type
-type mockStore_LightGadgetsByWidgetId_resultsByParams struct {
+// moqStore_LightGadgetsByWidgetId_resultsByParams contains the results for a given set of parameters for the Store type
+type moqStore_LightGadgetsByWidgetId_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[mockStore_LightGadgetsByWidgetId_paramsKey]*mockStore_LightGadgetsByWidgetId_results
+	results   map[moqStore_LightGadgetsByWidgetId_paramsKey]*moqStore_LightGadgetsByWidgetId_results
 }
 
-// mockStore_LightGadgetsByWidgetId_doFn defines the type of function needed when calling andDo for the Store type
-type mockStore_LightGadgetsByWidgetId_doFn func(widgetId int, maxWeight uint32)
+// moqStore_LightGadgetsByWidgetId_doFn defines the type of function needed when calling andDo for the Store type
+type moqStore_LightGadgetsByWidgetId_doFn func(widgetId int, maxWeight uint32)
 
-// mockStore_LightGadgetsByWidgetId_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
-type mockStore_LightGadgetsByWidgetId_doReturnFn func(widgetId int, maxWeight uint32) ([]demo.Gadget, error)
+// moqStore_LightGadgetsByWidgetId_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
+type moqStore_LightGadgetsByWidgetId_doReturnFn func(widgetId int, maxWeight uint32) ([]demo.Gadget, error)
 
-// mockStore_LightGadgetsByWidgetId_results holds the results of the Store type
-type mockStore_LightGadgetsByWidgetId_results struct {
-	params  mockStore_LightGadgetsByWidgetId_params
+// moqStore_LightGadgetsByWidgetId_results holds the results of the Store type
+type moqStore_LightGadgetsByWidgetId_results struct {
+	params  moqStore_LightGadgetsByWidgetId_params
 	results []struct {
 		values *struct {
 			result1 []demo.Gadget
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_LightGadgetsByWidgetId_doFn
-		doReturnFn mockStore_LightGadgetsByWidgetId_doReturnFn
+		doFn       moqStore_LightGadgetsByWidgetId_doFn
+		doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
 	}
 	index    uint32
 	anyTimes bool
 }
 
-// mockStore_LightGadgetsByWidgetId_fnRecorder routes recorded function calls to the mockStore mock
-type mockStore_LightGadgetsByWidgetId_fnRecorder struct {
-	params    mockStore_LightGadgetsByWidgetId_params
-	paramsKey mockStore_LightGadgetsByWidgetId_paramsKey
+// moqStore_LightGadgetsByWidgetId_fnRecorder routes recorded function calls to the moqStore moq
+type moqStore_LightGadgetsByWidgetId_fnRecorder struct {
+	params    moqStore_LightGadgetsByWidgetId_params
+	paramsKey moqStore_LightGadgetsByWidgetId_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *mockStore_LightGadgetsByWidgetId_results
-	mock      *mockStore
+	results   *moqStore_LightGadgetsByWidgetId_results
+	moq       *moqStore
 }
 
-// newMockStore creates a new mock of the Store type
-func newMockStore(scene *moq.Scene, config *moq.MockConfig) *mockStore {
+// newMoqStore creates a new moq of the Store type
+func newMoqStore(scene *moq.Scene, config *moq.Config) *moqStore {
 	if config == nil {
-		config = &moq.MockConfig{}
+		config = &moq.Config{}
 	}
-	m := &mockStore{
+	m := &moqStore{
 		scene:  scene,
 		config: *config,
 	}
-	scene.AddMock(m)
+	scene.AddMoq(m)
 	return m
 }
 
 // mock returns the mock implementation of the Store type
-func (m *mockStore) mock() *mockStore_mock {
-	return &mockStore_mock{
-		mock: m,
+func (m *moqStore) mock() *moqStore_mock {
+	return &moqStore_mock{
+		moq: m,
 	}
 }
 
-func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
-	params := mockStore_AllWidgetsIds_params{}
-	var results *mockStore_AllWidgetsIds_results
-	for _, resultsByParams := range m.mock.resultsByParams_AllWidgetsIds {
-		paramsKey := mockStore_AllWidgetsIds_paramsKey{}
+func (m *moqStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
+	params := moqStore_AllWidgetsIds_params{}
+	var results *moqStore_AllWidgetsIds_results
+	for _, resultsByParams := range m.moq.resultsByParams_AllWidgetsIds {
+		paramsKey := moqStore_AllWidgetsIds_paramsKey{}
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -202,8 +202,8 @@ func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 		}
 	}
 	if results == nil {
-		if m.mock.config.Expectation == moq.Strict {
-			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -211,8 +211,8 @@ func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == moq.Strict {
-				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -221,9 +221,9 @@ func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 
 	result := results.results[i]
 	if result.sequence != 0 {
-		sequence := m.mock.scene.NextMockSequence()
+		sequence := m.moq.scene.NextMockSequence()
 		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -241,17 +241,17 @@ func (m *mockStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 	return
 }
 
-func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget, result2 error) {
-	params := mockStore_GadgetsByWidgetId_params{
+func (m *moqStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget, result2 error) {
+	params := moqStore_GadgetsByWidgetId_params{
 		widgetId: widgetId,
 	}
-	var results *mockStore_GadgetsByWidgetId_results
-	for _, resultsByParams := range m.mock.resultsByParams_GadgetsByWidgetId {
+	var results *moqStore_GadgetsByWidgetId_results
+	for _, resultsByParams := range m.moq.resultsByParams_GadgetsByWidgetId {
 		var widgetIdUsed int
 		if resultsByParams.anyParams&(1<<0) == 0 {
 			widgetIdUsed = widgetId
 		}
-		paramsKey := mockStore_GadgetsByWidgetId_paramsKey{
+		paramsKey := moqStore_GadgetsByWidgetId_paramsKey{
 			widgetId: widgetIdUsed,
 		}
 		var ok bool
@@ -261,8 +261,8 @@ func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget,
 		}
 	}
 	if results == nil {
-		if m.mock.config.Expectation == moq.Strict {
-			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -270,8 +270,8 @@ func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget,
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == moq.Strict {
-				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -280,9 +280,9 @@ func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget,
 
 	result := results.results[i]
 	if result.sequence != 0 {
-		sequence := m.mock.scene.NextMockSequence()
+		sequence := m.moq.scene.NextMockSequence()
 		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -300,13 +300,13 @@ func (m *mockStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget,
 	return
 }
 
-func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) (result1 []demo.Gadget, result2 error) {
-	params := mockStore_LightGadgetsByWidgetId_params{
+func (m *moqStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) (result1 []demo.Gadget, result2 error) {
+	params := moqStore_LightGadgetsByWidgetId_params{
 		widgetId:  widgetId,
 		maxWeight: maxWeight,
 	}
-	var results *mockStore_LightGadgetsByWidgetId_results
-	for _, resultsByParams := range m.mock.resultsByParams_LightGadgetsByWidgetId {
+	var results *moqStore_LightGadgetsByWidgetId_results
+	for _, resultsByParams := range m.moq.resultsByParams_LightGadgetsByWidgetId {
 		var widgetIdUsed int
 		if resultsByParams.anyParams&(1<<0) == 0 {
 			widgetIdUsed = widgetId
@@ -315,7 +315,7 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 		if resultsByParams.anyParams&(1<<1) == 0 {
 			maxWeightUsed = maxWeight
 		}
-		paramsKey := mockStore_LightGadgetsByWidgetId_paramsKey{
+		paramsKey := moqStore_LightGadgetsByWidgetId_paramsKey{
 			widgetId:  widgetIdUsed,
 			maxWeight: maxWeightUsed,
 		}
@@ -326,8 +326,8 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 		}
 	}
 	if results == nil {
-		if m.mock.config.Expectation == moq.Strict {
-			m.mock.scene.MoqT.Fatalf("Unexpected call with parameters %#v", params)
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
 		return
 	}
@@ -335,8 +335,8 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
 	if i >= len(results.results) {
 		if !results.anyTimes {
-			if m.mock.config.Expectation == moq.Strict {
-				m.mock.scene.MoqT.Fatalf("Too many calls to mock with parameters %#v", params)
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
@@ -345,9 +345,9 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 
 	result := results.results[i]
 	if result.sequence != 0 {
-		sequence := m.mock.scene.NextMockSequence()
+		sequence := m.moq.scene.NextMockSequence()
 		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.mock.scene.MoqT.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
 
@@ -366,45 +366,45 @@ func (m *mockStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) 
 }
 
 // onCall returns the recorder implementation of the Store type
-func (m *mockStore) onCall() *mockStore_recorder {
-	return &mockStore_recorder{
-		mock: m,
+func (m *moqStore) onCall() *moqStore_recorder {
+	return &moqStore_recorder{
+		moq: m,
 	}
 }
 
-func (m *mockStore_recorder) AllWidgetsIds() *mockStore_AllWidgetsIds_fnRecorder {
-	return &mockStore_AllWidgetsIds_fnRecorder{
-		params:    mockStore_AllWidgetsIds_params{},
-		paramsKey: mockStore_AllWidgetsIds_paramsKey{},
-		sequence:  m.mock.config.Sequence == moq.SeqDefaultOn,
-		mock:      m.mock,
+func (m *moqStore_recorder) AllWidgetsIds() *moqStore_AllWidgetsIds_fnRecorder {
+	return &moqStore_AllWidgetsIds_fnRecorder{
+		params:    moqStore_AllWidgetsIds_params{},
+		paramsKey: moqStore_AllWidgetsIds_paramsKey{},
+		sequence:  m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:       m.moq,
 	}
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) seq() *mockStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) seq() *moqStore_AllWidgetsIds_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
 	return r
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) noSeq() *mockStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) noSeq() *moqStore_AllWidgetsIds_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
 	return r
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result2 error) *mockStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result2 error) *moqStore_AllWidgetsIds_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -413,8 +413,8 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_AllWidgetsIds_doFn
-		doReturnFn mockStore_AllWidgetsIds_doReturnFn
+		doFn       moqStore_AllWidgetsIds_doFn
+		doReturnFn moqStore_AllWidgetsIds_doReturnFn
 	}{
 		values: &struct {
 			result1 []int
@@ -428,9 +428,9 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result
 	return r
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) andDo(fn mockStore_AllWidgetsIds_doFn) *mockStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) andDo(fn moqStore_AllWidgetsIds_doFn) *moqStore_AllWidgetsIds_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
 	}
 	last := &r.results.results[len(r.results.results)-1]
@@ -438,12 +438,12 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) andDo(fn mockStore_AllWidgetsIds_do
 	return r
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) doReturnResults(fn mockStore_AllWidgetsIds_doReturnFn) *mockStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) doReturnResults(fn moqStore_AllWidgetsIds_doReturnFn) *moqStore_AllWidgetsIds_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -452,18 +452,18 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) doReturnResults(fn mockStore_AllWid
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_AllWidgetsIds_doFn
-		doReturnFn mockStore_AllWidgetsIds_doReturnFn
+		doFn       moqStore_AllWidgetsIds_doFn
+		doReturnFn moqStore_AllWidgetsIds_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) findResults() {
+func (r *moqStore_AllWidgetsIds_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
-		var results *mockStore_AllWidgetsIds_resultsByParams
-		for n, res := range r.mock.resultsByParams_AllWidgetsIds {
+		var results *moqStore_AllWidgetsIds_resultsByParams
+		for n, res := range r.moq.resultsByParams_AllWidgetsIds {
 			if res.anyParams == r.anyParams {
 				results = &res
 				break
@@ -473,24 +473,24 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) findResults() {
 			}
 		}
 		if results == nil {
-			results = &mockStore_AllWidgetsIds_resultsByParams{
+			results = &moqStore_AllWidgetsIds_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockStore_AllWidgetsIds_paramsKey]*mockStore_AllWidgetsIds_results{},
+				results:   map[moqStore_AllWidgetsIds_paramsKey]*moqStore_AllWidgetsIds_results{},
 			}
-			r.mock.resultsByParams_AllWidgetsIds = append(r.mock.resultsByParams_AllWidgetsIds, *results)
-			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_AllWidgetsIds) {
-				copy(r.mock.resultsByParams_AllWidgetsIds[insertAt+1:], r.mock.resultsByParams_AllWidgetsIds[insertAt:0])
-				r.mock.resultsByParams_AllWidgetsIds[insertAt] = *results
+			r.moq.resultsByParams_AllWidgetsIds = append(r.moq.resultsByParams_AllWidgetsIds, *results)
+			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_AllWidgetsIds) {
+				copy(r.moq.resultsByParams_AllWidgetsIds[insertAt+1:], r.moq.resultsByParams_AllWidgetsIds[insertAt:0])
+				r.moq.resultsByParams_AllWidgetsIds[insertAt] = *results
 			}
 		}
 
-		paramsKey := mockStore_AllWidgetsIds_paramsKey{}
+		paramsKey := moqStore_AllWidgetsIds_paramsKey{}
 
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockStore_AllWidgetsIds_results{
+			r.results = &moqStore_AllWidgetsIds_results{
 				params:   r.params,
 				results:  nil,
 				index:    0,
@@ -501,9 +501,9 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) findResults() {
 	}
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) times(count int) *mockStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) times(count int) *moqStore_AllWidgetsIds_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -515,8 +515,8 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) times(count int) *mockStore_AllWidg
 					result2 error
 				}
 				sequence   uint32
-				doFn       mockStore_AllWidgetsIds_doFn
-				doReturnFn mockStore_AllWidgetsIds_doReturnFn
+				doFn       moqStore_AllWidgetsIds_doFn
+				doReturnFn moqStore_AllWidgetsIds_doReturnFn
 			}{
 				values: &struct {
 					result1 []int
@@ -525,7 +525,7 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) times(count int) *mockStore_AllWidg
 					result1: last.values.result1,
 					result2: last.values.result2,
 				},
-				sequence: r.mock.scene.NextRecorderSequence(),
+				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
 		r.results.results = append(r.results.results, last)
@@ -533,60 +533,60 @@ func (r *mockStore_AllWidgetsIds_fnRecorder) times(count int) *mockStore_AllWidg
 	return r
 }
 
-func (r *mockStore_AllWidgetsIds_fnRecorder) anyTimes() {
+func (r *moqStore_AllWidgetsIds_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true
 }
 
-func (m *mockStore_recorder) GadgetsByWidgetId(widgetId int) *mockStore_GadgetsByWidgetId_fnRecorder {
-	return &mockStore_GadgetsByWidgetId_fnRecorder{
-		params: mockStore_GadgetsByWidgetId_params{
+func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByWidgetId_fnRecorder {
+	return &moqStore_GadgetsByWidgetId_fnRecorder{
+		params: moqStore_GadgetsByWidgetId_params{
 			widgetId: widgetId,
 		},
-		paramsKey: mockStore_GadgetsByWidgetId_paramsKey{
+		paramsKey: moqStore_GadgetsByWidgetId_paramsKey{
 			widgetId: widgetId,
 		},
-		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
-		mock:     m.mock,
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
 	}
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) anyWidgetId() *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) anyWidgetId() *moqStore_GadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 0
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) seq() *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) seq() *moqStore_GadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) noSeq() *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) noSeq() *moqStore_GadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Gadget, result2 error) *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Gadget, result2 error) *moqStore_GadgetsByWidgetId_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -595,8 +595,8 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Ga
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_GadgetsByWidgetId_doFn
-		doReturnFn mockStore_GadgetsByWidgetId_doReturnFn
+		doFn       moqStore_GadgetsByWidgetId_doFn
+		doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
 	}{
 		values: &struct {
 			result1 []demo.Gadget
@@ -610,9 +610,9 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Ga
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) andDo(fn mockStore_GadgetsByWidgetId_doFn) *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) andDo(fn moqStore_GadgetsByWidgetId_doFn) *moqStore_GadgetsByWidgetId_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
 	}
 	last := &r.results.results[len(r.results.results)-1]
@@ -620,12 +620,12 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) andDo(fn mockStore_GadgetsByWid
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) doReturnResults(fn mockStore_GadgetsByWidgetId_doReturnFn) *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) doReturnResults(fn moqStore_GadgetsByWidgetId_doReturnFn) *moqStore_GadgetsByWidgetId_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -634,18 +634,18 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) doReturnResults(fn mockStore_Ga
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_GadgetsByWidgetId_doFn
-		doReturnFn mockStore_GadgetsByWidgetId_doReturnFn
+		doFn       moqStore_GadgetsByWidgetId_doFn
+		doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) findResults() {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
-		var results *mockStore_GadgetsByWidgetId_resultsByParams
-		for n, res := range r.mock.resultsByParams_GadgetsByWidgetId {
+		var results *moqStore_GadgetsByWidgetId_resultsByParams
+		for n, res := range r.moq.resultsByParams_GadgetsByWidgetId {
 			if res.anyParams == r.anyParams {
 				results = &res
 				break
@@ -655,15 +655,15 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) findResults() {
 			}
 		}
 		if results == nil {
-			results = &mockStore_GadgetsByWidgetId_resultsByParams{
+			results = &moqStore_GadgetsByWidgetId_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockStore_GadgetsByWidgetId_paramsKey]*mockStore_GadgetsByWidgetId_results{},
+				results:   map[moqStore_GadgetsByWidgetId_paramsKey]*moqStore_GadgetsByWidgetId_results{},
 			}
-			r.mock.resultsByParams_GadgetsByWidgetId = append(r.mock.resultsByParams_GadgetsByWidgetId, *results)
-			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_GadgetsByWidgetId) {
-				copy(r.mock.resultsByParams_GadgetsByWidgetId[insertAt+1:], r.mock.resultsByParams_GadgetsByWidgetId[insertAt:0])
-				r.mock.resultsByParams_GadgetsByWidgetId[insertAt] = *results
+			r.moq.resultsByParams_GadgetsByWidgetId = append(r.moq.resultsByParams_GadgetsByWidgetId, *results)
+			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_GadgetsByWidgetId) {
+				copy(r.moq.resultsByParams_GadgetsByWidgetId[insertAt+1:], r.moq.resultsByParams_GadgetsByWidgetId[insertAt:0])
+				r.moq.resultsByParams_GadgetsByWidgetId[insertAt] = *results
 			}
 		}
 
@@ -671,14 +671,14 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) findResults() {
 		if r.anyParams&(1<<0) == 0 {
 			widgetIdUsed = r.paramsKey.widgetId
 		}
-		paramsKey := mockStore_GadgetsByWidgetId_paramsKey{
+		paramsKey := moqStore_GadgetsByWidgetId_paramsKey{
 			widgetId: widgetIdUsed,
 		}
 
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockStore_GadgetsByWidgetId_results{
+			r.results = &moqStore_GadgetsByWidgetId_results{
 				params:   r.params,
 				results:  nil,
 				index:    0,
@@ -689,9 +689,9 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) findResults() {
 	}
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) times(count int) *mockStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) times(count int) *moqStore_GadgetsByWidgetId_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -703,8 +703,8 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) times(count int) *mockStore_Gad
 					result2 error
 				}
 				sequence   uint32
-				doFn       mockStore_GadgetsByWidgetId_doFn
-				doReturnFn mockStore_GadgetsByWidgetId_doReturnFn
+				doFn       moqStore_GadgetsByWidgetId_doFn
+				doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
 			}{
 				values: &struct {
 					result1 []demo.Gadget
@@ -713,7 +713,7 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) times(count int) *mockStore_Gad
 					result1: last.values.result1,
 					result2: last.values.result2,
 				},
-				sequence: r.mock.scene.NextRecorderSequence(),
+				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
 		r.results.results = append(r.results.results, last)
@@ -721,71 +721,71 @@ func (r *mockStore_GadgetsByWidgetId_fnRecorder) times(count int) *mockStore_Gad
 	return r
 }
 
-func (r *mockStore_GadgetsByWidgetId_fnRecorder) anyTimes() {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true
 }
 
-func (m *mockStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) *mockStore_LightGadgetsByWidgetId_fnRecorder {
-	return &mockStore_LightGadgetsByWidgetId_fnRecorder{
-		params: mockStore_LightGadgetsByWidgetId_params{
+func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) *moqStore_LightGadgetsByWidgetId_fnRecorder {
+	return &moqStore_LightGadgetsByWidgetId_fnRecorder{
+		params: moqStore_LightGadgetsByWidgetId_params{
 			widgetId:  widgetId,
 			maxWeight: maxWeight,
 		},
-		paramsKey: mockStore_LightGadgetsByWidgetId_paramsKey{
+		paramsKey: moqStore_LightGadgetsByWidgetId_paramsKey{
 			widgetId:  widgetId,
 			maxWeight: maxWeight,
 		},
-		sequence: m.mock.config.Sequence == moq.SeqDefaultOn,
-		mock:     m.mock,
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
 	}
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) anyWidgetId() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) anyWidgetId() *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 0
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) anyMaxWeight() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) anyMaxWeight() *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.anyParams |= 1 << 1
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) seq() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) seq() *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = true
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) noSeq() *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) noSeq() *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results != nil {
-		r.mock.scene.MoqT.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
 	r.sequence = false
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Gadget, result2 error) *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Gadget, result2 error) *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -794,8 +794,8 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []de
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_LightGadgetsByWidgetId_doFn
-		doReturnFn mockStore_LightGadgetsByWidgetId_doReturnFn
+		doFn       moqStore_LightGadgetsByWidgetId_doFn
+		doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
 	}{
 		values: &struct {
 			result1 []demo.Gadget
@@ -809,9 +809,9 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []de
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) andDo(fn mockStore_LightGadgetsByWidgetId_doFn) *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) andDo(fn moqStore_LightGadgetsByWidgetId_doFn) *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults must be called before calling andDo")
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
 	}
 	last := &r.results.results[len(r.results.results)-1]
@@ -819,12 +819,12 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) andDo(fn mockStore_LightGa
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) doReturnResults(fn mockStore_LightGadgetsByWidgetId_doReturnFn) *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) doReturnResults(fn moqStore_LightGadgetsByWidgetId_doReturnFn) *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
 	if r.sequence {
-		sequence = r.mock.scene.NextRecorderSequence()
+		sequence = r.moq.scene.NextRecorderSequence()
 	}
 
 	r.results.results = append(r.results.results, struct {
@@ -833,18 +833,18 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) doReturnResults(fn mockSto
 			result2 error
 		}
 		sequence   uint32
-		doFn       mockStore_LightGadgetsByWidgetId_doFn
-		doReturnFn mockStore_LightGadgetsByWidgetId_doReturnFn
+		doFn       moqStore_LightGadgetsByWidgetId_doFn
+		doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
-		var results *mockStore_LightGadgetsByWidgetId_resultsByParams
-		for n, res := range r.mock.resultsByParams_LightGadgetsByWidgetId {
+		var results *moqStore_LightGadgetsByWidgetId_resultsByParams
+		for n, res := range r.moq.resultsByParams_LightGadgetsByWidgetId {
 			if res.anyParams == r.anyParams {
 				results = &res
 				break
@@ -854,15 +854,15 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
 			}
 		}
 		if results == nil {
-			results = &mockStore_LightGadgetsByWidgetId_resultsByParams{
+			results = &moqStore_LightGadgetsByWidgetId_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[mockStore_LightGadgetsByWidgetId_paramsKey]*mockStore_LightGadgetsByWidgetId_results{},
+				results:   map[moqStore_LightGadgetsByWidgetId_paramsKey]*moqStore_LightGadgetsByWidgetId_results{},
 			}
-			r.mock.resultsByParams_LightGadgetsByWidgetId = append(r.mock.resultsByParams_LightGadgetsByWidgetId, *results)
-			if insertAt != -1 && insertAt+1 < len(r.mock.resultsByParams_LightGadgetsByWidgetId) {
-				copy(r.mock.resultsByParams_LightGadgetsByWidgetId[insertAt+1:], r.mock.resultsByParams_LightGadgetsByWidgetId[insertAt:0])
-				r.mock.resultsByParams_LightGadgetsByWidgetId[insertAt] = *results
+			r.moq.resultsByParams_LightGadgetsByWidgetId = append(r.moq.resultsByParams_LightGadgetsByWidgetId, *results)
+			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_LightGadgetsByWidgetId) {
+				copy(r.moq.resultsByParams_LightGadgetsByWidgetId[insertAt+1:], r.moq.resultsByParams_LightGadgetsByWidgetId[insertAt:0])
+				r.moq.resultsByParams_LightGadgetsByWidgetId[insertAt] = *results
 			}
 		}
 
@@ -874,7 +874,7 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
 		if r.anyParams&(1<<1) == 0 {
 			maxWeightUsed = r.paramsKey.maxWeight
 		}
-		paramsKey := mockStore_LightGadgetsByWidgetId_paramsKey{
+		paramsKey := moqStore_LightGadgetsByWidgetId_paramsKey{
 			widgetId:  widgetIdUsed,
 			maxWeight: maxWeightUsed,
 		}
@@ -882,7 +882,7 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &mockStore_LightGadgetsByWidgetId_results{
+			r.results = &moqStore_LightGadgetsByWidgetId_results{
 				params:   r.params,
 				results:  nil,
 				index:    0,
@@ -893,9 +893,9 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
 	}
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *mockStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
 	}
 	last := r.results.results[len(r.results.results)-1]
@@ -907,8 +907,8 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *mockStor
 					result2 error
 				}
 				sequence   uint32
-				doFn       mockStore_LightGadgetsByWidgetId_doFn
-				doReturnFn mockStore_LightGadgetsByWidgetId_doReturnFn
+				doFn       moqStore_LightGadgetsByWidgetId_doFn
+				doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
 			}{
 				values: &struct {
 					result1 []demo.Gadget
@@ -917,7 +917,7 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *mockStor
 					result1: last.values.result1,
 					result2: last.values.result2,
 				},
-				sequence: r.mock.scene.NextRecorderSequence(),
+				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
 		r.results.results = append(r.results.results, last)
@@ -925,23 +925,23 @@ func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *mockStor
 	return r
 }
 
-func (r *mockStore_LightGadgetsByWidgetId_fnRecorder) anyTimes() {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) anyTimes() {
 	if r.results == nil {
-		r.mock.scene.MoqT.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
 	}
 	r.results.anyTimes = true
 }
 
-// Reset resets the state of the mock
-func (m *mockStore) Reset() {
+// Reset resets the state of the moq
+func (m *moqStore) Reset() {
 	m.resultsByParams_AllWidgetsIds = nil
 	m.resultsByParams_GadgetsByWidgetId = nil
 	m.resultsByParams_LightGadgetsByWidgetId = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *mockStore) AssertExpectationsMet() {
+func (m *moqStore) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams_AllWidgetsIds {
 		for _, results := range res.results {
 			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
@@ -949,7 +949,7 @@ func (m *mockStore) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
 		}
 	}
@@ -960,7 +960,7 @@ func (m *mockStore) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
 		}
 	}
@@ -971,7 +971,7 @@ func (m *mockStore) AssertExpectationsMet() {
 				continue
 			}
 			if missing > 0 {
-				m.scene.MoqT.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
 		}
 	}

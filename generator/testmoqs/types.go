@@ -1,4 +1,4 @@
-package testmocks
+package testmoqs
 
 //go:generate moqueries --destination moq_usualfn_test.go UsualFn
 //go:generate moqueries --destination exported/moq_usualfn.go --export UsualFn

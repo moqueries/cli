@@ -118,7 +118,7 @@ var _ = Describe("Converter", func() {
 	})
 
 	Describe("BaseStruct", func() {
-		It("creates a base mock for an interface", func() {
+		It("creates a base moq for an interface", func() {
 			// ASSEMBLE
 
 			// ACT
@@ -127,10 +127,10 @@ var _ = Describe("Converter", func() {
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// MockPublicInterface holds the state of a mock of the PublicInterface type"))
+				"// MoqPublicInterface holds the state of a moq of the PublicInterface type"))
 		})
 
-		It("creates a base mock for a function", func() {
+		It("creates a base moq for a function", func() {
 			// ASSEMBLE
 
 			// ACT
@@ -139,7 +139,7 @@ var _ = Describe("Converter", func() {
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// MockPublicFunction holds the state of a mock of the PublicFunction type"))
+				"// MoqPublicFunction holds the state of a moq of the PublicFunction type"))
 		})
 	})
 
@@ -153,7 +153,7 @@ var _ = Describe("Converter", func() {
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// MockMyInterface_mock isolates the mock interface of the MyInterface type"))
+				"// MoqMyInterface_mock isolates the mock interface of the MyInterface type"))
 		})
 	})
 
@@ -181,48 +181,48 @@ var _ = Describe("Converter", func() {
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// MockPublicInterface_Func1_params holds the params of the PublicInterface type"))
+				"// MoqPublicInterface_Func1_params holds the params of the PublicInterface type"))
 
 			decl, ok = decls[1].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// MockPublicInterface_Func1_paramsKey holds the map key params of the PublicInterface type"))
+				"// MoqPublicInterface_Func1_paramsKey holds the map key params of the PublicInterface type"))
 
 			decl, ok = decls[2].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// MockPublicInterface_Func1_resultsByParams " +
+			Expect(decl.Decs.Start[0]).To(Equal("// MoqPublicInterface_Func1_resultsByParams " +
 				"contains the results for a given set of parameters for the PublicInterface type"))
 
 			decl, ok = decls[3].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// MockPublicInterface_Func1_doFn " +
+			Expect(decl.Decs.Start[0]).To(Equal("// MoqPublicInterface_Func1_doFn " +
 				"defines the type of function needed when calling AndDo for the PublicInterface type"))
 
 			decl, ok = decls[4].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// MockPublicInterface_Func1_doReturnFn " +
+			Expect(decl.Decs.Start[0]).To(Equal("// MoqPublicInterface_Func1_doReturnFn " +
 				"defines the type of function needed when calling DoReturnResults for the PublicInterface type"))
 
 			decl, ok = decls[5].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// MockPublicInterface_Func1_results " +
+			Expect(decl.Decs.Start[0]).To(Equal("// MoqPublicInterface_Func1_results " +
 				"holds the results of the PublicInterface type"))
 
 			decl, ok = decls[6].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// MockPublicInterface_Func1_fnRecorder " +
-				"routes recorded function calls to the MockPublicInterface mock"))
+			Expect(decl.Decs.Start[0]).To(Equal("// MoqPublicInterface_Func1_fnRecorder " +
+				"routes recorded function calls to the MoqPublicInterface moq"))
 		})
 	})
 
 	Describe("NewFunc", func() {
-		It("creates a new mock function for an interface", func() {
+		It("creates a new moq function for an interface", func() {
 			// ASSEMBLE
 
 			// ACT
@@ -231,10 +231,10 @@ var _ = Describe("Converter", func() {
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// NewMockPublicInterface creates a new mock of the PublicInterface type"))
+				"// NewMoqPublicInterface creates a new moq of the PublicInterface type"))
 		})
 
-		It("creates a new mock function for a function", func() {
+		It("creates a new moq function for a function", func() {
 			// ASSEMBLE
 
 			// ACT
@@ -243,7 +243,7 @@ var _ = Describe("Converter", func() {
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// NewMockPublicFunction creates a new mock of the PublicFunction type"))
+				"// NewMoqPublicFunction creates a new moq of the PublicFunction type"))
 		})
 	})
 
@@ -272,7 +272,7 @@ var _ = Describe("Converter", func() {
 			// ASSERT
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal(
-				"// Mock returns the mock implementation of the MyFn type"))
+				"// Mock returns the moq implementation of the MyFn type"))
 		})
 	})
 })
