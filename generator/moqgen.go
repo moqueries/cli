@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"go/token"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -109,17 +108,12 @@ func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool
 
 func (g *MoqGenerator) defaultPackage() string {
 	pkg := g.pkg
-	var err error
 	if pkg == "" {
-		dirPath := filepath.Dir(g.dest)
-		// TODO: check for all relative paths (i.e.: --destination ../xyz.go will fail)
-		if dirPath == "." {
-			dirPath, err = os.Getwd()
-			if err != nil {
-				logs.Panic("Could not get working directory", err)
-			}
+		abs, err := filepath.Abs(g.dest)
+		if err != nil {
+			logs.Panicf("Could not get absolute path to destination %s: %#v", g.dest, err)
 		}
-		dirName := filepath.Base(dirPath)
+		dirName := filepath.Base(filepath.Dir(abs))
 		pkg = dirName
 		if !g.export {
 			pkg = pkg + "_test"

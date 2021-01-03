@@ -146,6 +146,18 @@ var _ = Describe("MoqGenerator", func() {
 		Expect(file.Name.Name).To(Equal("dir"))
 	})
 
+	It("can put mocks in parent packages when given a relative destination", func() {
+		// ASSEMBLE
+		gen := generator.New(true, "", "../file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+
+		// ACT
+		_, file, err := gen.Generate(nil, ".", false)
+
+		// ASSERT
+		Expect(err).NotTo(HaveOccurred())
+		Expect(file.Name.Name).To(Equal("moqueries"))
+	})
+
 	It("defaults the package to a test name based on the current"+
 		" directory when it isn't specified and not exported", func() {
 		// ASSEMBLE
