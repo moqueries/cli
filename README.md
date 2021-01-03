@@ -217,6 +217,17 @@ writerMoq := mockpkg.NewMoqWriter()
 writerMoq.OnCall().Write([]byte("3")).ReturnResults(0, errors.New("couldn't write"))
 ```
 
+### Controlling parameter matching
+To match parameters of expected calls to actual calls, Moqueries puts all call parameters into a `struct` and uses that struct as the key in a map. Go requires that any map key implement equality checks (i.e.: be fixed length). Moqueries calculates a deep hash of parameters that don't implement equality checks (including parameter structs that contain values that don't implement equality checks).
+
+By default Moqueries also calculates a deep hash on pointers and interface parameters even though these values (usually) implement equality checks. This calculation can be turned off on a per-moq basis but there are some implications:
+
+#### Shallow pointer comparison
+Pointer parameters can be matched by value by using the `--shallow-pointer-compare` option. With this option enabled, pointer parameters must have the same value to match. When the option isn't enabled, the expected and actual parameters only need to result in the same hash.
+
+#### Shallow interface comparison
+A similar mechanism exists for comparing interface parameters by value with the `--shallow-interface-compare` option. Again using the option causes a moq to be generated that does not deep hash interface values. The caveat of using this option is that if an implementation of the interface is passed that does not implement equality checks, the test will panic.
+
 ## Command line reference
 The Moqueries command line has the following form:
 
@@ -233,6 +244,8 @@ Interfaces and function types are separated by whitespace. Multiple types may be
 | `--export` | `bool` | `false` | If true, generated mocks will be exported and accessible from other packages |
 | `--import <name>` | `string` | `.` (the directory containing generate directive) | The package containing the type (interface or function type) to be mocked |
 | `--package <name>` | `string` | The test package of the destination directory when `--export=false` or the package of the destination directory when `--export=true` | The package to generate code into |
+| `--shallow-interface-compare` | `bool` | `false` | Compare interfaces by value rather than a deep comparison (may cause a panic) |
+| `--shallow-pointer-compare` | `bool` | `false` | Compare pointer by value rather than a deep comparison |
 | `--test-import` | `bool` | `false` | Directs Moqueries to look for the types to be mocked in the test package |
 
 Values specified after an option are separated from the option by whitespace (`--destination moq_isfavorite_test.go`) or by an equal sign (`--destination=moq_isfavorite_test.go`).

@@ -16,12 +16,14 @@ import (
 
 // GenerateRequest contains all of the parameters needed to call Generate
 type GenerateRequest struct {
-	Types       []string
-	Export      bool
-	Destination string
-	Package     string
-	Import      string
-	TestImport  bool
+	Types                   []string
+	Export                  bool
+	Destination             string
+	Package                 string
+	Import                  string
+	TestImport              bool
+	ShallowPointerCompare   bool
+	ShallowInterfaceCompare bool
 }
 
 // Generate generates a moq
@@ -42,8 +44,9 @@ func generate(req GenerateRequest) error {
 			" to a non-test file.")
 	}
 
-	converter := NewConverter(req.Export)
-	gen := New(req.Export, req.Package, req.Destination, ast.LoadTypes, converter)
+	cache := ast.NewCache(req.ShallowPointerCompare, req.ShallowInterfaceCompare, ast.LoadTypes)
+	converter := NewConverter(req.Export, cache)
+	gen := New(req.Export, req.Package, req.Destination, cache, converter)
 
 	_, file, err := gen.Generate(req.Types, req.Import, req.TestImport)
 	if err != nil {

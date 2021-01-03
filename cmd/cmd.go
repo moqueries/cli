@@ -7,12 +7,17 @@ import (
 )
 
 const (
-	debugFlag       = "debug"
-	exportFlag      = "export"
+	debugFlag  = "debug"
+	exportFlag = "export"
+
 	destinationFlag = "destination"
-	packageFlag     = "package"
-	importFlag      = "import"
-	testImportFlag  = "test-import"
+
+	packageFlag    = "package"
+	importFlag     = "import"
+	testImportFlag = "test-import"
+
+	shallowPointerCompareFlag   = "shallow-pointer-compare"
+	shallowInterfaceCompareFlag = "shallow-interface-compare"
 )
 
 var rootCmd = &cobra.Command{
@@ -47,6 +52,11 @@ func init() {
 			"mocked (defaults to the directory containing generate directive)")
 	rootCmd.PersistentFlags().Bool(testImportFlag, false,
 		"Look for the types to be mocked in the test package")
+
+	rootCmd.PersistentFlags().Bool(shallowPointerCompareFlag, false,
+		"Compare pointer by value rather than a deep comparison")
+	rootCmd.PersistentFlags().Bool(shallowInterfaceCompareFlag, false,
+		"Compare interfaces by value rather than a deep comparison (may cause a panic)")
 }
 
 // Execute generates one or more mocks

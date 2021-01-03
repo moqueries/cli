@@ -11,6 +11,7 @@ import (
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/goast"
 
+	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/logs"
 )
 
@@ -24,7 +25,7 @@ const (
 type Converterer interface {
 	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
 	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
-	MethodStructs(typeSpec *dst.TypeSpec, fn Func) (structDecls []dst.Decl)
+	MethodStructs(typeSpec *dst.TypeSpec, fn Func) (structDecls []dst.Decl, err error)
 	NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl)
 	IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
 	FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
@@ -36,70 +37,62 @@ type Converterer interface {
 
 // MoqGenerator generates moqs
 type MoqGenerator struct {
-	export      bool
-	pkg         string
-	dest        string
-	loadTypesFn LoadTypesFn
-	converter   Converterer
+	export    bool
+	pkg       string
+	dest      string
+	typeCache TypeCache
+	converter Converterer
 }
 
-//go:generate moqueries --destination moq_loadtypesfn_test.go LoadTypesFn
+//go:generate moqueries --destination moq_typecache_test.go TypeCache
 
-// LoadTypesFn is used to load types from a given package
-type LoadTypesFn func(pkg string, loadTestTypes bool) (
-	typeSpecs []*dst.TypeSpec, pkgPath string, err error)
+// TypeCache defines the interface to the Cache type
+type TypeCache interface {
+	Type(id dst.Ident, loadTestTypes bool) (*dst.TypeSpec, string, error)
+	IsComparable(expr dst.Expr) (bool, error)
+}
 
 // New returns a new MoqGenerator
 func New(
 	export bool,
 	pkg, dest string,
-	loadTypesFn LoadTypesFn,
+	typeCache TypeCache,
 	converter Converterer,
 ) *MoqGenerator {
 	return &MoqGenerator{
-		export:      export,
-		pkg:         pkg,
-		dest:        dest,
-		loadTypesFn: loadTypesFn,
-		converter:   converter,
+		export:    export,
+		pkg:       pkg,
+		dest:      dest,
+		typeCache: typeCache,
+		converter: converter,
 	}
 }
 
 // Generate generates moqs for the given types in the given destination package
-func (g *MoqGenerator) Generate(inTypes []string, imp string, testImp bool) (
+func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool) (
 	*token.FileSet,
 	*dst.File,
 	error,
 ) {
-	pkg, err := g.defaultPackage()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	typesByIdent, pkgPath, err := g.findTypes(inTypes, imp, testImp)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	fSet, file, err := initializeFile(pkg)
-	if err != nil {
-		return nil, nil, err
-	}
+	fSet, file := initializeFile(g.defaultPackage())
 
 	var decls []dst.Decl
 	for _, inType := range inTypes {
-		ident := dst.Ident{
-			Name: inType,
-			Path: pkgPath,
+		typeSpec, pkgPath, err := g.loadInType(inType, imp, loadTestTypes)
+		if err != nil {
+			return nil, nil, err
 		}
-		typeSpec := typesByIdent[ident.String()]
 
-		funcs, tErr := g.findFuncs(typeSpec, typesByIdent)
+		funcs, tErr := g.findFuncs(typeSpec)
 		if tErr != nil {
 			return nil, nil, tErr
 		}
 
-		decls = append(decls, g.structs(typeSpec, funcs)...)
+		structs, err := g.structs(typeSpec, funcs)
+		if err != nil {
+			return nil, nil, err
+		}
+		decls = append(decls, structs...)
 
 		decls = append(decls, g.converter.NewFunc(typeSpec))
 
@@ -111,18 +104,19 @@ func (g *MoqGenerator) Generate(inTypes []string, imp string, testImp bool) (
 	}
 	file.Decls = decls
 
-	return fSet, file, err
+	return fSet, file, nil
 }
 
-func (g *MoqGenerator) defaultPackage() (string, error) {
+func (g *MoqGenerator) defaultPackage() string {
 	pkg := g.pkg
 	var err error
 	if pkg == "" {
 		dirPath := filepath.Dir(g.dest)
+		// TODO: check for all relative paths (i.e.: --destination ../xyz.go will fail)
 		if dirPath == "." {
 			dirPath, err = os.Getwd()
 			if err != nil {
-				return "", err
+				logs.Panic("Could not get working directory", err)
 			}
 		}
 		dirName := filepath.Base(dirPath)
@@ -132,77 +126,37 @@ func (g *MoqGenerator) defaultPackage() (string, error) {
 		}
 	}
 	logs.Debugf("Output package: %s", pkg)
-	return pkg, nil
+	return pkg
 }
 
-func initializeFile(pkg string) (*token.FileSet, *dst.File, error) {
+func initializeFile(pkg string) (*token.FileSet, *dst.File) {
 	fSet := token.NewFileSet()
 
 	src := fmt.Sprintf("%s\n\npackage %s\n", headerComment, pkg)
-	file, err := decorator.NewDecoratorWithImports(
-		fSet, pkg, goast.New(),
-	).Parse(src)
+	file, err := decorator.NewDecoratorWithImports(fSet, pkg, goast.New()).Parse(src)
 	if err != nil {
-		return nil, nil, err
+		logs.Panic("Could not create decorator", err)
 	}
 
-	return fSet, file, nil
-}
-
-func (g *MoqGenerator) findTypes(
-	inTypes []string,
-	pkg string,
-	loadTestTypes bool,
-) (map[string]*dst.TypeSpec, string, error) {
-	typeSpecs, pkgPath, err := g.loadTypes(pkg, loadTestTypes)
-	if err != nil {
-		return nil, "", err
-	}
-
-	typesByIdent := map[string]*dst.TypeSpec{}
-	for _, typeSpec := range typeSpecs {
-		// We have to make a new ident as key because loaded types don't have
-		// Path set?
-		ident := dst.Ident{
-			Name: typeSpec.Name.Name,
-			Path: pkgPath,
-		}
-		typesByIdent[ident.String()] = typeSpec
-	}
-
-	for _, inType := range inTypes {
-		ident := dst.Ident{
-			Name: inType,
-			Path: pkgPath,
-		}
-		_, ok := typesByIdent[ident.String()]
-		if !ok {
-			return nil, "", fmt.Errorf("type was not found: %s", inType)
-		}
-	}
-
-	return typesByIdent, pkgPath, nil
+	return fSet, file
 }
 
 const testPkgSuffix = "_test"
 
-func (g *MoqGenerator) loadTypes(pkg string, loadTestTypes bool) (
-	[]*dst.TypeSpec, string, error,
+func (g *MoqGenerator) loadInType(inType, imp string, loadTestTypes bool) (
+	*dst.TypeSpec, string, error,
 ) {
-	if strings.HasSuffix(pkg, testPkgSuffix) {
-		pkg = strings.TrimSuffix(pkg, testPkgSuffix)
+	if strings.HasSuffix(imp, testPkgSuffix) {
+		imp = strings.TrimSuffix(imp, testPkgSuffix)
 		loadTestTypes = true
 	}
-	return g.loadTypesFn(pkg, loadTestTypes)
+	return g.typeCache.Type(*ast.IdPath(inType, imp), loadTestTypes)
 }
 
-func (g *MoqGenerator) findFuncs(
-	typeSpec *dst.TypeSpec,
-	typesByIdent map[string]*dst.TypeSpec,
-) ([]Func, error) {
+func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
 	switch typ := typeSpec.Type.(type) {
 	case *dst.InterfaceType:
-		return g.loadNestedInterfaces(typ, typesByIdent)
+		return g.loadNestedInterfaces(typ)
 	case *dst.FuncType:
 		return []Func{
 			{
@@ -216,9 +170,7 @@ func (g *MoqGenerator) findFuncs(
 	}
 }
 
-func (g *MoqGenerator) loadNestedInterfaces(
-	iType *dst.InterfaceType,
-	typesByIdent map[string]*dst.TypeSpec) ([]Func, error) {
+func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType) ([]Func, error) {
 	var funcs []Func
 
 	for _, method := range iType.Methods.List {
@@ -230,20 +182,12 @@ func (g *MoqGenerator) loadNestedInterfaces(
 				Results: typ.Results,
 			})
 		case *dst.Ident:
-			nestedType, ok := typesByIdent[typ.String()]
-			if !ok {
-				newTypes, _, err := g.findTypes(
-					[]string{typ.Name}, typ.Path, false)
-				if err != nil {
-					return nil, err
-				}
-				for k, v := range newTypes {
-					typesByIdent[k] = v
-				}
-				nestedType = typesByIdent[typ.String()]
+			nestedType, _, err := g.typeCache.Type(*typ, false)
+			if err != nil {
+				return nil, err
 			}
 
-			newFuncs, err := g.findFuncs(nestedType, typesByIdent)
+			newFuncs, err := g.findFuncs(nestedType)
 			if err != nil {
 				return nil, err
 			}
@@ -256,7 +200,7 @@ func (g *MoqGenerator) loadNestedInterfaces(
 	return funcs, nil
 }
 
-func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl {
+func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) ([]dst.Decl, error) {
 	decls := []dst.Decl{
 		g.converter.BaseStruct(typeSpec, funcs),
 		g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent),
@@ -268,10 +212,14 @@ func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) []dst.Decl 
 	}
 
 	for _, fn := range funcs {
-		decls = append(decls, g.converter.MethodStructs(typeSpec, fn)...)
+		structs, err := g.converter.MethodStructs(typeSpec, fn)
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, structs...)
 	}
 
-	return decls
+	return decls, nil
 }
 
 func (g *MoqGenerator) methods(

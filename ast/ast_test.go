@@ -98,11 +98,12 @@ var _ = Describe("Ast", func() {
 			var iTypes []*dst.TypeSpec
 			for _, typ := range typs {
 				if _, ok := typ.Type.(*dst.InterfaceType); ok {
-					iTypes = append(iTypes, typ)
+					if typ.Name.Name == "Converterer" {
+						iTypes = append(iTypes, typ)
+					}
 				}
 			}
 			Expect(iTypes).To(HaveLen(1))
-			Expect(iTypes[0].Name.Name).To(Equal("Converterer"))
 			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/generator"))
 
 			var baseStruct *dst.FuncType
@@ -132,8 +133,13 @@ var _ = Describe("Ast", func() {
 					fTypes = append(fTypes, typ)
 				}
 			}
-			Expect(fTypes).To(HaveLen(1))
-			Expect(fTypes[0].Name.Name).To(Equal("TestFn"))
+			found := false
+			for _, fType := range fTypes {
+				if fType.Name.Name == "TestFn" {
+					found = true
+				}
+			}
+			Expect(found).To(BeTrue())
 			Expect(pkgPath).To(Equal("github.com/myshkin5/moqueries/ast.test"))
 		})
 	})

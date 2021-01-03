@@ -1124,7 +1124,7 @@ var _ = Describe("TestMoqs", func() {
 		})
 	})
 
-	PIt("generates moqs", func() {
+	It("generates moqs", func() {
 		// NB: Keep in sync with types.go go:generate directives
 
 		// These lines generate the same moqs listed in types.go go:generate

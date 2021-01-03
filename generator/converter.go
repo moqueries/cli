@@ -78,12 +78,14 @@ const (
 // build a moq
 type Converter struct {
 	isExported bool
+	typeCache  TypeCache
 }
 
 // NewConverter creates a new Converter
-func NewConverter(isExported bool) *Converter {
+func NewConverter(isExported bool, typeCache TypeCache) *Converter {
 	return &Converter{
 		isExported: isExported,
+		typeCache:  typeCache,
 	}
 }
 
@@ -119,7 +121,7 @@ func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDec
 }
 
 // IsolationStruct generates a struct used to isolate an interface for the moq
-func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
+func (c *Converter) IsolationStruct(typeName, suffix string) *dst.GenDecl {
 	mName := c.moqName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
 
@@ -131,22 +133,31 @@ func (c *Converter) IsolationStruct(typeName, suffix string) (structDecl *dst.Ge
 
 // MethodStructs generates a structure for storing a set of parameters or
 // a set of results for a method invocation of a mock
-func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) []dst.Decl {
+func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) ([]dst.Decl, error) {
 	prefix := c.typePrefix(typeSpec.Name.Name, fn)
 
+	paramsStruct, err := c.methodStructDecl(typeSpec.Name.Name, prefix, paramsIdent, fn.Params)
+	if err != nil {
+		logs.Panic("Creating params struct should never generate errors", err)
+	}
+	paramsKeyStruct, err := c.methodStructDecl(typeSpec.Name.Name, prefix, paramsKeyIdent, fn.Params)
+	if err != nil {
+		return nil, err
+	}
+
 	return []dst.Decl{
-		c.methodStructDecl(typeSpec.Name.Name, prefix, paramsIdent, fn.Params),
-		c.methodStructDecl(typeSpec.Name.Name, prefix, paramsKeyIdent, fn.Params),
+		paramsStruct,
+		paramsKeyStruct,
 		c.resultByParamsStruct(typeSpec.Name.Name, prefix),
 		c.doFuncType(typeSpec.Name.Name, prefix, fn.Params),
 		c.doReturnFuncType(typeSpec.Name.Name, prefix, fn),
 		c.resultsStruct(typeSpec.Name.Name, prefix, fn.Results),
 		c.fnRecorderStruct(typeSpec.Name.Name, prefix),
-	}
+	}, nil
 }
 
 // NewFunc generates a function for constructing a moq
-func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl) {
+func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) *dst.FuncDecl {
 	fnName := c.export("newMoq" + typeSpec.Name.Name)
 	mName := c.moqName(typeSpec.Name.Name)
 	return Fn(fnName).
@@ -175,7 +186,7 @@ func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl) {
 }
 
 // IsolationAccessor generates a function to access an isolation interface
-func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl) {
+func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) *dst.FuncDecl {
 	fnName = c.export(fnName)
 	mName := c.moqName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
@@ -192,9 +203,7 @@ func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) (funcDecl
 
 // FuncClosure generates a mock implementation of function type wrapped in a
 // closure
-func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) (
-	funcDecl *dst.FuncDecl,
-) {
+func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) *dst.FuncDecl {
 	mName := c.moqName(typeName)
 	fnLitCall := Call(Sel(Id(moqIdent)).Dot(Id(c.export(fnFnName))).Obj).
 		Args(passthroughFields(paramPrefix, fn.Params)...).
@@ -247,7 +256,7 @@ func (c *Converter) MockMethod(typeName string, fn Func) *dst.FuncDecl {
 
 // RecorderMethods generates a recorder implementation of a method and
 // associated return method
-func (c *Converter) RecorderMethods(typeName string, fn Func) (funcDecls []dst.Decl) {
+func (c *Converter) RecorderMethods(typeName string, fn Func) []dst.Decl {
 	decls := []dst.Decl{
 		c.recorderFn(typeName, fn),
 	}
@@ -267,7 +276,7 @@ func (c *Converter) RecorderMethods(typeName string, fn Func) (funcDecls []dst.D
 }
 
 // ResetMethod generates a method to reset the moq's state
-func (c *Converter) ResetMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
+func (c *Converter) ResetMethod(typeSpec *dst.TypeSpec, funcs []Func) *dst.FuncDecl {
 	mName := c.moqName(typeSpec.Name.Name)
 
 	var stmts []dst.Stmt
@@ -290,7 +299,7 @@ func (c *Converter) ResetMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl 
 }
 
 // AssertMethod generates a method to assert all expectations are met
-func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl) {
+func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) *dst.FuncDecl {
 	mName := c.moqName(typeSpec.Name.Name)
 
 	var stmts []dst.Stmt
@@ -345,16 +354,6 @@ func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl
 			assertFnName)).Obj
 }
 
-func isComparable(expr dst.Expr) bool {
-	// TODO this logic needs to be expanded -- also should check structs recursively
-	switch expr.(type) {
-	case *dst.ArrayType, *dst.MapType, *dst.Ellipsis:
-		return false
-	}
-
-	return true
-}
-
 func (c *Converter) typePrefix(typeName string, fn Func) string {
 	mName := c.moqName(typeName)
 	typePrefix := fmt.Sprintf("%s_%s", mName, fn.Name)
@@ -366,19 +365,24 @@ func (c *Converter) typePrefix(typeName string, fn Func) string {
 
 func (c *Converter) methodStructDecl(
 	typeName, prefix, label string, fieldList *dst.FieldList,
-) *dst.GenDecl {
+) (*dst.GenDecl, error) {
 	goDocDesc := label
 	if label == paramsKeyIdent {
 		goDocDesc = "map key params"
 	}
 
+	mStruct, err := c.methodStruct(label, fieldList)
+	if err != nil {
+		return nil, err
+	}
+
 	structName := fmt.Sprintf("%s_%s", prefix, label)
-	return TypeDecl(TypeSpec(structName).Type(c.methodStruct(label, fieldList)).Obj).
+	return TypeDecl(TypeSpec(structName).Type(mStruct).Obj).
 		Decs(genDeclDec("// %s holds the %s of the %s type",
-			structName, goDocDesc, typeName)).Obj
+			structName, goDocDesc, typeName)).Obj, nil
 }
 
-func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) *dst.StructType {
+func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.StructType, error) {
 	unnamedPrefix, comparable := labelDirection(label)
 	fieldList = cloneNilableFieldList(fieldList)
 
@@ -396,23 +400,35 @@ func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) *dst.St
 				f.Names[nn] = Id(c.export(f.Names[nn].Name))
 			}
 
-			f.Type = comparableType(comparable, f.Type)
+			var err error
+			f.Type, err = c.comparableType(comparable, f.Type)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return StructFromList(fieldList)
+	return StructFromList(fieldList), nil
 }
 
-func comparableType(needComparable bool, typ dst.Expr) dst.Expr {
-	if needComparable && !isComparable(typ) {
-		// Non-comparable params are represented as a deep hash
-		return IdPath("Hash", hashPkg)
-	} else if ellipsis, ok := typ.(*dst.Ellipsis); ok {
-		// Ellipsis params are represented as a slice (when not comparable)
-		return SliceType(ellipsis.Elt)
+func (c *Converter) comparableType(needComparable bool, typ dst.Expr) (dst.Expr, error) {
+	if needComparable {
+		comparable, err := c.typeCache.IsComparable(typ)
+		if err != nil {
+			return nil, err
+		}
+		if !comparable {
+			// Non-comparable params are represented as a deep hash
+			return IdPath("Hash", hashPkg), nil
+		}
 	}
 
-	return typ
+	if ellipsis, ok := typ.(*dst.Ellipsis); ok {
+		// Ellipsis params are represented as a slice (when not comparable)
+		return SliceType(ellipsis.Elt), nil
+	}
+
+	return typ, nil
 }
 
 func (c *Converter) resultByParamsStruct(typeName, prefix string) *dst.GenDecl {
@@ -469,9 +485,13 @@ func (c *Converter) resultsStruct(typeName, prefix string, results *dst.FieldLis
 }
 
 func (c *Converter) innerResultsStruct(prefix string, results *dst.FieldList) *dst.StructType {
+	mStruct, err := c.methodStruct(resultsIdent, results)
+	if err != nil {
+		logs.Panic("Creating results struct should never generate errors", err)
+	}
+
 	return Struct(
-		Field(Star(c.methodStruct(resultsIdent, results))).
-			Names(Id(c.export(valuesIdent))).Obj,
+		Field(Star(mStruct)).Names(Id(c.export(valuesIdent))).Obj,
 		Field(Id("uint32")).Names(Id(c.export(sequenceIdent))).Obj,
 		Field(Idf("%s_%s", prefix, doFnIdent)).Names(Id(c.export(doFnIdent))).Obj,
 		Field(Idf("%s_%s", prefix, doReturnFnIdent)).Names(Id(c.export(doReturnFnIdent))).Obj,
@@ -663,14 +683,18 @@ func (c *Converter) mockFuncFindResults(typePrefix string, fn Func) []dst.Stmt {
 func (c *Converter) mockFuncFindResultsParam(
 	sel string, pKeySel *dst.SelectorExpr, pName string, paramPos int, typ dst.Expr,
 ) []dst.Stmt {
-	comparable := true
+	cType, err := c.comparableType(true, dst.Clone(typ).(dst.Expr))
+	if err != nil {
+		logs.Panic("Call MethodStructs first to get a meaningful error", err)
+	}
+
+	needComparable := true
 	if pKeySel != nil {
-		comparable = false
+		needComparable = false
 	}
 	pUsed := fmt.Sprintf("%sUsed", pName)
 	return []dst.Stmt{
-		Var(Value(comparableType(true, dst.Clone(typ).(dst.Expr))).
-			Names(Id(pUsed)).Obj),
+		Var(Value(cType).Names(Id(pUsed)).Obj),
 		If(Bin(Bin(Sel(Id(sel)).Dot(Id(c.export(anyParamsIdent))).Obj).
 			Op(token.AND).
 			Y(Paren(Bin(LitInt(1)).Op(token.SHL).Y(LitInt(paramPos)).Obj)).Obj).
@@ -678,7 +702,7 @@ func (c *Converter) mockFuncFindResultsParam(
 			Y(LitInt(0)).Obj).
 			Body(Assign(Id(pUsed)).
 				Tok(token.ASSIGN).
-				Rhs(c.passthroughValue(Id(pName), typ, comparable, pKeySel)).Obj).Obj,
+				Rhs(c.passthroughValue(Id(pName), typ, needComparable, pKeySel)).Obj).Obj,
 	}
 }
 
@@ -791,10 +815,15 @@ func (c *Converter) anyParamFn(fnRecName, pName string, paramPos int) dst.Decl {
 }
 
 func (c *Converter) returnResultsFn(typeName string, fn Func) *dst.FuncDecl {
+	mStruct, err := c.methodStruct(resultsIdent, fn.Results)
+	if err != nil {
+		logs.Panic("Creating results struct should never generate errors", err)
+	}
+
 	params := cloneAndNameUnnamed(resultPrefix, fn.Results)
 	resExprs := []dst.Expr{
 		Key(Id(c.export(valuesIdent))).
-			Value(Un(token.AND, Comp(c.methodStruct(resultsIdent, fn.Results)).
+			Value(Un(token.AND, Comp(mStruct).
 				Elts(c.passthroughElements(fn.Results, resultsIdent, "", nil)...).Obj)).
 			Decs(kvExprDec(dst.NewLine)).Obj,
 		Key(Id(c.export(sequenceIdent))).
@@ -1065,10 +1094,15 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
+	mStruct, err := c.methodStruct(resultsIdent, fn.Results)
+	if err != nil {
+		logs.Panic("Creating results struct should never generate errors", err)
+	}
+
 	lastSel := Sel(Sel(Id(lastIdent)).Dot(Id(c.export(valuesIdent))).Obj).Obj
 	lastVal := Comp(c.innerResultsStruct(c.typePrefix(typeName, fn), fn.Results)).Elts(
 		Key(Id(c.export(valuesIdent))).
-			Value(Un(token.AND, Comp(c.methodStruct(resultsIdent, fn.Results)).
+			Value(Un(token.AND, Comp(mStruct).
 				Elts(c.passthroughElements(fn.Results, resultsIdent, "", lastSel)...).Obj)).
 			Decs(kvExprDec(dst.NewLine)).Obj,
 		Key(Id(c.export(sequenceIdent))).
@@ -1225,7 +1259,7 @@ func (c *Converter) recorderSeqFn(fnName, assign, typeName string, fn Func) *dst
 func (c *Converter) passthroughElements(
 	fl *dst.FieldList, label, valSuffix string, sel *dst.SelectorExpr,
 ) []dst.Expr {
-	unnamedPrefix, comparable := labelDirection(label)
+	unnamedPrefix, needComparable := labelDirection(label)
 	var elts []dst.Expr
 	if fl != nil {
 		beforeDec := dst.NewLine
@@ -1234,14 +1268,14 @@ func (c *Converter) passthroughElements(
 			if len(field.Names) == 0 {
 				pName := fmt.Sprintf("%s%d", unnamedPrefix, n+1)
 				elts = append(elts, Key(Id(c.export(pName))).Value(
-					c.passthroughValue(Id(pName+valSuffix), field.Type, comparable, sel)).
+					c.passthroughValue(Id(pName+valSuffix), field.Type, needComparable, sel)).
 					Decs(kvExprDec(beforeDec)).Obj)
 				beforeDec = dst.None
 			}
 
 			for _, name := range field.Names {
 				elts = append(elts, Key(Id(c.export(name.Name))).Value(
-					c.passthroughValue(Id(name.Name+valSuffix), field.Type, comparable, sel)).
+					c.passthroughValue(Id(name.Name+valSuffix), field.Type, needComparable, sel)).
 					Decs(kvExprDec(beforeDec)).Obj)
 				beforeDec = dst.None
 			}
@@ -1252,14 +1286,20 @@ func (c *Converter) passthroughElements(
 }
 
 func (c *Converter) passthroughValue(
-	src *dst.Ident, typ dst.Expr, comparable bool, sel *dst.SelectorExpr,
+	src *dst.Ident, typ dst.Expr, needComparable bool, sel *dst.SelectorExpr,
 ) dst.Expr {
 	var val dst.Expr = src
 	if sel != nil {
 		val = cloneSelect(sel, c.export(src.Name))
 	}
-	if comparable && !isComparable(typ) {
-		val = Call(IdPath("DeepHash", hashPkg)).Args(val).Obj
+	if needComparable {
+		c, err := c.typeCache.IsComparable(typ)
+		if err != nil {
+			logs.Panic("Call MethodStructs first to get a meaningful error", err)
+		}
+		if !c {
+			val = Call(IdPath("DeepHash", hashPkg)).Args(val).Obj
+		}
 	}
 	return val
 }
@@ -1333,22 +1373,22 @@ func stdFuncDec() dst.FuncDeclDecorations {
 	}
 }
 
-func labelDirection(label string) (unnamedPrefix string, comparable bool) {
+func labelDirection(label string) (unnamedPrefix string, needComparable bool) {
 	switch label {
 	case paramsIdent:
 		unnamedPrefix = paramPrefix
-		comparable = false
+		needComparable = false
 	case paramsKeyIdent:
 		unnamedPrefix = paramPrefix
-		comparable = true
+		needComparable = true
 	case resultsIdent:
 		unnamedPrefix = resultPrefix
-		comparable = false
+		needComparable = false
 	default:
 		logs.Panicf("Unknown label: %s", label)
 	}
 
-	return unnamedPrefix, comparable
+	return unnamedPrefix, needComparable
 }
 
 func isVariadic(fl *dst.FieldList) bool {

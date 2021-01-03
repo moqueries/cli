@@ -46,7 +46,7 @@ type moqConverterer_BaseStruct_params struct {
 
 // moqConverterer_BaseStruct_paramsKey holds the map key params of the Converterer type
 type moqConverterer_BaseStruct_paramsKey struct {
-	typeSpec *dst.TypeSpec
+	typeSpec hash.Hash
 	funcs    hash.Hash
 }
 
@@ -136,8 +136,8 @@ type moqConverterer_MethodStructs_params struct {
 
 // moqConverterer_MethodStructs_paramsKey holds the map key params of the Converterer type
 type moqConverterer_MethodStructs_paramsKey struct {
-	typeSpec *dst.TypeSpec
-	fn       generator.Func
+	typeSpec hash.Hash
+	fn       hash.Hash
 }
 
 // moqConverterer_MethodStructs_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -151,13 +151,16 @@ type moqConverterer_MethodStructs_resultsByParams struct {
 type moqConverterer_MethodStructs_doFn func(typeSpec *dst.TypeSpec, fn generator.Func)
 
 // moqConverterer_MethodStructs_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_MethodStructs_doReturnFn func(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl)
+type moqConverterer_MethodStructs_doReturnFn func(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl, err error)
 
 // moqConverterer_MethodStructs_results holds the results of the Converterer type
 type moqConverterer_MethodStructs_results struct {
 	params  moqConverterer_MethodStructs_params
 	results []struct {
-		values     *struct{ structDecls []dst.Decl }
+		values *struct {
+			structDecls []dst.Decl
+			err         error
+		}
 		sequence   uint32
 		doFn       moqConverterer_MethodStructs_doFn
 		doReturnFn moqConverterer_MethodStructs_doReturnFn
@@ -180,7 +183,7 @@ type moqConverterer_MethodStructs_fnRecorder struct {
 type moqConverterer_NewFunc_params struct{ typeSpec *dst.TypeSpec }
 
 // moqConverterer_NewFunc_paramsKey holds the map key params of the Converterer type
-type moqConverterer_NewFunc_paramsKey struct{ typeSpec *dst.TypeSpec }
+type moqConverterer_NewFunc_paramsKey struct{ typeSpec hash.Hash }
 
 // moqConverterer_NewFunc_resultsByParams contains the results for a given set of parameters for the Converterer type
 type moqConverterer_NewFunc_resultsByParams struct {
@@ -269,7 +272,7 @@ type moqConverterer_FuncClosure_params struct {
 // moqConverterer_FuncClosure_paramsKey holds the map key params of the Converterer type
 type moqConverterer_FuncClosure_paramsKey struct {
 	typeName, pkgPath string
-	fn                generator.Func
+	fn                hash.Hash
 }
 
 // moqConverterer_FuncClosure_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -317,7 +320,7 @@ type moqConverterer_MockMethod_params struct {
 // moqConverterer_MockMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_MockMethod_paramsKey struct {
 	typeName string
-	fn       generator.Func
+	fn       hash.Hash
 }
 
 // moqConverterer_MockMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -365,7 +368,7 @@ type moqConverterer_RecorderMethods_params struct {
 // moqConverterer_RecorderMethods_paramsKey holds the map key params of the Converterer type
 type moqConverterer_RecorderMethods_paramsKey struct {
 	typeName string
-	fn       generator.Func
+	fn       hash.Hash
 }
 
 // moqConverterer_RecorderMethods_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -412,7 +415,7 @@ type moqConverterer_ResetMethod_params struct {
 
 // moqConverterer_ResetMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_ResetMethod_paramsKey struct {
-	typeSpec *dst.TypeSpec
+	typeSpec hash.Hash
 	funcs    hash.Hash
 }
 
@@ -460,7 +463,7 @@ type moqConverterer_AssertMethod_params struct {
 
 // moqConverterer_AssertMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_AssertMethod_paramsKey struct {
-	typeSpec *dst.TypeSpec
+	typeSpec hash.Hash
 	funcs    hash.Hash
 }
 
@@ -527,9 +530,9 @@ func (m *moqConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generat
 	}
 	var results *moqConverterer_BaseStruct_results
 	for _, resultsByParams := range m.moq.resultsByParams_BaseStruct {
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = typeSpec
+			typeSpecUsed = hash.DeepHash(typeSpec)
 		}
 		var funcsUsed hash.Hash
 		if resultsByParams.anyParams&(1<<1) == 0 {
@@ -648,20 +651,20 @@ func (m *moqConverterer_mock) IsolationStruct(typeName, suffix string) (structDe
 	return
 }
 
-func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl) {
+func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl, err error) {
 	params := moqConverterer_MethodStructs_params{
 		typeSpec: typeSpec,
 		fn:       fn,
 	}
 	var results *moqConverterer_MethodStructs_results
 	for _, resultsByParams := range m.moq.resultsByParams_MethodStructs {
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = typeSpec
+			typeSpecUsed = hash.DeepHash(typeSpec)
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if resultsByParams.anyParams&(1<<1) == 0 {
-			fnUsed = fn
+			fnUsed = hash.DeepHash(fn)
 		}
 		paramsKey := moqConverterer_MethodStructs_paramsKey{
 			typeSpec: typeSpecUsed,
@@ -705,9 +708,10 @@ func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator
 
 	if result.values != nil {
 		structDecls = result.values.structDecls
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		structDecls = result.doReturnFn(typeSpec, fn)
+		structDecls, err = result.doReturnFn(typeSpec, fn)
 	}
 	return
 }
@@ -718,9 +722,9 @@ func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.Fun
 	}
 	var results *moqConverterer_NewFunc_results
 	for _, resultsByParams := range m.moq.resultsByParams_NewFunc {
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = typeSpec
+			typeSpecUsed = hash.DeepHash(typeSpec)
 		}
 		paramsKey := moqConverterer_NewFunc_paramsKey{
 			typeSpec: typeSpecUsed,
@@ -856,9 +860,9 @@ func (m *moqConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator
 		if resultsByParams.anyParams&(1<<1) == 0 {
 			pkgPathUsed = pkgPath
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if resultsByParams.anyParams&(1<<2) == 0 {
-			fnUsed = fn
+			fnUsed = hash.DeepHash(fn)
 		}
 		paramsKey := moqConverterer_FuncClosure_paramsKey{
 			typeName: typeNameUsed,
@@ -921,9 +925,9 @@ func (m *moqConverterer_mock) MockMethod(typeName string, fn generator.Func) (fu
 		if resultsByParams.anyParams&(1<<0) == 0 {
 			typeNameUsed = typeName
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if resultsByParams.anyParams&(1<<1) == 0 {
-			fnUsed = fn
+			fnUsed = hash.DeepHash(fn)
 		}
 		paramsKey := moqConverterer_MockMethod_paramsKey{
 			typeName: typeNameUsed,
@@ -985,9 +989,9 @@ func (m *moqConverterer_mock) RecorderMethods(typeName string, fn generator.Func
 		if resultsByParams.anyParams&(1<<0) == 0 {
 			typeNameUsed = typeName
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if resultsByParams.anyParams&(1<<1) == 0 {
-			fnUsed = fn
+			fnUsed = hash.DeepHash(fn)
 		}
 		paramsKey := moqConverterer_RecorderMethods_paramsKey{
 			typeName: typeNameUsed,
@@ -1045,9 +1049,9 @@ func (m *moqConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []genera
 	}
 	var results *moqConverterer_ResetMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_ResetMethod {
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = typeSpec
+			typeSpecUsed = hash.DeepHash(typeSpec)
 		}
 		var funcsUsed hash.Hash
 		if resultsByParams.anyParams&(1<<1) == 0 {
@@ -1109,9 +1113,9 @@ func (m *moqConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []gener
 	}
 	var results *moqConverterer_AssertMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_AssertMethod {
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = typeSpec
+			typeSpecUsed = hash.DeepHash(typeSpec)
 		}
 		var funcsUsed hash.Hash
 		if resultsByParams.anyParams&(1<<1) == 0 {
@@ -1180,7 +1184,7 @@ func (m *moqConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []gen
 			funcs:    funcs,
 		},
 		paramsKey: moqConverterer_BaseStruct_paramsKey{
-			typeSpec: typeSpec,
+			typeSpec: hash.DeepHash(typeSpec),
 			funcs:    hash.DeepHash(funcs),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
@@ -1300,7 +1304,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
 			}
 		}
 
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if r.anyParams&(1<<0) == 0 {
 			typeSpecUsed = r.paramsKey.typeSpec
 		}
@@ -1554,8 +1558,8 @@ func (m *moqConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn gener
 			fn:       fn,
 		},
 		paramsKey: moqConverterer_MethodStructs_paramsKey{
-			typeSpec: typeSpec,
-			fn:       fn,
+			typeSpec: hash.DeepHash(typeSpec),
+			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1598,7 +1602,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) noSeq() *moqConverterer_Method
 	return r
 }
 
-func (r *moqConverterer_MethodStructs_fnRecorder) returnResults(structDecls []dst.Decl) *moqConverterer_MethodStructs_fnRecorder {
+func (r *moqConverterer_MethodStructs_fnRecorder) returnResults(structDecls []dst.Decl, err error) *moqConverterer_MethodStructs_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
@@ -1607,13 +1611,20 @@ func (r *moqConverterer_MethodStructs_fnRecorder) returnResults(structDecls []ds
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ structDecls []dst.Decl }
+		values *struct {
+			structDecls []dst.Decl
+			err         error
+		}
 		sequence   uint32
 		doFn       moqConverterer_MethodStructs_doFn
 		doReturnFn moqConverterer_MethodStructs_doReturnFn
 	}{
-		values: &struct{ structDecls []dst.Decl }{
+		values: &struct {
+			structDecls []dst.Decl
+			err         error
+		}{
 			structDecls: structDecls,
+			err:         err,
 		},
 		sequence: sequence,
 	})
@@ -1639,7 +1650,10 @@ func (r *moqConverterer_MethodStructs_fnRecorder) doReturnResults(fn moqConverte
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ structDecls []dst.Decl }
+		values *struct {
+			structDecls []dst.Decl
+			err         error
+		}
 		sequence   uint32
 		doFn       moqConverterer_MethodStructs_doFn
 		doReturnFn moqConverterer_MethodStructs_doReturnFn
@@ -1674,11 +1688,11 @@ func (r *moqConverterer_MethodStructs_fnRecorder) findResults() {
 			}
 		}
 
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if r.anyParams&(1<<0) == 0 {
 			typeSpecUsed = r.paramsKey.typeSpec
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if r.anyParams&(1<<1) == 0 {
 			fnUsed = r.paramsKey.fn
 		}
@@ -1710,13 +1724,20 @@ func (r *moqConverterer_MethodStructs_fnRecorder) times(count int) *moqConverter
 	for n := 0; n < count-1; n++ {
 		if last.sequence != 0 {
 			last = struct {
-				values     *struct{ structDecls []dst.Decl }
+				values *struct {
+					structDecls []dst.Decl
+					err         error
+				}
 				sequence   uint32
 				doFn       moqConverterer_MethodStructs_doFn
 				doReturnFn moqConverterer_MethodStructs_doReturnFn
 			}{
-				values: &struct{ structDecls []dst.Decl }{
+				values: &struct {
+					structDecls []dst.Decl
+					err         error
+				}{
 					structDecls: last.values.structDecls,
+					err:         last.values.err,
 				},
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
@@ -1740,7 +1761,7 @@ func (m *moqConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec) *moqConvertere
 			typeSpec: typeSpec,
 		},
 		paramsKey: moqConverterer_NewFunc_paramsKey{
-			typeSpec: typeSpec,
+			typeSpec: hash.DeepHash(typeSpec),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1850,7 +1871,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) findResults() {
 			}
 		}
 
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if r.anyParams&(1<<0) == 0 {
 			typeSpecUsed = r.paramsKey.typeSpec
 		}
@@ -2118,7 +2139,7 @@ func (m *moqConverterer_recorder) FuncClosure(typeName, pkgPath string, fn gener
 		paramsKey: moqConverterer_FuncClosure_paramsKey{
 			typeName: typeName,
 			pkgPath:  pkgPath,
-			fn:       fn,
+			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2254,7 +2275,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) findResults() {
 		if r.anyParams&(1<<1) == 0 {
 			pkgPathUsed = r.paramsKey.pkgPath
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if r.anyParams&(1<<2) == 0 {
 			fnUsed = r.paramsKey.fn
 		}
@@ -2319,7 +2340,7 @@ func (m *moqConverterer_recorder) MockMethod(typeName string, fn generator.Func)
 		},
 		paramsKey: moqConverterer_MockMethod_paramsKey{
 			typeName: typeName,
-			fn:       fn,
+			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2442,7 +2463,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) findResults() {
 		if r.anyParams&(1<<0) == 0 {
 			typeNameUsed = r.paramsKey.typeName
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if r.anyParams&(1<<1) == 0 {
 			fnUsed = r.paramsKey.fn
 		}
@@ -2506,7 +2527,7 @@ func (m *moqConverterer_recorder) RecorderMethods(typeName string, fn generator.
 		},
 		paramsKey: moqConverterer_RecorderMethods_paramsKey{
 			typeName: typeName,
-			fn:       fn,
+			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2629,7 +2650,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) findResults() {
 		if r.anyParams&(1<<0) == 0 {
 			typeNameUsed = r.paramsKey.typeName
 		}
-		var fnUsed generator.Func
+		var fnUsed hash.Hash
 		if r.anyParams&(1<<1) == 0 {
 			fnUsed = r.paramsKey.fn
 		}
@@ -2692,7 +2713,7 @@ func (m *moqConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []ge
 			funcs:    funcs,
 		},
 		paramsKey: moqConverterer_ResetMethod_paramsKey{
-			typeSpec: typeSpec,
+			typeSpec: hash.DeepHash(typeSpec),
 			funcs:    hash.DeepHash(funcs),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
@@ -2812,7 +2833,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) findResults() {
 			}
 		}
 
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if r.anyParams&(1<<0) == 0 {
 			typeSpecUsed = r.paramsKey.typeSpec
 		}
@@ -2879,7 +2900,7 @@ func (m *moqConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []g
 			funcs:    funcs,
 		},
 		paramsKey: moqConverterer_AssertMethod_paramsKey{
-			typeSpec: typeSpec,
+			typeSpec: hash.DeepHash(typeSpec),
 			funcs:    hash.DeepHash(funcs),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
@@ -2999,7 +3020,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) findResults() {
 			}
 		}
 
-		var typeSpecUsed *dst.TypeSpec
+		var typeSpecUsed hash.Hash
 		if r.anyParams&(1<<0) == 0 {
 			typeSpecUsed = r.paramsKey.typeSpec
 		}

@@ -29,6 +29,12 @@ func FindPackageDir(pkg string) (string, error) {
 	return filepath.Dir(pkgs[0].GoFiles[0]), nil
 }
 
+//go:generate moqueries --destination moq_loadtypesfn_test.go LoadTypesFn
+
+// LoadTypesFn is used to load types from a given package
+type LoadTypesFn func(pkg string, loadTestTypes bool) (
+	typeSpecs []*dst.TypeSpec, pkgPath string, err error)
+
 // LoadTypes loads all of the types in the specified package
 func LoadTypes(loadPkg string, loadTestTypes bool) ([]*dst.TypeSpec, string, error) {
 	pkgs, err := load(loadPkg, loadTestTypes)

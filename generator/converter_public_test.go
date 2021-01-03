@@ -6,12 +6,20 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/moq"
 )
 
 var _ = Describe("Converter", func() {
 	var (
+		scene        *moq.Scene
+		typeCacheMoq *moqTypeCache
+
 		converter *generator.Converter
 
+		func1Param1  dst.Expr
+		func1Param2  dst.Expr
+		func1Param3  dst.Expr
+		func1Param4  dst.Expr
 		func1Params  *dst.FieldList
 		func1Results *dst.FieldList
 
@@ -23,39 +31,21 @@ var _ = Describe("Converter", func() {
 	)
 
 	BeforeEach(func() {
-		converter = generator.NewConverter(true)
+		scene = moq.NewScene(GinkgoT())
+		typeCacheMoq = newMoqTypeCache(scene, nil)
 
+		converter = generator.NewConverter(true, typeCacheMoq.mock())
+
+		func1Param1 = dst.NewIdent("pType1")
+		func1Param2 = dst.NewIdent("pType2")
+		func1Param3 = dst.NewIdent("pType3")
+		func1Param4 = dst.NewIdent("pType4")
 		func1Params = &dst.FieldList{
 			List: []*dst.Field{
-				{
-					Names: []*dst.Ident{dst.NewIdent("firstParam")},
-					Type: &dst.StarExpr{
-						X: &dst.SelectorExpr{
-							X:   dst.NewIdent("cobra"),
-							Sel: dst.NewIdent("Command"),
-						},
-					},
-				},
-				{
-					Names: []*dst.Ident{dst.NewIdent("secondParam")},
-					Type:  dst.NewIdent("string"),
-				},
-				{
-					Names: []*dst.Ident{dst.NewIdent("thirdParam")},
-					Type: &dst.StarExpr{
-						X: &dst.SelectorExpr{
-							X:   dst.NewIdent("dst"),
-							Sel: dst.NewIdent("InterfaceType"),
-						},
-					},
-				},
-				{
-					Names: []*dst.Ident{dst.NewIdent("fourthParam")},
-					Type: &dst.MapType{
-						Key:   dst.NewIdent("string"),
-						Value: dst.NewIdent("string"),
-					},
-				},
+				{Names: []*dst.Ident{dst.NewIdent("firstParam")}, Type: func1Param1},
+				{Names: []*dst.Ident{dst.NewIdent("secondParam")}, Type: func1Param2},
+				{Names: []*dst.Ident{dst.NewIdent("thirdParam")}, Type: func1Param3},
+				{Names: []*dst.Ident{dst.NewIdent("fourthParam")}, Type: func1Param4},
 			},
 		}
 		func1Results = &dst.FieldList{
@@ -161,7 +151,11 @@ var _ = Describe("Converter", func() {
 		It("creates structs for a function", func() {
 			// ASSEMBLE
 			expectedParams := dst.Clone(func1Params).(*dst.FieldList)
-			// Map params are represented as a deep hash when the struct is comparable
+			// Non-comparables are represented as a deep hash
+			expectedParams.List[0].Type = &dst.Ident{
+				Path: "github.com/myshkin5/moqueries/hash",
+				Name: "Hash",
+			}
 			expectedParams.List[3].Type = &dst.Ident{
 				Path: "github.com/myshkin5/moqueries/hash",
 				Name: "Hash",
@@ -171,11 +165,20 @@ var _ = Describe("Converter", func() {
 				Params:  func1Params,
 				Results: func1Results,
 			}
+			typeCacheMoq.onCall().IsComparable(func1Param1).
+				returnResults(false, nil)
+			typeCacheMoq.onCall().IsComparable(func1Param2).
+				returnResults(true, nil)
+			typeCacheMoq.onCall().IsComparable(func1Param3).
+				returnResults(false, nil)
+			typeCacheMoq.onCall().IsComparable(func1Param4).
+				returnResults(true, nil)
 
 			// ACT
-			decls := converter.MethodStructs(iSpec, fn)
+			decls, err := converter.MethodStructs(iSpec, fn)
 
 			// ASSERT
+			Expect(err).NotTo(HaveOccurred())
 			Expect(decls).To(HaveLen(7))
 			decl, ok := decls[0].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
