@@ -76,6 +76,11 @@ type moqLoadTypesFn_fnRecorder struct {
 	moq       *moqLoadTypesFn
 }
 
+// moqLoadTypesFn_anyParams isolates the any params functions of the LoadTypesFn type
+type moqLoadTypesFn_anyParams struct {
+	recorder *moqLoadTypesFn_fnRecorder
+}
+
 // newMoqLoadTypesFn creates a new moq of the LoadTypesFn type
 func newMoqLoadTypesFn(scene *moq.Scene, config *moq.Config) *moqLoadTypesFn {
 	if config == nil {
@@ -180,22 +185,22 @@ func (m *moqLoadTypesFn) onCall(pkg string, loadTestTypes bool) *moqLoadTypesFn_
 	}
 }
 
-func (r *moqLoadTypesFn_fnRecorder) anyPkg() *moqLoadTypesFn_fnRecorder {
+func (r *moqLoadTypesFn_fnRecorder) any() *moqLoadTypesFn_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqLoadTypesFn_anyParams{recorder: r}
 }
 
-func (r *moqLoadTypesFn_fnRecorder) anyLoadTestTypes() *moqLoadTypesFn_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqLoadTypesFn_anyParams) pkg() *moqLoadTypesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqLoadTypesFn_anyParams) loadTestTypes() *moqLoadTypesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqLoadTypesFn_fnRecorder) seq() *moqLoadTypesFn_fnRecorder {

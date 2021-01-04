@@ -66,6 +66,11 @@ type moqIsFavorite_fnRecorder struct {
 	moq       *moqIsFavorite
 }
 
+// moqIsFavorite_anyParams isolates the any params functions of the IsFavorite type
+type moqIsFavorite_anyParams struct {
+	recorder *moqIsFavorite_fnRecorder
+}
+
 // newMoqIsFavorite creates a new moq of the IsFavorite type
 func newMoqIsFavorite(scene *moq.Scene, config *moq.Config) *moqIsFavorite {
 	if config == nil {
@@ -155,13 +160,17 @@ func (m *moqIsFavorite) onCall(n int) *moqIsFavorite_fnRecorder {
 	}
 }
 
-func (r *moqIsFavorite_fnRecorder) anyN() *moqIsFavorite_fnRecorder {
+func (r *moqIsFavorite_fnRecorder) any() *moqIsFavorite_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqIsFavorite_anyParams{recorder: r}
+}
+
+func (a *moqIsFavorite_anyParams) n() *moqIsFavorite_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
 func (r *moqIsFavorite_fnRecorder) seq() *moqIsFavorite_fnRecorder {

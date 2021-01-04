@@ -73,6 +73,11 @@ type moqRepeatedIdsFn_fnRecorder struct {
 	moq       *moqRepeatedIdsFn
 }
 
+// moqRepeatedIdsFn_anyParams isolates the any params functions of the RepeatedIdsFn type
+type moqRepeatedIdsFn_anyParams struct {
+	recorder *moqRepeatedIdsFn_fnRecorder
+}
+
 // newMoqRepeatedIdsFn creates a new moq of the RepeatedIdsFn type
 func newMoqRepeatedIdsFn(scene *moq.Scene, config *moq.Config) *moqRepeatedIdsFn {
 	if config == nil {
@@ -183,31 +188,27 @@ func (m *moqRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *moqRepe
 	}
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) anySParam1() *moqRepeatedIdsFn_fnRecorder {
+func (r *moqRepeatedIdsFn_fnRecorder) any() *moqRepeatedIdsFn_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqRepeatedIdsFn_anyParams{recorder: r}
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) anySParam2() *moqRepeatedIdsFn_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqRepeatedIdsFn_anyParams) sParam1() *moqRepeatedIdsFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) anyBParam() *moqRepeatedIdsFn_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 2
-	return r
+func (a *moqRepeatedIdsFn_anyParams) sParam2() *moqRepeatedIdsFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (a *moqRepeatedIdsFn_anyParams) bParam() *moqRepeatedIdsFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 2
+	return a.recorder
 }
 
 func (r *moqRepeatedIdsFn_fnRecorder) seq() *moqRepeatedIdsFn_fnRecorder {

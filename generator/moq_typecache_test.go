@@ -81,6 +81,11 @@ type moqTypeCache_Type_fnRecorder struct {
 	moq       *moqTypeCache
 }
 
+// moqTypeCache_Type_anyParams isolates the any params functions of the TypeCache type
+type moqTypeCache_Type_anyParams struct {
+	recorder *moqTypeCache_Type_fnRecorder
+}
+
 // moqTypeCache_IsComparable_params holds the params of the TypeCache type
 type moqTypeCache_IsComparable_params struct{ expr dst.Expr }
 
@@ -124,6 +129,11 @@ type moqTypeCache_IsComparable_fnRecorder struct {
 	sequence  bool
 	results   *moqTypeCache_IsComparable_results
 	moq       *moqTypeCache
+}
+
+// moqTypeCache_IsComparable_anyParams isolates the any params functions of the TypeCache type
+type moqTypeCache_IsComparable_anyParams struct {
+	recorder *moqTypeCache_IsComparable_fnRecorder
 }
 
 // newMoqTypeCache creates a new moq of the TypeCache type
@@ -293,22 +303,22 @@ func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestTypes bool) *moqTypeC
 	}
 }
 
-func (r *moqTypeCache_Type_fnRecorder) anyId() *moqTypeCache_Type_fnRecorder {
+func (r *moqTypeCache_Type_fnRecorder) any() *moqTypeCache_Type_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqTypeCache_Type_anyParams{recorder: r}
 }
 
-func (r *moqTypeCache_Type_fnRecorder) anyLoadTestTypes() *moqTypeCache_Type_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqTypeCache_Type_anyParams) id() *moqTypeCache_Type_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqTypeCache_Type_anyParams) loadTestTypes() *moqTypeCache_Type_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqTypeCache_Type_fnRecorder) seq() *moqTypeCache_Type_fnRecorder {
@@ -502,13 +512,17 @@ func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr) *moqTypeCache_IsComp
 	}
 }
 
-func (r *moqTypeCache_IsComparable_fnRecorder) anyExpr() *moqTypeCache_IsComparable_fnRecorder {
+func (r *moqTypeCache_IsComparable_fnRecorder) any() *moqTypeCache_IsComparable_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqTypeCache_IsComparable_anyParams{recorder: r}
+}
+
+func (a *moqTypeCache_IsComparable_anyParams) expr() *moqTypeCache_IsComparable_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) seq() *moqTypeCache_IsComparable_fnRecorder {

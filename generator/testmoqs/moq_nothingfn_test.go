@@ -65,6 +65,11 @@ type moqNothingFn_fnRecorder struct {
 	moq       *moqNothingFn
 }
 
+// moqNothingFn_anyParams isolates the any params functions of the NothingFn type
+type moqNothingFn_anyParams struct {
+	recorder *moqNothingFn_fnRecorder
+}
+
 // newMoqNothingFn creates a new moq of the NothingFn type
 func newMoqNothingFn(scene *moq.Scene, config *moq.Config) *moqNothingFn {
 	if config == nil {
@@ -137,6 +142,14 @@ func (m *moqNothingFn) onCall() *moqNothingFn_fnRecorder {
 		sequence:  m.config.Sequence == moq.SeqDefaultOn,
 		moq:       m,
 	}
+}
+
+func (r *moqNothingFn_fnRecorder) any() *moqNothingFn_anyParams {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	return &moqNothingFn_anyParams{recorder: r}
 }
 
 func (r *moqNothingFn_fnRecorder) seq() *moqNothingFn_fnRecorder {

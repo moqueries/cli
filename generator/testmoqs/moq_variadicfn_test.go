@@ -74,6 +74,11 @@ type moqVariadicFn_fnRecorder struct {
 	moq       *moqVariadicFn
 }
 
+// moqVariadicFn_anyParams isolates the any params functions of the VariadicFn type
+type moqVariadicFn_anyParams struct {
+	recorder *moqVariadicFn_fnRecorder
+}
+
 // newMoqVariadicFn creates a new moq of the VariadicFn type
 func newMoqVariadicFn(scene *moq.Scene, config *moq.Config) *moqVariadicFn {
 	if config == nil {
@@ -175,22 +180,22 @@ func (m *moqVariadicFn) onCall(other bool, args ...string) *moqVariadicFn_fnReco
 	}
 }
 
-func (r *moqVariadicFn_fnRecorder) anyOther() *moqVariadicFn_fnRecorder {
+func (r *moqVariadicFn_fnRecorder) any() *moqVariadicFn_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqVariadicFn_anyParams{recorder: r}
 }
 
-func (r *moqVariadicFn_fnRecorder) anyArgs() *moqVariadicFn_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqVariadicFn_anyParams) other() *moqVariadicFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqVariadicFn_anyParams) args() *moqVariadicFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqVariadicFn_fnRecorder) seq() *moqVariadicFn_fnRecorder {

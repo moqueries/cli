@@ -10,74 +10,80 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// moqNoParamsFn holds the state of a moq of the NoParamsFn type
-type moqNoParamsFn struct {
+// moqTimesFn holds the state of a moq of the TimesFn type
+type moqTimesFn struct {
 	scene           *moq.Scene
 	config          moq.Config
-	resultsByParams []moqNoParamsFn_resultsByParams
+	resultsByParams []moqTimesFn_resultsByParams
 }
 
-// moqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
-type moqNoParamsFn_mock struct {
-	moq *moqNoParamsFn
+// moqTimesFn_mock isolates the mock interface of the TimesFn type
+type moqTimesFn_mock struct {
+	moq *moqTimesFn
 }
 
-// moqNoParamsFn_params holds the params of the NoParamsFn type
-type moqNoParamsFn_params struct{}
+// moqTimesFn_params holds the params of the TimesFn type
+type moqTimesFn_params struct {
+	times  string
+	bParam bool
+}
 
-// moqNoParamsFn_paramsKey holds the map key params of the NoParamsFn type
-type moqNoParamsFn_paramsKey struct{}
+// moqTimesFn_paramsKey holds the map key params of the TimesFn type
+type moqTimesFn_paramsKey struct {
+	times  string
+	bParam bool
+}
 
-// moqNoParamsFn_resultsByParams contains the results for a given set of parameters for the NoParamsFn type
-type moqNoParamsFn_resultsByParams struct {
+// moqTimesFn_resultsByParams contains the results for a given set of parameters for the TimesFn type
+type moqTimesFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[moqNoParamsFn_paramsKey]*moqNoParamsFn_results
+	results   map[moqTimesFn_paramsKey]*moqTimesFn_results
 }
 
-// moqNoParamsFn_doFn defines the type of function needed when calling andDo for the NoParamsFn type
-type moqNoParamsFn_doFn func()
+// moqTimesFn_doFn defines the type of function needed when calling andDo for the TimesFn type
+type moqTimesFn_doFn func(times string, bParam bool)
 
-// moqNoParamsFn_doReturnFn defines the type of function needed when calling doReturnResults for the NoParamsFn type
-type moqNoParamsFn_doReturnFn func() (sResult string, err error)
+// moqTimesFn_doReturnFn defines the type of function needed when calling doReturnResults for the TimesFn type
+type moqTimesFn_doReturnFn func(times string, bParam bool) (sResult string, err error)
 
-// moqNoParamsFn_results holds the results of the NoParamsFn type
-type moqNoParamsFn_results struct {
-	params  moqNoParamsFn_params
+// moqTimesFn_results holds the results of the TimesFn type
+type moqTimesFn_results struct {
+	params  moqTimesFn_params
 	results []struct {
 		values *struct {
 			sResult string
 			err     error
 		}
 		sequence   uint32
-		doFn       moqNoParamsFn_doFn
-		doReturnFn moqNoParamsFn_doReturnFn
+		doFn       moqTimesFn_doFn
+		doReturnFn moqTimesFn_doReturnFn
 	}
 	index    uint32
 	anyTimes bool
 }
 
-// moqNoParamsFn_fnRecorder routes recorded function calls to the moqNoParamsFn moq
-type moqNoParamsFn_fnRecorder struct {
-	params    moqNoParamsFn_params
-	paramsKey moqNoParamsFn_paramsKey
+// moqTimesFn_fnRecorder routes recorded function calls to the moqTimesFn moq
+type moqTimesFn_fnRecorder struct {
+	params    moqTimesFn_params
+	paramsKey moqTimesFn_paramsKey
 	anyParams uint64
 	sequence  bool
-	results   *moqNoParamsFn_results
-	moq       *moqNoParamsFn
+	results   *moqTimesFn_results
+	moq       *moqTimesFn
 }
 
-// moqNoParamsFn_anyParams isolates the any params functions of the NoParamsFn type
-type moqNoParamsFn_anyParams struct {
-	recorder *moqNoParamsFn_fnRecorder
+// moqTimesFn_anyParams isolates the any params functions of the TimesFn type
+type moqTimesFn_anyParams struct {
+	recorder *moqTimesFn_fnRecorder
 }
 
-// newMoqNoParamsFn creates a new moq of the NoParamsFn type
-func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
+// newMoqTimesFn creates a new moq of the TimesFn type
+func newMoqTimesFn(scene *moq.Scene, config *moq.Config) *moqTimesFn {
 	if config == nil {
 		config = &moq.Config{}
 	}
-	m := &moqNoParamsFn{
+	m := &moqTimesFn{
 		scene:  scene,
 		config: *config,
 	}
@@ -85,16 +91,33 @@ func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
 	return m
 }
 
-// mock returns the moq implementation of the NoParamsFn type
-func (m *moqNoParamsFn) mock() testmoqs.NoParamsFn {
-	return func() (sResult string, err error) { moq := &moqNoParamsFn_mock{moq: m}; return moq.fn() }
+// mock returns the moq implementation of the TimesFn type
+func (m *moqTimesFn) mock() testmoqs.TimesFn {
+	return func(times string, bParam bool) (sResult string, err error) {
+		moq := &moqTimesFn_mock{moq: m}
+		return moq.fn(times, bParam)
+	}
 }
 
-func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
-	params := moqNoParamsFn_params{}
-	var results *moqNoParamsFn_results
+func (m *moqTimesFn_mock) fn(times string, bParam bool) (sResult string, err error) {
+	params := moqTimesFn_params{
+		times:  times,
+		bParam: bParam,
+	}
+	var results *moqTimesFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := moqNoParamsFn_paramsKey{}
+		var timesUsed string
+		if resultsByParams.anyParams&(1<<0) == 0 {
+			timesUsed = times
+		}
+		var bParamUsed bool
+		if resultsByParams.anyParams&(1<<1) == 0 {
+			bParamUsed = bParam
+		}
+		paramsKey := moqTimesFn_paramsKey{
+			times:  timesUsed,
+			bParam: bParamUsed,
+		}
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -128,7 +151,7 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 	}
 
 	if result.doFn != nil {
-		result.doFn()
+		result.doFn(times, bParam)
 	}
 
 	if result.values != nil {
@@ -136,29 +159,45 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn()
+		sResult, err = result.doReturnFn(times, bParam)
 	}
 	return
 }
 
-func (m *moqNoParamsFn) onCall() *moqNoParamsFn_fnRecorder {
-	return &moqNoParamsFn_fnRecorder{
-		params:    moqNoParamsFn_params{},
-		paramsKey: moqNoParamsFn_paramsKey{},
-		sequence:  m.config.Sequence == moq.SeqDefaultOn,
-		moq:       m,
+func (m *moqTimesFn) onCall(times string, bParam bool) *moqTimesFn_fnRecorder {
+	return &moqTimesFn_fnRecorder{
+		params: moqTimesFn_params{
+			times:  times,
+			bParam: bParam,
+		},
+		paramsKey: moqTimesFn_paramsKey{
+			times:  times,
+			bParam: bParam,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
 	}
 }
 
-func (r *moqNoParamsFn_fnRecorder) any() *moqNoParamsFn_anyParams {
+func (r *moqTimesFn_fnRecorder) any() *moqTimesFn_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	return &moqNoParamsFn_anyParams{recorder: r}
+	return &moqTimesFn_anyParams{recorder: r}
 }
 
-func (r *moqNoParamsFn_fnRecorder) seq() *moqNoParamsFn_fnRecorder {
+func (a *moqTimesFn_anyParams) times() *moqTimesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqTimesFn_anyParams) bParam() *moqTimesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqTimesFn_fnRecorder) seq() *moqTimesFn_fnRecorder {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -167,7 +206,7 @@ func (r *moqNoParamsFn_fnRecorder) seq() *moqNoParamsFn_fnRecorder {
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) noSeq() *moqNoParamsFn_fnRecorder {
+func (r *moqTimesFn_fnRecorder) noSeq() *moqTimesFn_fnRecorder {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -176,7 +215,7 @@ func (r *moqNoParamsFn_fnRecorder) noSeq() *moqNoParamsFn_fnRecorder {
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) returnResults(sResult string, err error) *moqNoParamsFn_fnRecorder {
+func (r *moqTimesFn_fnRecorder) returnResults(sResult string, err error) *moqTimesFn_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
@@ -190,8 +229,8 @@ func (r *moqNoParamsFn_fnRecorder) returnResults(sResult string, err error) *moq
 			err     error
 		}
 		sequence   uint32
-		doFn       moqNoParamsFn_doFn
-		doReturnFn moqNoParamsFn_doReturnFn
+		doFn       moqTimesFn_doFn
+		doReturnFn moqTimesFn_doReturnFn
 	}{
 		values: &struct {
 			sResult string
@@ -205,7 +244,7 @@ func (r *moqNoParamsFn_fnRecorder) returnResults(sResult string, err error) *moq
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) andDo(fn moqNoParamsFn_doFn) *moqNoParamsFn_fnRecorder {
+func (r *moqTimesFn_fnRecorder) andDo(fn moqTimesFn_doFn) *moqTimesFn_fnRecorder {
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -215,7 +254,7 @@ func (r *moqNoParamsFn_fnRecorder) andDo(fn moqNoParamsFn_doFn) *moqNoParamsFn_f
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) doReturnResults(fn moqNoParamsFn_doReturnFn) *moqNoParamsFn_fnRecorder {
+func (r *moqTimesFn_fnRecorder) doReturnResults(fn moqTimesFn_doReturnFn) *moqTimesFn_fnRecorder {
 	r.findResults()
 
 	var sequence uint32
@@ -229,17 +268,17 @@ func (r *moqNoParamsFn_fnRecorder) doReturnResults(fn moqNoParamsFn_doReturnFn) 
 			err     error
 		}
 		sequence   uint32
-		doFn       moqNoParamsFn_doFn
-		doReturnFn moqNoParamsFn_doReturnFn
+		doFn       moqTimesFn_doFn
+		doReturnFn moqTimesFn_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) findResults() {
+func (r *moqTimesFn_fnRecorder) findResults() {
 	if r.results == nil {
 		anyCount := bits.OnesCount64(r.anyParams)
 		insertAt := -1
-		var results *moqNoParamsFn_resultsByParams
+		var results *moqTimesFn_resultsByParams
 		for n, res := range r.moq.resultsByParams {
 			if res.anyParams == r.anyParams {
 				results = &res
@@ -250,10 +289,10 @@ func (r *moqNoParamsFn_fnRecorder) findResults() {
 			}
 		}
 		if results == nil {
-			results = &moqNoParamsFn_resultsByParams{
+			results = &moqTimesFn_resultsByParams{
 				anyCount:  anyCount,
 				anyParams: r.anyParams,
-				results:   map[moqNoParamsFn_paramsKey]*moqNoParamsFn_results{},
+				results:   map[moqTimesFn_paramsKey]*moqTimesFn_results{},
 			}
 			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
 			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
@@ -262,12 +301,23 @@ func (r *moqNoParamsFn_fnRecorder) findResults() {
 			}
 		}
 
-		paramsKey := moqNoParamsFn_paramsKey{}
+		var timesUsed string
+		if r.anyParams&(1<<0) == 0 {
+			timesUsed = r.paramsKey.times
+		}
+		var bParamUsed bool
+		if r.anyParams&(1<<1) == 0 {
+			bParamUsed = r.paramsKey.bParam
+		}
+		paramsKey := moqTimesFn_paramsKey{
+			times:  timesUsed,
+			bParam: bParamUsed,
+		}
 
 		var ok bool
 		r.results, ok = results.results[paramsKey]
 		if !ok {
-			r.results = &moqNoParamsFn_results{
+			r.results = &moqTimesFn_results{
 				params:   r.params,
 				results:  nil,
 				index:    0,
@@ -278,7 +328,7 @@ func (r *moqNoParamsFn_fnRecorder) findResults() {
 	}
 }
 
-func (r *moqNoParamsFn_fnRecorder) times(count int) *moqNoParamsFn_fnRecorder {
+func (r *moqTimesFn_fnRecorder) times(count int) *moqTimesFn_fnRecorder {
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
 		return nil
@@ -292,8 +342,8 @@ func (r *moqNoParamsFn_fnRecorder) times(count int) *moqNoParamsFn_fnRecorder {
 					err     error
 				}
 				sequence   uint32
-				doFn       moqNoParamsFn_doFn
-				doReturnFn moqNoParamsFn_doReturnFn
+				doFn       moqTimesFn_doFn
+				doReturnFn moqTimesFn_doReturnFn
 			}{
 				values: &struct {
 					sResult string
@@ -310,7 +360,7 @@ func (r *moqNoParamsFn_fnRecorder) times(count int) *moqNoParamsFn_fnRecorder {
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) anyTimes() {
+func (r *moqTimesFn_fnRecorder) anyTimes() {
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
 		return
@@ -319,10 +369,10 @@ func (r *moqNoParamsFn_fnRecorder) anyTimes() {
 }
 
 // Reset resets the state of the moq
-func (m *moqNoParamsFn) Reset() { m.resultsByParams = nil }
+func (m *moqTimesFn) Reset() { m.resultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *moqNoParamsFn) AssertExpectationsMet() {
+func (m *moqTimesFn) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams {
 		for _, results := range res.results {
 			missing := len(results.results) - int(atomic.LoadUint32(&results.index))

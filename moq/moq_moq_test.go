@@ -70,6 +70,11 @@ type moqMoq_Reset_fnRecorder struct {
 	moq       *moqMoq
 }
 
+// moqMoq_Reset_anyParams isolates the any params functions of the Moq type
+type moqMoq_Reset_anyParams struct {
+	recorder *moqMoq_Reset_fnRecorder
+}
+
 // moqMoq_AssertExpectationsMet_params holds the params of the Moq type
 type moqMoq_AssertExpectationsMet_params struct{}
 
@@ -111,6 +116,11 @@ type moqMoq_AssertExpectationsMet_fnRecorder struct {
 	sequence  bool
 	results   *moqMoq_AssertExpectationsMet_results
 	moq       *moqMoq
+}
+
+// moqMoq_AssertExpectationsMet_anyParams isolates the any params functions of the Moq type
+type moqMoq_AssertExpectationsMet_anyParams struct {
+	recorder *moqMoq_AssertExpectationsMet_fnRecorder
 }
 
 // newMoqMoq creates a new moq of the Moq type
@@ -241,6 +251,14 @@ func (m *moqMoq_recorder) Reset() *moqMoq_Reset_fnRecorder {
 		sequence:  m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:       m.moq,
 	}
+}
+
+func (r *moqMoq_Reset_fnRecorder) any() *moqMoq_Reset_anyParams {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	return &moqMoq_Reset_anyParams{recorder: r}
 }
 
 func (r *moqMoq_Reset_fnRecorder) seq() *moqMoq_Reset_fnRecorder {
@@ -394,6 +412,14 @@ func (m *moqMoq_recorder) AssertExpectationsMet() *moqMoq_AssertExpectationsMet_
 		sequence:  m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:       m.moq,
 	}
+}
+
+func (r *moqMoq_AssertExpectationsMet_fnRecorder) any() *moqMoq_AssertExpectationsMet_anyParams {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	return &moqMoq_AssertExpectationsMet_anyParams{recorder: r}
 }
 
 func (r *moqMoq_AssertExpectationsMet_fnRecorder) seq() *moqMoq_AssertExpectationsMet_fnRecorder {

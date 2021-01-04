@@ -21,6 +21,7 @@ type MoqUsual struct {
 	ResultsByParams_Nothing     []MoqUsual_Nothing_resultsByParams
 	ResultsByParams_Variadic    []MoqUsual_Variadic_resultsByParams
 	ResultsByParams_RepeatedIds []MoqUsual_RepeatedIds_resultsByParams
+	ResultsByParams_Times       []MoqUsual_Times_resultsByParams
 }
 
 // MoqUsual_mock isolates the mock interface of the Usual type
@@ -84,6 +85,11 @@ type MoqUsual_Usual_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
+// MoqUsual_Usual_anyParams isolates the any params functions of the Usual type
+type MoqUsual_Usual_anyParams struct {
+	Recorder *MoqUsual_Usual_fnRecorder
+}
+
 // MoqUsual_NoNames_params holds the params of the Usual type
 type MoqUsual_NoNames_params struct {
 	Param1 string
@@ -135,6 +141,11 @@ type MoqUsual_NoNames_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
+// MoqUsual_NoNames_anyParams isolates the any params functions of the Usual type
+type MoqUsual_NoNames_anyParams struct {
+	Recorder *MoqUsual_NoNames_fnRecorder
+}
+
 // MoqUsual_NoResults_params holds the params of the Usual type
 type MoqUsual_NoResults_params struct {
 	SParam string
@@ -184,6 +195,11 @@ type MoqUsual_NoResults_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
+// MoqUsual_NoResults_anyParams isolates the any params functions of the Usual type
+type MoqUsual_NoResults_anyParams struct {
+	Recorder *MoqUsual_NoResults_fnRecorder
+}
+
 // MoqUsual_NoParams_params holds the params of the Usual type
 type MoqUsual_NoParams_params struct{}
 
@@ -229,6 +245,11 @@ type MoqUsual_NoParams_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
+// MoqUsual_NoParams_anyParams isolates the any params functions of the Usual type
+type MoqUsual_NoParams_anyParams struct {
+	Recorder *MoqUsual_NoParams_fnRecorder
+}
+
 // MoqUsual_Nothing_params holds the params of the Usual type
 type MoqUsual_Nothing_params struct{}
 
@@ -270,6 +291,11 @@ type MoqUsual_Nothing_fnRecorder struct {
 	Sequence  bool
 	Results   *MoqUsual_Nothing_results
 	Moq       *MoqUsual
+}
+
+// MoqUsual_Nothing_anyParams isolates the any params functions of the Usual type
+type MoqUsual_Nothing_anyParams struct {
+	Recorder *MoqUsual_Nothing_fnRecorder
 }
 
 // MoqUsual_Variadic_params holds the params of the Usual type
@@ -323,6 +349,11 @@ type MoqUsual_Variadic_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
+// MoqUsual_Variadic_anyParams isolates the any params functions of the Usual type
+type MoqUsual_Variadic_anyParams struct {
+	Recorder *MoqUsual_Variadic_fnRecorder
+}
+
 // MoqUsual_RepeatedIds_params holds the params of the Usual type
 type MoqUsual_RepeatedIds_params struct {
 	SParam1, SParam2 string
@@ -372,6 +403,67 @@ type MoqUsual_RepeatedIds_fnRecorder struct {
 	Sequence  bool
 	Results   *MoqUsual_RepeatedIds_results
 	Moq       *MoqUsual
+}
+
+// MoqUsual_RepeatedIds_anyParams isolates the any params functions of the Usual type
+type MoqUsual_RepeatedIds_anyParams struct {
+	Recorder *MoqUsual_RepeatedIds_fnRecorder
+}
+
+// MoqUsual_Times_params holds the params of the Usual type
+type MoqUsual_Times_params struct {
+	SParam string
+	Times  bool
+}
+
+// MoqUsual_Times_paramsKey holds the map key params of the Usual type
+type MoqUsual_Times_paramsKey struct {
+	SParam string
+	Times  bool
+}
+
+// MoqUsual_Times_resultsByParams contains the results for a given set of parameters for the Usual type
+type MoqUsual_Times_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUsual_Times_paramsKey]*MoqUsual_Times_results
+}
+
+// MoqUsual_Times_doFn defines the type of function needed when calling AndDo for the Usual type
+type MoqUsual_Times_doFn func(sParam string, times bool)
+
+// MoqUsual_Times_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+type MoqUsual_Times_doReturnFn func(sParam string, times bool) (sResult string, err error)
+
+// MoqUsual_Times_results holds the results of the Usual type
+type MoqUsual_Times_results struct {
+	Params  MoqUsual_Times_params
+	Results []struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_Times_doFn
+		DoReturnFn MoqUsual_Times_doReturnFn
+	}
+	Index    uint32
+	AnyTimes bool
+}
+
+// MoqUsual_Times_fnRecorder routes recorded function calls to the MoqUsual moq
+type MoqUsual_Times_fnRecorder struct {
+	Params    MoqUsual_Times_params
+	ParamsKey MoqUsual_Times_paramsKey
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUsual_Times_results
+	Moq       *MoqUsual
+}
+
+// MoqUsual_Times_anyParams isolates the any params functions of the Usual type
+type MoqUsual_Times_anyParams struct {
+	Recorder *MoqUsual_Times_fnRecorder
 }
 
 // NewMoqUsual creates a new moq of the Usual type
@@ -820,6 +912,71 @@ func (m *MoqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 	return
 }
 
+func (m *MoqUsual_mock) Times(sParam string, times bool) (sResult string, err error) {
+	params := MoqUsual_Times_params{
+		SParam: sParam,
+		Times:  times,
+	}
+	var results *MoqUsual_Times_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_Times {
+		var sParamUsed string
+		if resultsByParams.AnyParams&(1<<0) == 0 {
+			sParamUsed = sParam
+		}
+		var timesUsed bool
+		if resultsByParams.AnyParams&(1<<1) == 0 {
+			timesUsed = times
+		}
+		paramsKey := MoqUsual_Times_paramsKey{
+			SParam: sParamUsed,
+			Times:  timesUsed,
+		}
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= len(results.Results) {
+		if !results.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = len(results.Results) - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn(sParam, times)
+	}
+
+	if result.Values != nil {
+		sResult = result.Values.SResult
+		err = result.Values.Err
+	}
+	if result.DoReturnFn != nil {
+		sResult, err = result.DoReturnFn(sParam, times)
+	}
+	return
+}
+
 // OnCall returns the recorder implementation of the Usual type
 func (m *MoqUsual) OnCall() *MoqUsual_recorder {
 	return &MoqUsual_recorder{
@@ -842,22 +999,22 @@ func (m *MoqUsual_recorder) Usual(sParam string, bParam bool) *MoqUsual_Usual_fn
 	}
 }
 
-func (r *MoqUsual_Usual_fnRecorder) AnySParam() *MoqUsual_Usual_fnRecorder {
+func (r *MoqUsual_Usual_fnRecorder) Any() *MoqUsual_Usual_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqUsual_Usual_anyParams{Recorder: r}
 }
 
-func (r *MoqUsual_Usual_fnRecorder) AnyBParam() *MoqUsual_Usual_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqUsual_Usual_anyParams) SParam() *MoqUsual_Usual_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_Usual_anyParams) BParam() *MoqUsual_Usual_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
 }
 
 func (r *MoqUsual_Usual_fnRecorder) Seq() *MoqUsual_Usual_fnRecorder {
@@ -1046,22 +1203,22 @@ func (m *MoqUsual_recorder) NoNames(param1 string, param2 bool) *MoqUsual_NoName
 	}
 }
 
-func (r *MoqUsual_NoNames_fnRecorder) AnyParam1() *MoqUsual_NoNames_fnRecorder {
+func (r *MoqUsual_NoNames_fnRecorder) Any() *MoqUsual_NoNames_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqUsual_NoNames_anyParams{Recorder: r}
 }
 
-func (r *MoqUsual_NoNames_fnRecorder) AnyParam2() *MoqUsual_NoNames_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqUsual_NoNames_anyParams) Param1() *MoqUsual_NoNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_NoNames_anyParams) Param2() *MoqUsual_NoNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
 }
 
 func (r *MoqUsual_NoNames_fnRecorder) Seq() *MoqUsual_NoNames_fnRecorder {
@@ -1250,22 +1407,22 @@ func (m *MoqUsual_recorder) NoResults(sParam string, bParam bool) *MoqUsual_NoRe
 	}
 }
 
-func (r *MoqUsual_NoResults_fnRecorder) AnySParam() *MoqUsual_NoResults_fnRecorder {
+func (r *MoqUsual_NoResults_fnRecorder) Any() *MoqUsual_NoResults_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqUsual_NoResults_anyParams{Recorder: r}
 }
 
-func (r *MoqUsual_NoResults_fnRecorder) AnyBParam() *MoqUsual_NoResults_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqUsual_NoResults_anyParams) SParam() *MoqUsual_NoResults_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_NoResults_anyParams) BParam() *MoqUsual_NoResults_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
 }
 
 func (r *MoqUsual_NoResults_fnRecorder) Seq() *MoqUsual_NoResults_fnRecorder {
@@ -1430,6 +1587,14 @@ func (m *MoqUsual_recorder) NoParams() *MoqUsual_NoParams_fnRecorder {
 		Sequence:  m.Moq.Config.Sequence == moq.SeqDefaultOn,
 		Moq:       m.Moq,
 	}
+}
+
+func (r *MoqUsual_NoParams_fnRecorder) Any() *MoqUsual_NoParams_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_NoParams_anyParams{Recorder: r}
 }
 
 func (r *MoqUsual_NoParams_fnRecorder) Seq() *MoqUsual_NoParams_fnRecorder {
@@ -1601,6 +1766,14 @@ func (m *MoqUsual_recorder) Nothing() *MoqUsual_Nothing_fnRecorder {
 	}
 }
 
+func (r *MoqUsual_Nothing_fnRecorder) Any() *MoqUsual_Nothing_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_Nothing_anyParams{Recorder: r}
+}
+
 func (r *MoqUsual_Nothing_fnRecorder) Seq() *MoqUsual_Nothing_fnRecorder {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
@@ -1760,22 +1933,22 @@ func (m *MoqUsual_recorder) Variadic(other bool, args ...string) *MoqUsual_Varia
 	}
 }
 
-func (r *MoqUsual_Variadic_fnRecorder) AnyOther() *MoqUsual_Variadic_fnRecorder {
+func (r *MoqUsual_Variadic_fnRecorder) Any() *MoqUsual_Variadic_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqUsual_Variadic_anyParams{Recorder: r}
 }
 
-func (r *MoqUsual_Variadic_fnRecorder) AnyArgs() *MoqUsual_Variadic_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqUsual_Variadic_anyParams) Other() *MoqUsual_Variadic_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_Variadic_anyParams) Args() *MoqUsual_Variadic_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
 }
 
 func (r *MoqUsual_Variadic_fnRecorder) Seq() *MoqUsual_Variadic_fnRecorder {
@@ -1966,31 +2139,27 @@ func (m *MoqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *M
 	}
 }
 
-func (r *MoqUsual_RepeatedIds_fnRecorder) AnySParam1() *MoqUsual_RepeatedIds_fnRecorder {
+func (r *MoqUsual_RepeatedIds_fnRecorder) Any() *MoqUsual_RepeatedIds_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqUsual_RepeatedIds_anyParams{Recorder: r}
 }
 
-func (r *MoqUsual_RepeatedIds_fnRecorder) AnySParam2() *MoqUsual_RepeatedIds_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqUsual_RepeatedIds_anyParams) SParam1() *MoqUsual_RepeatedIds_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
 }
 
-func (r *MoqUsual_RepeatedIds_fnRecorder) AnyBParam() *MoqUsual_RepeatedIds_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 2
-	return r
+func (a *MoqUsual_RepeatedIds_anyParams) SParam2() *MoqUsual_RepeatedIds_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
+}
+
+func (a *MoqUsual_RepeatedIds_anyParams) BParam() *MoqUsual_RepeatedIds_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 2
+	return a.Recorder
 }
 
 func (r *MoqUsual_RepeatedIds_fnRecorder) Seq() *MoqUsual_RepeatedIds_fnRecorder {
@@ -2171,6 +2340,210 @@ func (r *MoqUsual_RepeatedIds_fnRecorder) AnyTimes() {
 	r.Results.AnyTimes = true
 }
 
+func (m *MoqUsual_recorder) Times(sParam string, times bool) *MoqUsual_Times_fnRecorder {
+	return &MoqUsual_Times_fnRecorder{
+		Params: MoqUsual_Times_params{
+			SParam: sParam,
+			Times:  times,
+		},
+		ParamsKey: MoqUsual_Times_paramsKey{
+			SParam: sParam,
+			Times:  times,
+		},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqUsual_Times_fnRecorder) Any() *MoqUsual_Times_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_Times_anyParams{Recorder: r}
+}
+
+func (a *MoqUsual_Times_anyParams) SParam() *MoqUsual_Times_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_Times_anyParams) Times() *MoqUsual_Times_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
+}
+
+func (r *MoqUsual_Times_fnRecorder) Seq() *MoqUsual_Times_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUsual_Times_fnRecorder) NoSeq() *MoqUsual_Times_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUsual_Times_fnRecorder) ReturnResults(sResult string, err error) *MoqUsual_Times_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_Times_doFn
+		DoReturnFn MoqUsual_Times_doReturnFn
+	}{
+		Values: &struct {
+			SResult string
+			Err     error
+		}{
+			SResult: sResult,
+			Err:     err,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUsual_Times_fnRecorder) AndDo(fn MoqUsual_Times_doFn) *MoqUsual_Times_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUsual_Times_fnRecorder) DoReturnResults(fn MoqUsual_Times_doReturnFn) *MoqUsual_Times_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_Times_doFn
+		DoReturnFn MoqUsual_Times_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUsual_Times_fnRecorder) FindResults() {
+	if r.Results == nil {
+		anyCount := bits.OnesCount64(r.AnyParams)
+		insertAt := -1
+		var results *MoqUsual_Times_resultsByParams
+		for n, res := range r.Moq.ResultsByParams_Times {
+			if res.AnyParams == r.AnyParams {
+				results = &res
+				break
+			}
+			if res.AnyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &MoqUsual_Times_resultsByParams{
+				AnyCount:  anyCount,
+				AnyParams: r.AnyParams,
+				Results:   map[MoqUsual_Times_paramsKey]*MoqUsual_Times_results{},
+			}
+			r.Moq.ResultsByParams_Times = append(r.Moq.ResultsByParams_Times, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Times) {
+				copy(r.Moq.ResultsByParams_Times[insertAt+1:], r.Moq.ResultsByParams_Times[insertAt:0])
+				r.Moq.ResultsByParams_Times[insertAt] = *results
+			}
+		}
+
+		var sParamUsed string
+		if r.AnyParams&(1<<0) == 0 {
+			sParamUsed = r.ParamsKey.SParam
+		}
+		var timesUsed bool
+		if r.AnyParams&(1<<1) == 0 {
+			timesUsed = r.ParamsKey.Times
+		}
+		paramsKey := MoqUsual_Times_paramsKey{
+			SParam: sParamUsed,
+			Times:  timesUsed,
+		}
+
+		var ok bool
+		r.Results, ok = results.Results[paramsKey]
+		if !ok {
+			r.Results = &MoqUsual_Times_results{
+				Params:   r.Params,
+				Results:  nil,
+				Index:    0,
+				AnyTimes: false,
+			}
+			results.Results[paramsKey] = r.Results
+		}
+	}
+}
+
+func (r *MoqUsual_Times_fnRecorder) Times(count int) *MoqUsual_Times_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
+		return nil
+	}
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < count-1; n++ {
+		if last.Sequence != 0 {
+			last = struct {
+				Values *struct {
+					SResult string
+					Err     error
+				}
+				Sequence   uint32
+				DoFn       MoqUsual_Times_doFn
+				DoReturnFn MoqUsual_Times_doReturnFn
+			}{
+				Values: &struct {
+					SResult string
+					Err     error
+				}{
+					SResult: last.Values.SResult,
+					Err:     last.Values.Err,
+				},
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (r *MoqUsual_Times_fnRecorder) AnyTimes() {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
+		return
+	}
+	r.Results.AnyTimes = true
+}
+
 // Reset resets the state of the moq
 func (m *MoqUsual) Reset() {
 	m.ResultsByParams_Usual = nil
@@ -2180,6 +2553,7 @@ func (m *MoqUsual) Reset() {
 	m.ResultsByParams_Nothing = nil
 	m.ResultsByParams_Variadic = nil
 	m.ResultsByParams_RepeatedIds = nil
+	m.ResultsByParams_Times = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
@@ -2251,6 +2625,17 @@ func (m *MoqUsual) AssertExpectationsMet() {
 		}
 	}
 	for _, res := range m.ResultsByParams_RepeatedIds {
+		for _, results := range res.Results {
+			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
+			if missing == 1 && results.AnyTimes == true {
+				continue
+			}
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_Times {
 		for _, results := range res.Results {
 			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
 			if missing == 1 && results.AnyTimes == true {

@@ -76,6 +76,11 @@ type MoqT_Errorf_fnRecorder struct {
 	Moq       *MoqT
 }
 
+// MoqT_Errorf_anyParams isolates the any params functions of the T type
+type MoqT_Errorf_anyParams struct {
+	Recorder *MoqT_Errorf_fnRecorder
+}
+
 // MoqT_Fatalf_params holds the params of the T type
 type MoqT_Fatalf_params struct {
 	Format string
@@ -123,6 +128,11 @@ type MoqT_Fatalf_fnRecorder struct {
 	Sequence  bool
 	Results   *MoqT_Fatalf_results
 	Moq       *MoqT
+}
+
+// MoqT_Fatalf_anyParams isolates the any params functions of the T type
+type MoqT_Fatalf_anyParams struct {
+	Recorder *MoqT_Fatalf_fnRecorder
 }
 
 // NewMoqT creates a new moq of the T type
@@ -289,22 +299,22 @@ func (m *MoqT_recorder) Errorf(format string, args ...interface{}) *MoqT_Errorf_
 	}
 }
 
-func (r *MoqT_Errorf_fnRecorder) AnyFormat() *MoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) Any() *MoqT_Errorf_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqT_Errorf_anyParams{Recorder: r}
 }
 
-func (r *MoqT_Errorf_fnRecorder) AnyArgs() *MoqT_Errorf_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqT_Errorf_anyParams) Format() *MoqT_Errorf_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqT_Errorf_anyParams) Args() *MoqT_Errorf_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
 }
 
 func (r *MoqT_Errorf_fnRecorder) Seq() *MoqT_Errorf_fnRecorder {
@@ -477,22 +487,22 @@ func (m *MoqT_recorder) Fatalf(format string, args ...interface{}) *MoqT_Fatalf_
 	}
 }
 
-func (r *MoqT_Fatalf_fnRecorder) AnyFormat() *MoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) Any() *MoqT_Fatalf_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	r.AnyParams |= 1 << 0
-	return r
+	return &MoqT_Fatalf_anyParams{Recorder: r}
 }
 
-func (r *MoqT_Fatalf_fnRecorder) AnyArgs() *MoqT_Fatalf_fnRecorder {
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
-		return nil
-	}
-	r.AnyParams |= 1 << 1
-	return r
+func (a *MoqT_Fatalf_anyParams) Format() *MoqT_Fatalf_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqT_Fatalf_anyParams) Args() *MoqT_Fatalf_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
 }
 
 func (r *MoqT_Fatalf_fnRecorder) Seq() *MoqT_Fatalf_fnRecorder {

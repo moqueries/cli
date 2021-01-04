@@ -74,6 +74,11 @@ type moqStore_AllWidgetsIds_fnRecorder struct {
 	moq       *moqStore
 }
 
+// moqStore_AllWidgetsIds_anyParams isolates the any params functions of the Store type
+type moqStore_AllWidgetsIds_anyParams struct {
+	recorder *moqStore_AllWidgetsIds_fnRecorder
+}
+
 // moqStore_GadgetsByWidgetId_params holds the params of the Store type
 type moqStore_GadgetsByWidgetId_params struct{ widgetId int }
 
@@ -117,6 +122,11 @@ type moqStore_GadgetsByWidgetId_fnRecorder struct {
 	sequence  bool
 	results   *moqStore_GadgetsByWidgetId_results
 	moq       *moqStore
+}
+
+// moqStore_GadgetsByWidgetId_anyParams isolates the any params functions of the Store type
+type moqStore_GadgetsByWidgetId_anyParams struct {
+	recorder *moqStore_GadgetsByWidgetId_fnRecorder
 }
 
 // moqStore_LightGadgetsByWidgetId_params holds the params of the Store type
@@ -168,6 +178,11 @@ type moqStore_LightGadgetsByWidgetId_fnRecorder struct {
 	sequence  bool
 	results   *moqStore_LightGadgetsByWidgetId_results
 	moq       *moqStore
+}
+
+// moqStore_LightGadgetsByWidgetId_anyParams isolates the any params functions of the Store type
+type moqStore_LightGadgetsByWidgetId_anyParams struct {
+	recorder *moqStore_LightGadgetsByWidgetId_fnRecorder
 }
 
 // newMoqStore creates a new moq of the Store type
@@ -381,6 +396,14 @@ func (m *moqStore_recorder) AllWidgetsIds() *moqStore_AllWidgetsIds_fnRecorder {
 	}
 }
 
+func (r *moqStore_AllWidgetsIds_fnRecorder) any() *moqStore_AllWidgetsIds_anyParams {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	return &moqStore_AllWidgetsIds_anyParams{recorder: r}
+}
+
 func (r *moqStore_AllWidgetsIds_fnRecorder) seq() *moqStore_AllWidgetsIds_fnRecorder {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
@@ -554,13 +577,17 @@ func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByW
 	}
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) anyWidgetId() *moqStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) any() *moqStore_GadgetsByWidgetId_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqStore_GadgetsByWidgetId_anyParams{recorder: r}
+}
+
+func (a *moqStore_GadgetsByWidgetId_anyParams) widgetId() *moqStore_GadgetsByWidgetId_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
 func (r *moqStore_GadgetsByWidgetId_fnRecorder) seq() *moqStore_GadgetsByWidgetId_fnRecorder {
@@ -744,22 +771,22 @@ func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint3
 	}
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) anyWidgetId() *moqStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) any() *moqStore_LightGadgetsByWidgetId_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqStore_LightGadgetsByWidgetId_anyParams{recorder: r}
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) anyMaxWeight() *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqStore_LightGadgetsByWidgetId_anyParams) widgetId() *moqStore_LightGadgetsByWidgetId_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqStore_LightGadgetsByWidgetId_anyParams) maxWeight() *moqStore_LightGadgetsByWidgetId_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) seq() *moqStore_LightGadgetsByWidgetId_fnRecorder {

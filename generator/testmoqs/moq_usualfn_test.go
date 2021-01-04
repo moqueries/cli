@@ -73,6 +73,11 @@ type moqUsualFn_fnRecorder struct {
 	moq       *moqUsualFn
 }
 
+// moqUsualFn_anyParams isolates the any params functions of the UsualFn type
+type moqUsualFn_anyParams struct {
+	recorder *moqUsualFn_fnRecorder
+}
+
 // newMoqUsualFn creates a new moq of the UsualFn type
 func newMoqUsualFn(scene *moq.Scene, config *moq.Config) *moqUsualFn {
 	if config == nil {
@@ -174,22 +179,22 @@ func (m *moqUsualFn) onCall(sParam string, bParam bool) *moqUsualFn_fnRecorder {
 	}
 }
 
-func (r *moqUsualFn_fnRecorder) anySParam() *moqUsualFn_fnRecorder {
+func (r *moqUsualFn_fnRecorder) any() *moqUsualFn_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqUsualFn_anyParams{recorder: r}
 }
 
-func (r *moqUsualFn_fnRecorder) anyBParam() *moqUsualFn_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqUsualFn_anyParams) sParam() *moqUsualFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqUsualFn_anyParams) bParam() *moqUsualFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqUsualFn_fnRecorder) seq() *moqUsualFn_fnRecorder {

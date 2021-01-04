@@ -72,6 +72,11 @@ type moqWriter_Write_fnRecorder struct {
 	moq       *moqWriter
 }
 
+// moqWriter_Write_anyParams isolates the any params functions of the Writer type
+type moqWriter_Write_anyParams struct {
+	recorder *moqWriter_Write_fnRecorder
+}
+
 // newMoqWriter creates a new moq of the Writer type
 func newMoqWriter(scene *moq.Scene, config *moq.Config) *moqWriter {
 	if config == nil {
@@ -171,13 +176,17 @@ func (m *moqWriter_recorder) Write(p []byte) *moqWriter_Write_fnRecorder {
 	}
 }
 
-func (r *moqWriter_Write_fnRecorder) anyP() *moqWriter_Write_fnRecorder {
+func (r *moqWriter_Write_fnRecorder) any() *moqWriter_Write_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqWriter_Write_anyParams{recorder: r}
+}
+
+func (a *moqWriter_Write_anyParams) p() *moqWriter_Write_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
 func (r *moqWriter_Write_fnRecorder) seq() *moqWriter_Write_fnRecorder {

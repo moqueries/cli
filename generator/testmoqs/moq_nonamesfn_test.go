@@ -73,6 +73,11 @@ type moqNoNamesFn_fnRecorder struct {
 	moq       *moqNoNamesFn
 }
 
+// moqNoNamesFn_anyParams isolates the any params functions of the NoNamesFn type
+type moqNoNamesFn_anyParams struct {
+	recorder *moqNoNamesFn_fnRecorder
+}
+
 // newMoqNoNamesFn creates a new moq of the NoNamesFn type
 func newMoqNoNamesFn(scene *moq.Scene, config *moq.Config) *moqNoNamesFn {
 	if config == nil {
@@ -174,22 +179,22 @@ func (m *moqNoNamesFn) onCall(param1 string, param2 bool) *moqNoNamesFn_fnRecord
 	}
 }
 
-func (r *moqNoNamesFn_fnRecorder) anyParam1() *moqNoNamesFn_fnRecorder {
+func (r *moqNoNamesFn_fnRecorder) any() *moqNoNamesFn_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqNoNamesFn_anyParams{recorder: r}
 }
 
-func (r *moqNoNamesFn_fnRecorder) anyParam2() *moqNoNamesFn_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqNoNamesFn_anyParams) param1() *moqNoNamesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqNoNamesFn_anyParams) param2() *moqNoNamesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqNoNamesFn_fnRecorder) seq() *moqNoNamesFn_fnRecorder {

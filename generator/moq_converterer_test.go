@@ -86,6 +86,11 @@ type moqConverterer_BaseStruct_fnRecorder struct {
 	moq       *moqConverterer
 }
 
+// moqConverterer_BaseStruct_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_BaseStruct_anyParams struct {
+	recorder *moqConverterer_BaseStruct_fnRecorder
+}
+
 // moqConverterer_IsolationStruct_params holds the params of the Converterer type
 type moqConverterer_IsolationStruct_params struct{ typeName, suffix string }
 
@@ -126,6 +131,11 @@ type moqConverterer_IsolationStruct_fnRecorder struct {
 	sequence  bool
 	results   *moqConverterer_IsolationStruct_results
 	moq       *moqConverterer
+}
+
+// moqConverterer_IsolationStruct_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_IsolationStruct_anyParams struct {
+	recorder *moqConverterer_IsolationStruct_fnRecorder
 }
 
 // moqConverterer_MethodStructs_params holds the params of the Converterer type
@@ -179,6 +189,11 @@ type moqConverterer_MethodStructs_fnRecorder struct {
 	moq       *moqConverterer
 }
 
+// moqConverterer_MethodStructs_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_MethodStructs_anyParams struct {
+	recorder *moqConverterer_MethodStructs_fnRecorder
+}
+
 // moqConverterer_NewFunc_params holds the params of the Converterer type
 type moqConverterer_NewFunc_params struct{ typeSpec *dst.TypeSpec }
 
@@ -221,6 +236,11 @@ type moqConverterer_NewFunc_fnRecorder struct {
 	moq       *moqConverterer
 }
 
+// moqConverterer_NewFunc_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_NewFunc_anyParams struct {
+	recorder *moqConverterer_NewFunc_fnRecorder
+}
+
 // moqConverterer_IsolationAccessor_params holds the params of the Converterer type
 type moqConverterer_IsolationAccessor_params struct{ typeName, suffix, fnName string }
 
@@ -261,6 +281,11 @@ type moqConverterer_IsolationAccessor_fnRecorder struct {
 	sequence  bool
 	results   *moqConverterer_IsolationAccessor_results
 	moq       *moqConverterer
+}
+
+// moqConverterer_IsolationAccessor_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_IsolationAccessor_anyParams struct {
+	recorder *moqConverterer_IsolationAccessor_fnRecorder
 }
 
 // moqConverterer_FuncClosure_params holds the params of the Converterer type
@@ -311,6 +336,11 @@ type moqConverterer_FuncClosure_fnRecorder struct {
 	moq       *moqConverterer
 }
 
+// moqConverterer_FuncClosure_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_FuncClosure_anyParams struct {
+	recorder *moqConverterer_FuncClosure_fnRecorder
+}
+
 // moqConverterer_MockMethod_params holds the params of the Converterer type
 type moqConverterer_MockMethod_params struct {
 	typeName string
@@ -357,6 +387,11 @@ type moqConverterer_MockMethod_fnRecorder struct {
 	sequence  bool
 	results   *moqConverterer_MockMethod_results
 	moq       *moqConverterer
+}
+
+// moqConverterer_MockMethod_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_MockMethod_anyParams struct {
+	recorder *moqConverterer_MockMethod_fnRecorder
 }
 
 // moqConverterer_RecorderMethods_params holds the params of the Converterer type
@@ -407,6 +442,11 @@ type moqConverterer_RecorderMethods_fnRecorder struct {
 	moq       *moqConverterer
 }
 
+// moqConverterer_RecorderMethods_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_RecorderMethods_anyParams struct {
+	recorder *moqConverterer_RecorderMethods_fnRecorder
+}
+
 // moqConverterer_ResetMethod_params holds the params of the Converterer type
 type moqConverterer_ResetMethod_params struct {
 	typeSpec *dst.TypeSpec
@@ -455,6 +495,11 @@ type moqConverterer_ResetMethod_fnRecorder struct {
 	moq       *moqConverterer
 }
 
+// moqConverterer_ResetMethod_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_ResetMethod_anyParams struct {
+	recorder *moqConverterer_ResetMethod_fnRecorder
+}
+
 // moqConverterer_AssertMethod_params holds the params of the Converterer type
 type moqConverterer_AssertMethod_params struct {
 	typeSpec *dst.TypeSpec
@@ -501,6 +546,11 @@ type moqConverterer_AssertMethod_fnRecorder struct {
 	sequence  bool
 	results   *moqConverterer_AssertMethod_results
 	moq       *moqConverterer
+}
+
+// moqConverterer_AssertMethod_anyParams isolates the any params functions of the Converterer type
+type moqConverterer_AssertMethod_anyParams struct {
+	recorder *moqConverterer_AssertMethod_fnRecorder
 }
 
 // newMoqConverterer creates a new moq of the Converterer type
@@ -1192,22 +1242,22 @@ func (m *moqConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []gen
 	}
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) anyTypeSpec() *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_BaseStruct_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) anyFuncs() *moqConverterer_BaseStruct_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_BaseStruct_anyParams) typeSpec() *moqConverterer_BaseStruct_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_BaseStruct_anyParams) funcs() *moqConverterer_BaseStruct_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_fnRecorder {
@@ -1379,22 +1429,22 @@ func (m *moqConverterer_recorder) IsolationStruct(typeName, suffix string) *moqC
 	}
 }
 
-func (r *moqConverterer_IsolationStruct_fnRecorder) anyTypeName() *moqConverterer_IsolationStruct_fnRecorder {
+func (r *moqConverterer_IsolationStruct_fnRecorder) any() *moqConverterer_IsolationStruct_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_IsolationStruct_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_IsolationStruct_fnRecorder) anySuffix() *moqConverterer_IsolationStruct_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_IsolationStruct_anyParams) typeName() *moqConverterer_IsolationStruct_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_IsolationStruct_anyParams) suffix() *moqConverterer_IsolationStruct_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) seq() *moqConverterer_IsolationStruct_fnRecorder {
@@ -1566,22 +1616,22 @@ func (m *moqConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn gener
 	}
 }
 
-func (r *moqConverterer_MethodStructs_fnRecorder) anyTypeSpec() *moqConverterer_MethodStructs_fnRecorder {
+func (r *moqConverterer_MethodStructs_fnRecorder) any() *moqConverterer_MethodStructs_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_MethodStructs_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_MethodStructs_fnRecorder) anyFn() *moqConverterer_MethodStructs_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_MethodStructs_anyParams) typeSpec() *moqConverterer_MethodStructs_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_MethodStructs_anyParams) fn() *moqConverterer_MethodStructs_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) seq() *moqConverterer_MethodStructs_fnRecorder {
@@ -1768,13 +1818,17 @@ func (m *moqConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec) *moqConvertere
 	}
 }
 
-func (r *moqConverterer_NewFunc_fnRecorder) anyTypeSpec() *moqConverterer_NewFunc_fnRecorder {
+func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_NewFunc_anyParams{recorder: r}
+}
+
+func (a *moqConverterer_NewFunc_anyParams) typeSpec() *moqConverterer_NewFunc_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) seq() *moqConverterer_NewFunc_fnRecorder {
@@ -1943,31 +1997,27 @@ func (m *moqConverterer_recorder) IsolationAccessor(typeName, suffix, fnName str
 	}
 }
 
-func (r *moqConverterer_IsolationAccessor_fnRecorder) anyTypeName() *moqConverterer_IsolationAccessor_fnRecorder {
+func (r *moqConverterer_IsolationAccessor_fnRecorder) any() *moqConverterer_IsolationAccessor_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_IsolationAccessor_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_IsolationAccessor_fnRecorder) anySuffix() *moqConverterer_IsolationAccessor_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_IsolationAccessor_anyParams) typeName() *moqConverterer_IsolationAccessor_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
-func (r *moqConverterer_IsolationAccessor_fnRecorder) anyFnName() *moqConverterer_IsolationAccessor_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 2
-	return r
+func (a *moqConverterer_IsolationAccessor_anyParams) suffix() *moqConverterer_IsolationAccessor_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (a *moqConverterer_IsolationAccessor_anyParams) fnName() *moqConverterer_IsolationAccessor_fnRecorder {
+	a.recorder.anyParams |= 1 << 2
+	return a.recorder
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) seq() *moqConverterer_IsolationAccessor_fnRecorder {
@@ -2146,31 +2196,27 @@ func (m *moqConverterer_recorder) FuncClosure(typeName, pkgPath string, fn gener
 	}
 }
 
-func (r *moqConverterer_FuncClosure_fnRecorder) anyTypeName() *moqConverterer_FuncClosure_fnRecorder {
+func (r *moqConverterer_FuncClosure_fnRecorder) any() *moqConverterer_FuncClosure_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_FuncClosure_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_FuncClosure_fnRecorder) anyPkgPath() *moqConverterer_FuncClosure_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_FuncClosure_anyParams) typeName() *moqConverterer_FuncClosure_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
 }
 
-func (r *moqConverterer_FuncClosure_fnRecorder) anyFn() *moqConverterer_FuncClosure_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 2
-	return r
+func (a *moqConverterer_FuncClosure_anyParams) pkgPath() *moqConverterer_FuncClosure_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (a *moqConverterer_FuncClosure_anyParams) fn() *moqConverterer_FuncClosure_fnRecorder {
+	a.recorder.anyParams |= 1 << 2
+	return a.recorder
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) seq() *moqConverterer_FuncClosure_fnRecorder {
@@ -2347,22 +2393,22 @@ func (m *moqConverterer_recorder) MockMethod(typeName string, fn generator.Func)
 	}
 }
 
-func (r *moqConverterer_MockMethod_fnRecorder) anyTypeName() *moqConverterer_MockMethod_fnRecorder {
+func (r *moqConverterer_MockMethod_fnRecorder) any() *moqConverterer_MockMethod_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_MockMethod_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_MockMethod_fnRecorder) anyFn() *moqConverterer_MockMethod_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_MockMethod_anyParams) typeName() *moqConverterer_MockMethod_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_MockMethod_anyParams) fn() *moqConverterer_MockMethod_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) seq() *moqConverterer_MockMethod_fnRecorder {
@@ -2534,22 +2580,22 @@ func (m *moqConverterer_recorder) RecorderMethods(typeName string, fn generator.
 	}
 }
 
-func (r *moqConverterer_RecorderMethods_fnRecorder) anyTypeName() *moqConverterer_RecorderMethods_fnRecorder {
+func (r *moqConverterer_RecorderMethods_fnRecorder) any() *moqConverterer_RecorderMethods_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_RecorderMethods_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_RecorderMethods_fnRecorder) anyFn() *moqConverterer_RecorderMethods_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_RecorderMethods_anyParams) typeName() *moqConverterer_RecorderMethods_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_RecorderMethods_anyParams) fn() *moqConverterer_RecorderMethods_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) seq() *moqConverterer_RecorderMethods_fnRecorder {
@@ -2721,22 +2767,22 @@ func (m *moqConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []ge
 	}
 }
 
-func (r *moqConverterer_ResetMethod_fnRecorder) anyTypeSpec() *moqConverterer_ResetMethod_fnRecorder {
+func (r *moqConverterer_ResetMethod_fnRecorder) any() *moqConverterer_ResetMethod_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_ResetMethod_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_ResetMethod_fnRecorder) anyFuncs() *moqConverterer_ResetMethod_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_ResetMethod_anyParams) typeSpec() *moqConverterer_ResetMethod_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_ResetMethod_anyParams) funcs() *moqConverterer_ResetMethod_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) seq() *moqConverterer_ResetMethod_fnRecorder {
@@ -2908,22 +2954,22 @@ func (m *moqConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []g
 	}
 }
 
-func (r *moqConverterer_AssertMethod_fnRecorder) anyTypeSpec() *moqConverterer_AssertMethod_fnRecorder {
+func (r *moqConverterer_AssertMethod_fnRecorder) any() *moqConverterer_AssertMethod_anyParams {
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
 	}
-	r.anyParams |= 1 << 0
-	return r
+	return &moqConverterer_AssertMethod_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_AssertMethod_fnRecorder) anyFuncs() *moqConverterer_AssertMethod_fnRecorder {
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
-		return nil
-	}
-	r.anyParams |= 1 << 1
-	return r
+func (a *moqConverterer_AssertMethod_anyParams) typeSpec() *moqConverterer_AssertMethod_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_AssertMethod_anyParams) funcs() *moqConverterer_AssertMethod_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) seq() *moqConverterer_AssertMethod_fnRecorder {
