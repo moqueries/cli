@@ -80,6 +80,8 @@ func tableEntries(tMoq *moq.MoqT, c moq.Config) ([]adaptor, *moq.Scene) {
 	entries = append(entries, &exportedVariadicFnAdaptor{m: exported.NewMoqVariadicFn(moqScene, &c)})
 	entries = append(entries, &repeatedIdsFnAdaptor{m: newMoqRepeatedIdsFn(moqScene, &c)})
 	entries = append(entries, &exportedRepeatedIdsFnAdaptor{m: exported.NewMoqRepeatedIdsFn(moqScene, &c)})
+	entries = append(entries, &timesFnAdaptor{m: newMoqTimesFn(moqScene, &c)})
+	entries = append(entries, &exportedTimesFnAdaptor{m: exported.NewMoqTimesFn(moqScene, &c)})
 
 	usualMoq := newMoqUsual(moqScene, &c)
 	exportUsualMoq := exported.NewMoqUsual(moqScene, &c)
@@ -97,6 +99,8 @@ func tableEntries(tMoq *moq.MoqT, c moq.Config) ([]adaptor, *moq.Scene) {
 	entries = append(entries, &exportedVariadicAdaptor{m: exportUsualMoq})
 	entries = append(entries, &repeatedIdsAdaptor{m: usualMoq})
 	entries = append(entries, &exportedRepeatedIdsAdaptor{m: exportUsualMoq})
+	entries = append(entries, &timesAdaptor{m: usualMoq})
+	entries = append(entries, &exportedTimesAdaptor{m: exportUsualMoq})
 
 	return entries, moqScene
 }
@@ -1133,28 +1137,10 @@ var _ = Describe("TestMoqs", func() {
 
 		Expect(generator.Generate(
 			generator.GenerateRequest{
-				Destination: "moq_usualfn_test.go", Types: []string{"UsualFn"},
-			},
-			generator.GenerateRequest{
-				Destination: "exported/moq_usualfn.go", Export: true, Types: []string{"UsualFn"},
-			},
-		)).To(Succeed())
-
-		Expect(generator.Generate(
-			generator.GenerateRequest{
 				Destination: "moq_nonamesfn_test.go", Types: []string{"NoNamesFn"},
 			},
 			generator.GenerateRequest{
 				Destination: "exported/moq_nonamesfn.go", Export: true, Types: []string{"NoNamesFn"},
-			},
-		)).To(Succeed())
-
-		Expect(generator.Generate(
-			generator.GenerateRequest{
-				Destination: "moq_noresultsfn_test.go", Types: []string{"NoResultsFn"},
-			},
-			generator.GenerateRequest{
-				Destination: "exported/moq_noresultsfn.go", Export: true, Types: []string{"NoResultsFn"},
 			},
 		)).To(Succeed())
 
@@ -1169,6 +1155,15 @@ var _ = Describe("TestMoqs", func() {
 
 		Expect(generator.Generate(
 			generator.GenerateRequest{
+				Destination: "moq_noresultsfn_test.go", Types: []string{"NoResultsFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_noresultsfn.go", Export: true, Types: []string{"NoResultsFn"},
+			},
+		)).To(Succeed())
+
+		Expect(generator.Generate(
+			generator.GenerateRequest{
 				Destination: "moq_nothingfn_test.go", Types: []string{"NothingFn"},
 			},
 			generator.GenerateRequest{
@@ -1178,10 +1173,19 @@ var _ = Describe("TestMoqs", func() {
 
 		Expect(generator.Generate(
 			generator.GenerateRequest{
-				Destination: "moq_variadicfn_test.go", Types: []string{"VariadicFn"},
+				Destination: "moq_repeatedidsfn_test.go", Types: []string{"RepeatedIdsFn"},
 			},
 			generator.GenerateRequest{
-				Destination: "exported/moq_variadicfn.go", Export: true, Types: []string{"VariadicFn"},
+				Destination: "exported/moq_repeatedidsfn.go", Export: true, Types: []string{"RepeatedIdsFn"},
+			},
+		)).To(Succeed())
+
+		Expect(generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_timesfn_test.go", Types: []string{"TimesFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_timesfn.go", Export: true, Types: []string{"TimesFn"},
 			},
 		)).To(Succeed())
 
@@ -1191,6 +1195,24 @@ var _ = Describe("TestMoqs", func() {
 			},
 			generator.GenerateRequest{
 				Destination: "exported/moq_usual.go", Export: true, Types: []string{"Usual"},
+			},
+		)).To(Succeed())
+
+		Expect(generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_usualfn_test.go", Types: []string{"UsualFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_usualfn.go", Export: true, Types: []string{"UsualFn"},
+			},
+		)).To(Succeed())
+
+		Expect(generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_variadicfn_test.go", Types: []string{"VariadicFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_variadicfn.go", Export: true, Types: []string{"VariadicFn"},
 			},
 		)).To(Succeed())
 	})

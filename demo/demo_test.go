@@ -159,7 +159,7 @@ func TestNoGadgets(t *testing.T) {
 	storeMoq.onCall().AllWidgetsIds().
 		returnResults([]int{42, 43}, nil)
 
-	storeMoq.onCall().GadgetsByWidgetId(0).anyWidgetId().
+	storeMoq.onCall().GadgetsByWidgetId(0).any().widgetId().
 		returnResults(nil, nil).times(2)
 
 	d := demo.FavWriter{
@@ -204,7 +204,7 @@ func TestLightGadgets(t *testing.T) {
 		Color:    "blue",
 		Weight:   201,
 	}
-	storeMoq.onCall().LightGadgetsByWidgetId(42, 0).anyMaxWeight().
+	storeMoq.onCall().LightGadgetsByWidgetId(42, 0).any().maxWeight().
 		returnResults([]demo.Gadget{g1, g2}, nil)
 	g3 := demo.Gadget{
 		Id:       4301,
@@ -218,7 +218,8 @@ func TestLightGadgets(t *testing.T) {
 		Color:    "heliotrope",
 		Weight:   101,
 	}
-	storeMoq.onCall().LightGadgetsByWidgetId(0, 0).anyWidgetId().anyMaxWeight().
+	storeMoq.onCall().LightGadgetsByWidgetId(0, 0).
+		any().widgetId().any().maxWeight().
 		returnResults([]demo.Gadget{g3, g4}, nil)
 
 	d := demo.FavWriter{
@@ -349,7 +350,7 @@ func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
 		return n%2 == 0
 	}
 
-	isFavMoq.onCall(0).anyN().doReturnResults(isFavFn).anyTimes()
+	isFavMoq.onCall(0).any().n().doReturnResults(isFavFn).anyTimes()
 
 	bytesWritten := 0
 	var capturedFavs []int
@@ -363,7 +364,7 @@ func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
 		return 0, nil
 	}
 
-	writerMoq.onCall().Write(nil).anyP().doReturnResults(writeFn).anyTimes()
+	writerMoq.onCall().Write(nil).any().p().doReturnResults(writeFn).anyTimes()
 
 	d := demo.FavWriter{
 		IsFav: isFavMoq.mock(),

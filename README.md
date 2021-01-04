@@ -55,21 +55,22 @@ writerMoq.onCall().Write([]byte("3")).
 ```
 
 ### Arbitrary (any) parameters
-Sometimes it's hard to know what exactly the parameter values will be when setting expectations. You want to say "ignore this parameter" when setting some expectations. The generated `anyXXX` functions do exactly that &mdash; the specified parameter will be ignored (in the recorded expectation and again later when the mock is invoked). The [following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L162-L163) sets the expectation for a function called `GadgetsByWidgetId` that takes a single `int` parameter called `widgetId`. With this expectation, the mock will return the same result regardless of the value of `widgetId`:
+Sometimes it's hard to know what exactly the parameter values will be when setting expectations. You want to say "ignore this parameter" when setting some expectations. The generated `any` function does exactly that &mdash; the specified parameter will be ignored (in the recorded expectation and again later when the mock is invoked). The [following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L162-L163) sets the expectation for a function called `GadgetsByWidgetId` that takes a single `int` parameter called `widgetId`. With this expectation, the mock will return the same result regardless of the value of `widgetId`:
 ```go
-storeMoq.onCall().GadgetsByWidgetId(0).anyWidgetId().
+storeMoq.onCall().GadgetsByWidgetId(0).any().widgetId().
     returnResults(nil, nil).times(2)
 ```
 
-Expectations with more match parameters are given precedence over expectations with fewer matching parameters. In another test, we work with another mocked method called `LightGadgetsByWidgetId` that presumably returns gadgets associated with a specified widget that are less than a specified weight. The [following snippet](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L207-L208) returns the `g1` and `g2` gadgets when `LightGadgetsByWidgetId` is called with a `widgetId` of `42` regardless of the value specified for `maxWeight`:
+Expectations with more matching parameters are given precedence over expectations with fewer matching parameters. In another test, we work with another mocked method called `LightGadgetsByWidgetId` that presumably returns gadgets associated with a specified widget that are less than a specified weight. The [following snippet](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L207-L208) returns the `g1` and `g2` gadgets when `LightGadgetsByWidgetId` is called with a `widgetId` of `42` regardless of the value specified for `maxWeight`:
 ```go
-storeMoq.onCall().LightGadgetsByWidgetId(42, 0).anyMaxWeight().
+storeMoq.onCall().LightGadgetsByWidgetId(42, 0).any().maxWeight().
     returnResults([]demo.Gadget{g1, g2}, nil)
 ```
 
-In the same test, [these lines](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L221-L222) return `g3` and `g4` regardless of either parameter specified to `LightGadgetsByWidgetId`:
+In the same test, [these lines](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L221-L223) return `g3` and `g4` regardless of either parameter specified to `LightGadgetsByWidgetId`:
 ```go
-storeMoq.onCall().LightGadgetsByWidgetId(0, 0).anyWidgetId().anyMaxWeight().
+storeMoq.onCall().LightGadgetsByWidgetId(0, 0).
+	any().widgetId().any().maxWeight().
     returnResults([]demo.Gadget{g3, g4}, nil)
 ```
 
@@ -100,21 +101,21 @@ config := moq.Config{Sequence: moq.SeqDefaultOn}
 
 Now the calls to all mocks using the above config must be in the exact sequence. The sequence of expectations must match the sequence of calls to the mock.
 
-If there are just a few calls that must be in a specific order relative to each other, [call the `seq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L263-L265) when recording expectations:
+If there are just a few calls that must be in a specific order relative to each other, [call the `seq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L264-L266) when recording expectations:
 ```go
 isFavMoq.onCall(1).seq().returnResults(false)
 isFavMoq.onCall(2).seq().returnResults(false)
 isFavMoq.onCall(3).seq().returnResults(true)
 ```
 
-This is basically overriding the default so that just the calls specified use a sequence. You can also turn off sequences on a per-call basis when the default is to use sequences on all calls [using the `noSeq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L293-L294):
+This is basically overriding the default so that just the calls specified use a sequence. You can also turn off sequences on a per-call basis when the default is to use sequences on all calls [using the `noSeq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L294-L295):
 ```go
 writerMoq.onCall().Write([]byte("3")).noSeq().
     returnResults(1, nil)
 ```
 
 ### Do functions
-Sometimes you need to tap into what your mock is doing. You may need to capture a value that was passed to a mock, or you may need to have some logic calculate what a mock's response should be. Do functions do just that. If you just need to listen in to a `returnResults` expectation, you provide a [function that matches the mocked functions parameters](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L314-L317) (in this case the mocked function takes a single `int` parameter):
+Sometimes you need to tap into what your mock is doing. You may need to capture a value that was passed to a mock, or you may need to have some logic calculate what a mock's response should be. Do functions do just that. If you just need to listen in to a `returnResults` expectation, you provide a [function that matches the mocked functions parameters](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L315-L318) (in this case the mocked function takes a single `int` parameter):
 ```go
 sum := 0
 sumFn := func(n int) {
@@ -122,21 +123,21 @@ sumFn := func(n int) {
 }
 ```
 
-Then [chain](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L319-L321) an `andDo` call after the `returnResults` call:
+Then [chain](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L320-L322) an `andDo` call after the `returnResults` call:
 ```go
 isFavMoq.onCall(1).returnResults(false).andDo(sumFn)
 isFavMoq.onCall(2).returnResults(false).andDo(sumFn)
 isFavMoq.onCall(3).returnResults(true).andDo(sumFn)
 ```
 
-If on the other hand you need to calculate a mock's return values, start with [a function that has the same signature as the mocked function](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L348-L350) (both parameters and result values):
+If on the other hand you need to calculate a mock's return values, start with [a function that has the same signature as the mocked function](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L349-L351) (both parameters and result values):
 ```go
 isFavFn := func(n int) bool {
     return n%2 == 0
 }
 ```
 
-Now you can replace both the `returnResults` and `andDo` calls with [a single call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L352) to `doReturnResults`:
+Now you can replace both the `returnResults` and `andDo` calls with [a single call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L353) to `doReturnResults`:
 ```go
 isFavMoq.onCall(0).anyN().doReturnResults(isFavFn).anyTimes()
 ```

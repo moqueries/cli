@@ -181,7 +181,7 @@ var _ = Describe("Converter", func() {
 
 			// ASSERT
 			Expect(err).NotTo(HaveOccurred())
-			Expect(decls).To(HaveLen(7))
+			Expect(decls).To(HaveLen(8))
 			decl, ok := decls[0].(*dst.GenDecl)
 			Expect(ok).To(BeTrue())
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
@@ -223,6 +223,12 @@ var _ = Describe("Converter", func() {
 			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
 			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_fnRecorder " +
 				"routes recorded function calls to the moqPublicInterface moq"))
+
+			decl, ok = decls[7].(*dst.GenDecl)
+			Expect(ok).To(BeTrue())
+			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
+			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_anyParams " +
+				"isolates the any params functions of the PublicInterface type"))
 		})
 
 		It("returns a type cache error", func() {

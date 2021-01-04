@@ -22,37 +22,38 @@ const (
 	tType      = "T"
 	sceneType  = "Scene"
 
-	anyCountIdent         = "anyCount"
-	anyParamsIdent        = "anyParams"
-	anyTimesIdent         = "anyTimes"
-	configIdent           = "config"
-	countIdent            = "count"
-	doFnIdent             = "doFn"
-	doReturnFnIdent       = "doReturnFn"
-	expectationIdent      = "Expectation"
-	iIdent                = "i"
-	indexIdent            = "index"
-	insertAtIdent         = "insertAt"
-	lastIdent             = "last"
-	missingIdent          = "missing"
-	mockIdent             = "mock"
-	moqIdent              = "moq"
-	moqReceiverIdent      = "m"
-	nIdent                = "n"
-	nilIdent              = "nil"
-	okIdent               = "ok"
-	paramsIdent           = "params"
-	paramsKeyIdent        = "paramsKey"
-	recorderIdent         = "recorder"
-	recorderReceiverIdent = "r"
-	resultsByParamsIdent  = "resultsByParams"
-	resIdent              = "res"
-	resultIdent           = "result"
-	resultsIdent          = "results"
-	sceneIdent            = "scene"
-	sequenceIdent         = "sequence"
-	strictIdent           = "Strict"
-	valuesIdent           = "values"
+	anyCountIdent          = "anyCount"
+	anyParamsIdent         = "anyParams"
+	anyParamsReceiverIdent = "a"
+	anyTimesIdent          = "anyTimes"
+	configIdent            = "config"
+	countIdent             = "count"
+	doFnIdent              = "doFn"
+	doReturnFnIdent        = "doReturnFn"
+	expectationIdent       = "Expectation"
+	iIdent                 = "i"
+	indexIdent             = "index"
+	insertAtIdent          = "insertAt"
+	lastIdent              = "last"
+	missingIdent           = "missing"
+	mockIdent              = "mock"
+	moqIdent               = "moq"
+	moqReceiverIdent       = "m"
+	nIdent                 = "n"
+	nilIdent               = "nil"
+	okIdent                = "ok"
+	paramsIdent            = "params"
+	paramsKeyIdent         = "paramsKey"
+	recorderIdent          = "recorder"
+	recorderReceiverIdent  = "r"
+	resultsByParamsIdent   = "resultsByParams"
+	resIdent               = "res"
+	resultIdent            = "result"
+	resultsIdent           = "results"
+	sceneIdent             = "scene"
+	sequenceIdent          = "sequence"
+	strictIdent            = "Strict"
+	valuesIdent            = "values"
 
 	andDoFnName           = "andDo"
 	anyTimesFnName        = "anyTimes"
@@ -153,6 +154,7 @@ func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) ([]dst.Decl, 
 		c.doReturnFuncType(typeSpec.Name.Name, prefix, fn),
 		c.resultsStruct(typeSpec.Name.Name, prefix, fn.Results),
 		c.fnRecorderStruct(typeSpec.Name.Name, prefix),
+		c.anyParamsStruct(typeSpec.Name.Name, prefix),
 	}, nil
 }
 
@@ -518,6 +520,15 @@ func (c *Converter) fnRecorderStruct(typeName string, prefix string) *dst.GenDec
 		structName, mName)).Obj
 }
 
+func (c *Converter) anyParamsStruct(typeName, prefix string) *dst.GenDecl {
+	structName := fmt.Sprintf("%s_%s", prefix, anyParamsIdent)
+	recStructName := fmt.Sprintf("%s_%s", prefix, fnRecorderSuffix)
+	return TypeDecl(TypeSpec(structName).Type(Struct(Field(Star(Id(recStructName))).
+		Names(Id(c.export(recorderIdent))).Obj)).Obj).
+		Decs(genDeclDec("// %s isolates the any params functions of the %s type",
+			structName, typeName)).Obj
+}
+
 func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt {
 	stateSelector := Sel(Id(moqReceiverIdent)).Dot(Id(c.export(moqIdent))).Obj
 
@@ -762,34 +773,38 @@ func (c *Converter) anyParamFns(typeName string, fn Func) []dst.Decl {
 	mName := c.moqName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
+	anyParamsName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, anyParamsIdent)
 	if fn.Name == "" {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
+		anyParamsName = fmt.Sprintf("%s_%s", mName, anyParamsIdent)
 	}
 
-	var decls []dst.Decl
+	decls := []dst.Decl{c.anyParamAnyFn(anyParamsName, fnRecName)}
 	var paramPos int
 	for n, param := range fn.Params.List {
 		if len(param.Names) == 0 {
 			pName := fmt.Sprintf("%s%d", paramPrefix, n+1)
-			decls = append(decls, c.anyParamFn(fnRecName, pName, paramPos))
+			decls = append(
+				decls, c.anyParamFn(anyParamsName, fnRecName, pName, paramPos))
 			paramPos++
 		}
 
 		for _, name := range param.Names {
-			decls = append(decls, c.anyParamFn(fnRecName, name.Name, paramPos))
+			decls = append(
+				decls, c.anyParamFn(anyParamsName, fnRecName, name.Name, paramPos))
 			paramPos++
 		}
 	}
 	return decls
 }
 
-func (c *Converter) anyParamFn(fnRecName, pName string, paramPos int) dst.Decl {
+func (c *Converter) anyParamAnyFn(anyParamsName, fnRecName string) dst.Decl {
 	moqSel := Sel(Sel(Id(recorderReceiverIdent)).
 		Dot(Id(c.export(moqIdent))).Obj).Obj
 
-	return Fn(c.export("any"+strings.Title(pName))).
+	return Fn(c.export("any")).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-		Results(Field(Star(Id(fnRecName))).Obj).
+		Results(Field(Star(Id(anyParamsName))).Obj).
 		Body(
 			If(Bin(Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(resultsIdent))).Obj).
 				Op(token.NEQ).
@@ -805,11 +820,25 @@ func (c *Converter) anyParamFn(fnRecName, pName string, paramPos int) dst.Decl {
 								Dot(Id(c.export(paramsIdent))).Obj,
 						).Obj).Obj,
 					Return(Id(nilIdent))).Obj,
-			Assign(Sel(Id(recorderReceiverIdent)).
+			Return(Un(
+				token.AND,
+				Comp(Id(anyParamsName)).Elts(Key(Id(c.export(recorderIdent))).
+					Value(Id(recorderReceiverIdent)).Obj).Obj)),
+		).
+		Decs(stdFuncDec()).Obj
+}
+
+func (c *Converter) anyParamFn(anyParamsName, fnRecName, pName string, paramPos int) dst.Decl {
+	return Fn(c.export(pName)).
+		Recv(Field(Star(Id(anyParamsName))).Names(Id(anyParamsReceiverIdent)).Obj).
+		Results(Field(Star(Id(fnRecName))).Obj).
+		Body(
+			Assign(Sel(Sel(Id(anyParamsReceiverIdent)).
+				Dot(Id(c.export(recorderIdent))).Obj).
 				Dot(Id(c.export(anyParamsIdent))).Obj).
 				Tok(token.OR_ASSIGN).
 				Rhs(Bin(LitInt(1)).Op(token.SHL).Y(LitInt(paramPos)).Obj).Obj,
-			Return(Id(recorderReceiverIdent)),
+			Return(Sel(Id(anyParamsReceiverIdent)).Dot(Id(c.export(recorderIdent))).Obj),
 		).
 		Decs(stdFuncDec()).Obj
 }

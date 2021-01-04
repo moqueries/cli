@@ -38,11 +38,21 @@ func (a *usualAdaptor) sceneMoq() moq.Moq {
 type usualRecorder struct{ r *moqUsual_Usual_fnRecorder }
 
 func (r *usualRecorder) anySParam() {
-	r.r = r.r.anySParam()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.sParam()
+	}
 }
 
 func (r *usualRecorder) anyBParam() {
-	r.r = r.r.anyBParam()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.bParam()
+	}
 }
 
 func (r *usualRecorder) seq() {
@@ -121,11 +131,21 @@ type exportedUsualRecorder struct {
 }
 
 func (r *exportedUsualRecorder) anySParam() {
-	r.r = r.r.AnySParam()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.SParam()
+	}
 }
 
 func (r *exportedUsualRecorder) anyBParam() {
-	r.r = r.r.AnyBParam()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.BParam()
+	}
 }
 
 func (r *exportedUsualRecorder) seq() {
@@ -202,11 +222,21 @@ func (a *noNamesAdaptor) sceneMoq() moq.Moq {
 type noNamesRecorder struct{ r *moqUsual_NoNames_fnRecorder }
 
 func (r *noNamesRecorder) anySParam() {
-	r.r = r.r.anyParam1()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param1()
+	}
 }
 
 func (r *noNamesRecorder) anyBParam() {
-	r.r = r.r.anyParam2()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param2()
+	}
 }
 
 func (r *noNamesRecorder) seq() {
@@ -285,11 +315,21 @@ type exportedNoNamesRecorder struct {
 }
 
 func (r *exportedNoNamesRecorder) anySParam() {
-	r.r = r.r.AnyParam1()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param1()
+	}
 }
 
 func (r *exportedNoNamesRecorder) anyBParam() {
-	r.r = r.r.AnyParam2()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param2()
+	}
 }
 
 func (r *exportedNoNamesRecorder) seq() {
@@ -362,11 +402,21 @@ type noResultsRecorder struct {
 }
 
 func (r *noResultsRecorder) anySParam() {
-	r.r = r.r.anySParam()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.sParam()
+	}
 }
 
 func (r *noResultsRecorder) anyBParam() {
-	r.r = r.r.anyBParam()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.bParam()
+	}
 }
 
 func (r *noResultsRecorder) seq() {
@@ -438,11 +488,21 @@ type exportedNoResultsRecorder struct {
 }
 
 func (r *exportedNoResultsRecorder) anySParam() {
-	r.r = r.r.AnySParam()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.SParam()
+	}
 }
 
 func (r *exportedNoResultsRecorder) anyBParam() {
-	r.r = r.r.AnyBParam()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.BParam()
+	}
 }
 
 func (r *exportedNoResultsRecorder) seq() {
@@ -804,11 +864,21 @@ type variadicRecorder struct {
 }
 
 func (r *variadicRecorder) anySParam() {
-	r.r = r.r.anyArgs()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.args()
+	}
 }
 
 func (r *variadicRecorder) anyBParam() {
-	r.r = r.r.anyOther()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.other()
+	}
 }
 
 func (r *variadicRecorder) seq() {
@@ -890,11 +960,21 @@ type exportedVariadicRecorder struct {
 }
 
 func (r *exportedVariadicRecorder) anySParam() {
-	r.r = r.r.AnyArgs()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Args()
+	}
 }
 
 func (r *exportedVariadicRecorder) anyBParam() {
-	r.r = r.r.AnyOther()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Other()
+	}
 }
 
 func (r *exportedVariadicRecorder) seq() {
@@ -976,11 +1056,21 @@ type repeatedIdsRecorder struct {
 }
 
 func (r *repeatedIdsRecorder) anySParam() {
-	r.r = r.r.anySParam1()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.sParam1()
+	}
 }
 
 func (r *repeatedIdsRecorder) anyBParam() {
-	r.r = r.r.anyBParam()
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.bParam()
+	}
 }
 
 func (r *repeatedIdsRecorder) seq() {
@@ -1062,11 +1152,21 @@ type exportedRepeatedIdsRecorder struct {
 }
 
 func (r *exportedRepeatedIdsRecorder) anySParam() {
-	r.r = r.r.AnySParam1()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.SParam1()
+	}
 }
 
 func (r *exportedRepeatedIdsRecorder) anyBParam() {
-	r.r = r.r.AnyBParam()
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.BParam()
+	}
 }
 
 func (r *exportedRepeatedIdsRecorder) seq() {
@@ -1111,5 +1211,189 @@ func (r *exportedRepeatedIdsRecorder) anyTimes() {
 }
 
 func (r *exportedRepeatedIdsRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type timesAdaptor struct{ m *moqUsual }
+
+func (a *timesAdaptor) exported() bool { return false }
+
+func (a *timesAdaptor) tracksParams() bool { return true }
+
+func (a *timesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &timesRecorder{r: a.m.onCall().Times(sParams[0], bParam)}
+}
+
+func (a *timesAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+	sResult, err := a.m.mock().Times(sParams[0], bParam)
+	Expect(sResult).To(Equal(res.sResults[0]))
+	if res.err == nil {
+		Expect(err).To(BeNil())
+	} else {
+		Expect(err).To(Equal(res.err))
+	}
+}
+
+func (a *timesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_Times_params{sParam: sParams[0], times: bParam}
+}
+
+func (a *timesAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type timesRecorder struct{ r *moqUsual_Times_fnRecorder }
+
+func (r *timesRecorder) anySParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.sParam()
+	}
+}
+
+func (r *timesRecorder) anyBParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.times()
+	}
+}
+
+func (r *timesRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *timesRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *timesRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *timesRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *timesRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
+}
+
+func (r *timesRecorder) times(count int) {
+	r.r = r.r.times(count)
+}
+
+func (r *timesRecorder) anyTimes() {
+	r.r.anyTimes()
+	r.r = nil
+}
+
+func (r *timesRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type exportedTimesAdaptor struct{ m *exported.MoqUsual }
+
+func (a *exportedTimesAdaptor) exported() bool { return true }
+
+func (a *exportedTimesAdaptor) tracksParams() bool { return true }
+
+func (a *exportedTimesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedTimesRecorder{r: a.m.OnCall().Times(sParams[0], bParam)}
+}
+
+func (a *exportedTimesAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+	sResult, err := a.m.Mock().Times(sParams[0], bParam)
+	Expect(sResult).To(Equal(res.sResults[0]))
+	if res.err == nil {
+		Expect(err).To(BeNil())
+	} else {
+		Expect(err).To(Equal(res.err))
+	}
+}
+
+func (a *exportedTimesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return exported.MoqUsual_Times_params{SParam: sParams[0], Times: bParam}
+}
+
+func (a *exportedTimesAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedTimesRecorder struct {
+	r *exported.MoqUsual_Times_fnRecorder
+}
+
+func (r *exportedTimesRecorder) anySParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.SParam()
+	}
+}
+
+func (r *exportedTimesRecorder) anyBParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Times()
+	}
+}
+
+func (r *exportedTimesRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedTimesRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedTimesRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedTimesRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+	})
+}
+
+func (r *exportedTimesRecorder) doReturnResults(
+	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
+		fn()
+		Expect(sParam).To(Equal(expectedSParams[0]))
+		Expect(bParam).To(Equal(expectedBParam))
+		return sResults[0], err
+	})
+}
+
+func (r *exportedTimesRecorder) times(count int) {
+	r.r = r.r.Times(count)
+}
+
+func (r *exportedTimesRecorder) anyTimes() {
+	r.r.AnyTimes()
+	r.r = nil
+}
+
+func (r *exportedTimesRecorder) isNil() bool {
 	return r.r == nil
 }
