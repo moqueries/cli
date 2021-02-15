@@ -72,7 +72,7 @@ func TestChangedMyMindILikeIt(t *testing.T) {
 	writerMoq := newMoqWriter(scene, nil)
 
 	isFavMoq.onCall(7).
-		returnResults(false).times(5).
+		returnResults(false).repeat(moq.Times(5)).
 		returnResults(true)
 	isFavMoq.onCall(3).
 		returnResults(false)
@@ -100,7 +100,7 @@ func TestChangedMyMindImNotSure(t *testing.T) {
 	writerMoq := newMoqWriter(scene, &config)
 
 	isFavMoq.onCall(7).
-		returnResults(false).times(3)
+		returnResults(false).repeat(moq.Times(3))
 	isFavMoq.onCall(3).
 		returnResults(false)
 
@@ -110,7 +110,7 @@ func TestChangedMyMindImNotSure(t *testing.T) {
 		returnResults(1, nil)
 
 	isFavMoq.onCall(7).
-		returnResults(false).times(2)
+		returnResults(false).repeat(moq.Times(2))
 
 	d := demo.FavWriter{
 		IsFav: isFavMoq.mock(),
@@ -131,19 +131,20 @@ func TestChangedMyMindIHateIt(t *testing.T) {
 	writerMoq := newMoqWriter(scene, nil)
 
 	isFavMoq.onCall(7).
-		returnResults(true).times(2).
-		returnResults(false).anyTimes()
+		returnResults(true).repeat(moq.Times(2)).
+		returnResults(false).repeat(moq.AnyTimes())
 
+	err := errors.New("I no longer like 7")
 	writerMoq.onCall().Write([]byte("7")).
-		returnResults(0, nil).times(2).
-		returnResults(0, errors.New("I no longer like 7")).anyTimes()
+		returnResults(0, nil).repeat(moq.Times(2)).
+		returnResults(0, err).repeat(moq.AnyTimes())
 
 	d := demo.FavWriter{
 		IsFav: isFavMoq.mock(),
 		W:     writerMoq.mock(),
 	}
 
-	err := d.WriteFavorites([]int{7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7})
+	err = d.WriteFavorites([]int{7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -160,7 +161,7 @@ func TestNoGadgets(t *testing.T) {
 		returnResults([]int{42, 43}, nil)
 
 	storeMoq.onCall().GadgetsByWidgetId(0).any().widgetId().
-		returnResults(nil, nil).times(2)
+		returnResults(nil, nil).repeat(moq.Times(2))
 
 	d := demo.FavWriter{
 		W:     writerMoq.mock(),
@@ -350,7 +351,8 @@ func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
 		return n%2 == 0
 	}
 
-	isFavMoq.onCall(0).any().n().doReturnResults(isFavFn).anyTimes()
+	isFavMoq.onCall(0).any().n().
+		doReturnResults(isFavFn).repeat(moq.AnyTimes())
 
 	bytesWritten := 0
 	var capturedFavs []int
@@ -364,7 +366,8 @@ func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
 		return 0, nil
 	}
 
-	writerMoq.onCall().Write(nil).any().p().doReturnResults(writeFn).anyTimes()
+	writerMoq.onCall().Write(nil).any().p().
+		doReturnResults(writeFn).repeat(moq.AnyTimes())
 
 	d := demo.FavWriter{
 		IsFav: isFavMoq.mock(),

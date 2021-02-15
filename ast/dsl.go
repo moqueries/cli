@@ -128,6 +128,10 @@ func Continue() *dst.BranchStmt {
 	return &dst.BranchStmt{Tok: token.CONTINUE}
 }
 
+func Ellipsis(elt dst.Expr) *dst.Ellipsis {
+	return &dst.Ellipsis{Elt: elt}
+}
+
 // ExprDSL translates to a dst.ExprStmt
 type ExprDSL struct{ Obj *dst.ExprStmt }
 

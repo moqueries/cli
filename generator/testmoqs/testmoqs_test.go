@@ -40,8 +40,7 @@ type recorder interface {
 	returnResults(sResults []string, err error)
 	andDo(fn func(), sParams []string, bParam bool)
 	doReturnResults(fn func(), sParams []string, bParam bool, sResults []string, err error)
-	times(count int)
-	anyTimes()
+	repeat(repeaters ...moq.Repeater)
 	isNil() bool
 }
 
@@ -204,7 +203,7 @@ var _ = Describe("TestMoqs", func() {
 
 			rec := entry.newRecorder([]string{"Hi", "you"}, true)
 			rec.returnResults([]string{"blue", "orange"}, nil)
-			rec.times(4)
+			rec.repeat(moq.Times(4))
 			rec.returnResults([]string{"green", "purple"}, nil)
 
 			if entry.tracksParams() {
@@ -250,7 +249,7 @@ var _ = Describe("TestMoqs", func() {
 			rec := entry.newRecorder([]string{"Hi", "you"}, true)
 			rec.returnResults([]string{"blue", "orange"}, nil)
 			rec.returnResults([]string{"green", "purple"}, nil)
-			rec.anyTimes()
+			rec.repeat(moq.AnyTimes())
 
 			if entry.tracksParams() {
 				expectCall(entry, []string{"Bye", "now"}, true,
@@ -281,7 +280,7 @@ var _ = Describe("TestMoqs", func() {
 		}
 	})
 
-	It("fails if Times is called without a preceding Return call", func() {
+	It("fails if Repeat is called without a preceding Return call", func() {
 		entries, moqScene := tableEntries(tMoq, moq.Config{})
 		for _, entry := range entries {
 			// ASSEMBLE
@@ -291,7 +290,7 @@ var _ = Describe("TestMoqs", func() {
 			msg := fmt.Sprintf("%s or %s must be called before calling %s",
 				export("returnResults", entry),
 				export("doReturnResults", entry),
-				export("times", entry))
+				export("repeat", entry))
 
 			tMoq.OnCall().Fatalf(msg).
 				ReturnResults()
@@ -299,33 +298,7 @@ var _ = Describe("TestMoqs", func() {
 			rec := entry.newRecorder([]string{"Hi", "you"}, true)
 
 			// ACT
-			rec.times(4)
-
-			// ASSERT
-			scene.AssertExpectationsMet()
-			moqScene.AssertExpectationsMet()
-		}
-	})
-
-	It("fails if AnyTimes is called without a preceding Return call", func() {
-		entries, moqScene := tableEntries(tMoq, moq.Config{})
-		for _, entry := range entries {
-			// ASSEMBLE
-			scene.Reset()
-			moqScene.Reset()
-
-			msg := fmt.Sprintf("%s or %s must be called before calling %s",
-				export("returnResults", entry),
-				export("doReturnResults", entry),
-				export("anyTimes", entry))
-
-			tMoq.OnCall().Fatalf(msg).
-				ReturnResults()
-
-			rec := entry.newRecorder([]string{"Hi", "you"}, true)
-
-			// ACT
-			rec.anyTimes()
+			rec.repeat(moq.Times(4))
 
 			// ASSERT
 			scene.AssertExpectationsMet()
@@ -641,7 +614,7 @@ var _ = Describe("TestMoqs", func() {
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
-				rec.anyTimes()
+				rec.repeat(moq.AnyTimes())
 
 				// ACT
 				entry.sceneMoq().AssertExpectationsMet()
@@ -661,7 +634,7 @@ var _ = Describe("TestMoqs", func() {
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
-				rec.anyTimes()
+				rec.repeat(moq.AnyTimes())
 
 				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
@@ -685,7 +658,7 @@ var _ = Describe("TestMoqs", func() {
 				// ASSEMBLE
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
-				rec.anyTimes()
+				rec.repeat(moq.AnyTimes())
 
 				entry.invokeMockAndExpectResults([]string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
@@ -796,7 +769,8 @@ var _ = Describe("TestMoqs", func() {
 				moqScene.Reset()
 
 				expectCall(entry, []string{"Eh", "you"}, true, results{
-					sResults: []string{"grey", "brown"}, err: nil})
+					sResults: []string{"grey", "brown"}, err: nil,
+				})
 
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.seq()
@@ -807,7 +781,8 @@ var _ = Describe("TestMoqs", func() {
 				rec.returnResults([]string{"blue", "orange"}, nil)
 
 				expectCall(entry, []string{"Bye", "now"}, true, results{
-					sResults: []string{"silver", "black"}, err: nil})
+					sResults: []string{"silver", "black"}, err: nil,
+				})
 
 				entry.invokeMockAndExpectResults([]string{"Bye", "now"}, true,
 					results{sResults: []string{"silver", "black"}, err: nil})
@@ -914,10 +889,12 @@ var _ = Describe("TestMoqs", func() {
 				rec.returnResults([]string{"grey", "brown"}, nil)
 
 				expectCall(entry, []string{"Hello", "there"}, false, results{
-					sResults: []string{"red", "yellow"}, err: io.EOF})
+					sResults: []string{"red", "yellow"}, err: io.EOF,
+				})
 
 				expectCall(entry, []string{"Hi", "you"}, true, results{
-					sResults: []string{"blue", "orange"}, err: nil})
+					sResults: []string{"blue", "orange"}, err: nil,
+				})
 
 				rec = entry.newRecorder([]string{"Bye", "now"}, true)
 				rec.noSeq()
@@ -955,7 +932,7 @@ var _ = Describe("TestMoqs", func() {
 
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.returnResults([]string{"red", "yellow"}, io.EOF)
-				rec.times(2)
+				rec.repeat(moq.Times(2))
 
 				// ACT
 				entry.invokeMockAndExpectResults([]string{"Hello", "there"}, false,
@@ -979,7 +956,7 @@ var _ = Describe("TestMoqs", func() {
 
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.returnResults([]string{"red", "yellow"}, io.EOF)
-				rec.anyTimes()
+				rec.repeat(moq.AnyTimes())
 
 				// ACT
 				entry.invokeMockAndExpectResults([]string{"Hello", "there"}, false,

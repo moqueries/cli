@@ -314,11 +314,10 @@ func b(c %s) {}
 			expr := f.Decls[1].(*dst.FuncDecl).Type.Params.List[0].Type
 
 			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).anyTimes()
+				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
 
 			// ACT
 			comparable, err := cache.IsComparable(expr)
-
 			// ASSERT
 			if err != nil {
 				t.Errorf("Unexpected error checking comparable: %s, err: %#v", code, err)
@@ -353,11 +352,10 @@ func a(b struct{ c %s }) {}
 			expr := f.Decls[1].(*dst.FuncDecl).Type.Params.List[0].Type
 
 			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).anyTimes()
+				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
 
 			// ACT
 			comparable, err := cache.IsComparable(expr)
-
 			// ASSERT
 			if err != nil {
 				t.Errorf("Unexpected error checking comparable: %s, err: %#v", code, err)
@@ -396,11 +394,10 @@ func d(e b) {}
 			expr := f.Decls[2].(*dst.FuncDecl).Type.Params.List[0].Type
 
 			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).anyTimes()
+				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
 
 			// ACT
 			comparable, err := cache.IsComparable(expr)
-
 			// ASSERT
 			if err != nil {
 				t.Errorf("Unexpected error checking comparable: %s, err: %#v", code, err)
@@ -450,11 +447,10 @@ type e struct {
 					nil)
 
 			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).anyTimes()
+				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
 
 			// ACT
 			comparable, err := cache.IsComparable(expr)
-
 			// ASSERT
 			if err != nil {
 				t.Errorf("Unexpected error checking comparable: %s, err: %#v", code2, err)
@@ -481,7 +477,6 @@ func TestDSTIdentNotComparable(t *testing.T) {
 
 	// ACT
 	comparable, err := cache.IsComparable(expr)
-
 	// ASSERT
 	if err != nil {
 		t.Errorf("Unexpected error checking comparable, err: %#v", err)

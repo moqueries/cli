@@ -85,13 +85,8 @@ func (r *usualFnRecorder) doReturnResults(
 	})
 }
 
-func (r *usualFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *usualFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *usualFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *usualFnRecorder) isNil() bool {
@@ -178,13 +173,8 @@ func (r *exportedUsualFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedUsualFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedUsualFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedUsualFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedUsualFnRecorder) isNil() bool {
@@ -269,13 +259,8 @@ func (r *noNamesFnRecorder) doReturnResults(
 	})
 }
 
-func (r *noNamesFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *noNamesFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *noNamesFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *noNamesFnRecorder) isNil() bool {
@@ -362,13 +347,8 @@ func (r *exportedNoNamesFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNoNamesFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNoNamesFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNoNamesFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNoNamesFnRecorder) isNil() bool {
@@ -446,13 +426,8 @@ func (r *noResultsFnRecorder) doReturnResults(
 	})
 }
 
-func (r *noResultsFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *noResultsFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *noResultsFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *noResultsFnRecorder) isNil() bool {
@@ -532,13 +507,8 @@ func (r *exportedNoResultsFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNoResultsFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNoResultsFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNoResultsFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNoResultsFnRecorder) isNil() bool {
@@ -605,13 +575,8 @@ func (r *noParamsFnRecorder) doReturnResults(
 	})
 }
 
-func (r *noParamsFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *noParamsFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *noParamsFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *noParamsFnRecorder) isNil() bool {
@@ -680,13 +645,8 @@ func (r *exportedNoParamsFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNoParamsFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNoParamsFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNoParamsFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNoParamsFnRecorder) isNil() bool {
@@ -746,13 +706,8 @@ func (r *nothingFnRecorder) doReturnResults(
 	})
 }
 
-func (r *nothingFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *nothingFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *nothingFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *nothingFnRecorder) isNil() bool {
@@ -814,13 +769,8 @@ func (r *exportedNothingFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNothingFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNothingFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNothingFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNothingFnRecorder) isNil() bool {
@@ -905,13 +855,8 @@ func (r *variadicFnRecorder) doReturnResults(
 	})
 }
 
-func (r *variadicFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *variadicFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *variadicFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *variadicFnRecorder) isNil() bool {
@@ -998,13 +943,8 @@ func (r *exportedVariadicFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedVariadicFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedVariadicFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedVariadicFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedVariadicFnRecorder) isNil() bool {
@@ -1092,13 +1032,8 @@ func (r *repeatedIdsFnRecorder) doReturnResults(
 	})
 }
 
-func (r *repeatedIdsFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *repeatedIdsFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *repeatedIdsFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *repeatedIdsFnRecorder) isNil() bool {
@@ -1188,13 +1123,8 @@ func (r *exportedRepeatedIdsFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedRepeatedIdsFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedRepeatedIdsFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedRepeatedIdsFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedRepeatedIdsFnRecorder) isNil() bool {
@@ -1279,13 +1209,8 @@ func (r *timesFnRecorder) doReturnResults(
 	})
 }
 
-func (r *timesFnRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *timesFnRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *timesFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *timesFnRecorder) isNil() bool {
@@ -1372,13 +1297,8 @@ func (r *exportedTimesFnRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedTimesFnRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedTimesFnRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedTimesFnRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedTimesFnRecorder) isNil() bool {

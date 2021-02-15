@@ -17,17 +17,17 @@ const (
 	moqPkg        = moqueriesPkg + "/moq"
 	syncAtomicPkg = "sync/atomic"
 
-	intType    = "int"
-	configType = "Config"
-	tType      = "T"
-	sceneType  = "Scene"
+	intType      = "int"
+	configType   = "Config"
+	repeaterType = "Repeater"
+	sceneType    = "Scene"
+	tType        = "T"
 
 	anyCountIdent          = "anyCount"
 	anyParamsIdent         = "anyParams"
 	anyParamsReceiverIdent = "a"
 	anyTimesIdent          = "anyTimes"
 	configIdent            = "config"
-	countIdent             = "count"
 	doFnIdent              = "doFn"
 	doReturnFnIdent        = "doReturnFn"
 	expectationIdent       = "Expectation"
@@ -46,6 +46,8 @@ const (
 	paramsKeyIdent         = "paramsKey"
 	recorderIdent          = "recorder"
 	recorderReceiverIdent  = "r"
+	repeatIdent            = "repeat"
+	repeatersIdent         = "repeaters"
 	resultsByParamsIdent   = "resultsByParams"
 	resIdent               = "res"
 	resultIdent            = "result"
@@ -56,7 +58,6 @@ const (
 	valuesIdent            = "values"
 
 	andDoFnName           = "andDo"
-	anyTimesFnName        = "anyTimes"
 	assertFnName          = "AssertExpectationsMet"
 	doReturnResultsFnName = "doReturnResults"
 	errorfFnName          = "Errorf"
@@ -66,9 +67,9 @@ const (
 	lenFnName             = "len"
 	mockFnName            = "mock"
 	onCallFnName          = "onCall"
+	repeatFnName          = "repeat"
 	resetFnName           = "Reset"
 	returnFnName          = "returnResults"
-	timesFnName           = "times"
 
 	fnRecorderSuffix = "fnRecorder"
 	paramPrefix      = "param"
@@ -270,8 +271,7 @@ func (c *Converter) RecorderMethods(typeName string, fn Func) []dst.Decl {
 		c.andDoFn(typeName, fn),
 		c.doReturnResultsFn(typeName, fn),
 		c.findResultsFn(typeName, fn),
-		c.recorderTimesFn(typeName, fn),
-		c.recorderAnyTimesFn(typeName, fn),
+		c.recorderRepeatFn(typeName, fn),
 	)
 
 	return decls
@@ -1115,7 +1115,7 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 	return stmts
 }
 
-func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
+func (c *Converter) recorderRepeatFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.moqName(typeName)
 
 	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
@@ -1141,9 +1141,9 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
 				Dot(Id("NextRecorderSequence")).Obj).Obj).
 			Decs(kvExprDec(dst.None)).Obj).Obj
 
-	return Fn(c.export(timesFnName)).
+	return Fn(c.export(repeatFnName)).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-		Params(Field(Id(intType)).Names(Id(countIdent)).Obj).
+		Params(Field(Ellipsis(IdPath(repeaterType, moqPkg))).Names(Id(repeatersIdent)).Obj).
 		Results(Field(Star(Id(fnRecName))).Obj).
 		Body(
 			If(Bin(Sel(Id(recorderReceiverIdent)).
@@ -1158,13 +1158,21 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
 						Args(LitStringf("%s or %s must be called before calling %s",
 							c.export(returnFnName),
 							c.export(doReturnResultsFnName),
-							c.export(timesFnName))).Obj).Obj,
+							c.export(repeatFnName))).Obj).Obj,
 					Return(Id(nilIdent)),
 				).Obj,
+			Assign(Id(repeatIdent)).Tok(token.DEFINE).
+				Rhs(Call(IdPath(strings.Title(repeatFnName), moqPkg)).Args(
+					Sel(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(moqIdent))).Obj).
+						Dot(Id(c.export(sceneIdent))).Obj).
+						Dot(Id(tType)).Obj,
+					Id(repeatersIdent)).Obj).Obj,
 			c.lastResult(false),
 			For(Assign(Id("n")).Tok(token.DEFINE).Rhs(LitInt(0)).Obj).
 				Cond(Bin(Id("n")).Op(token.LSS).
-					Y(Bin(Id(countIdent)).Op(token.SUB).Y(LitInt(1)).Obj).Obj).
+					Y(Bin(Sel(Id(repeatIdent)).Dot(Id("MaxTimes")).Obj).
+						Op(token.SUB).Y(LitInt(1)).Obj).Obj).
 				Post(IncStmt(Id("n"))).Body(
 				If(Bin(Sel(Id(lastIdent)).
 					Dot(Id(c.export(sequenceIdent))).Obj).
@@ -1179,6 +1187,11 @@ func (c *Converter) recorderTimesFn(typeName string, fn Func) *dst.FuncDecl {
 						Dot(Id(c.export(resultsIdent))).Obj,
 						Id(lastIdent)).Obj).Obj,
 			).Obj,
+			Assign(Sel(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Dot(Id(c.export(anyTimesIdent))).Obj).
+				Tok(token.ASSIGN).
+				Rhs(Sel(Id(repeatIdent)).Dot(Id(strings.Title(anyTimesIdent))).Obj).Obj,
 			Return(Id(recorderReceiverIdent)),
 		).
 		Decs(stdFuncDec()).Obj
@@ -1201,42 +1214,6 @@ func (c *Converter) lastResult(forUpdate bool) *dst.AssignStmt {
 	return Assign(Id(lastIdent)).
 		Tok(token.DEFINE).
 		Rhs(rhs).Obj
-}
-
-func (c *Converter) recorderAnyTimesFn(typeName string, fn Func) *dst.FuncDecl {
-	mName := c.moqName(typeName)
-
-	fnRecName := fmt.Sprintf("%s_%s_%s", mName, fn.Name, fnRecorderSuffix)
-	if fn.Name == "" {
-		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
-	}
-
-	return Fn(c.export(anyTimesFnName)).
-		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-		Body(
-			If(Bin(Sel(Id(recorderReceiverIdent)).
-				Dot(Id(c.export(resultsIdent))).Obj).
-				Op(token.EQL).
-				Y(Id(nilIdent)).Obj).
-				Body(
-					Expr(Call(Sel(Sel(Sel(Sel(Id(recorderReceiverIdent)).
-						Dot(Id(c.export(moqIdent))).Obj).
-						Dot(Id(c.export(sceneIdent))).Obj).
-						Dot(Id(tType)).Obj).
-						Dot(Id(fatalfFnName)).Obj).
-						Args(LitStringf("%s or %s must be called before calling %s",
-							c.export(returnFnName),
-							c.export(doReturnResultsFnName),
-							c.export(anyTimesFnName))).Obj).Obj,
-					Return(),
-				).Obj,
-			Assign(Sel(Sel(Id(recorderReceiverIdent)).
-				Dot(Id(c.export(resultsIdent))).Obj).
-				Dot(Id(c.export(anyTimesIdent))).Obj).
-				Tok(token.ASSIGN).
-				Rhs(Id("true")).Obj,
-		).
-		Decs(stdFuncDec()).Obj
 }
 
 func (c *Converter) recorderSeqFns(typeName string, fn Func) []dst.Decl {

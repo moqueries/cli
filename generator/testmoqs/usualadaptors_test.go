@@ -85,13 +85,8 @@ func (r *usualRecorder) doReturnResults(
 	})
 }
 
-func (r *usualRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *usualRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *usualRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *usualRecorder) isNil() bool {
@@ -178,13 +173,8 @@ func (r *exportedUsualRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedUsualRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedUsualRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedUsualRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedUsualRecorder) isNil() bool {
@@ -269,13 +259,8 @@ func (r *noNamesRecorder) doReturnResults(
 	})
 }
 
-func (r *noNamesRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *noNamesRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *noNamesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *noNamesRecorder) isNil() bool {
@@ -362,13 +347,8 @@ func (r *exportedNoNamesRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNoNamesRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNoNamesRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNoNamesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNoNamesRecorder) isNil() bool {
@@ -448,13 +428,8 @@ func (r *noResultsRecorder) doReturnResults(
 	})
 }
 
-func (r *noResultsRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *noResultsRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *noResultsRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *noResultsRecorder) isNil() bool {
@@ -534,13 +509,8 @@ func (r *exportedNoResultsRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNoResultsRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNoResultsRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNoResultsRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNoResultsRecorder) isNil() bool {
@@ -609,13 +579,8 @@ func (r *noParamsRecorder) doReturnResults(
 	})
 }
 
-func (r *noParamsRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *noParamsRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *noParamsRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *noParamsRecorder) isNil() bool {
@@ -684,13 +649,8 @@ func (r *exportedNoParamsRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNoParamsRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNoParamsRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNoParamsRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNoParamsRecorder) isNil() bool {
@@ -750,13 +710,8 @@ func (r *nothingRecorder) doReturnResults(
 	})
 }
 
-func (r *nothingRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *nothingRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *nothingRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *nothingRecorder) isNil() bool {
@@ -818,13 +773,8 @@ func (r *exportedNothingRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedNothingRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedNothingRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedNothingRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedNothingRecorder) isNil() bool {
@@ -913,13 +863,8 @@ func (r *variadicRecorder) doReturnResults(
 	})
 }
 
-func (r *variadicRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *variadicRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *variadicRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *variadicRecorder) isNil() bool {
@@ -1009,13 +954,8 @@ func (r *exportedVariadicRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedVariadicRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedVariadicRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedVariadicRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedVariadicRecorder) isNil() bool {
@@ -1105,13 +1045,8 @@ func (r *repeatedIdsRecorder) doReturnResults(
 	})
 }
 
-func (r *repeatedIdsRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *repeatedIdsRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *repeatedIdsRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *repeatedIdsRecorder) isNil() bool {
@@ -1201,13 +1136,8 @@ func (r *exportedRepeatedIdsRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedRepeatedIdsRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedRepeatedIdsRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedRepeatedIdsRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedRepeatedIdsRecorder) isNil() bool {
@@ -1292,13 +1222,8 @@ func (r *timesRecorder) doReturnResults(
 	})
 }
 
-func (r *timesRecorder) times(count int) {
-	r.r = r.r.times(count)
-}
-
-func (r *timesRecorder) anyTimes() {
-	r.r.anyTimes()
-	r.r = nil
+func (r *timesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
 }
 
 func (r *timesRecorder) isNil() bool {
@@ -1385,13 +1310,8 @@ func (r *exportedTimesRecorder) doReturnResults(
 	})
 }
 
-func (r *exportedTimesRecorder) times(count int) {
-	r.r = r.r.Times(count)
-}
-
-func (r *exportedTimesRecorder) anyTimes() {
-	r.r.AnyTimes()
-	r.r = nil
+func (r *exportedTimesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
 }
 
 func (r *exportedTimesRecorder) isNil() bool {
