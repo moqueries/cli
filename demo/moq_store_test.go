@@ -524,13 +524,14 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) findResults() {
 	}
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) times(count int) *moqStore_AllWidgetsIds_fnRecorder {
+func (r *moqStore_AllWidgetsIds_fnRecorder) repeat(repeaters ...moq.Repeater) *moqStore_AllWidgetsIds_fnRecorder {
 	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
+	repeat := moq.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < count-1; n++ {
+	for n := 0; n < repeat.MaxTimes-1; n++ {
 		if last.sequence != 0 {
 			last = struct {
 				values *struct {
@@ -553,15 +554,8 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) times(count int) *moqStore_AllWidget
 		}
 		r.results.results = append(r.results.results, last)
 	}
+	r.results.anyTimes = repeat.AnyTimes
 	return r
-}
-
-func (r *moqStore_AllWidgetsIds_fnRecorder) anyTimes() {
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
-		return
-	}
-	r.results.anyTimes = true
 }
 
 func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByWidgetId_fnRecorder {
@@ -716,13 +710,14 @@ func (r *moqStore_GadgetsByWidgetId_fnRecorder) findResults() {
 	}
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) times(count int) *moqStore_GadgetsByWidgetId_fnRecorder {
+func (r *moqStore_GadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Repeater) *moqStore_GadgetsByWidgetId_fnRecorder {
 	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
+	repeat := moq.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < count-1; n++ {
+	for n := 0; n < repeat.MaxTimes-1; n++ {
 		if last.sequence != 0 {
 			last = struct {
 				values *struct {
@@ -745,15 +740,8 @@ func (r *moqStore_GadgetsByWidgetId_fnRecorder) times(count int) *moqStore_Gadge
 		}
 		r.results.results = append(r.results.results, last)
 	}
+	r.results.anyTimes = repeat.AnyTimes
 	return r
-}
-
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) anyTimes() {
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
-		return
-	}
-	r.results.anyTimes = true
 }
 
 func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) *moqStore_LightGadgetsByWidgetId_fnRecorder {
@@ -920,13 +908,14 @@ func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
 	}
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *moqStore_LightGadgetsByWidgetId_fnRecorder {
+func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Repeater) *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling times")
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
+	repeat := moq.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < count-1; n++ {
+	for n := 0; n < repeat.MaxTimes-1; n++ {
 		if last.sequence != 0 {
 			last = struct {
 				values *struct {
@@ -949,15 +938,8 @@ func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) times(count int) *moqStore_
 		}
 		r.results.results = append(r.results.results, last)
 	}
+	r.results.anyTimes = repeat.AnyTimes
 	return r
-}
-
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) anyTimes() {
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling anyTimes")
-		return
-	}
-	r.results.anyTimes = true
 }
 
 // Reset resets the state of the moq

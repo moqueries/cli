@@ -328,13 +328,14 @@ func (r *MoqNoNamesFn_fnRecorder) FindResults() {
 	}
 }
 
-func (r *MoqNoNamesFn_fnRecorder) Times(count int) *MoqNoNamesFn_fnRecorder {
+func (r *MoqNoNamesFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqNoNamesFn_fnRecorder {
 	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
+	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < count-1; n++ {
+	for n := 0; n < repeat.MaxTimes-1; n++ {
 		if last.Sequence != 0 {
 			last = struct {
 				Values *struct {
@@ -357,15 +358,8 @@ func (r *MoqNoNamesFn_fnRecorder) Times(count int) *MoqNoNamesFn_fnRecorder {
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
+	r.Results.AnyTimes = repeat.AnyTimes
 	return r
-}
-
-func (r *MoqNoNamesFn_fnRecorder) AnyTimes() {
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
-		return
-	}
-	r.Results.AnyTimes = true
 }
 
 // Reset resets the state of the moq

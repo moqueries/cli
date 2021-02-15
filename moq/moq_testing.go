@@ -56,8 +56,7 @@ type MoqT_Errorf_doReturnFn func(format string, args ...interface{})
 type MoqT_Errorf_results struct {
 	Params  MoqT_Errorf_params
 	Results []struct {
-		Values *struct {
-		}
+		Values     *struct{}
 		Sequence   uint32
 		DoFn       MoqT_Errorf_doFn
 		DoReturnFn MoqT_Errorf_doReturnFn
@@ -110,8 +109,7 @@ type MoqT_Fatalf_doReturnFn func(format string, args ...interface{})
 type MoqT_Fatalf_results struct {
 	Params  MoqT_Fatalf_params
 	Results []struct {
-		Values *struct {
-		}
+		Values     *struct{}
 		Sequence   uint32
 		DoFn       MoqT_Fatalf_doFn
 		DoReturnFn MoqT_Fatalf_doReturnFn
@@ -344,14 +342,12 @@ func (r *MoqT_Errorf_fnRecorder) ReturnResults() *MoqT_Errorf_fnRecorder {
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-		}
+		Values     *struct{}
 		Sequence   uint32
 		DoFn       MoqT_Errorf_doFn
 		DoReturnFn MoqT_Errorf_doReturnFn
 	}{
-		Values: &struct {
-		}{},
+		Values:   &struct{}{},
 		Sequence: sequence,
 	})
 	return r
@@ -376,8 +372,7 @@ func (r *MoqT_Errorf_fnRecorder) DoReturnResults(fn MoqT_Errorf_doReturnFn) *Moq
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-		}
+		Values     *struct{}
 		Sequence   uint32
 		DoFn       MoqT_Errorf_doFn
 		DoReturnFn MoqT_Errorf_doReturnFn
@@ -439,37 +434,29 @@ func (r *MoqT_Errorf_fnRecorder) FindResults() {
 	}
 }
 
-func (r *MoqT_Errorf_fnRecorder) Times(count int) *MoqT_Errorf_fnRecorder {
+func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRecorder {
 	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
+	repeat := Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < count-1; n++ {
+	for n := 0; n < repeat.MaxTimes-1; n++ {
 		if last.Sequence != 0 {
 			last = struct {
-				Values *struct {
-				}
+				Values     *struct{}
 				Sequence   uint32
 				DoFn       MoqT_Errorf_doFn
 				DoReturnFn MoqT_Errorf_doReturnFn
 			}{
-				Values: &struct {
-				}{},
+				Values:   &struct{}{},
 				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
+	r.Results.AnyTimes = repeat.AnyTimes
 	return r
-}
-
-func (r *MoqT_Errorf_fnRecorder) AnyTimes() {
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
-		return
-	}
-	r.Results.AnyTimes = true
 }
 
 func (m *MoqT_recorder) Fatalf(format string, args ...interface{}) *MoqT_Fatalf_fnRecorder {
@@ -532,14 +519,12 @@ func (r *MoqT_Fatalf_fnRecorder) ReturnResults() *MoqT_Fatalf_fnRecorder {
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-		}
+		Values     *struct{}
 		Sequence   uint32
 		DoFn       MoqT_Fatalf_doFn
 		DoReturnFn MoqT_Fatalf_doReturnFn
 	}{
-		Values: &struct {
-		}{},
+		Values:   &struct{}{},
 		Sequence: sequence,
 	})
 	return r
@@ -564,8 +549,7 @@ func (r *MoqT_Fatalf_fnRecorder) DoReturnResults(fn MoqT_Fatalf_doReturnFn) *Moq
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-		}
+		Values     *struct{}
 		Sequence   uint32
 		DoFn       MoqT_Fatalf_doFn
 		DoReturnFn MoqT_Fatalf_doReturnFn
@@ -627,37 +611,29 @@ func (r *MoqT_Fatalf_fnRecorder) FindResults() {
 	}
 }
 
-func (r *MoqT_Fatalf_fnRecorder) Times(count int) *MoqT_Fatalf_fnRecorder {
+func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRecorder {
 	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Times")
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
+	repeat := Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < count-1; n++ {
+	for n := 0; n < repeat.MaxTimes-1; n++ {
 		if last.Sequence != 0 {
 			last = struct {
-				Values *struct {
-				}
+				Values     *struct{}
 				Sequence   uint32
 				DoFn       MoqT_Fatalf_doFn
 				DoReturnFn MoqT_Fatalf_doReturnFn
 			}{
-				Values: &struct {
-				}{},
+				Values:   &struct{}{},
 				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
+	r.Results.AnyTimes = repeat.AnyTimes
 	return r
-}
-
-func (r *MoqT_Fatalf_fnRecorder) AnyTimes() {
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling AnyTimes")
-		return
-	}
-	r.Results.AnyTimes = true
 }
 
 // Reset resets the state of the moq
