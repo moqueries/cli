@@ -2,16 +2,15 @@ package generator_test
 
 import (
 	"errors"
+	"testing"
 
 	"github.com/dave/dst"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 
 	"github.com/myshkin5/moqueries/generator"
 	"github.com/myshkin5/moqueries/moq"
 )
 
-var _ = Describe("Converter", func() {
+func TestConverter(t *testing.T) {
 	var (
 		scene        *moq.Scene
 		typeCacheMoq *moqTypeCache
@@ -32,8 +31,11 @@ var _ = Describe("Converter", func() {
 		fnSpecFuncs []generator.Func
 	)
 
-	BeforeEach(func() {
-		scene = moq.NewScene(GinkgoT())
+	beforeEach := func(t *testing.T) {
+		if scene != nil {
+			t.Fatal("afterEach not called")
+		}
+		scene = moq.NewScene(t)
 		typeCacheMoq = newMoqTypeCache(scene, nil)
 
 		converter = generator.NewConverter(false, typeCacheMoq.mock())
@@ -107,51 +109,75 @@ var _ = Describe("Converter", func() {
 				Results: func1Results,
 			},
 		}
-	})
+	}
 
-	Describe("BaseStruct", func() {
-		It("creates a base moq for an interface", func() {
+	afterEach := func() {
+		scene.AssertExpectationsMet()
+		scene = nil
+	}
+
+	t.Run("BaseStruct", func(t *testing.T) {
+		t.Run("creates a base moq for an interface", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.BaseStruct(iSpec, iSpecFuncs)
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// moqPublicInterface holds the state of a moq of the PublicInterface type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart := "// moqPublicInterface holds the state of a moq of the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
+			afterEach()
 		})
 
-		It("creates a base moq for a function", func() {
+		t.Run("creates a base moq for a function", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.BaseStruct(fnSpec, fnSpecFuncs)
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// moqPublicFunction holds the state of a moq of the PublicFunction type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expwctedStart := "// moqPublicFunction holds the state of a moq of the PublicFunction type"
+			if decl.Decs.Start[0] != expwctedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expwctedStart)
+			}
+			afterEach()
 		})
 	})
 
-	Describe("IsolationStruct", func() {
-		It("creates a struct", func() {
+	t.Run("IsolationStruct", func(t *testing.T) {
+		t.Run("creates a struct", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.IsolationStruct("MyInterface", "mock")
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// moqMyInterface_mock isolates the mock interface of the MyInterface type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expwctedStart := "// moqMyInterface_mock isolates the mock interface of the MyInterface type"
+			if decl.Decs.Start[0] != expwctedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expwctedStart)
+			}
+			afterEach()
 		})
 	})
 
-	Describe("MethodStructs", func() {
-		It("creates structs for a function", func() {
+	t.Run("MethodStructs", func(t *testing.T) {
+		t.Run("creates structs for a function", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 			expectedParams := dst.Clone(func1Params).(*dst.FieldList)
 			// Non-comparables are represented as a deep hash
 			expectedParams.List[0].Type = &dst.Ident{
@@ -178,61 +204,120 @@ var _ = Describe("Converter", func() {
 
 			// ACT
 			decls, err := converter.MethodStructs(iSpec, fn)
-
 			// ASSERT
-			Expect(err).NotTo(HaveOccurred())
-			Expect(decls).To(HaveLen(8))
+			if err != nil {
+				t.Errorf("got %#v, wanted nil err", err)
+			}
+			if len(decls) != 8 {
+				t.Errorf("got len %d, wanted 8", len(decls))
+			}
 			decl, ok := decls[0].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// moqPublicInterface_Func1_params holds the params of the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[0])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart := "// moqPublicInterface_Func1_params holds the params of the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[1].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// moqPublicInterface_Func1_paramsKey holds the map key params of the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[1])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_paramsKey holds the map key params of the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[2].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_resultsByParams " +
-				"contains the results for a given set of parameters for the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[2])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_resultsByParams " +
+				"contains the results for a given set of parameters for the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[3].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_doFn " +
-				"defines the type of function needed when calling andDo for the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[3])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_doFn " +
+				"defines the type of function needed when calling andDo for the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[4].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_doReturnFn " +
-				"defines the type of function needed when calling doReturnResults for the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[4])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_doReturnFn " +
+				"defines the type of function needed when calling doReturnResults for the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[5].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_results " +
-				"holds the results of the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[5])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_results " +
+				"holds the results of the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[6].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_fnRecorder " +
-				"routes recorded function calls to the moqPublicInterface moq"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[6])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_fnRecorder " +
+				"routes recorded function calls to the moqPublicInterface moq"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
 
 			decl, ok = decls[7].(*dst.GenDecl)
-			Expect(ok).To(BeTrue())
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal("// moqPublicInterface_Func1_anyParams " +
-				"isolates the any params functions of the PublicInterface type"))
+			if !ok {
+				t.Errorf("got %#v, wanted GenDecl type", decls[7])
+			}
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+			}
+			expectedStart = "// moqPublicInterface_Func1_anyParams " +
+				"isolates the any params functions of the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
+			afterEach()
 		})
 
-		It("returns a type cache error", func() {
+		t.Run("returns a type cache error", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 			fn := generator.Func{
 				Name:    "Func1",
 				Params:  func1Params,
@@ -246,63 +331,90 @@ var _ = Describe("Converter", func() {
 			decls, err := converter.MethodStructs(iSpec, fn)
 
 			// ASSERT
-			Expect(err).To(Equal(expectedErr))
-			Expect(decls).To(BeNil())
+			if err != expectedErr {
+				t.Errorf("got %#v, wanted %#v", err, expectedErr)
+			}
+			if decls != nil {
+				t.Errorf("got %#v, wanted nil", decls)
+			}
+			afterEach()
 		})
 	})
 
-	Describe("NewFunc", func() {
-		It("creates a new moq function for an interface", func() {
+	t.Run("NewFunc", func(t *testing.T) {
+		t.Run("creates a new moq function for an interface", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.NewFunc(iSpec)
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// newMoqPublicInterface creates a new moq of the PublicInterface type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted > 0", len(decl.Decs.Start))
+			}
+			expectedStart := "// newMoqPublicInterface creates a new moq of the PublicInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
+			afterEach()
 		})
 
-		It("creates a new moq function for a function", func() {
+		t.Run("creates a new moq function for a function", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.NewFunc(fnSpec)
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// newMoqPublicFunction creates a new moq of the PublicFunction type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted > 0", len(decl.Decs.Start))
+			}
+			expectedStart := "// newMoqPublicFunction creates a new moq of the PublicFunction type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
+			afterEach()
 		})
 	})
 
-	Describe("IsolationAccessor", func() {
-		It("creates a func", func() {
+	t.Run("IsolationAccessor", func(t *testing.T) {
+		t.Run("creates a func", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.IsolationAccessor("MyInterface", "recorder", "onCall")
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// onCall returns the recorder implementation of the MyInterface type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted > 0", len(decl.Decs.Start))
+			}
+			expectedStart := "// onCall returns the recorder implementation of the MyInterface type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
+			afterEach()
 		})
-	})
 
-	Describe("FuncClosure", func() {
-		It("creates a closure function for a function type", func() {
+		t.Run("creates a closure function for a function type", func(t *testing.T) {
 			// ASSEMBLE
+			beforeEach(t)
 
 			// ACT
 			decl := converter.FuncClosure(
 				"MyFn", "github.com/myshkin5/moqueries/generator", fnSpecFuncs[0])
 
 			// ASSERT
-			Expect(len(decl.Decs.Start)).To(BeNumerically(">", 0))
-			Expect(decl.Decs.Start[0]).To(Equal(
-				"// mock returns the moq implementation of the MyFn type"))
+			if len(decl.Decs.Start) < 1 {
+				t.Errorf("got len %d, wanted > 0", len(decl.Decs.Start))
+			}
+			expectedStart := "// mock returns the moq implementation of the MyFn type"
+			if decl.Decs.Start[0] != expectedStart {
+				t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+			}
+			afterEach()
 		})
 	})
-})
+}

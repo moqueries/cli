@@ -1,13 +1,12 @@
 package moq_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"testing"
 
 	"github.com/myshkin5/moqueries/moq"
 )
 
-var _ = Describe("Scene", func() {
+func TestScene(t *testing.T) {
 	var (
 		scene *moq.Scene
 		moq1  *moqMoq
@@ -18,8 +17,11 @@ var _ = Describe("Scene", func() {
 		testScene *moq.Scene
 	)
 
-	BeforeEach(func() {
-		scene = moq.NewScene(GinkgoT())
+	beforeEach := func(t *testing.T) {
+		if scene != nil {
+			t.Fatal("afterEach not called")
+		}
+		scene = moq.NewScene(t)
 		moq1 = newMoqMoq(scene, nil)
 		moq2 = newMoqMoq(scene, nil)
 		tMoq = moq.NewMoqT(scene, nil)
@@ -28,14 +30,16 @@ var _ = Describe("Scene", func() {
 		testScene = moq.NewScene(moqT)
 		testScene.AddMoq(moq1.mock())
 		testScene.AddMoq(moq2.mock())
-	})
+	}
 
-	AfterEach(func() {
+	afterEach := func() {
 		scene.AssertExpectationsMet()
-	})
+		scene = nil
+	}
 
-	It("resets all of its moqs", func() {
+	t.Run("resets all of its moqs", func(t *testing.T) {
 		// ASSEMBLE
+		beforeEach(t)
 		moq1.onCall().Reset().returnResults()
 		moq2.onCall().Reset().returnResults()
 
@@ -43,10 +47,12 @@ var _ = Describe("Scene", func() {
 		testScene.Reset()
 
 		// ASSERT
+		afterEach()
 	})
 
-	It("asserts all of its moqs meet expectations", func() {
+	t.Run("asserts all of its moqs meet expectations", func(t *testing.T) {
 		// ASSEMBLE
+		beforeEach(t)
 		moq1.onCall().AssertExpectationsMet().returnResults()
 		moq2.onCall().AssertExpectationsMet().returnResults()
 
@@ -54,15 +60,20 @@ var _ = Describe("Scene", func() {
 		testScene.AssertExpectationsMet()
 
 		// ASSERT
+		afterEach()
 	})
 
-	It("returns the same MoqT it is given", func() {
+	t.Run("returns the same MoqT it is given", func(t *testing.T) {
 		// ASSEMBLE
+		beforeEach(t)
 
 		// ACT
 		actualMoqT := testScene.T
 
 		// ASSERT
-		Expect(actualMoqT).To(BeIdenticalTo(moqT))
+		if actualMoqT != moqT {
+			t.Errorf("got %#v, wanted %#v", actualMoqT, moqT)
+		}
+		afterEach()
 	})
-})
+}

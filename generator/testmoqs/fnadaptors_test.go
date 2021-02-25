@@ -1,7 +1,7 @@
 package testmoqs_test
 
 import (
-	. "github.com/onsi/gomega"
+	"reflect"
 
 	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
 	"github.com/myshkin5/moqueries/moq"
@@ -17,13 +17,13 @@ func (a *usualFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &usualFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
-func (a *usualFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *usualFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.mock()(sParams[0], bParam)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -67,20 +67,28 @@ func (r *usualFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
-func (r *usualFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *usualFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.andDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *usualFnRecorder) doReturnResults(
+func (r *usualFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], err
 	})
 }
@@ -103,13 +111,13 @@ func (a *exportedUsualFnAdaptor) newRecorder(sParams []string, bParam bool) reco
 	return &exportedUsualFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
-func (a *exportedUsualFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *exportedUsualFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock()(sParams[0], bParam)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -155,20 +163,28 @@ func (r *exportedUsualFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
-func (r *exportedUsualFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedUsualFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.AndDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *exportedUsualFnRecorder) doReturnResults(
+func (r *exportedUsualFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], err
 	})
 }
@@ -191,13 +207,13 @@ func (a *noNamesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &noNamesFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
-func (a *noNamesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *noNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.mock()(sParams[0], bParam)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -241,20 +257,28 @@ func (r *noNamesFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
-func (r *noNamesFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *noNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.andDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *noNamesFnRecorder) doReturnResults(
+func (r *noNamesFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], err
 	})
 }
@@ -277,13 +301,13 @@ func (a *exportedNoNamesFnAdaptor) newRecorder(sParams []string, bParam bool) re
 	return &exportedNoNamesFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
-func (a *exportedNoNamesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *exportedNoNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock()(sParams[0], bParam)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -329,20 +353,28 @@ func (r *exportedNoNamesFnRecorder) returnResults(sResults []string, err error) 
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
-func (r *exportedNoNamesFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedNoNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.AndDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *exportedNoNamesFnRecorder) doReturnResults(
+func (r *exportedNoNamesFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], err
 	})
 }
@@ -365,7 +397,7 @@ func (a *noResultsFnAdaptor) newRecorder(sParams []string, bParam bool) recorder
 	return &noResultsFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
-func (a *noResultsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, _ results) {
+func (a *noResultsFnAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
 	a.m.mock()(sParams[0], bParam)
 }
 
@@ -409,20 +441,28 @@ func (r *noResultsFnRecorder) returnResults([]string, error) {
 	r.r = r.r.returnResults()
 }
 
-func (r *noResultsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *noResultsFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.andDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *noResultsFnRecorder) doReturnResults(
+func (r *noResultsFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
@@ -444,7 +484,7 @@ func (a *exportedNoResultsFnAdaptor) newRecorder(sParams []string, bParam bool) 
 	return &exportedNoResultsFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
-func (a *exportedNoResultsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, _ results) {
+func (a *exportedNoResultsFnAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
 	a.m.Mock()(sParams[0], bParam)
 }
 
@@ -490,20 +530,28 @@ func (r *exportedNoResultsFnRecorder) returnResults([]string, error) {
 	r.r = r.r.ReturnResults()
 }
 
-func (r *exportedNoResultsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedNoResultsFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.AndDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *exportedNoResultsFnRecorder) doReturnResults(
+func (r *exportedNoResultsFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
@@ -525,13 +573,13 @@ func (a *noParamsFnAdaptor) newRecorder([]string, bool) recorder {
 	return &noParamsFnRecorder{r: a.m.onCall()}
 }
 
-func (a *noParamsFnAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res results) {
+func (a *noParamsFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool, res results) {
 	sResult, err := a.m.mock()()
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -561,13 +609,13 @@ func (r *noParamsFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
-func (r *noParamsFnRecorder) andDo(fn func(), _ []string, _ bool) {
+func (r *noParamsFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 	r.r = r.r.andDo(func() {
 		fn()
 	})
 }
 
-func (r *noParamsFnRecorder) doReturnResults(
+func (r *noParamsFnRecorder) doReturnResults(_ moq.T,
 	fn func(), _ []string, _ bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func() (string, error) {
 		fn()
@@ -593,13 +641,13 @@ func (a *exportedNoParamsFnAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedNoParamsFnRecorder{r: a.m.OnCall()}
 }
 
-func (a *exportedNoParamsFnAdaptor) invokeMockAndExpectResults(_ []string, _ bool, res results) {
+func (a *exportedNoParamsFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool, res results) {
 	sResult, err := a.m.Mock()()
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -631,13 +679,13 @@ func (r *exportedNoParamsFnRecorder) returnResults(sResults []string, err error)
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
-func (r *exportedNoParamsFnRecorder) andDo(fn func(), _ []string, _ bool) {
+func (r *exportedNoParamsFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 	r.r = r.r.AndDo(func() {
 		fn()
 	})
 }
 
-func (r *exportedNoParamsFnRecorder) doReturnResults(
+func (r *exportedNoParamsFnRecorder) doReturnResults(_ moq.T,
 	fn func(), _ []string, _ bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func() (string, error) {
 		fn()
@@ -663,7 +711,7 @@ func (a *nothingFnAdaptor) newRecorder([]string, bool) recorder {
 	return &nothingFnRecorder{r: a.m.onCall()}
 }
 
-func (a *nothingFnAdaptor) invokeMockAndExpectResults([]string, bool, results) {
+func (a *nothingFnAdaptor) invokeMockAndExpectResults(moq.T, []string, bool, results) {
 	a.m.mock()()
 }
 
@@ -693,13 +741,13 @@ func (r *nothingFnRecorder) returnResults([]string, error) {
 	r.r = r.r.returnResults()
 }
 
-func (r *nothingFnRecorder) andDo(fn func(), _ []string, _ bool) {
+func (r *nothingFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 	r.r = r.r.andDo(func() {
 		fn()
 	})
 }
 
-func (r *nothingFnRecorder) doReturnResults(
+func (r *nothingFnRecorder) doReturnResults(_ moq.T,
 	fn func(), _ []string, _ bool, _ []string, _ error) {
 	r.r = r.r.doReturnResults(func() {
 		fn()
@@ -724,7 +772,7 @@ func (a *exportedNothingFnAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedNothingFnRecorder{r: a.m.OnCall()}
 }
 
-func (a *exportedNothingFnAdaptor) invokeMockAndExpectResults([]string, bool, results) {
+func (a *exportedNothingFnAdaptor) invokeMockAndExpectResults(moq.T, []string, bool, results) {
 	a.m.Mock()()
 }
 
@@ -756,13 +804,13 @@ func (r *exportedNothingFnRecorder) returnResults([]string, error) {
 	r.r = r.r.ReturnResults()
 }
 
-func (r *exportedNothingFnRecorder) andDo(fn func(), _ []string, _ bool) {
+func (r *exportedNothingFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 	r.r = r.r.AndDo(func() {
 		fn()
 	})
 }
 
-func (r *exportedNothingFnRecorder) doReturnResults(
+func (r *exportedNothingFnRecorder) doReturnResults(_ moq.T,
 	fn func(), _ []string, _ bool, _ []string, _ error) {
 	r.r = r.r.DoReturnResults(func() {
 		fn()
@@ -787,13 +835,13 @@ func (a *variadicFnAdaptor) newRecorder(sParams []string, bParam bool) recorder 
 	return &variadicFnRecorder{r: a.m.onCall(bParam, sParams...)}
 }
 
-func (a *variadicFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *variadicFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.mock()(bParam, sParams...)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -837,20 +885,28 @@ func (r *variadicFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
-func (r *variadicFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *variadicFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.andDo(func(other bool, args ...string) {
 		fn()
-		Expect(args).To(Equal(expectedSParams))
-		Expect(other).To(Equal(expectedBParam))
+		if !reflect.DeepEqual(args, expectedSParams) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams, args)
+		}
+		if other != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, other)
+		}
 	})
 }
 
-func (r *variadicFnRecorder) doReturnResults(
+func (r *variadicFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(other bool, args ...string) (string, error) {
 		fn()
-		Expect(args).To(Equal(expectedSParams))
-		Expect(other).To(Equal(expectedBParam))
+		if !reflect.DeepEqual(args, expectedSParams) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams, args)
+		}
+		if other != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, other)
+		}
 		return sResults[0], err
 	})
 }
@@ -873,13 +929,13 @@ func (a *exportedVariadicFnAdaptor) newRecorder(sParams []string, bParam bool) r
 	return &exportedVariadicFnRecorder{r: a.m.OnCall(bParam, sParams...)}
 }
 
-func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock()(bParam, sParams...)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -925,20 +981,28 @@ func (r *exportedVariadicFnRecorder) returnResults(sResults []string, err error)
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
-func (r *exportedVariadicFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedVariadicFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.AndDo(func(other bool, args ...string) {
 		fn()
-		Expect(args).To(Equal(expectedSParams))
-		Expect(other).To(Equal(expectedBParam))
+		if !reflect.DeepEqual(args, expectedSParams) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams, args)
+		}
+		if other != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, other)
+		}
 	})
 }
 
-func (r *exportedVariadicFnRecorder) doReturnResults(
+func (r *exportedVariadicFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(other bool, args ...string) (string, error) {
 		fn()
-		Expect(args).To(Equal(expectedSParams))
-		Expect(other).To(Equal(expectedBParam))
+		if !reflect.DeepEqual(args, expectedSParams) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams, args)
+		}
+		if other != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, other)
+		}
 		return sResults[0], err
 	})
 }
@@ -961,14 +1025,16 @@ func (a *repeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool) record
 	return &repeatedIdsFnRecorder{r: a.m.onCall(sParams[0], sParams[1], bParam)}
 }
 
-func (a *repeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *repeatedIdsFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult1, sResult2, err := a.m.mock()(sParams[0], sParams[1], bParam)
-	Expect(sResult1).To(Equal(res.sResults[0]))
-	Expect(sResult2).To(Equal(res.sResults[1]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult1 != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult1)
+	}
+	if sResult2 != res.sResults[1] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult2)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -1012,22 +1078,34 @@ func (r *repeatedIdsFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], sResults[1], err)
 }
 
-func (r *repeatedIdsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *repeatedIdsFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.andDo(func(sParam1, sParam2 string, bParam bool) {
 		fn()
-		Expect(sParam1).To(Equal(expectedSParams[0]))
-		Expect(sParam2).To(Equal(expectedSParams[1]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam1 != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam1)
+		}
+		if sParam2 != expectedSParams[1] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[1], sParam2)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *repeatedIdsFnRecorder) doReturnResults(
+func (r *repeatedIdsFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
 		fn()
-		Expect(sParam1).To(Equal(expectedSParams[0]))
-		Expect(sParam2).To(Equal(expectedSParams[1]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam1 != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam1)
+		}
+		if sParam2 != expectedSParams[1] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[1], sParam2)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], sResults[1], err
 	})
 }
@@ -1050,14 +1128,16 @@ func (a *exportedRepeatedIdsFnAdaptor) newRecorder(sParams []string, bParam bool
 	return &exportedRepeatedIdsFnRecorder{r: a.m.OnCall(sParams[0], sParams[1], bParam)}
 }
 
-func (a *exportedRepeatedIdsFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *exportedRepeatedIdsFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult1, sResult2, err := a.m.Mock()(sParams[0], sParams[1], bParam)
-	Expect(sResult1).To(Equal(res.sResults[0]))
-	Expect(sResult2).To(Equal(res.sResults[1]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult1 != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult1)
+	}
+	if sResult2 != res.sResults[1] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult2)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -1103,22 +1183,34 @@ func (r *exportedRepeatedIdsFnRecorder) returnResults(sResults []string, err err
 	r.r = r.r.ReturnResults(sResults[0], sResults[1], err)
 }
 
-func (r *exportedRepeatedIdsFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedRepeatedIdsFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.AndDo(func(sParam1, sParam2 string, bParam bool) {
 		fn()
-		Expect(sParam1).To(Equal(expectedSParams[0]))
-		Expect(sParam2).To(Equal(expectedSParams[1]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam1 != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam1)
+		}
+		if sParam2 != expectedSParams[1] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[1], sParam2)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *exportedRepeatedIdsFnRecorder) doReturnResults(
+func (r *exportedRepeatedIdsFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
 		fn()
-		Expect(sParam1).To(Equal(expectedSParams[0]))
-		Expect(sParam2).To(Equal(expectedSParams[1]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam1 != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam1)
+		}
+		if sParam2 != expectedSParams[1] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[1], sParam2)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], sResults[1], err
 	})
 }
@@ -1141,13 +1233,13 @@ func (a *timesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &timesFnRecorder{r: a.m.onCall(sParams[0], bParam)}
 }
 
-func (a *timesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *timesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.mock()(sParams[0], bParam)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -1191,20 +1283,28 @@ func (r *timesFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.returnResults(sResults[0], err)
 }
 
-func (r *timesFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *timesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.andDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *timesFnRecorder) doReturnResults(
+func (r *timesFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], err
 	})
 }
@@ -1227,13 +1327,13 @@ func (a *exportedTimesFnAdaptor) newRecorder(sParams []string, bParam bool) reco
 	return &exportedTimesFnRecorder{r: a.m.OnCall(sParams[0], bParam)}
 }
 
-func (a *exportedTimesFnAdaptor) invokeMockAndExpectResults(sParams []string, bParam bool, res results) {
+func (a *exportedTimesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock()(sParams[0], bParam)
-	Expect(sResult).To(Equal(res.sResults[0]))
-	if res.err == nil {
-		Expect(err).To(BeNil())
-	} else {
-		Expect(err).To(Equal(res.err))
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
 
@@ -1279,20 +1379,28 @@ func (r *exportedTimesFnRecorder) returnResults(sResults []string, err error) {
 	r.r = r.r.ReturnResults(sResults[0], err)
 }
 
-func (r *exportedTimesFnRecorder) andDo(fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedTimesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
 	r.r = r.r.AndDo(func(sParam string, bParam bool) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 	})
 }
 
-func (r *exportedTimesFnRecorder) doReturnResults(
+func (r *exportedTimesFnRecorder) doReturnResults(t moq.T,
 	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
-		Expect(sParam).To(Equal(expectedSParams[0]))
-		Expect(bParam).To(Equal(expectedBParam))
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
 		return sResults[0], err
 	})
 }

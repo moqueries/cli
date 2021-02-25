@@ -3,6 +3,7 @@ package ast_test
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -25,12 +26,13 @@ var (
 	ioTypes []*dst.TypeSpec
 )
 
-func init() {
+func TestMain(m *testing.M) {
 	var err error
 	ioTypes, _, err = ast.LoadTypes("io", false)
 	if err != nil {
 		panic(fmt.Sprintf("Could not load io types: %#v", err))
 	}
+	os.Exit(m.Run())
 }
 
 func beforeEach(t *testing.T, shallowPointerCompare, shallowInterfaceCompare bool) {
