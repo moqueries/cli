@@ -176,15 +176,6 @@ func FieldList(fields ...*dst.Field) *dst.FieldList {
 	return &dst.FieldList{List: fields}
 }
 
-// EmptyFieldList returns an empty field list (renders as `struct {}` with no
-// new lines)
-func EmptyFieldList() *dst.FieldList {
-	return &dst.FieldList{
-		Opening: true,
-		Closing: true,
-	}
-}
-
 // FuncDSL translates to a dst.GenDecl containing a function type
 type FuncDSL struct{ Obj *dst.FuncDecl }
 
@@ -547,7 +538,7 @@ func Struct(fields ...*dst.Field) *dst.StructType {
 // StructFromList returns a dst.StructType given a dst.FieldList
 func StructFromList(fieldList *dst.FieldList) *dst.StructType {
 	if fieldList == nil {
-		fieldList = FieldList()
+		fieldList = emptyFieldList()
 	}
 	return &dst.StructType{Fields: fieldList}
 }
@@ -613,4 +604,13 @@ func Var(specs ...dst.Spec) *dst.DeclStmt {
 		Tok:   token.VAR,
 		Specs: specs,
 	}}
+}
+
+// emptyFieldList returns an empty field list (renders as `struct {}` with no
+// new lines)
+func emptyFieldList() *dst.FieldList {
+	return &dst.FieldList{
+		Opening: true,
+		Closing: true,
+	}
 }
