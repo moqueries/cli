@@ -386,7 +386,9 @@ func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.S
 	unnamedPrefix, comparable := labelDirection(label)
 	fieldList = cloneNilableFieldList(fieldList)
 
-	if fieldList != nil {
+	if fieldList == nil {
+		fieldList = EmptyFieldList()
+	} else {
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
 				f.Names = []*dst.Ident{Idf("%s%d", unnamedPrefix, n+1)}

@@ -1432,8 +1432,8 @@ func TestGenerating(t *testing.T) {
 	})
 
 	t.Run("dumps the DST of a moq", func(t *testing.T) {
-		filePath := "./moq_usualfn_test.go"
-		outPath := "./moq_usualfn_test_dst.txt"
+		filePath := "./moq_usual_test.go"
+		outPath := "./moq_usual_test_dst.txt"
 
 		fSet := token.NewFileSet()
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)

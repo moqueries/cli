@@ -128,6 +128,7 @@ func Continue() *dst.BranchStmt {
 	return &dst.BranchStmt{Tok: token.CONTINUE}
 }
 
+// Ellipsis translates an expression to a dst.Ellipsis
 func Ellipsis(elt dst.Expr) *dst.Ellipsis {
 	return &dst.Ellipsis{Elt: elt}
 }
@@ -173,6 +174,15 @@ func (d FieldDSL) Names(names ...*dst.Ident) FieldDSL {
 // FieldList translates to a dst.FieldList
 func FieldList(fields ...*dst.Field) *dst.FieldList {
 	return &dst.FieldList{List: fields}
+}
+
+// EmptyFieldList returns an empty field list (renders as `struct {}` with no
+// new lines)
+func EmptyFieldList() *dst.FieldList {
+	return &dst.FieldList{
+		Opening: true,
+		Closing: true,
+	}
 }
 
 // FuncDSL translates to a dst.GenDecl containing a function type
