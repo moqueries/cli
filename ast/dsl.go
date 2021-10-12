@@ -531,11 +531,14 @@ type StructDSL struct {
 
 // Struct returns a dst.StructType
 func Struct(fields ...*dst.Field) *dst.StructType {
-	return &dst.StructType{Fields: FieldList(fields...)}
+	return StructFromList(FieldList(fields...))
 }
 
 // StructFromList returns a dst.StructType given a dst.FieldList
 func StructFromList(fieldList *dst.FieldList) *dst.StructType {
+	if fieldList == nil {
+		fieldList = FieldList()
+	}
 	return &dst.StructType{Fields: fieldList}
 }
 

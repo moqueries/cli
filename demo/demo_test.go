@@ -279,7 +279,7 @@ func TestOnlyWriteFavoriteNumbersSeqBySeq(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	writerMoq.AssertExpectationsMet()
+	scene.AssertExpectationsMet()
 }
 
 func TestOnlyWriteFavoriteNumbersSeqByNoSeq(t *testing.T) {
@@ -305,7 +305,7 @@ func TestOnlyWriteFavoriteNumbersSeqByNoSeq(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	writerMoq.AssertExpectationsMet()
+	scene.AssertExpectationsMet()
 }
 
 func TestOnlyWriteFavoriteNumbersWithDoFn(t *testing.T) {
@@ -339,7 +339,7 @@ func TestOnlyWriteFavoriteNumbersWithDoFn(t *testing.T) {
 		t.Errorf("unexpected sum: %d", sum)
 	}
 
-	writerMoq.AssertExpectationsMet()
+	scene.AssertExpectationsMet()
 }
 
 func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
@@ -387,5 +387,72 @@ func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
 		t.Errorf("unexpected captured favorites: %v", capturedFavs)
 	}
 
-	writerMoq.AssertExpectationsMet()
+	scene.AssertExpectationsMet()
+}
+
+func TestMinMax(t *testing.T) {
+	scene := moq.NewScene(t)
+	isFavMoq := newMoqIsFavorite(scene, nil)
+	writerMoq := newMoqWriter(scene, nil)
+
+	isFavMoq.onCall(1).
+		returnResults(false).
+		repeat(moq.MaxTimes(3))
+	isFavMoq.onCall(2).
+		returnResults(false).
+		repeat(moq.MinTimes(2))
+	isFavMoq.onCall(3).
+		returnResults(true).
+		repeat(moq.MinTimes(1), moq.MaxTimes(3))
+
+	writerMoq.onCall().Write([]byte("3")).
+		returnResults(1, nil)
+
+	d := demo.FavWriter{
+		IsFav: isFavMoq.mock(),
+		W:     writerMoq.mock(),
+	}
+
+	err := d.WriteFavorites([]int{2, 2, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	scene.AssertExpectationsMet()
+}
+
+func TestOptional(t *testing.T) {
+	scene := moq.NewScene(t)
+	isFavMoq := newMoqIsFavorite(scene, nil)
+	writerMoq := newMoqWriter(scene, nil)
+
+	isFavMoq.onCall(0).
+		returnResults(false).
+		repeat(moq.Optional())
+	isFavMoq.onCall(1).
+		returnResults(false).
+		repeat(moq.Optional(), moq.MaxTimes(3))
+	isFavMoq.onCall(2).
+		returnResults(false).
+		repeat(moq.MinTimes(2))
+	isFavMoq.onCall(3).
+		returnResults(true)
+	isFavMoq.onCall(4).
+		returnResults(false).
+		repeat(moq.Optional(), moq.Times(3))
+
+	writerMoq.onCall().Write([]byte("3")).
+		returnResults(1, nil)
+
+	d := demo.FavWriter{
+		IsFav: isFavMoq.mock(),
+		W:     writerMoq.mock(),
+	}
+
+	err := d.WriteFavorites([]int{2, 2, 3})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	scene.AssertExpectationsMet()
 }

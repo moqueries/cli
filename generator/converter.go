@@ -17,16 +17,17 @@ const (
 	moqPkg        = moqueriesPkg + "/moq"
 	syncAtomicPkg = "sync/atomic"
 
-	intType      = "int"
-	configType   = "Config"
-	repeaterType = "Repeater"
-	sceneType    = "Scene"
-	tType        = "T"
+	intType       = "int"
+	configType    = "Config"
+	repeaterType  = "Repeater"
+	repeatValType = "RepeatVal"
+	sceneType     = "Scene"
+	tType         = "T"
 
 	anyCountIdent          = "anyCount"
 	anyParamsIdent         = "anyParams"
 	anyParamsReceiverIdent = "a"
-	anyTimesIdent          = "anyTimes"
+	anyTimesIdent          = "AnyTimes"
 	configIdent            = "config"
 	doFnIdent              = "doFn"
 	doReturnFnIdent        = "doReturnFn"
@@ -35,6 +36,7 @@ const (
 	indexIdent             = "index"
 	insertAtIdent          = "insertAt"
 	lastIdent              = "last"
+	minTimesIdent          = "MinTimes"
 	missingIdent           = "missing"
 	mockIdent              = "mock"
 	moqIdent               = "moq"
@@ -51,6 +53,7 @@ const (
 	resultsByParamsIdent   = "resultsByParams"
 	resIdent               = "res"
 	resultIdent            = "result"
+	resultCountIdent       = "ResultCount"
 	resultsIdent           = "results"
 	sceneIdent             = "scene"
 	sequenceIdent          = "sequence"
@@ -64,6 +67,7 @@ const (
 	fatalfFnName          = "Fatalf"
 	findResultsFnName     = "findResults"
 	fnFnName              = "fn"
+	incrementFnName       = "Increment"
 	lenFnName             = "len"
 	mockFnName            = "mock"
 	onCallFnName          = "onCall"
@@ -319,23 +323,17 @@ func (c *Converter) AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) *dst.Func
 				Body(
 					Assign(Id(missingIdent)).
 						Tok(token.DEFINE).
-						Rhs(Bin(Call(Id(lenFnName)).Args(Sel(Id(resultsIdent)).
-							Dot(Id(c.export(resultsIdent))).Obj).Obj).
+						Rhs(Bin(Sel(Sel(Id(resultsIdent)).
+							Dot(Id(c.export(repeatIdent))).Obj).
+							Dot(Id(minTimesIdent)).Obj).
 							Op(token.SUB).
 							Y(Call(Id(intType)).Args(
 								Call(IdPath("LoadUint32", syncAtomicPkg)).Args(Un(
 									token.AND,
 									Sel(Id(resultsIdent)).
 										Dot(Id(c.export(indexIdent))).Obj)).Obj).Obj).Obj).Obj,
-					If(Bin(Bin(Id(missingIdent)).Op(token.EQL).
-						Y(LitInt(1)).Obj).
-						Op(token.LAND).
-						Y(Bin(Sel(Id(resultsIdent)).
-							Dot(Id(c.export(anyTimesIdent))).Obj).
-							Op(token.EQL).
-							Y(Id("true")).Obj).Obj).
-						Body(Continue()).Obj,
-					If(Bin(Id(missingIdent)).Op(token.GTR).Y(LitInt(0)).Obj).
+					If(Bin(Id(missingIdent)).Op(token.GTR).
+						Y(LitInt(0)).Obj).
 						Body(
 							Expr(Call(Sel(Sel(Sel(Id(moqReceiverIdent)).
 								Dot(Id(c.export(sceneIdent))).Obj).
@@ -388,11 +386,7 @@ func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.S
 	unnamedPrefix, comparable := labelDirection(label)
 	fieldList = cloneNilableFieldList(fieldList)
 
-	if fieldList == nil {
-		// Result field lists can be nil (rather than containing an empty
-		// list). Struct field lists cannot be nil.
-		fieldList = FieldList()
-	} else {
+	if fieldList != nil {
 		for n, f := range fieldList.List {
 			if len(f.Names) == 0 {
 				f.Names = []*dst.Ident{Idf("%s%d", unnamedPrefix, n+1)}
@@ -480,7 +474,7 @@ func (c *Converter) resultsStruct(typeName, prefix string, results *dst.FieldLis
 		Field(SliceType(c.innerResultsStruct(prefix, results))).
 			Names(Id(c.export(resultsIdent))).Obj,
 		Field(Id("uint32")).Names(Id(c.export(indexIdent))).Obj,
-		Field(Id("bool")).Names(Id(c.export(anyTimesIdent))).Obj,
+		Field(Star(IdPath(repeatValType, moqPkg))).Names(Id(c.export(repeatIdent))).Obj,
 	)).Obj).Decs(genDeclDec("// %s holds the results of the %s type",
 		structName,
 		typeName)).Obj
@@ -575,12 +569,12 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 			Y(LitInt(1)).Obj).
 		Decs(AssignDecs(dst.EmptyLine).Obj).Obj)
 	stmts = append(stmts,
-		If(Bin(Id(iIdent)).Op(token.GEQ).Y(Call(Id(lenFnName)).
-			Args(Sel(Id(resultsIdent)).
-				Dot(Id(c.export(resultsIdent))).Obj).Obj).Obj).
+		If(Bin(Id(iIdent)).Op(token.GEQ).Y(
+			Sel(Sel(Id(resultsIdent)).Dot(Id(c.export(repeatIdent))).Obj).
+				Dot(Id(resultCountIdent)).Obj).Obj).
 			Body(
-				If(Un(token.NOT, Sel(Id(resultsIdent)).
-					Dot(Id(c.export(anyTimesIdent))).Obj)).
+				If(Un(token.NOT, Sel(Sel(Id(resultsIdent)).
+					Dot(Id(c.export(repeatIdent))).Obj).Dot(Id(anyTimesIdent)).Obj)).
 					Body(
 						If(Bin(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
 							Dot(Id(c.export(configIdent))).Obj).
@@ -599,9 +593,8 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 					).Obj,
 				Assign(Id(iIdent)).
 					Tok(token.ASSIGN).
-					Rhs(Bin(Call(Id(lenFnName)).
-						Args(Sel(Id(resultsIdent)).
-							Dot(Id(c.export(resultsIdent))).Obj).Obj).
+					Rhs(Bin(Sel(Sel(Id(resultsIdent)).
+						Dot(Id(c.export(repeatIdent))).Obj).Dot(Id(resultCountIdent)).Obj).
 						Op(token.SUB).
 						Y(LitInt(1)).Obj).Obj,
 			).Decs(IfDecs(dst.EmptyLine).Obj).Obj)
@@ -618,8 +611,8 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 			Sel(Sel(Sel(Id(moqReceiverIdent)).
 				Dot(Id(c.export(moqIdent))).Obj).Dot(Id(c.export(sceneIdent))).Obj).
 				Dot(Id("NextMockSequence")).Obj).Obj).Obj,
-		If(Bin(Paren(Bin(Un(token.NOT, Sel(Id(resultsIdent)).
-			Dot(Id(c.export(anyTimesIdent))).Obj)).Op(token.LAND).
+		If(Bin(Paren(Bin(Un(token.NOT, Sel(Sel(Id(resultsIdent)).
+			Dot(Id(c.export(repeatIdent))).Obj).Dot(Id(anyTimesIdent)).Obj)).Op(token.LAND).
 			Y(Bin(Sel(Id(resultIdent)).Dot(Id(c.export(sequenceIdent))).Obj).
 				Op(token.NEQ).Y(Id(sequenceIdent)).Obj).Obj)).Op(token.LOR).
 			Y(Bin(Sel(Id(resultIdent)).Dot(Id(c.export(sequenceIdent))).Obj).
@@ -965,8 +958,16 @@ func (c *Converter) findResultsFn(typeName string, fn Func) *dst.FuncDecl {
 			Dot(Id(c.export(resultsIdent))).Obj).
 			Op(token.EQL).
 			Y(Id(nilIdent)).Obj).
-			Body(c.findRecorderResults(typeName, fn)...).Obj).
-		Decs(stdFuncDec()).Obj
+			Body(c.findRecorderResults(typeName, fn)...).Obj,
+			Expr(Call(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Dot(Id(c.export(repeatIdent))).Obj).
+				Dot(Id(incrementFnName)).Obj).
+				Args(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(moqIdent))).Obj).
+					Dot(Id(c.export(sceneIdent))).Obj).
+					Dot(Id(tType)).Obj).Obj).Obj,
+		).Decs(stdFuncDec()).Obj
 }
 
 func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
@@ -1100,8 +1101,9 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 									Decs(kvExprDec(dst.None)).Obj,
 								Key(Id(c.export(indexIdent))).Value(
 									LitInt(0)).Decs(kvExprDec(dst.None)).Obj,
-								Key(Id(c.export(anyTimesIdent))).Value(
-									Id("false")).Decs(kvExprDec(dst.None)).Obj,
+								Key(Id(c.export(repeatIdent))).Value(
+									Un(token.AND, Comp(IdPath(repeatValType, moqPkg)).Obj)).
+									Decs(kvExprDec(dst.None)).Obj,
 							).Obj,
 					)).Obj,
 				Assign(Index(Sel(Id(resultsIdent)).Dot(Id(c.export(resultsIdent))).Obj).
@@ -1161,22 +1163,25 @@ func (c *Converter) recorderRepeatFn(typeName string, fn Func) *dst.FuncDecl {
 							c.export(repeatFnName))).Obj).Obj,
 					Return(Id(nilIdent)),
 				).Obj,
-			Assign(Id(repeatIdent)).Tok(token.DEFINE).
-				Rhs(Call(IdPath(strings.Title(repeatFnName), moqPkg)).Args(
-					Sel(Sel(Sel(Id(recorderReceiverIdent)).
-						Dot(Id(c.export(moqIdent))).Obj).
-						Dot(Id(c.export(sceneIdent))).Obj).
-						Dot(Id(tType)).Obj,
+			Expr(Call(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(resultsIdent))).Obj).
+				Dot(Id(c.export(repeatIdent))).Obj).
+				Dot(Id(strings.Title(repeatFnName))).Obj).
+				Args(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+					Dot(Id(c.export(moqIdent))).Obj).
+					Dot(Id(c.export(sceneIdent))).Obj).
+					Dot(Id(tType)).Obj,
 					Id(repeatersIdent)).Obj).Obj,
 			c.lastResult(false),
 			For(Assign(Id("n")).Tok(token.DEFINE).Rhs(LitInt(0)).Obj).
 				Cond(Bin(Id("n")).Op(token.LSS).
-					Y(Bin(Sel(Id(repeatIdent)).Dot(Id("MaxTimes")).Obj).
+					Y(Bin(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+						Dot(Id(c.export(resultsIdent))).Obj).
+						Dot(Id(c.export(repeatIdent))).Obj).
+						Dot(Id(resultCountIdent)).Obj).
 						Op(token.SUB).Y(LitInt(1)).Obj).Obj).
 				Post(IncStmt(Id("n"))).Body(
-				If(Bin(Sel(Id(lastIdent)).
-					Dot(Id(c.export(sequenceIdent))).Obj).
-					Op(token.NEQ).Y(LitInt(0)).Obj).Body(
+				If(Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(sequenceIdent))).Obj).Body(
 					Assign(Id(lastIdent)).Tok(token.ASSIGN).Rhs(lastVal).Obj).Obj,
 				Assign(Sel(Sel(Id(recorderReceiverIdent)).
 					Dot(Id(c.export(resultsIdent))).Obj).
@@ -1187,11 +1192,6 @@ func (c *Converter) recorderRepeatFn(typeName string, fn Func) *dst.FuncDecl {
 						Dot(Id(c.export(resultsIdent))).Obj,
 						Id(lastIdent)).Obj).Obj,
 			).Obj,
-			Assign(Sel(Sel(Id(recorderReceiverIdent)).
-				Dot(Id(c.export(resultsIdent))).Obj).
-				Dot(Id(c.export(anyTimesIdent))).Obj).
-				Tok(token.ASSIGN).
-				Rhs(Sel(Id(repeatIdent)).Dot(Id(strings.Title(anyTimesIdent))).Obj).Obj,
 			Return(Id(recorderReceiverIdent)),
 		).
 		Decs(stdFuncDec()).Obj

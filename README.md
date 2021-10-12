@@ -93,6 +93,40 @@ isFavMoq.onCall(7).
     returnResults(false).repeat(moq.AnyTimes())
 ```
 
+Using `MinTimes` and/or `MaxTimes`, you can assert a [minimum number](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L403), [maximum number](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L400) or [range (min and max)](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L406) of calls were made:
+```go
+isFavMoq.onCall(1).
+    returnResults(false).
+    repeat(moq.MaxTimes(3))
+isFavMoq.onCall(2).
+    returnResults(false).
+    repeat(moq.MinTimes(2))
+isFavMoq.onCall(3).
+    returnResults(true).
+    repeat(moq.MinTimes(1), moq.MaxTimes(3))
+```
+
+`Optional` can be used to indicate that none of the calls are required (the equivalent of `MinTimes(0)`). `Optional` can be [called by itself](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L431) (with `MaxTimes(1)` assumed), or [with an explicit call to `MaxTimes`](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L434) or [with an explicit call to `Times`](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L442):
+```go
+isFavMoq.onCall(0).
+    returnResults(false).
+    repeat(moq.Optional())
+isFavMoq.onCall(1).
+    returnResults(false).
+    repeat(moq.Optional(), moq.MaxTimes(3))
+isFavMoq.onCall(2).
+    returnResults(false).
+    repeat(moq.MinTimes(2))
+isFavMoq.onCall(3).
+    returnResults(true)
+isFavMoq.onCall(4).
+    returnResults(false).
+    repeat(moq.Optional(), moq.Times(3))
+```
+
+Note that some repeated result combinations are not supported and will cause a test failure during setup. For instance,
+specifying that a call should be made `MinTimes(3)` and `Optional` is not allowed.
+
 ### Asserting call sequences
 Some test writers want to make sure not only were certain calls made but also that the calls were made in an exact order. If you want to assert that all calls for a test are to be in order, just set the mock's [default to use sequences](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L98) on all calls via the `Config` value:
 ```go

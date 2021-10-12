@@ -1157,12 +1157,164 @@ func TestDoFuncs(t *testing.T) {
 	})
 }
 
+func TestOptionalInvocations(t *testing.T) {
+	t.Run("success when optional invocations are not made", func(t *testing.T) {
+		for name, entry := range testCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene.Reset()
+				moqScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				// ACT
+				for n := 0; n < 2; n++ {
+					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+						results{sResults: []string{"blue", "orange"}, err: nil})
+				}
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				moqScene.AssertExpectationsMet()
+			})
+		}
+	})
+
+	t.Run("success when optional invocations are made", func(t *testing.T) {
+		for name, entry := range testCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene.Reset()
+				moqScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				// ACT
+				for n := 0; n < 4; n++ {
+					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+						results{sResults: []string{"blue", "orange"}, err: nil})
+				}
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				moqScene.AssertExpectationsMet()
+			})
+		}
+	})
+
+	t.Run("failure when fewer than min invocations are not made", func(t *testing.T) {
+		for name, entry := range testCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene.Reset()
+				moqScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+					results{sResults: []string{"blue", "orange"}, err: nil})
+
+				msg := "Expected %d additional call(s) with parameters %#v"
+				params := entry.bundleParams([]string{"Hi", "you"}, true)
+				tMoq.OnCall().Errorf(msg, 1, params).
+					ReturnResults()
+				fmtMsg := fmt.Sprintf(msg, 1, params)
+
+				// ACT
+				moqScene.AssertExpectationsMet()
+
+				// ASSERT
+				if entry.tracksParams() {
+					if !strings.Contains(fmtMsg, "Hi") {
+						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					}
+				}
+
+				scene.AssertExpectationsMet()
+			})
+		}
+	})
+
+	t.Run("success with multiple independent identical expectations and just optional invocations", func(t *testing.T) {
+		for name, entry := range testCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene.Reset()
+				moqScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				rec = entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				// ACT
+				for n := 0; n < 4; n++ {
+					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+						results{sResults: []string{"blue", "orange"}, err: nil})
+				}
+
+				// ASSERT
+				scene.AssertExpectationsMet()
+				moqScene.AssertExpectationsMet()
+			})
+		}
+	})
+
+	t.Run("failure with multiple independent identical expectations and less than min optional invocations", func(t *testing.T) {
+		for name, entry := range testCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene.Reset()
+				moqScene.Reset()
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				rec = entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.returnResults([]string{"blue", "orange"}, nil)
+				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+				for n := 0; n < 3; n++ {
+					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+						results{sResults: []string{"blue", "orange"}, err: nil})
+				}
+
+				msg := "Expected %d additional call(s) with parameters %#v"
+				params := entry.bundleParams([]string{"Hi", "you"}, true)
+				tMoq.OnCall().Errorf(msg, 1, params).
+					ReturnResults()
+				fmtMsg := fmt.Sprintf(msg, 1, params)
+
+				// ACT
+				moqScene.AssertExpectationsMet()
+
+				// ASSERT
+				if entry.tracksParams() {
+					if !strings.Contains(fmtMsg, "Hi") {
+						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					}
+				}
+				scene.AssertExpectationsMet()
+			})
+		}
+	})
+}
+
 func TestGenerating(t *testing.T) {
 	t.Run("generates moqs", func(t *testing.T) {
-		// TODO: comment in
-		// if testing.Short() {
-		t.Skip("skipping generate test in short mode.")
-		//}
+		if testing.Short() {
+			t.Skip("skipping generate test in short mode.")
+		}
 
 		// NB: Keep in sync with types.go go:generate directives
 
@@ -1280,7 +1432,7 @@ func TestGenerating(t *testing.T) {
 	})
 
 	t.Run("dumps the DST of a moq", func(t *testing.T) {
-		filePath := "./exported/moq_usualfn.go"
+		filePath := "./moq_usualfn_test.go"
 		outPath := "./moq_usualfn_test_dst.txt"
 
 		fSet := token.NewFileSet()
