@@ -57,8 +57,8 @@ type moqNoResultsFn_results struct {
 		doFn       moqNoResultsFn_doFn
 		doReturnFn moqNoResultsFn_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqNoResultsFn_fnRecorder routes recorded function calls to the moqNoResultsFn moq
@@ -127,20 +127,20 @@ func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -300,14 +300,15 @@ func (r *moqNoResultsFn_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqNoResultsFn_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResultsFn_fnRecorder {
@@ -315,10 +316,10 @@ func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResu
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values *struct {
 				}
@@ -333,7 +334,6 @@ func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResu
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -344,10 +344,7 @@ func (m *moqNoResultsFn) Reset() { m.resultsByParams = nil }
 func (m *moqNoResultsFn) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}

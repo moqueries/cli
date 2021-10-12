@@ -71,8 +71,8 @@ type MoqUsual_Usual_results struct {
 		DoFn       MoqUsual_Usual_doFn
 		DoReturnFn MoqUsual_Usual_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_Usual_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -127,8 +127,8 @@ type MoqUsual_NoNames_results struct {
 		DoFn       MoqUsual_NoNames_doFn
 		DoReturnFn MoqUsual_NoNames_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_NoNames_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -181,8 +181,8 @@ type MoqUsual_NoResults_results struct {
 		DoFn       MoqUsual_NoResults_doFn
 		DoReturnFn MoqUsual_NoResults_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_NoResults_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -231,8 +231,8 @@ type MoqUsual_NoParams_results struct {
 		DoFn       MoqUsual_NoParams_doFn
 		DoReturnFn MoqUsual_NoParams_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_NoParams_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -279,8 +279,8 @@ type MoqUsual_Nothing_results struct {
 		DoFn       MoqUsual_Nothing_doFn
 		DoReturnFn MoqUsual_Nothing_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_Nothing_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -335,8 +335,8 @@ type MoqUsual_Variadic_results struct {
 		DoFn       MoqUsual_Variadic_doFn
 		DoReturnFn MoqUsual_Variadic_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_Variadic_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -391,8 +391,8 @@ type MoqUsual_RepeatedIds_results struct {
 		DoFn       MoqUsual_RepeatedIds_doFn
 		DoReturnFn MoqUsual_RepeatedIds_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_RepeatedIds_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -447,8 +447,8 @@ type MoqUsual_Times_results struct {
 		DoFn       MoqUsual_Times_doFn
 		DoReturnFn MoqUsual_Times_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *moq.RepeatVal
 }
 
 // MoqUsual_Times_fnRecorder routes recorded function calls to the MoqUsual moq
@@ -519,20 +519,20 @@ func (m *MoqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err e
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -584,20 +584,20 @@ func (m *MoqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, res
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -649,20 +649,20 @@ func (m *MoqUsual_mock) NoResults(sParam string, bParam bool) {
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -696,20 +696,20 @@ func (m *MoqUsual_mock) NoParams() (sResult string, err error) {
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -747,20 +747,20 @@ func (m *MoqUsual_mock) Nothing() {
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -808,20 +808,20 @@ func (m *MoqUsual_mock) Variadic(other bool, args ...string) (sResult string, er
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -879,20 +879,20 @@ func (m *MoqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -945,20 +945,20 @@ func (m *MoqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == moq.Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -1138,14 +1138,15 @@ func (r *MoqUsual_Usual_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_Usual_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_Usual_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_Usual_fnRecorder {
@@ -1153,10 +1154,10 @@ func (r *MoqUsual_Usual_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 					SResult string
@@ -1178,7 +1179,6 @@ func (r *MoqUsual_Usual_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1336,14 +1336,15 @@ func (r *MoqUsual_NoNames_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_NoNames_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_NoNames_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_NoNames_fnRecorder {
@@ -1351,10 +1352,10 @@ func (r *MoqUsual_NoNames_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsua
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 					Result1 string
@@ -1376,7 +1377,6 @@ func (r *MoqUsual_NoNames_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsua
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1525,14 +1525,15 @@ func (r *MoqUsual_NoResults_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_NoResults_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_NoResults_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_NoResults_fnRecorder {
@@ -1540,10 +1541,10 @@ func (r *MoqUsual_NoResults_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUs
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 				}
@@ -1558,7 +1559,6 @@ func (r *MoqUsual_NoResults_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUs
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1689,14 +1689,15 @@ func (r *MoqUsual_NoParams_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_NoParams_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_NoParams_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_NoParams_fnRecorder {
@@ -1704,10 +1705,10 @@ func (r *MoqUsual_NoParams_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsu
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 					SResult string
@@ -1729,7 +1730,6 @@ func (r *MoqUsual_NoParams_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsu
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1851,14 +1851,15 @@ func (r *MoqUsual_Nothing_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_Nothing_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_Nothing_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_Nothing_fnRecorder {
@@ -1866,10 +1867,10 @@ func (r *MoqUsual_Nothing_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsua
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 				}
@@ -1884,7 +1885,6 @@ func (r *MoqUsual_Nothing_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsua
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2042,14 +2042,15 @@ func (r *MoqUsual_Variadic_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_Variadic_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_Variadic_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_Variadic_fnRecorder {
@@ -2057,10 +2058,10 @@ func (r *MoqUsual_Variadic_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsu
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 					SResult string
@@ -2082,7 +2083,6 @@ func (r *MoqUsual_Variadic_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsu
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2253,14 +2253,15 @@ func (r *MoqUsual_RepeatedIds_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_RepeatedIds_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_RepeatedIds_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_RepeatedIds_fnRecorder {
@@ -2268,10 +2269,10 @@ func (r *MoqUsual_RepeatedIds_fnRecorder) Repeat(repeaters ...moq.Repeater) *Moq
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 					SResult1, SResult2 string
@@ -2294,7 +2295,6 @@ func (r *MoqUsual_RepeatedIds_fnRecorder) Repeat(repeaters ...moq.Repeater) *Moq
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2452,14 +2452,15 @@ func (r *MoqUsual_Times_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqUsual_Times_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqUsual_Times_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_Times_fnRecorder {
@@ -2467,10 +2468,10 @@ func (r *MoqUsual_Times_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values *struct {
 					SResult string
@@ -2492,7 +2493,6 @@ func (r *MoqUsual_Times_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2512,10 +2512,7 @@ func (m *MoqUsual) Reset() {
 func (m *MoqUsual) AssertExpectationsMet() {
 	for _, res := range m.ResultsByParams_Usual {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2523,10 +2520,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_NoNames {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2534,10 +2528,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_NoResults {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2545,10 +2536,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_NoParams {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2556,10 +2544,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_Nothing {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2567,10 +2552,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_Variadic {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2578,10 +2560,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_RepeatedIds {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -2589,10 +2568,7 @@ func (m *MoqUsual) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_Times {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}

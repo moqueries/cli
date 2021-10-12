@@ -67,8 +67,8 @@ type moqTypeCache_Type_results struct {
 		doFn       moqTypeCache_Type_doFn
 		doReturnFn moqTypeCache_Type_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqTypeCache_Type_fnRecorder routes recorded function calls to the moqTypeCache moq
@@ -117,8 +117,8 @@ type moqTypeCache_IsComparable_results struct {
 		doFn       moqTypeCache_IsComparable_doFn
 		doReturnFn moqTypeCache_IsComparable_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqTypeCache_IsComparable_fnRecorder routes recorded function calls to the moqTypeCache moq
@@ -189,20 +189,20 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestTypes bool) (result1 *dst
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -249,20 +249,20 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -446,14 +446,15 @@ func (r *moqTypeCache_Type_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqTypeCache_Type_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_Type_fnRecorder {
@@ -461,10 +462,10 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values *struct {
 					result1 *dst.TypeSpec
@@ -489,7 +490,6 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -635,14 +635,15 @@ func (r *moqTypeCache_IsComparable_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqTypeCache_IsComparable_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_IsComparable_fnRecorder {
@@ -650,10 +651,10 @@ func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater)
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values *struct {
 					result1 bool
@@ -675,7 +676,6 @@ func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater)
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -686,10 +686,7 @@ func (m *moqTypeCache) Reset() { m.resultsByParams_Type = nil; m.resultsByParams
 func (m *moqTypeCache) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams_Type {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -697,10 +694,7 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_IsComparable {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}

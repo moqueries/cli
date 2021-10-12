@@ -61,8 +61,8 @@ type MoqT_Errorf_results struct {
 		DoFn       MoqT_Errorf_doFn
 		DoReturnFn MoqT_Errorf_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *RepeatVal
 }
 
 // MoqT_Errorf_fnRecorder routes recorded function calls to the MoqT moq
@@ -114,8 +114,8 @@ type MoqT_Fatalf_results struct {
 		DoFn       MoqT_Fatalf_doFn
 		DoReturnFn MoqT_Fatalf_doReturnFn
 	}
-	Index    uint32
-	AnyTimes bool
+	Index  uint32
+	Repeat *RepeatVal
 }
 
 // MoqT_Fatalf_fnRecorder routes recorded function calls to the MoqT moq
@@ -186,20 +186,20 @@ func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -247,20 +247,20 @@ func (m *MoqT_mock) Fatalf(format string, args ...interface{}) {
 	}
 
 	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= len(results.Results) {
-		if !results.AnyTimes {
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == Strict {
 				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.Results) - 1
+		i = results.Repeat.ResultCount - 1
 	}
 
 	result := results.Results[i]
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -424,14 +424,15 @@ func (r *MoqT_Errorf_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqT_Errorf_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRecorder {
@@ -439,10 +440,10 @@ func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRe
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values     *struct{}
 				Sequence   uint32
@@ -455,7 +456,6 @@ func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRe
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -601,14 +601,15 @@ func (r *MoqT_Fatalf_fnRecorder) FindResults() {
 		r.Results, ok = results.Results[paramsKey]
 		if !ok {
 			r.Results = &MoqT_Fatalf_results{
-				Params:   r.Params,
-				Results:  nil,
-				Index:    0,
-				AnyTimes: false,
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &RepeatVal{},
 			}
 			results.Results[paramsKey] = r.Results
 		}
 	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
 func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRecorder {
@@ -616,10 +617,10 @@ func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRe
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
 	}
-	repeat := Repeat(r.Moq.Scene.T, repeaters)
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
 	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.Sequence != 0 {
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
 			last = struct {
 				Values     *struct{}
 				Sequence   uint32
@@ -632,7 +633,6 @@ func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRe
 		}
 		r.Results.Results = append(r.Results.Results, last)
 	}
-	r.Results.AnyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -643,10 +643,7 @@ func (m *MoqT) Reset() { m.ResultsByParams_Errorf = nil; m.ResultsByParams_Fatal
 func (m *MoqT) AssertExpectationsMet() {
 	for _, res := range m.ResultsByParams_Errorf {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}
@@ -654,10 +651,7 @@ func (m *MoqT) AssertExpectationsMet() {
 	}
 	for _, res := range m.ResultsByParams_Fatalf {
 		for _, results := range res.Results {
-			missing := len(results.Results) - int(atomic.LoadUint32(&results.Index))
-			if missing == 1 && results.AnyTimes == true {
-				continue
-			}
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
 			}

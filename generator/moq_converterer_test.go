@@ -72,8 +72,8 @@ type moqConverterer_BaseStruct_results struct {
 		doFn       moqConverterer_BaseStruct_doFn
 		doReturnFn moqConverterer_BaseStruct_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_BaseStruct_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -119,8 +119,8 @@ type moqConverterer_IsolationStruct_results struct {
 		doFn       moqConverterer_IsolationStruct_doFn
 		doReturnFn moqConverterer_IsolationStruct_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_IsolationStruct_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -175,8 +175,8 @@ type moqConverterer_MethodStructs_results struct {
 		doFn       moqConverterer_MethodStructs_doFn
 		doReturnFn moqConverterer_MethodStructs_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_MethodStructs_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -222,8 +222,8 @@ type moqConverterer_NewFunc_results struct {
 		doFn       moqConverterer_NewFunc_doFn
 		doReturnFn moqConverterer_NewFunc_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_NewFunc_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -269,8 +269,8 @@ type moqConverterer_IsolationAccessor_results struct {
 		doFn       moqConverterer_IsolationAccessor_doFn
 		doReturnFn moqConverterer_IsolationAccessor_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_IsolationAccessor_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -322,8 +322,8 @@ type moqConverterer_FuncClosure_results struct {
 		doFn       moqConverterer_FuncClosure_doFn
 		doReturnFn moqConverterer_FuncClosure_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_FuncClosure_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -375,8 +375,8 @@ type moqConverterer_MockMethod_results struct {
 		doFn       moqConverterer_MockMethod_doFn
 		doReturnFn moqConverterer_MockMethod_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_MockMethod_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -428,8 +428,8 @@ type moqConverterer_RecorderMethods_results struct {
 		doFn       moqConverterer_RecorderMethods_doFn
 		doReturnFn moqConverterer_RecorderMethods_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_RecorderMethods_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -481,8 +481,8 @@ type moqConverterer_ResetMethod_results struct {
 		doFn       moqConverterer_ResetMethod_doFn
 		doReturnFn moqConverterer_ResetMethod_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_ResetMethod_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -534,8 +534,8 @@ type moqConverterer_AssertMethod_results struct {
 		doFn       moqConverterer_AssertMethod_doFn
 		doReturnFn moqConverterer_AssertMethod_doReturnFn
 	}
-	index    uint32
-	anyTimes bool
+	index  uint32
+	repeat *moq.RepeatVal
 }
 
 // moqConverterer_AssertMethod_fnRecorder routes recorded function calls to the moqConverterer moq
@@ -606,20 +606,20 @@ func (m *moqConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generat
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -670,20 +670,20 @@ func (m *moqConverterer_mock) IsolationStruct(typeName, suffix string) (structDe
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -734,20 +734,20 @@ func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -793,20 +793,20 @@ func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.Fun
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -863,20 +863,20 @@ func (m *moqConverterer_mock) IsolationAccessor(typeName, suffix, fnName string)
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -933,20 +933,20 @@ func (m *moqConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -997,20 +997,20 @@ func (m *moqConverterer_mock) MockMethod(typeName string, fn generator.Func) (fu
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -1061,20 +1061,20 @@ func (m *moqConverterer_mock) RecorderMethods(typeName string, fn generator.Func
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -1125,20 +1125,20 @@ func (m *moqConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []genera
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -1189,20 +1189,20 @@ func (m *moqConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []gener
 	}
 
 	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= len(results.results) {
-		if !results.anyTimes {
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
 				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
 			}
 			return
 		}
-		i = len(results.results) - 1
+		i = results.repeat.ResultCount - 1
 	}
 
 	result := results.results[i]
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
-		if (!results.anyTimes && result.sequence != sequence) || result.sequence > sequence {
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
 			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
 		}
 	}
@@ -1371,14 +1371,15 @@ func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_BaseStruct_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_BaseStruct_fnRecorder {
@@ -1386,10 +1387,10 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ structDecl *dst.GenDecl }
 				sequence   uint32
@@ -1404,7 +1405,6 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1552,14 +1552,15 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_IsolationStruct_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_IsolationStruct_fnRecorder {
@@ -1567,10 +1568,10 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ structDecl *dst.GenDecl }
 				sequence   uint32
@@ -1585,7 +1586,6 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1743,14 +1743,15 @@ func (r *moqConverterer_MethodStructs_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_MethodStructs_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_MethodStructs_fnRecorder {
@@ -1758,10 +1759,10 @@ func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeat
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values *struct {
 					structDecls []dst.Decl
@@ -1783,7 +1784,6 @@ func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeat
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -1919,14 +1919,15 @@ func (r *moqConverterer_NewFunc_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_NewFunc_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_NewFunc_fnRecorder {
@@ -1934,10 +1935,10 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecl *dst.FuncDecl }
 				sequence   uint32
@@ -1952,7 +1953,6 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2112,14 +2112,15 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_IsolationAccessor_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_IsolationAccessor_fnRecorder {
@@ -2127,10 +2128,10 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecl *dst.FuncDecl }
 				sequence   uint32
@@ -2145,7 +2146,6 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2305,14 +2305,15 @@ func (r *moqConverterer_FuncClosure_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_FuncClosure_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_FuncClosure_fnRecorder {
@@ -2320,10 +2321,10 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecl *dst.FuncDecl }
 				sequence   uint32
@@ -2338,7 +2339,6 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2486,14 +2486,15 @@ func (r *moqConverterer_MockMethod_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_MockMethod_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_MockMethod_fnRecorder {
@@ -2501,10 +2502,10 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecl *dst.FuncDecl }
 				sequence   uint32
@@ -2519,7 +2520,6 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2667,14 +2667,15 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_RecorderMethods_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_RecorderMethods_fnRecorder {
@@ -2682,10 +2683,10 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecls []dst.Decl }
 				sequence   uint32
@@ -2700,7 +2701,6 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -2848,14 +2848,15 @@ func (r *moqConverterer_ResetMethod_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_ResetMethod_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_ResetMethod_fnRecorder {
@@ -2863,10 +2864,10 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecl *dst.FuncDecl }
 				sequence   uint32
@@ -2881,7 +2882,6 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -3029,14 +3029,15 @@ func (r *moqConverterer_AssertMethod_fnRecorder) findResults() {
 		r.results, ok = results.results[paramsKey]
 		if !ok {
 			r.results = &moqConverterer_AssertMethod_results{
-				params:   r.params,
-				results:  nil,
-				index:    0,
-				anyTimes: false,
+				params:  r.params,
+				results: nil,
+				index:   0,
+				repeat:  &moq.RepeatVal{},
 			}
 			results.results[paramsKey] = r.results
 		}
 	}
+	r.results.repeat.Increment(r.moq.scene.T)
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_AssertMethod_fnRecorder {
@@ -3044,10 +3045,10 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
 	}
-	repeat := moq.Repeat(r.moq.scene.T, repeaters)
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
 	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < repeat.MaxTimes-1; n++ {
-		if last.sequence != 0 {
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
 			last = struct {
 				values     *struct{ funcDecl *dst.FuncDecl }
 				sequence   uint32
@@ -3062,7 +3063,6 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 		}
 		r.results.results = append(r.results.results, last)
 	}
-	r.results.anyTimes = repeat.AnyTimes
 	return r
 }
 
@@ -3084,10 +3084,7 @@ func (m *moqConverterer) Reset() {
 func (m *moqConverterer) AssertExpectationsMet() {
 	for _, res := range m.resultsByParams_BaseStruct {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3095,10 +3092,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_IsolationStruct {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3106,10 +3100,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_MethodStructs {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3117,10 +3108,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_NewFunc {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3128,10 +3116,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_IsolationAccessor {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3139,10 +3124,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_FuncClosure {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3150,10 +3132,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_MockMethod {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3161,10 +3140,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_RecorderMethods {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3172,10 +3148,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_ResetMethod {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
@@ -3183,10 +3156,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 	}
 	for _, res := range m.resultsByParams_AssertMethod {
 		for _, results := range res.results {
-			missing := len(results.results) - int(atomic.LoadUint32(&results.index))
-			if missing == 1 && results.anyTimes == true {
-				continue
-			}
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
 			}
