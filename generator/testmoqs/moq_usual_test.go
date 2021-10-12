@@ -175,8 +175,7 @@ type moqUsual_NoResults_doReturnFn func(sParam string, bParam bool)
 type moqUsual_NoResults_results struct {
 	params  moqUsual_NoResults_params
 	results []struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqUsual_NoResults_doFn
 		doReturnFn moqUsual_NoResults_doReturnFn
@@ -273,8 +272,7 @@ type moqUsual_Nothing_doReturnFn func()
 type moqUsual_Nothing_results struct {
 	params  moqUsual_Nothing_params
 	results []struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqUsual_Nothing_doFn
 		doReturnFn moqUsual_Nothing_doReturnFn
@@ -1440,14 +1438,12 @@ func (r *moqUsual_NoResults_fnRecorder) returnResults() *moqUsual_NoResults_fnRe
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqUsual_NoResults_doFn
 		doReturnFn moqUsual_NoResults_doReturnFn
 	}{
-		values: &struct {
-		}{},
+		values:   &struct{}{},
 		sequence: sequence,
 	})
 	return r
@@ -1472,8 +1468,7 @@ func (r *moqUsual_NoResults_fnRecorder) doReturnResults(fn moqUsual_NoResults_do
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqUsual_NoResults_doFn
 		doReturnFn moqUsual_NoResults_doReturnFn
@@ -1546,14 +1541,12 @@ func (r *moqUsual_NoResults_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUs
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values *struct {
-				}
+				values     *struct{}
 				sequence   uint32
 				doFn       moqUsual_NoResults_doFn
 				doReturnFn moqUsual_NoResults_doReturnFn
 			}{
-				values: &struct {
-				}{},
+				values:   &struct{}{},
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1777,14 +1770,12 @@ func (r *moqUsual_Nothing_fnRecorder) returnResults() *moqUsual_Nothing_fnRecord
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqUsual_Nothing_doFn
 		doReturnFn moqUsual_Nothing_doReturnFn
 	}{
-		values: &struct {
-		}{},
+		values:   &struct{}{},
 		sequence: sequence,
 	})
 	return r
@@ -1809,8 +1800,7 @@ func (r *moqUsual_Nothing_fnRecorder) doReturnResults(fn moqUsual_Nothing_doRetu
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqUsual_Nothing_doFn
 		doReturnFn moqUsual_Nothing_doReturnFn
@@ -1872,14 +1862,12 @@ func (r *moqUsual_Nothing_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsua
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values *struct {
-				}
+				values     *struct{}
 				sequence   uint32
 				doFn       moqUsual_Nothing_doFn
 				doReturnFn moqUsual_Nothing_doReturnFn
 			}{
-				values: &struct {
-				}{},
+				values:   &struct{}{},
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

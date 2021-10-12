@@ -50,8 +50,7 @@ type moqMoq_Reset_doReturnFn func()
 type moqMoq_Reset_results struct {
 	params  moqMoq_Reset_params
 	results []struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqMoq_Reset_doFn
 		doReturnFn moqMoq_Reset_doReturnFn
@@ -98,8 +97,7 @@ type moqMoq_AssertExpectationsMet_doReturnFn func()
 type moqMoq_AssertExpectationsMet_results struct {
 	params  moqMoq_AssertExpectationsMet_params
 	results []struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqMoq_AssertExpectationsMet_doFn
 		doReturnFn moqMoq_AssertExpectationsMet_doReturnFn
@@ -288,14 +286,12 @@ func (r *moqMoq_Reset_fnRecorder) returnResults() *moqMoq_Reset_fnRecorder {
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqMoq_Reset_doFn
 		doReturnFn moqMoq_Reset_doReturnFn
 	}{
-		values: &struct {
-		}{},
+		values:   &struct{}{},
 		sequence: sequence,
 	})
 	return r
@@ -320,8 +316,7 @@ func (r *moqMoq_Reset_fnRecorder) doReturnResults(fn moqMoq_Reset_doReturnFn) *m
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqMoq_Reset_doFn
 		doReturnFn moqMoq_Reset_doReturnFn
@@ -383,14 +378,12 @@ func (r *moqMoq_Reset_fnRecorder) repeat(repeaters ...moq.Repeater) *moqMoq_Rese
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values *struct {
-				}
+				values     *struct{}
 				sequence   uint32
 				doFn       moqMoq_Reset_doFn
 				doReturnFn moqMoq_Reset_doReturnFn
 			}{
-				values: &struct {
-				}{},
+				values:   &struct{}{},
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -443,14 +436,12 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) returnResults() *moqMoq_Assert
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqMoq_AssertExpectationsMet_doFn
 		doReturnFn moqMoq_AssertExpectationsMet_doReturnFn
 	}{
-		values: &struct {
-		}{},
+		values:   &struct{}{},
 		sequence: sequence,
 	})
 	return r
@@ -475,8 +466,7 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) doReturnResults(fn moqMoq_Asse
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqMoq_AssertExpectationsMet_doFn
 		doReturnFn moqMoq_AssertExpectationsMet_doReturnFn
@@ -538,14 +528,12 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) repeat(repeaters ...moq.Repeat
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values *struct {
-				}
+				values     *struct{}
 				sequence   uint32
 				doFn       moqMoq_AssertExpectationsMet_doFn
 				doReturnFn moqMoq_AssertExpectationsMet_doReturnFn
 			}{
-				values: &struct {
-				}{},
+				values:   &struct{}{},
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

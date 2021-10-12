@@ -51,8 +51,7 @@ type moqNoResultsFn_doReturnFn func(sParam string, bParam bool)
 type moqNoResultsFn_results struct {
 	params  moqNoResultsFn_params
 	results []struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqNoResultsFn_doFn
 		doReturnFn moqNoResultsFn_doReturnFn
@@ -215,14 +214,12 @@ func (r *moqNoResultsFn_fnRecorder) returnResults() *moqNoResultsFn_fnRecorder {
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqNoResultsFn_doFn
 		doReturnFn moqNoResultsFn_doReturnFn
 	}{
-		values: &struct {
-		}{},
+		values:   &struct{}{},
 		sequence: sequence,
 	})
 	return r
@@ -247,8 +244,7 @@ func (r *moqNoResultsFn_fnRecorder) doReturnResults(fn moqNoResultsFn_doReturnFn
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values *struct {
-		}
+		values     *struct{}
 		sequence   uint32
 		doFn       moqNoResultsFn_doFn
 		doReturnFn moqNoResultsFn_doReturnFn
@@ -321,14 +317,12 @@ func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResu
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values *struct {
-				}
+				values     *struct{}
 				sequence   uint32
 				doFn       moqNoResultsFn_doFn
 				doReturnFn moqNoResultsFn_doReturnFn
 			}{
-				values: &struct {
-				}{},
+				values:   &struct{}{},
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
