@@ -148,6 +148,8 @@ results := {
 }
 ```
 
+<img src="store-params-key.svg" alt="Storing any parameters" height="300"/>
+
 ### Expecting call sequences
 Each expectation can require that it be called in a specific order or sequence of calls. Each mock has is a default sequence configuration which indicates that all expectations will be sequenced or no expectations will be sequenced. Each individual expectation can override the default by calling either `seq` (when the default is no sequences) or `noSeq` (when the default is all sequences). As each expectation is set (potentially repeatedly set when `repeat` is used), the next expected sequence value is retrieved from the scene and stored with the result values (not shown in the above code samples).
 
