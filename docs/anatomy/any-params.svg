@@ -8,7 +8,7 @@
    version="1.1"
    id="svg208"
    inkscape:version="1.1.1 (c3084ef, 2021-09-22)"
-   sodipodi:docname="new-any-params.svg"
+   sodipodi:docname="any-params.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -1446,10 +1446,10 @@
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
        id="filter1653"
-       x="-0.016853317"
-       y="-0.014296931"
-       width="0.81333901"
-       height="1.0191898">
+       x="-0.013859722"
+       y="-0.011915266"
+       width="0.84649493"
+       height="1.0159931">
       <feGaussianBlur
          inkscape:collect="always"
          stdDeviation="0.1911492"
@@ -1609,7 +1609,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan9048">…00001101 (3)</tspan></text>
+         id="tspan1667">…00001101 (3)</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458661,5.0915064,4.9839332)"
@@ -1617,7 +1617,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375-0);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan9050">…00001000 (1)</tspan></text>
+         id="tspan1669">…00001000 (1)</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458661,1.1227564,1.0151832)"
@@ -1625,7 +1625,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375-03);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan9052">…00000000 (0)</tspan></text>
+         id="tspan1671">…00000000 (0)</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -2106,7 +2106,7 @@
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="results"
-     style="display:none;mix-blend-mode:normal;filter:url(#filter1649)"
+     style="display:inline;mix-blend-mode:normal;filter:url(#filter1649)"
      sodipodi:insensitive="true">
     <path
        id="path1276"
