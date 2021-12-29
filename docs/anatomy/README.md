@@ -1,6 +1,6 @@
 # Anatomy of a Lock-free Mock
 
-[comment]: <> (TODO: Intro)
+Understanding the inner workings of a mock is not the highest priority for most developers. But since these mocks are quite a bit different internally, some extra details of the internals won't hurt.
 
 Before we begin zooming into the inner workings of a lock-free mock, to make the journey complete, we first need to zoom out one step &mdash; to first take a look at the whole scene. [As described in the top-level docs](../../README.md#working-with-multiple-mocks):
 > A `Scene` is a collection of mocks, and it allows you to perform actions on all the mocks with a single call.
