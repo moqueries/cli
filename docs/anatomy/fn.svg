@@ -28,14 +28,14 @@
      inkscape:guide-bbox="true"
      inkscape:lockguides="false"
      inkscape:zoom="2.3896395"
-     inkscape:cx="79.091429"
+     inkscape:cx="79.091428"
      inkscape:cy="105.246"
      inkscape:window-width="1523"
      inkscape:window-height="1061"
-     inkscape:window-x="7"
-     inkscape:window-y="25"
+     inkscape:window-x="1780"
+     inkscape:window-y="225"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="layer6" />
   <defs
      id="defs2">
     <filter
@@ -624,13 +624,13 @@
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
        id="filter18340"
-       x="-0.029407616"
-       y="-0.022983295"
-       width="0.8912139"
-       height="0.9148283">
+       x="-0.034331382"
+       y="-0.026831426"
+       width="0.90106143"
+       height="0.92252456">
       <feGaussianBlur
          inkscape:collect="always"
-         stdDeviation="0.069154195"
+         stdDeviation="0.10805343"
          id="feGaussianBlur18342" />
     </filter>
   </defs>
