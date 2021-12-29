@@ -34,7 +34,7 @@
      inkscape:window-x="1522"
      inkscape:window-y="25"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer2" />
+     inkscape:current-layer="layer5" />
   <defs
      id="defs205">
     <inkscape:path-effect
@@ -1446,13 +1446,13 @@
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
        id="filter1653"
-       x="-0.013859722"
-       y="-0.011915266"
-       width="0.84649493"
-       height="1.0159931">
+       x="-0.016240431"
+       y="-0.014147997"
+       width="0.85125635"
+       height="1.0204585">
       <feGaussianBlur
          inkscape:collect="always"
-         stdDeviation="0.1911492"
+         stdDeviation="0.23547652"
          id="feGaussianBlur1655" />
     </filter>
     <filter
@@ -1609,7 +1609,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan1667">…00001101 (3)</tspan></text>
+         id="tspan1668">…00001101 (3)</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458661,5.0915064,4.9839332)"
@@ -1617,7 +1617,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375-0);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan1669">…00001000 (1)</tspan></text>
+         id="tspan1670">…00001000 (1)</tspan></text>
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458661,1.1227564,1.0151832)"
@@ -1625,7 +1625,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375-03);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan1671">…00000000 (0)</tspan></text>
+         id="tspan1672">…00000000 (0)</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -1668,7 +1668,8 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="keys and values"
-     style="display:inline;filter:url(#filter1653)">
+     style="display:inline;filter:url(#filter1653)"
+     sodipodi:insensitive="true">
     <path
        style="fill:#6aa84f;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.292607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect31-1-3"
