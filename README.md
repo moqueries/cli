@@ -3,6 +3,8 @@ Moqueries makes mocks, but not just interface mocks &mdash; `moqueries` builds m
 
 Moqueries mocks are, as mentioned above, lock free. Why would that matter? A single lock per mock shouldn't slow down your unit tests that much, right? The problem isn't speed but semantics. Having all interactions in your tests synchronized by locking just to protect mock state changes the nature of the test. That lock in your old mock could be hiding subtle bugs from Go's race detector!
 
+If you would like to learn more about the internals of a lock-free mock, take a look at the [Anatomy of a Lock-free Mock](docs/anatomy).
+
 These mocks are also true to the interface and function types they mock &mdash; several mock generators record your intentions with method signatures like `DoIt(arg0, arg1, arg2 interface{})` when your interface is something like `DoIt(lFac, rFac *xyz.Factor, msg string)`. This applies to both parameters passed into the recorder and result values. Having a true implementation means that your IDE and the compiler both know what the types should be which improves your cycle time.
 
 ## Generating mocks

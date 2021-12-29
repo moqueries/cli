@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="300"
+   height="250"
+   viewBox="0 0 79.374998 66.145835"
+   version="1.1"
+   id="svg104"
+   inkscape:version="1.1.1 (c3084ef, 2021-09-22)"
+   sodipodi:docname="results.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview106"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="px"
+     inkscape:zoom="2.5630029"
+     inkscape:cx="160.55386"
+     inkscape:cy="131.29131"
+     inkscape:window-width="1582"
+     inkscape:window-height="1081"
+     inkscape:window-x="314"
+     inkscape:window-y="73"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer3" />
+  <defs
+     id="defs101">
+    <rect
+       x="25.339418"
+       y="25.339418"
+       width="104.44716"
+       height="12.620325"
+       id="rect59375" />
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath16343">
+      <rect
+         style="fill:#ead1dc;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect16345"
+         width="39.367367"
+         height="52.596535"
+         x="6.7468748"
+         y="6.7468748" />
+    </clipPath>
+  </defs>
+  <g
+     inkscape:label="background"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="display:inline;fill:#d9d9d9;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect31"
+       width="73.818748"
+       height="60.589584"
+       x="2.7781248"
+       y="2.7781248" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="any params">
+    <rect
+       style="display:inline;fill:#ead1dc;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect31-1"
+       width="65.881248"
+       height="52.652081"
+       x="6.7468748"
+       y="6.7468743" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458661,1.1227564,1.0151832)"
+       id="text59373"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
+         x="25.339844"
+         y="34.777374"
+         id="tspan22558">…00000000 (0)</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="results">
+    <rect
+       style="display:inline;fill:#6aa84f;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.0789733;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect31-1-3-0"
+       width="16.933086"
+       height="13.228919"
+       x="26.590748"
+       y="12.038666"
+       clip-path="url(#clipPath16343)"
+       transform="matrix(3.4215937,0,0,3.2804773,-80.264306,-27.456774)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.82222222px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="10.921297"
+       y="14.04359"
+       id="text1630"><tspan
+         sodipodi:role="line"
+         id="tspan1628"
+         style="stroke-width:0.264583;font-size:2.82222222px"
+         x="10.921297"
+         y="14.04359">results</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.11667px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="12.700012"
+       y="17.061476"
+       id="text1630-7"><tspan
+         sodipodi:role="line"
+         id="tspan1628-0"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="17.061476">params:</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="19.707312"
+         id="tspan21467">- name: param1</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="22.353146"
+         id="tspan21469">  value: val1</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="24.99898"
+         id="tspan21471">- name: param2</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="27.644814"
+         id="tspan21473">  value: val2</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="30.290649"
+         id="tspan21475">repeat info: ...</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="12.700012"
+         y="32.936485"
+         id="tspan21477">...</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.11667px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="39.6875"
+       y="17.061493"
+       id="text1630-7-5"><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="17.061493"
+         id="tspan21477-8">index: 0</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="19.707331"
+         id="tspan25871">result data:</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="22.353168"
+         id="tspan25873">- results 0:</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="24.999004"
+         id="tspan25875">  - name: result1</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="27.644842"
+         id="tspan25877">    value: val1</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="30.29068"
+         id="tspan25879">  - name: result2</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="32.936516"
+         id="tspan25881">    value: val2</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="35.582355"
+         id="tspan25883">  sequence: 4</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="38.228191"
+         id="tspan25885">  doFn: fn...</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="40.874031"
+         id="tspan25887">- results 1:</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="43.519867"
+         id="tspan25889">  - name: result1</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="46.165703"
+         id="tspan25891">    value: val3</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="48.811543"
+         id="tspan25893">  - name: result2</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="51.457378"
+         id="tspan25895">    value: val4</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:2.11667px;stroke-width:0.264583"
+         x="39.6875"
+         y="54.103214"
+         id="tspan25897">...</tspan></text>
+  </g>
+</svg>

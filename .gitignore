@@ -16,3 +16,6 @@
 # AST and DST files used while writing code generation code
 moq_*_ast.txt
 moq_*_dst.txt
+
+# macOS
+.DS_Store
