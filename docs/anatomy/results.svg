@@ -29,8 +29,8 @@
      inkscape:cy="131.29131"
      inkscape:window-width="1582"
      inkscape:window-height="1081"
-     inkscape:window-x="1331"
-     inkscape:window-y="25"
+     inkscape:window-x="314"
+     inkscape:window-y="73"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer3" />
   <defs
@@ -56,8 +56,7 @@
   <g
      inkscape:label="background"
      inkscape:groupmode="layer"
-     id="layer1"
-     sodipodi:insensitive="true">
+     id="layer1">
     <rect
        style="display:inline;fill:#d9d9d9;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect31"
@@ -69,8 +68,7 @@
   <g
      inkscape:groupmode="layer"
      id="layer2"
-     inkscape:label="any params"
-     sodipodi:insensitive="true">
+     inkscape:label="any params">
     <rect
        style="display:inline;fill:#ead1dc;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect31-1"
@@ -85,7 +83,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan27157">…00000000 (0)</tspan></text>
+         id="tspan22558">…00000000 (0)</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -102,13 +100,13 @@
        transform="matrix(3.4215937,0,0,3.2804773,-80.264306,-27.456774)" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.11667px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       style="font-style:normal;font-weight:normal;font-size:2.82222222px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="10.921297"
        y="14.04359"
        id="text1630"><tspan
          sodipodi:role="line"
          id="tspan1628"
-         style="font-size:2.11667px;stroke-width:0.264583"
+         style="stroke-width:0.264583;font-size:2.82222222px"
          x="10.921297"
          y="14.04359">results</tspan></text>
     <text

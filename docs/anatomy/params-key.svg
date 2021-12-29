@@ -27,19 +27,14 @@
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:zoom="3.4483712"
-     inkscape:cx="98.887267"
+     inkscape:cx="88.012567"
      inkscape:cy="139.05116"
      inkscape:window-width="1529"
      inkscape:window-height="1081"
      inkscape:window-x="1911"
      inkscape:window-y="25"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer3">
-    <sodipodi:guide
-       position="23.053019,6.7374903"
-       orientation="0,-1"
-       id="guide58445" />
-  </sodipodi:namedview>
+     inkscape:current-layer="layer3" />
   <defs
      id="defs205">
     <marker
@@ -387,7 +382,7 @@
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
        id="filter5759"
-       x="-0.031881958"
+       x="-0.031881957"
        y="-0.0085631897"
        width="1.0907933"
        height="1.0243863">
@@ -401,8 +396,7 @@
      inkscape:label="background"
      inkscape:groupmode="layer"
      id="layer1"
-     style="display:inline"
-     sodipodi:insensitive="true">
+     style="display:inline">
     <rect
        style="fill:#d9d9d9;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect31"
@@ -437,7 +431,7 @@
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.6667px;line-height:1.25;font-family:Menlo;-inkscape-font-specification:Menlo;white-space:pre;shape-inside:url(#rect59375);display:inline;fill:#000000;fill-opacity:1;stroke:none"><tspan
          x="25.339844"
          y="34.777374"
-         id="tspan60828">…00000000 (0)</tspan></text>
+         id="tspan24129">…00000000 (0)</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -686,37 +680,37 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:1.41111px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
-       x="29.633333"
+       x="30.427084"
        y="15.343077"
        id="text1630-7"><tspan
          sodipodi:role="line"
          id="tspan1628-0"
          style="font-size:1.41111px;stroke-width:0.264583"
-         x="29.633333"
+         x="30.427084"
          y="15.343077">params:</tspan><tspan
          sodipodi:role="line"
          style="font-size:1.41111px;stroke-width:0.264583"
-         x="29.633333"
+         x="30.427084"
          y="17.106964"
          id="tspan21467">- name: param1</tspan><tspan
          sodipodi:role="line"
          style="font-size:1.41111px;stroke-width:0.264583"
-         x="29.633333"
+         x="30.427084"
          y="18.870852"
          id="tspan21469">  value: val1</tspan><tspan
          sodipodi:role="line"
          style="font-size:1.41111px;stroke-width:0.264583"
-         x="29.633333"
+         x="30.427084"
          y="20.634739"
          id="tspan21471">- name: param2</tspan><tspan
          sodipodi:role="line"
          style="font-size:1.41111px;stroke-width:0.264583"
-         x="29.633333"
+         x="30.427084"
          y="22.398626"
          id="tspan21473">  value: val2</tspan><tspan
          sodipodi:role="line"
          style="font-size:1.41111px;stroke-width:0.264583"
-         x="29.633333"
+         x="30.427084"
          y="24.162514"
          id="tspan21477">repeat info: ...</tspan></text>
     <text
@@ -725,7 +719,7 @@
        x="28.095598"
        y="30.933125"
        id="text1630-7-9"
-       transform="matrix(0.9999938,0,0,1,1.541707,-2.2187504)"><tspan
+       transform="matrix(0.9999938,0,0,1,2.335457,-2.2187504)"><tspan
          sodipodi:role="line"
          id="tspan1628-0-5"
          style="font-size:1.41111px;stroke-width:0.264584"
@@ -762,7 +756,7 @@
        x="28.095598"
        y="30.933125"
        id="text1630-7-9-9"
-       transform="matrix(0.9999938,0,0,1,1.8598802,11.190258)"><tspan
+       transform="matrix(0.9999938,0,0,1,2.6536302,11.190258)"><tspan
          sodipodi:role="line"
          id="tspan1628-0-5-3"
          style="font-size:1.41111px;stroke-width:0.264584"
@@ -799,7 +793,7 @@
        x="28.095598"
        y="30.933125"
        id="text1630-7-9-1"
-       transform="matrix(0.9999938,0,0,1,1.8598803,24.419425)"><tspan
+       transform="matrix(0.9999938,0,0,1,2.6536303,24.419425)"><tspan
          sodipodi:role="line"
          id="tspan1628-0-5-9"
          style="font-size:1.41111px;stroke-width:0.264584"
