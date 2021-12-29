@@ -19,6 +19,20 @@
      id="defs497">
     <marker
        style="overflow:visible"
+       id="Arrow1Lstart"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lstart"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.8) translate(12.5,0)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path5422" />
+    </marker>
+    <marker
+       style="overflow:visible"
        id="Arrow2Mstart"
        refX="0.0"
        refY="0.0"
@@ -19869,23 +19883,23 @@
        style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.999999;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        d="m 646.7175,252.00445 -24.5,24.59961 h 50 z" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:10;stroke-dasharray:4, 1;stroke-dashoffset:0;marker-end:url(#Arrow1Mend)"
-       d="M 275.96839,312.48128 C 408.70993,208.64384 408.70993,208.64384 408.70993,208.64384"
+       style="fill:none;stroke:#000000;stroke-width:0.999998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 0.999998;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 276.2717,312.48128 C 335.33698,208.64384 335.33698,208.64384 335.33698,208.64384"
        id="path24778" />
     <path
-       style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4.00001, 1;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4.00001, 1;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
        d="m 325.25472,363.02809 c 71.65742,-9.70542 71.65742,-9.70542 71.65742,-9.70542"
        id="path24778-6" />
     <path
-       style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 1;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow2Mstart)"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 1;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Lstart)"
        d="M 151.46629,384.31423 C 224.0396,360.38617 224.0396,360.38617 224.0396,360.38617"
        id="path24778-5" />
     <path
-       style="display:inline;fill:none;stroke:#000000;stroke-width:0.999998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 0.999998;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:0.999998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 0.999998;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
        d="M 307.13317,412.94227 C 482.87828,583.74349 482.87828,583.74349 482.87828,583.74349"
        id="path24778-0" />
     <path
-       style="display:inline;fill:none;stroke:#000000;stroke-width:0.999995;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 0.999995;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow2Mstart)"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:0.999995;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:4, 0.999995;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#Arrow1Lstart)"
        d="M 252.66947,606.09881 C 284.42296,412.71526 284.42296,412.71526 284.42296,412.71526"
        id="path24778-2" />
   </g>
