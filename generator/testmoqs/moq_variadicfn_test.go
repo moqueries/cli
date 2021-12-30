@@ -94,7 +94,7 @@ func newMoqVariadicFn(scene *moq.Scene, config *moq.Config) *moqVariadicFn {
 
 // mock returns the moq implementation of the VariadicFn type
 func (m *moqVariadicFn) mock() testmoqs.VariadicFn {
-	return func(other bool, args ...string) (sResult string, err error) {
+	return func(other bool, args ...string) (_ string, _ error) {
 		moq := &moqVariadicFn_mock{moq: m}
 		return moq.fn(other, args...)
 	}

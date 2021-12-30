@@ -87,7 +87,7 @@ func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
 
 // mock returns the moq implementation of the NoParamsFn type
 func (m *moqNoParamsFn) mock() testmoqs.NoParamsFn {
-	return func() (sResult string, err error) { moq := &moqNoParamsFn_mock{moq: m}; return moq.fn() }
+	return func() (_ string, _ error) { moq := &moqNoParamsFn_mock{moq: m}; return moq.fn() }
 }
 
 func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {

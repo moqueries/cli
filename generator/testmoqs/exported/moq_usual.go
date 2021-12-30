@@ -12,16 +12,18 @@ import (
 
 // MoqUsual holds the state of a moq of the Usual type
 type MoqUsual struct {
-	Scene                       *moq.Scene
-	Config                      moq.Config
-	ResultsByParams_Usual       []MoqUsual_Usual_resultsByParams
-	ResultsByParams_NoNames     []MoqUsual_NoNames_resultsByParams
-	ResultsByParams_NoResults   []MoqUsual_NoResults_resultsByParams
-	ResultsByParams_NoParams    []MoqUsual_NoParams_resultsByParams
-	ResultsByParams_Nothing     []MoqUsual_Nothing_resultsByParams
-	ResultsByParams_Variadic    []MoqUsual_Variadic_resultsByParams
-	ResultsByParams_RepeatedIds []MoqUsual_RepeatedIds_resultsByParams
-	ResultsByParams_Times       []MoqUsual_Times_resultsByParams
+	Scene                                *moq.Scene
+	Config                               moq.Config
+	ResultsByParams_Usual                []MoqUsual_Usual_resultsByParams
+	ResultsByParams_NoNames              []MoqUsual_NoNames_resultsByParams
+	ResultsByParams_NoResults            []MoqUsual_NoResults_resultsByParams
+	ResultsByParams_NoParams             []MoqUsual_NoParams_resultsByParams
+	ResultsByParams_Nothing              []MoqUsual_Nothing_resultsByParams
+	ResultsByParams_Variadic             []MoqUsual_Variadic_resultsByParams
+	ResultsByParams_RepeatedIds          []MoqUsual_RepeatedIds_resultsByParams
+	ResultsByParams_Times                []MoqUsual_Times_resultsByParams
+	ResultsByParams_DifficultParamNames  []MoqUsual_DifficultParamNames_resultsByParams
+	ResultsByParams_DifficultResultNames []MoqUsual_DifficultResultNames_resultsByParams
 }
 
 // MoqUsual_mock isolates the mock interface of the Usual type
@@ -462,6 +464,115 @@ type MoqUsual_Times_fnRecorder struct {
 // MoqUsual_Times_anyParams isolates the any params functions of the Usual type
 type MoqUsual_Times_anyParams struct {
 	Recorder *MoqUsual_Times_fnRecorder
+}
+
+// MoqUsual_DifficultParamNames_params holds the params of the Usual type
+type MoqUsual_DifficultParamNames_params struct {
+	Param1, Param2 bool
+	Param3         string
+	Param, Param5  int
+	Param6, Param7 float32
+}
+
+// MoqUsual_DifficultParamNames_paramsKey holds the map key params of the Usual type
+type MoqUsual_DifficultParamNames_paramsKey struct {
+	Param1, Param2 bool
+	Param3         string
+	Param, Param5  int
+	Param6, Param7 float32
+}
+
+// MoqUsual_DifficultParamNames_resultsByParams contains the results for a given set of parameters for the Usual type
+type MoqUsual_DifficultParamNames_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUsual_DifficultParamNames_paramsKey]*MoqUsual_DifficultParamNames_results
+}
+
+// MoqUsual_DifficultParamNames_doFn defines the type of function needed when calling AndDo for the Usual type
+type MoqUsual_DifficultParamNames_doFn func(m, r bool, sequence string, param, params int, result, results float32)
+
+// MoqUsual_DifficultParamNames_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+type MoqUsual_DifficultParamNames_doReturnFn func(m, r bool, sequence string, param, params int, result, results float32)
+
+// MoqUsual_DifficultParamNames_results holds the results of the Usual type
+type MoqUsual_DifficultParamNames_results struct {
+	Params  MoqUsual_DifficultParamNames_params
+	Results []struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqUsual_DifficultParamNames_doFn
+		DoReturnFn MoqUsual_DifficultParamNames_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqUsual_DifficultParamNames_fnRecorder routes recorded function calls to the MoqUsual moq
+type MoqUsual_DifficultParamNames_fnRecorder struct {
+	Params    MoqUsual_DifficultParamNames_params
+	ParamsKey MoqUsual_DifficultParamNames_paramsKey
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUsual_DifficultParamNames_results
+	Moq       *MoqUsual
+}
+
+// MoqUsual_DifficultParamNames_anyParams isolates the any params functions of the Usual type
+type MoqUsual_DifficultParamNames_anyParams struct {
+	Recorder *MoqUsual_DifficultParamNames_fnRecorder
+}
+
+// MoqUsual_DifficultResultNames_params holds the params of the Usual type
+type MoqUsual_DifficultResultNames_params struct{}
+
+// MoqUsual_DifficultResultNames_paramsKey holds the map key params of the Usual type
+type MoqUsual_DifficultResultNames_paramsKey struct{}
+
+// MoqUsual_DifficultResultNames_resultsByParams contains the results for a given set of parameters for the Usual type
+type MoqUsual_DifficultResultNames_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUsual_DifficultResultNames_paramsKey]*MoqUsual_DifficultResultNames_results
+}
+
+// MoqUsual_DifficultResultNames_doFn defines the type of function needed when calling AndDo for the Usual type
+type MoqUsual_DifficultResultNames_doFn func()
+
+// MoqUsual_DifficultResultNames_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+type MoqUsual_DifficultResultNames_doReturnFn func() (m, r string, sequence error, param, params int, result, results float32)
+
+// MoqUsual_DifficultResultNames_results holds the results of the Usual type
+type MoqUsual_DifficultResultNames_results struct {
+	Params  MoqUsual_DifficultResultNames_params
+	Results []struct {
+		Values *struct {
+			Result1, Result2 string
+			Result3          error
+			Param, Result5   int
+			Result6, Result7 float32
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_DifficultResultNames_doFn
+		DoReturnFn MoqUsual_DifficultResultNames_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqUsual_DifficultResultNames_fnRecorder routes recorded function calls to the MoqUsual moq
+type MoqUsual_DifficultResultNames_fnRecorder struct {
+	Params    MoqUsual_DifficultResultNames_params
+	ParamsKey MoqUsual_DifficultResultNames_paramsKey
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUsual_DifficultResultNames_results
+	Moq       *MoqUsual
+}
+
+// MoqUsual_DifficultResultNames_anyParams isolates the any params functions of the Usual type
+type MoqUsual_DifficultResultNames_anyParams struct {
+	Recorder *MoqUsual_DifficultResultNames_fnRecorder
 }
 
 // NewMoqUsual creates a new moq of the Usual type
@@ -971,6 +1082,153 @@ func (m *MoqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	}
 	if result.DoReturnFn != nil {
 		sResult, err = result.DoReturnFn(sParam, times)
+	}
+	return
+}
+
+func (m *MoqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) {
+	params := MoqUsual_DifficultParamNames_params{
+		Param1: param1,
+		Param2: param2,
+		Param3: param3,
+		Param:  param,
+		Param5: param5,
+		Param6: param6,
+		Param7: param7,
+	}
+	var results *MoqUsual_DifficultParamNames_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_DifficultParamNames {
+		var param1Used bool
+		if resultsByParams.AnyParams&(1<<0) == 0 {
+			param1Used = param1
+		}
+		var param2Used bool
+		if resultsByParams.AnyParams&(1<<1) == 0 {
+			param2Used = param2
+		}
+		var param3Used string
+		if resultsByParams.AnyParams&(1<<2) == 0 {
+			param3Used = param3
+		}
+		var paramUsed int
+		if resultsByParams.AnyParams&(1<<3) == 0 {
+			paramUsed = param
+		}
+		var param5Used int
+		if resultsByParams.AnyParams&(1<<4) == 0 {
+			param5Used = param5
+		}
+		var param6Used float32
+		if resultsByParams.AnyParams&(1<<5) == 0 {
+			param6Used = param6
+		}
+		var param7Used float32
+		if resultsByParams.AnyParams&(1<<6) == 0 {
+			param7Used = param7
+		}
+		paramsKey := MoqUsual_DifficultParamNames_paramsKey{
+			Param1: param1Used,
+			Param2: param2Used,
+			Param3: param3Used,
+			Param:  paramUsed,
+			Param5: param5Used,
+			Param6: param6Used,
+			Param7: param7Used,
+		}
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn(param1, param2, param3, param, param5, param6, param7)
+	}
+
+	if result.DoReturnFn != nil {
+		result.DoReturnFn(param1, param2, param3, param, param5, param6, param7)
+	}
+	return
+}
+
+func (m *MoqUsual_mock) DifficultResultNames() (result1, result2 string, result3 error, param, result5 int, result6, result7 float32) {
+	params := MoqUsual_DifficultResultNames_params{}
+	var results *MoqUsual_DifficultResultNames_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_DifficultResultNames {
+		paramsKey := MoqUsual_DifficultResultNames_paramsKey{}
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn()
+	}
+
+	if result.Values != nil {
+		result1 = result.Values.Result1
+		result2 = result.Values.Result2
+		result3 = result.Values.Result3
+		param = result.Values.Param
+		result5 = result.Values.Result5
+		result6 = result.Values.Result6
+		result7 = result.Values.Result7
+	}
+	if result.DoReturnFn != nil {
+		result1, result2, result3, param, result5, result6, result7 = result.DoReturnFn()
 	}
 	return
 }
@@ -2484,6 +2742,434 @@ func (r *MoqUsual_Times_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 	return r
 }
 
+func (m *MoqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) *MoqUsual_DifficultParamNames_fnRecorder {
+	return &MoqUsual_DifficultParamNames_fnRecorder{
+		Params: MoqUsual_DifficultParamNames_params{
+			Param1: param1,
+			Param2: param2,
+			Param3: param3,
+			Param:  param,
+			Param5: param5,
+			Param6: param6,
+			Param7: param7,
+		},
+		ParamsKey: MoqUsual_DifficultParamNames_paramsKey{
+			Param1: param1,
+			Param2: param2,
+			Param3: param3,
+			Param:  param,
+			Param5: param5,
+			Param6: param6,
+			Param7: param7,
+		},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) Any() *MoqUsual_DifficultParamNames_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_DifficultParamNames_anyParams{Recorder: r}
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param1() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param2() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param3() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 2
+	return a.Recorder
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 3
+	return a.Recorder
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param5() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 4
+	return a.Recorder
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param6() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 5
+	return a.Recorder
+}
+
+func (a *MoqUsual_DifficultParamNames_anyParams) Param7() *MoqUsual_DifficultParamNames_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 6
+	return a.Recorder
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) Seq() *MoqUsual_DifficultParamNames_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) NoSeq() *MoqUsual_DifficultParamNames_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) ReturnResults() *MoqUsual_DifficultParamNames_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqUsual_DifficultParamNames_doFn
+		DoReturnFn MoqUsual_DifficultParamNames_doReturnFn
+	}{
+		Values:   &struct{}{},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) AndDo(fn MoqUsual_DifficultParamNames_doFn) *MoqUsual_DifficultParamNames_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) DoReturnResults(fn MoqUsual_DifficultParamNames_doReturnFn) *MoqUsual_DifficultParamNames_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqUsual_DifficultParamNames_doFn
+		DoReturnFn MoqUsual_DifficultParamNames_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) FindResults() {
+	if r.Results == nil {
+		anyCount := bits.OnesCount64(r.AnyParams)
+		insertAt := -1
+		var results *MoqUsual_DifficultParamNames_resultsByParams
+		for n, res := range r.Moq.ResultsByParams_DifficultParamNames {
+			if res.AnyParams == r.AnyParams {
+				results = &res
+				break
+			}
+			if res.AnyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &MoqUsual_DifficultParamNames_resultsByParams{
+				AnyCount:  anyCount,
+				AnyParams: r.AnyParams,
+				Results:   map[MoqUsual_DifficultParamNames_paramsKey]*MoqUsual_DifficultParamNames_results{},
+			}
+			r.Moq.ResultsByParams_DifficultParamNames = append(r.Moq.ResultsByParams_DifficultParamNames, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_DifficultParamNames) {
+				copy(r.Moq.ResultsByParams_DifficultParamNames[insertAt+1:], r.Moq.ResultsByParams_DifficultParamNames[insertAt:0])
+				r.Moq.ResultsByParams_DifficultParamNames[insertAt] = *results
+			}
+		}
+
+		var param1Used bool
+		if r.AnyParams&(1<<0) == 0 {
+			param1Used = r.ParamsKey.Param1
+		}
+		var param2Used bool
+		if r.AnyParams&(1<<1) == 0 {
+			param2Used = r.ParamsKey.Param2
+		}
+		var param3Used string
+		if r.AnyParams&(1<<2) == 0 {
+			param3Used = r.ParamsKey.Param3
+		}
+		var paramUsed int
+		if r.AnyParams&(1<<3) == 0 {
+			paramUsed = r.ParamsKey.Param
+		}
+		var param5Used int
+		if r.AnyParams&(1<<4) == 0 {
+			param5Used = r.ParamsKey.Param5
+		}
+		var param6Used float32
+		if r.AnyParams&(1<<5) == 0 {
+			param6Used = r.ParamsKey.Param6
+		}
+		var param7Used float32
+		if r.AnyParams&(1<<6) == 0 {
+			param7Used = r.ParamsKey.Param7
+		}
+		paramsKey := MoqUsual_DifficultParamNames_paramsKey{
+			Param1: param1Used,
+			Param2: param2Used,
+			Param3: param3Used,
+			Param:  paramUsed,
+			Param5: param5Used,
+			Param6: param6Used,
+			Param7: param7Used,
+		}
+
+		var ok bool
+		r.Results, ok = results.Results[paramsKey]
+		if !ok {
+			r.Results = &MoqUsual_DifficultParamNames_results{
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
+			}
+			results.Results[paramsKey] = r.Results
+		}
+	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqUsual_DifficultParamNames_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_DifficultParamNames_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values     *struct{}
+				Sequence   uint32
+				DoFn       MoqUsual_DifficultParamNames_doFn
+				DoReturnFn MoqUsual_DifficultParamNames_doReturnFn
+			}{
+				Values:   &struct{}{},
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqUsual_recorder) DifficultResultNames() *MoqUsual_DifficultResultNames_fnRecorder {
+	return &MoqUsual_DifficultResultNames_fnRecorder{
+		Params:    MoqUsual_DifficultResultNames_params{},
+		ParamsKey: MoqUsual_DifficultResultNames_paramsKey{},
+		Sequence:  m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:       m.Moq,
+	}
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) Any() *MoqUsual_DifficultResultNames_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_DifficultResultNames_anyParams{Recorder: r}
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) Seq() *MoqUsual_DifficultResultNames_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) NoSeq() *MoqUsual_DifficultResultNames_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) ReturnResults(result1, result2 string, result3 error, param, result5 int, result6, result7 float32) *MoqUsual_DifficultResultNames_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			Result1, Result2 string
+			Result3          error
+			Param, Result5   int
+			Result6, Result7 float32
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_DifficultResultNames_doFn
+		DoReturnFn MoqUsual_DifficultResultNames_doReturnFn
+	}{
+		Values: &struct {
+			Result1, Result2 string
+			Result3          error
+			Param, Result5   int
+			Result6, Result7 float32
+		}{
+			Result1: result1,
+			Result2: result2,
+			Result3: result3,
+			Param:   param,
+			Result5: result5,
+			Result6: result6,
+			Result7: result7,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) AndDo(fn MoqUsual_DifficultResultNames_doFn) *MoqUsual_DifficultResultNames_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) DoReturnResults(fn MoqUsual_DifficultResultNames_doReturnFn) *MoqUsual_DifficultResultNames_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			Result1, Result2 string
+			Result3          error
+			Param, Result5   int
+			Result6, Result7 float32
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_DifficultResultNames_doFn
+		DoReturnFn MoqUsual_DifficultResultNames_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) FindResults() {
+	if r.Results == nil {
+		anyCount := bits.OnesCount64(r.AnyParams)
+		insertAt := -1
+		var results *MoqUsual_DifficultResultNames_resultsByParams
+		for n, res := range r.Moq.ResultsByParams_DifficultResultNames {
+			if res.AnyParams == r.AnyParams {
+				results = &res
+				break
+			}
+			if res.AnyCount > anyCount {
+				insertAt = n
+			}
+		}
+		if results == nil {
+			results = &MoqUsual_DifficultResultNames_resultsByParams{
+				AnyCount:  anyCount,
+				AnyParams: r.AnyParams,
+				Results:   map[MoqUsual_DifficultResultNames_paramsKey]*MoqUsual_DifficultResultNames_results{},
+			}
+			r.Moq.ResultsByParams_DifficultResultNames = append(r.Moq.ResultsByParams_DifficultResultNames, *results)
+			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_DifficultResultNames) {
+				copy(r.Moq.ResultsByParams_DifficultResultNames[insertAt+1:], r.Moq.ResultsByParams_DifficultResultNames[insertAt:0])
+				r.Moq.ResultsByParams_DifficultResultNames[insertAt] = *results
+			}
+		}
+
+		paramsKey := MoqUsual_DifficultResultNames_paramsKey{}
+
+		var ok bool
+		r.Results, ok = results.Results[paramsKey]
+		if !ok {
+			r.Results = &MoqUsual_DifficultResultNames_results{
+				Params:  r.Params,
+				Results: nil,
+				Index:   0,
+				Repeat:  &moq.RepeatVal{},
+			}
+			results.Results[paramsKey] = r.Results
+		}
+	}
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqUsual_DifficultResultNames_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_DifficultResultNames_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values *struct {
+					Result1, Result2 string
+					Result3          error
+					Param, Result5   int
+					Result6, Result7 float32
+				}
+				Sequence   uint32
+				DoFn       MoqUsual_DifficultResultNames_doFn
+				DoReturnFn MoqUsual_DifficultResultNames_doReturnFn
+			}{
+				Values: &struct {
+					Result1, Result2 string
+					Result3          error
+					Param, Result5   int
+					Result6, Result7 float32
+				}{
+					Result1: last.Values.Result1,
+					Result2: last.Values.Result2,
+					Result3: last.Values.Result3,
+					Param:   last.Values.Param,
+					Result5: last.Values.Result5,
+					Result6: last.Values.Result6,
+					Result7: last.Values.Result7,
+				},
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
 // Reset resets the state of the moq
 func (m *MoqUsual) Reset() {
 	m.ResultsByParams_Usual = nil
@@ -2494,6 +3180,8 @@ func (m *MoqUsual) Reset() {
 	m.ResultsByParams_Variadic = nil
 	m.ResultsByParams_RepeatedIds = nil
 	m.ResultsByParams_Times = nil
+	m.ResultsByParams_DifficultParamNames = nil
+	m.ResultsByParams_DifficultResultNames = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
@@ -2555,6 +3243,22 @@ func (m *MoqUsual) AssertExpectationsMet() {
 		}
 	}
 	for _, res := range m.ResultsByParams_Times {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_DifficultParamNames {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_DifficultResultNames {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {

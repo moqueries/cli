@@ -97,7 +97,7 @@ func newMoqLoadTypesFn(scene *moq.Scene, config *moq.Config) *moqLoadTypesFn {
 // mock returns the moq implementation of the LoadTypesFn type
 func (m *moqLoadTypesFn) mock() ast.LoadTypesFn {
 	return func(pkg string, loadTestTypes bool) (
-		typeSpecs []*dst.TypeSpec, pkgPath string, err error) {
+		_ []*dst.TypeSpec, _ string, _ error) {
 		moq := &moqLoadTypesFn_mock{moq: m}
 		return moq.fn(pkg, loadTestTypes)
 	}

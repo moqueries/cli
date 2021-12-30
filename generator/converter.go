@@ -78,7 +78,21 @@ const (
 	fnRecorderSuffix = "fnRecorder"
 	paramPrefix      = "param"
 	resultPrefix     = "result"
+	usedSuffix       = "Used"
 )
+
+// invalidNames is a list of names that if seen in field lists could cause a
+// bad mock to be generated. When these names are seen in a parameter list or a
+// result list, they are treated as though the name doesn't exist and a generic
+// name is given (e.g.: param1).
+var invalidNames = map[string]struct{}{
+	moqReceiverIdent:      {},
+	recorderReceiverIdent: {},
+	sequenceIdent:         {},
+	paramsIdent:           {},
+	resultsIdent:          {},
+	resultIdent:           {},
+}
 
 // Converter converts various interface and function types to AST structs to
 // build a moq
@@ -225,7 +239,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) *dst.FuncDecl
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
 		Results(Field(IdPath(typeName, pkgPath)).Obj).
 		Body(Return(FnLit(FnType(cloneAndNameUnnamed(paramPrefix, fn.Params)).
-			Results(cloneNilableFieldList(fn.Results)).Obj).
+			Results(cloneNilableFieldList(fn.Results, true)).Obj).
 			Body(Assign(Id(moqIdent)).
 				Tok(token.DEFINE).
 				Rhs(Un(
@@ -384,16 +398,18 @@ func (c *Converter) methodStructDecl(
 
 func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.StructType, error) {
 	unnamedPrefix, comparable := labelDirection(label)
-	fieldList = cloneNilableFieldList(fieldList)
+	fieldList = cloneNilableFieldList(fieldList, false)
 
 	if fieldList != nil {
-		for n, f := range fieldList.List {
+		count := 0
+		for _, f := range fieldList.List {
 			if len(f.Names) == 0 {
-				f.Names = []*dst.Ident{Idf("%s%d", unnamedPrefix, n+1)}
+				f.Names = []*dst.Ident{Idf("%s%d", unnamedPrefix, count+1)}
 			}
 
-			for nn := range f.Names {
-				f.Names[nn] = Id(c.export(f.Names[nn].Name))
+			for n, name := range f.Names {
+				f.Names[n] = Id(c.export(validName(name.Name, unnamedPrefix, count)))
+				count++
 			}
 
 			var err error
@@ -457,7 +473,7 @@ func (c *Converter) doReturnFuncType(typeName, prefix string, fn Func) dst.Decl 
 	fnName := fmt.Sprintf("%s_%s", prefix, doReturnFnIdent)
 	return TypeDecl(TypeSpec(fnName).
 		Type(FuncType(dst.Clone(fn.Params).(*dst.FieldList)).
-			ResultList(cloneNilableFieldList(fn.Results)).Obj).Obj).
+			ResultList(cloneNilableFieldList(fn.Results, false)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -654,18 +670,22 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 func (c *Converter) mockFuncFindResults(typePrefix string, fn Func) []dst.Stmt {
 	var stmts []dst.Stmt
 	var paramPos int
-	for n, param := range fn.Params.List {
+	count := 0
+	for _, param := range fn.Params.List {
 		if len(param.Names) == 0 {
-			pName := fmt.Sprintf("%s%d", paramPrefix, n+1)
+			pName := fmt.Sprintf("%s%d", paramPrefix, count+1)
 			stmts = append(stmts, c.mockFuncFindResultsParam(
 				resultsByParamsIdent, nil, pName, paramPos, param.Type)...)
 			paramPos++
+			count++
 		}
 
 		for _, name := range param.Names {
 			stmts = append(stmts, c.mockFuncFindResultsParam(
-				resultsByParamsIdent, nil, name.Name, paramPos, param.Type)...)
+				resultsByParamsIdent, nil, validName(
+					name.Name, paramPrefix, count), paramPos, param.Type)...)
 			paramPos++
+			count++
 		}
 	}
 
@@ -673,7 +693,7 @@ func (c *Converter) mockFuncFindResults(typePrefix string, fn Func) []dst.Stmt {
 		Tok(token.DEFINE).
 		Rhs(Comp(Idf("%s_%s", typePrefix, paramsKeyIdent)).
 			// Passing through as params not paramsKey as hashing is already done
-			Elts(c.passthroughElements(fn.Params, paramsIdent, "Used", nil)...).Obj).Obj)
+			Elts(c.passthroughElements(fn.Params, paramsIdent, usedSuffix, nil)...).Obj).Obj)
 	stmts = append(stmts, Var(Value(Id("bool")).Names(Id(okIdent)).Obj))
 	stmts = append(stmts, Assign(Id(resultsIdent), Id(okIdent)).
 		Tok(token.ASSIGN).
@@ -773,19 +793,18 @@ func (c *Converter) anyParamFns(typeName string, fn Func) []dst.Decl {
 	}
 
 	decls := []dst.Decl{c.anyParamAnyFn(anyParamsName, fnRecName)}
-	var paramPos int
-	for n, param := range fn.Params.List {
+	count := 0
+	for _, param := range fn.Params.List {
 		if len(param.Names) == 0 {
-			pName := fmt.Sprintf("%s%d", paramPrefix, n+1)
-			decls = append(
-				decls, c.anyParamFn(anyParamsName, fnRecName, pName, paramPos))
-			paramPos++
+			pName := fmt.Sprintf("%s%d", paramPrefix, count+1)
+			decls = append(decls, c.anyParamFn(anyParamsName, fnRecName, pName, count))
+			count++
 		}
 
 		for _, name := range param.Names {
-			decls = append(
-				decls, c.anyParamFn(anyParamsName, fnRecName, name.Name, paramPos))
-			paramPos++
+			decls = append(decls, c.anyParamFn(anyParamsName, fnRecName,
+				validName(name.Name, paramPrefix, count), count))
+			count++
 		}
 	}
 	return decls
@@ -1056,19 +1075,20 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 
 	pKeySel := Sel(Sel(Id(recorderReceiverIdent)).
 		Dot(Id(c.export(paramsKeyIdent))).Obj).Obj
-	var paramPos int
-	for n, param := range fn.Params.List {
+	count := 0
+	for _, param := range fn.Params.List {
 		if len(param.Names) == 0 {
-			pName := fmt.Sprintf("%s%d", paramPrefix, n+1)
+			pName := fmt.Sprintf("%s%d", paramPrefix, count+1)
 			stmts = append(stmts, c.mockFuncFindResultsParam(
-				recorderReceiverIdent, pKeySel, pName, paramPos, param.Type)...)
-			paramPos++
+				recorderReceiverIdent, pKeySel, pName, count, param.Type)...)
+			count++
 		}
 
 		for _, name := range param.Names {
 			stmts = append(stmts, c.mockFuncFindResultsParam(
-				recorderReceiverIdent, pKeySel, name.Name, paramPos, param.Type)...)
-			paramPos++
+				recorderReceiverIdent, pKeySel,
+				validName(name.Name, paramPrefix, count), count, param.Type)...)
+			count++
 		}
 	}
 
@@ -1077,7 +1097,7 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 			Tok(token.DEFINE).
 			Rhs(Comp(Id(paramsKey)).
 				// Passing through as params not paramsKey as hashing is already done
-				Elts(c.passthroughElements(fn.Params, paramsIdent, "Used", nil)...).Obj).
+				Elts(c.passthroughElements(fn.Params, paramsIdent, usedSuffix, nil)...).Obj).
 			Decs(AssignDecs(dst.None).After(dst.EmptyLine).Obj).Obj,
 		Var(Value(Id("bool")).Names(Id(okIdent)).Obj),
 		Assign(Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(resultsIdent))).Obj, Id(okIdent)).
@@ -1269,21 +1289,24 @@ func (c *Converter) passthroughElements(
 	var elts []dst.Expr
 	if fl != nil {
 		beforeDec := dst.NewLine
-		fields := fl.List
-		for n, field := range fields {
+		count := 0
+		for _, field := range fl.List {
 			if len(field.Names) == 0 {
-				pName := fmt.Sprintf("%s%d", unnamedPrefix, n+1)
+				pName := fmt.Sprintf("%s%d", unnamedPrefix, count+1)
 				elts = append(elts, Key(Id(c.export(pName))).Value(
 					c.passthroughValue(Id(pName+valSuffix), field.Type, needComparable, sel)).
 					Decs(kvExprDec(beforeDec)).Obj)
 				beforeDec = dst.None
+				count++
 			}
 
 			for _, name := range field.Names {
-				elts = append(elts, Key(Id(c.export(name.Name))).Value(
-					c.passthroughValue(Id(name.Name+valSuffix), field.Type, needComparable, sel)).
+				vName := validName(name.Name, unnamedPrefix, count)
+				elts = append(elts, Key(Id(c.export(vName))).Value(
+					c.passthroughValue(Id(vName+valSuffix), field.Type, needComparable, sel)).
 					Decs(kvExprDec(beforeDec)).Obj)
 				beforeDec = dst.None
+				count++
 			}
 		}
 	}
@@ -1312,13 +1335,16 @@ func (c *Converter) passthroughValue(
 
 func passthroughFields(prefix string, fields *dst.FieldList) []dst.Expr {
 	var exprs []dst.Expr
-	for n, f := range fields.List {
+	count := 0
+	for _, f := range fields.List {
 		if len(f.Names) == 0 {
-			exprs = append(exprs, Idf("%s%d", prefix, n+1))
+			exprs = append(exprs, Idf("%s%d", prefix, count+1))
+			count++
 		}
 
 		for _, name := range f.Names {
-			exprs = append(exprs, Id(name.Name))
+			exprs = append(exprs, Id(validName(name.Name, prefix, count)))
+			count++
 		}
 	}
 	return exprs
@@ -1327,23 +1353,26 @@ func passthroughFields(prefix string, fields *dst.FieldList) []dst.Expr {
 func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
 	var assigns []dst.Stmt
 	if resFL != nil {
-		results := resFL.List
-		for n, result := range results {
+		count := 0
+		for _, result := range resFL.List {
 			if len(result.Names) == 0 {
-				rName := fmt.Sprintf("%s%d", resultPrefix, n+1)
+				rName := fmt.Sprintf("%s%d", resultPrefix, count+1)
 				assigns = append(assigns, Assign(Id(rName)).
 					Tok(token.ASSIGN).
 					Rhs(Sel(Sel(Id(resultIdent)).
 						Dot(Id(c.export(valuesIdent))).Obj).
 						Dot(Id(c.export(rName))).Obj).Obj)
+				count++
 			}
 
 			for _, name := range result.Names {
-				assigns = append(assigns, Assign(Id(name.Name)).
+				vName := validName(name.Name, resultPrefix, count)
+				assigns = append(assigns, Assign(Id(vName)).
 					Tok(token.ASSIGN).
 					Rhs(Sel(Sel(Id(resultIdent)).
 						Dot(Id(c.export(valuesIdent))).Obj).
-						Dot(Id(c.export(name.Name))).Obj).Obj)
+						Dot(Id(c.export(vName))).Obj).Obj)
+				count++
 			}
 		}
 	}
@@ -1351,15 +1380,27 @@ func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
 }
 
 func cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList) *dst.FieldList {
-	fieldList = cloneNilableFieldList(fieldList)
+	fieldList = cloneNilableFieldList(fieldList, false)
 	if fieldList != nil {
-		for n, f := range fieldList.List {
+		count := 0
+		for _, f := range fieldList.List {
 			if len(f.Names) == 0 {
-				f.Names = []*dst.Ident{Idf("%s%d", prefix, n+1)}
+				f.Names = []*dst.Ident{Idf("%s%d", prefix, count+1)}
+			}
+			for n, name := range f.Names {
+				f.Names[n] = Idf(validName(name.Name, prefix, count))
+				count++
 			}
 		}
 	}
 	return fieldList
+}
+
+func validName(name, prefix string, count int) string {
+	if _, ok := invalidNames[name]; ok {
+		name = fmt.Sprintf("%s%d", prefix, count+1)
+	}
+	return name
 }
 
 func (c *Converter) moqName(typeName string) string {
@@ -1406,9 +1447,16 @@ func isVariadic(fl *dst.FieldList) bool {
 	return false
 }
 
-func cloneNilableFieldList(fl *dst.FieldList) *dst.FieldList {
+func cloneNilableFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
 	if fl != nil {
 		fl = dst.Clone(fl).(*dst.FieldList)
+		if removeNames {
+			for _, field := range fl.List {
+				for n := range field.Names {
+					field.Names[n] = Id("_")
+				}
+			}
+		}
 	}
 	return fl
 }

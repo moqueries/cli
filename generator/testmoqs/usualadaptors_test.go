@@ -7,7 +7,9 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-type usualAdaptor struct{ m *moqUsual }
+type usualAdaptor struct {
+	m *moqUsual
+}
 
 func (a *usualAdaptor) exported() bool { return false }
 
@@ -35,7 +37,9 @@ func (a *usualAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type usualRecorder struct{ r *moqUsual_Usual_fnRecorder }
+type usualRecorder struct {
+	r *moqUsual_Usual_fnRecorder
+}
 
 func (r *usualRecorder) anySParam() {
 	a := r.r.any()
@@ -79,8 +83,8 @@ func (r *usualRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expe
 	})
 }
 
-func (r *usualRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *usualRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -101,7 +105,9 @@ func (r *usualRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedUsualAdaptor struct{ m *exported.MoqUsual }
+type exportedUsualAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedUsualAdaptor) exported() bool { return true }
 
@@ -175,8 +181,8 @@ func (r *exportedUsualRecorder) andDo(t moq.T, fn func(), expectedSParams []stri
 	})
 }
 
-func (r *exportedUsualRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *exportedUsualRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -197,7 +203,9 @@ func (r *exportedUsualRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type noNamesAdaptor struct{ m *moqUsual }
+type noNamesAdaptor struct {
+	m *moqUsual
+}
 
 func (a *noNamesAdaptor) exported() bool { return false }
 
@@ -225,7 +233,9 @@ func (a *noNamesAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type noNamesRecorder struct{ r *moqUsual_NoNames_fnRecorder }
+type noNamesRecorder struct {
+	r *moqUsual_NoNames_fnRecorder
+}
 
 func (r *noNamesRecorder) anySParam() {
 	a := r.r.any()
@@ -269,8 +279,8 @@ func (r *noNamesRecorder) andDo(t moq.T, fn func(), expectedSParams []string, ex
 	})
 }
 
-func (r *noNamesRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *noNamesRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -291,7 +301,9 @@ func (r *noNamesRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNoNamesAdaptor struct{ m *exported.MoqUsual }
+type exportedNoNamesAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedNoNamesAdaptor) exported() bool { return true }
 
@@ -365,8 +377,8 @@ func (r *exportedNoNamesRecorder) andDo(t moq.T, fn func(), expectedSParams []st
 	})
 }
 
-func (r *exportedNoNamesRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *exportedNoNamesRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -387,7 +399,9 @@ func (r *exportedNoNamesRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type noResultsAdaptor struct{ m *moqUsual }
+type noResultsAdaptor struct {
+	m *moqUsual
+}
 
 func (a *noResultsAdaptor) exported() bool { return false }
 
@@ -455,8 +469,8 @@ func (r *noResultsRecorder) andDo(t moq.T, fn func(), expectedSParams []string, 
 	})
 }
 
-func (r *noResultsRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+func (r *noResultsRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -476,7 +490,9 @@ func (r *noResultsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNoResultsAdaptor struct{ m *exported.MoqUsual }
+type exportedNoResultsAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedNoResultsAdaptor) exported() bool { return true }
 
@@ -544,8 +560,8 @@ func (r *exportedNoResultsRecorder) andDo(t moq.T, fn func(), expectedSParams []
 	})
 }
 
-func (r *exportedNoResultsRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+func (r *exportedNoResultsRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -565,7 +581,9 @@ func (r *exportedNoResultsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type noParamsAdaptor struct{ m *moqUsual }
+type noParamsAdaptor struct {
+	m *moqUsual
+}
 
 func (a *noParamsAdaptor) exported() bool { return false }
 
@@ -619,8 +637,8 @@ func (r *noParamsRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 	})
 }
 
-func (r *noParamsRecorder) doReturnResults(_ moq.T,
-	fn func(), _ []string, _ bool, sResults []string, err error) {
+func (r *noParamsRecorder) doReturnResults(
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func() (string, error) {
 		fn()
 		return sResults[0], err
@@ -635,7 +653,9 @@ func (r *noParamsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNoParamsAdaptor struct{ m *exported.MoqUsual }
+type exportedNoParamsAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedNoParamsAdaptor) exported() bool { return true }
 
@@ -689,8 +709,8 @@ func (r *exportedNoParamsRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool)
 	})
 }
 
-func (r *exportedNoParamsRecorder) doReturnResults(_ moq.T,
-	fn func(), _ []string, _ bool, sResults []string, err error) {
+func (r *exportedNoParamsRecorder) doReturnResults(
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func() (string, error) {
 		fn()
 		return sResults[0], err
@@ -705,7 +725,9 @@ func (r *exportedNoParamsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type nothingAdaptor struct{ m *moqUsual }
+type nothingAdaptor struct {
+	m *moqUsual
+}
 
 func (a *nothingAdaptor) exported() bool { return false }
 
@@ -727,7 +749,9 @@ func (a *nothingAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type nothingRecorder struct{ r *moqUsual_Nothing_fnRecorder }
+type nothingRecorder struct {
+	r *moqUsual_Nothing_fnRecorder
+}
 
 func (r *nothingRecorder) anySParam() {}
 
@@ -751,8 +775,8 @@ func (r *nothingRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 	})
 }
 
-func (r *nothingRecorder) doReturnResults(_ moq.T,
-	fn func(), _ []string, _ bool, _ []string, _ error) {
+func (r *nothingRecorder) doReturnResults(
+	_ moq.T, fn func(), _ []string, _ bool, _ []string, _ error) {
 	r.r = r.r.doReturnResults(func() {
 		fn()
 	})
@@ -766,7 +790,9 @@ func (r *nothingRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedNothingAdaptor struct{ m *exported.MoqUsual }
+type exportedNothingAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedNothingAdaptor) exported() bool { return true }
 
@@ -814,8 +840,8 @@ func (r *exportedNothingRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) 
 	})
 }
 
-func (r *exportedNothingRecorder) doReturnResults(_ moq.T,
-	fn func(), _ []string, _ bool, _ []string, _ error) {
+func (r *exportedNothingRecorder) doReturnResults(
+	_ moq.T, fn func(), _ []string, _ bool, _ []string, _ error) {
 	r.r = r.r.DoReturnResults(func() {
 		fn()
 	})
@@ -829,7 +855,9 @@ func (r *exportedNothingRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type variadicAdaptor struct{ m *moqUsual }
+type variadicAdaptor struct {
+	m *moqUsual
+}
 
 func (a *variadicAdaptor) exported() bool { return false }
 
@@ -903,8 +931,8 @@ func (r *variadicRecorder) andDo(t moq.T, fn func(), expectedSParams []string, e
 	})
 }
 
-func (r *variadicRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *variadicRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(other bool, args ...string) (string, error) {
 		fn()
 		if !reflect.DeepEqual(args, expectedSParams) {
@@ -925,7 +953,9 @@ func (r *variadicRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedVariadicAdaptor struct{ m *exported.MoqUsual }
+type exportedVariadicAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedVariadicAdaptor) exported() bool { return true }
 
@@ -935,8 +965,8 @@ func (a *exportedVariadicAdaptor) newRecorder(sParams []string, bParam bool) rec
 	return &exportedVariadicRecorder{r: a.m.OnCall().Variadic(bParam, sParams...)}
 }
 
-func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(t moq.T,
-	sParams []string, bParam bool, res results) {
+func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock().Variadic(bParam, sParams...)
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
@@ -1000,8 +1030,8 @@ func (r *exportedVariadicRecorder) andDo(t moq.T, fn func(), expectedSParams []s
 	})
 }
 
-func (r *exportedVariadicRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *exportedVariadicRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(other bool, args ...string) (string, error) {
 		fn()
 		if !reflect.DeepEqual(args, expectedSParams) {
@@ -1022,7 +1052,9 @@ func (r *exportedVariadicRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type repeatedIdsAdaptor struct{ m *moqUsual }
+type repeatedIdsAdaptor struct {
+	m *moqUsual
+}
 
 func (a *repeatedIdsAdaptor) exported() bool { return false }
 
@@ -1102,8 +1134,8 @@ func (r *repeatedIdsRecorder) andDo(t moq.T, fn func(), expectedSParams []string
 	})
 }
 
-func (r *repeatedIdsRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *repeatedIdsRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
 		fn()
 		if sParam1 != expectedSParams[0] {
@@ -1127,7 +1159,9 @@ func (r *repeatedIdsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedRepeatedIdsAdaptor struct{ m *exported.MoqUsual }
+type exportedRepeatedIdsAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedRepeatedIdsAdaptor) exported() bool { return true }
 
@@ -1207,8 +1241,8 @@ func (r *exportedRepeatedIdsRecorder) andDo(t moq.T, fn func(), expectedSParams 
 	})
 }
 
-func (r *exportedRepeatedIdsRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *exportedRepeatedIdsRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
 		fn()
 		if sParam1 != expectedSParams[0] {
@@ -1232,7 +1266,9 @@ func (r *exportedRepeatedIdsRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type timesAdaptor struct{ m *moqUsual }
+type timesAdaptor struct {
+	m *moqUsual
+}
 
 func (a *timesAdaptor) exported() bool { return false }
 
@@ -1260,7 +1296,9 @@ func (a *timesAdaptor) sceneMoq() moq.Moq {
 	return a.m
 }
 
-type timesRecorder struct{ r *moqUsual_Times_fnRecorder }
+type timesRecorder struct {
+	r *moqUsual_Times_fnRecorder
+}
 
 func (r *timesRecorder) anySParam() {
 	a := r.r.any()
@@ -1304,8 +1342,8 @@ func (r *timesRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expe
 	})
 }
 
-func (r *timesRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *timesRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -1326,7 +1364,9 @@ func (r *timesRecorder) isNil() bool {
 	return r.r == nil
 }
 
-type exportedTimesAdaptor struct{ m *exported.MoqUsual }
+type exportedTimesAdaptor struct {
+	m *exported.MoqUsual
+}
 
 func (a *exportedTimesAdaptor) exported() bool { return true }
 
@@ -1400,8 +1440,8 @@ func (r *exportedTimesRecorder) andDo(t moq.T, fn func(), expectedSParams []stri
 	})
 }
 
-func (r *exportedTimesRecorder) doReturnResults(t moq.T,
-	fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+func (r *exportedTimesRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -1419,5 +1459,338 @@ func (r *exportedTimesRecorder) repeat(repeaters ...moq.Repeater) {
 }
 
 func (r *exportedTimesRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type difficultParamNamesAdaptor struct {
+	m *moqUsual
+}
+
+func (a *difficultParamNamesAdaptor) exported() bool { return false }
+
+func (a *difficultParamNamesAdaptor) tracksParams() bool { return true }
+
+func (a *difficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &difficultParamNamesRecorder{r: a.m.onCall().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)}
+}
+
+func (a *difficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
+	a.m.mock().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
+}
+
+func (a *difficultParamNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqDifficultParamNamesFn_params{param1: bParam, param2: false, param3: sParams[0]}
+}
+
+func (a *difficultParamNamesAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type difficultParamNamesRecorder struct {
+	r *moqUsual_DifficultParamNames_fnRecorder
+}
+
+func (r *difficultParamNamesRecorder) anySParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param3()
+	}
+}
+
+func (r *difficultParamNamesRecorder) anyBParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param1()
+	}
+}
+
+func (r *difficultParamNamesRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *difficultParamNamesRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *difficultParamNamesRecorder) returnResults([]string, error) {
+	r.r = r.r.returnResults()
+}
+
+func (r *difficultParamNamesRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+		fn()
+		if sequence != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
+		}
+		if m != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, m)
+		}
+	})
+}
+
+func (r *difficultParamNamesRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+	r.r = r.r.doReturnResults(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+		fn()
+		if sequence != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
+		}
+		if m != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, m)
+		}
+	})
+}
+
+func (r *difficultParamNamesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *difficultParamNamesRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type exportedDifficultParamNamesAdaptor struct {
+	m *exported.MoqUsual
+}
+
+func (a *exportedDifficultParamNamesAdaptor) exported() bool { return true }
+
+func (a *exportedDifficultParamNamesAdaptor) tracksParams() bool { return true }
+
+func (a *exportedDifficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedDifficultParamNamesRecorder{r: a.m.OnCall().DifficultParamNames(
+		bParam, false, sParams[0], 0, 0, 0.0, 0.0)}
+}
+
+func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
+	a.m.Mock().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
+}
+
+func (a *exportedDifficultParamNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return exported.MoqDifficultParamNamesFn_params{Param1: bParam, Param2: false, Param3: sParams[0]}
+}
+
+func (a *exportedDifficultParamNamesAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedDifficultParamNamesRecorder struct {
+	r *exported.MoqUsual_DifficultParamNames_fnRecorder
+}
+
+func (r *exportedDifficultParamNamesRecorder) anySParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param3()
+	}
+}
+
+func (r *exportedDifficultParamNamesRecorder) anyBParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param1()
+	}
+}
+
+func (r *exportedDifficultParamNamesRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedDifficultParamNamesRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedDifficultParamNamesRecorder) returnResults([]string, error) {
+	r.r = r.r.ReturnResults()
+}
+
+func (r *exportedDifficultParamNamesRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+		fn()
+		if sequence != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
+		}
+		if m != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, m)
+		}
+	})
+}
+
+func (r *exportedDifficultParamNamesRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+	r.r = r.r.DoReturnResults(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+		fn()
+		if sequence != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
+		}
+		if m != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, m)
+		}
+	})
+}
+
+func (r *exportedDifficultParamNamesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedDifficultParamNamesRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type difficultResultNamesAdaptor struct {
+	m *moqUsual
+}
+
+func (a *difficultResultNamesAdaptor) exported() bool { return false }
+
+func (a *difficultResultNamesAdaptor) tracksParams() bool { return false }
+
+func (a *difficultResultNamesAdaptor) newRecorder([]string, bool) recorder {
+	return &difficultResultNamesRecorder{r: a.m.onCall().DifficultResultNames()}
+}
+
+func (a *difficultResultNamesAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool, res results) {
+	m, r, sequence, _, _, _, _ := a.m.mock().DifficultResultNames()
+	if m != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], m)
+	}
+	if r != res.sResults[1] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[1], m)
+	}
+	if sequence != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, sequence)
+	}
+}
+
+func (a *difficultResultNamesAdaptor) bundleParams([]string, bool) interface{} {
+	return moqDifficultResultNamesFn_params{}
+}
+
+func (a *difficultResultNamesAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type difficultResultNamesRecorder struct {
+	r *moqUsual_DifficultResultNames_fnRecorder
+}
+
+func (r *difficultResultNamesRecorder) anySParam() {}
+
+func (r *difficultResultNamesRecorder) anyBParam() {}
+
+func (r *difficultResultNamesRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *difficultResultNamesRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *difficultResultNamesRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], sResults[1], err, 0, 0, 0.0, 0.0)
+}
+
+func (r *difficultResultNamesRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
+	r.r = r.r.andDo(func() {
+		fn()
+	})
+}
+
+func (r *difficultResultNamesRecorder) doReturnResults(
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
+		fn()
+		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
+	})
+}
+
+func (r *difficultResultNamesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *difficultResultNamesRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type exportedDifficultResultNamesAdaptor struct {
+	m *exported.MoqUsual
+}
+
+func (a *exportedDifficultResultNamesAdaptor) exported() bool { return true }
+
+func (a *exportedDifficultResultNamesAdaptor) tracksParams() bool { return false }
+
+func (a *exportedDifficultResultNamesAdaptor) newRecorder([]string, bool) recorder {
+	return &exportedDifficultResultNamesRecorder{r: a.m.OnCall().DifficultResultNames()}
+}
+
+func (a *exportedDifficultResultNamesAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool, res results) {
+	m, r, sequence, _, _, _, _ := a.m.Mock().DifficultResultNames()
+	if m != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], m)
+	}
+	if r != res.sResults[1] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[1], m)
+	}
+	if sequence != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, sequence)
+	}
+}
+
+func (a *exportedDifficultResultNamesAdaptor) bundleParams([]string, bool) interface{} {
+	return exported.MoqDifficultResultNamesFn_params{}
+}
+
+func (a *exportedDifficultResultNamesAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedDifficultResultNamesRecorder struct {
+	r *exported.MoqUsual_DifficultResultNames_fnRecorder
+}
+
+func (r *exportedDifficultResultNamesRecorder) anySParam() {}
+
+func (r *exportedDifficultResultNamesRecorder) anyBParam() {}
+
+func (r *exportedDifficultResultNamesRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedDifficultResultNamesRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedDifficultResultNamesRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], sResults[1], err, 0, 0, 0.0, 0.0)
+}
+
+func (r *exportedDifficultResultNamesRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
+	r.r = r.r.AndDo(func() {
+		fn()
+	})
+}
+
+func (r *exportedDifficultResultNamesRecorder) doReturnResults(
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
+		fn()
+		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
+	})
+}
+
+func (r *exportedDifficultResultNamesRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedDifficultResultNamesRecorder) isNil() bool {
 	return r.r == nil
 }

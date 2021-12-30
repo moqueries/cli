@@ -48,6 +48,18 @@ type RepeatedIdsFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult
 // TimesFn takes a parameter called times which should generate a valid moq
 type TimesFn func(times string, bParam bool) (sResult string, err error)
 
+//go:generate moqueries --destination moq_difficultparamnamesfn_test.go DifficultParamNamesFn
+//go:generate moqueries --destination exported/moq_difficultparamnamesfn.go --export DifficultParamNamesFn
+
+// DifficultParamNamesFn has parameters with names that have been problematic
+type DifficultParamNamesFn func(m, r bool, sequence string, param, params int, result, results float32)
+
+//go:generate moqueries --destination moq_difficultresultnamesfn_test.go DifficultResultNamesFn
+//go:generate moqueries --destination exported/moq_difficultresultnamesfn.go --export DifficultResultNamesFn
+
+// DifficultResultNamesFn has parameters with names that have been problematic
+type DifficultResultNamesFn func() (m, r string, sequence error, param, params int, result, results float32)
+
 //go:generate moqueries --destination moq_usual_test.go Usual
 //go:generate moqueries --destination exported/moq_usual.go --export Usual
 
@@ -61,4 +73,6 @@ type Usual interface {
 	Variadic(other bool, args ...string) (sResult string, err error)
 	RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 	Times(sParam string, times bool) (sResult string, err error)
+	DifficultParamNames(m, r bool, sequence string, param, params int, result, results float32)
+	DifficultResultNames() (m, r string, sequence error, param, params int, result, results float32)
 }

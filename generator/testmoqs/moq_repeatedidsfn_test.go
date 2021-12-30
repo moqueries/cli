@@ -93,7 +93,7 @@ func newMoqRepeatedIdsFn(scene *moq.Scene, config *moq.Config) *moqRepeatedIdsFn
 
 // mock returns the moq implementation of the RepeatedIdsFn type
 func (m *moqRepeatedIdsFn) mock() testmoqs.RepeatedIdsFn {
-	return func(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
+	return func(sParam1, sParam2 string, bParam bool) (_, _ string, _ error) {
 		moq := &moqRepeatedIdsFn_mock{moq: m}
 		return moq.fn(sParam1, sParam2, bParam)
 	}

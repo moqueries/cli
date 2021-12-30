@@ -93,7 +93,7 @@ func newMoqUsualFn(scene *moq.Scene, config *moq.Config) *moqUsualFn {
 
 // mock returns the moq implementation of the UsualFn type
 func (m *moqUsualFn) mock() testmoqs.UsualFn {
-	return func(sParam string, bParam bool) (sResult string, err error) {
+	return func(sParam string, bParam bool) (_ string, _ error) {
 		moq := &moqUsualFn_mock{moq: m}
 		return moq.fn(sParam, bParam)
 	}

@@ -93,7 +93,7 @@ func NewMoqTimesFn(scene *moq.Scene, config *moq.Config) *MoqTimesFn {
 
 // Mock returns the moq implementation of the TimesFn type
 func (m *MoqTimesFn) Mock() testmoqs.TimesFn {
-	return func(times string, bParam bool) (sResult string, err error) {
+	return func(times string, bParam bool) (_ string, _ error) {
 		moq := &MoqTimesFn_mock{Moq: m}
 		return moq.Fn(times, bParam)
 	}
