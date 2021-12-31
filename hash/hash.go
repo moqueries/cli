@@ -11,5 +11,11 @@ type Hash uint64
 
 // DeepHash walks the src parameter and produces a hash
 func DeepHash(src interface{}) Hash {
-	return Hash(binary.LittleEndian.Uint64(deephash.Hash(src)))
+	b := deephash.Hash(src)
+	if len(b) < 8 {
+		newB := make([]byte, 8)
+		copy(newB, b)
+		b = newB
+	}
+	return Hash(binary.LittleEndian.Uint64(b))
 }
