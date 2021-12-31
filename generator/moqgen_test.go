@@ -330,6 +330,64 @@ func TestMoqGenerator(t *testing.T) {
 		afterEach()
 	})
 
+	t.Run("successfully navigates type aliases", func(t *testing.T) {
+		// ASSEMBLE
+		beforeEach(t)
+
+		ifaceSpec := &dst.TypeSpec{
+			Name: dst.NewIdent("AliasType"),
+			Type: ast.IdPath("Reader", "io"),
+		}
+
+		typeCacheMoq.onCall().Type(*ast.IdPath("AliasType", "."), false).
+			returnResults(ifaceSpec, "github.com/myshkin5/moqueries/generator", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), false).
+			returnResults(readerSpec, "", nil)
+
+		ifaceFuncs := []generator.Func{
+			{
+				Name:    "Read",
+				Params:  readFnType.Params,
+				Results: readFnType.Results,
+			},
+		}
+		converterMoq.onCall().BaseStruct(ifaceSpec, ifaceFuncs).
+			returnResults(nil)
+		converterMoq.onCall().IsolationStruct("AliasType", "mock").
+			returnResults(nil)
+		converterMoq.onCall().IsolationStruct("AliasType", "recorder").
+			returnResults(nil)
+		converterMoq.onCall().MethodStructs(ifaceSpec, ifaceFuncs[0]).
+			returnResults(nil, nil)
+		converterMoq.onCall().NewFunc(ifaceSpec).
+			returnResults(nil)
+		converterMoq.onCall().IsolationAccessor(
+			"AliasType", "mock", "mock").
+			returnResults(nil)
+		converterMoq.onCall().MockMethod("AliasType", ifaceFuncs[0]).
+			returnResults(nil)
+		converterMoq.onCall().IsolationAccessor(
+			"AliasType", "recorder", "onCall").
+			returnResults(nil)
+		converterMoq.onCall().RecorderMethods(
+			"AliasType", ifaceFuncs[0]).
+			returnResults(nil)
+		converterMoq.onCall().ResetMethod(ifaceSpec, ifaceFuncs).
+			returnResults(nil)
+		converterMoq.onCall().AssertMethod(ifaceSpec, ifaceFuncs).
+			returnResults(nil)
+
+		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+
+		// ACT
+		_, _, err := gen.Generate([]string{"AliasType"}, ".", false)
+		// ASSERT
+		if err != nil {
+			t.Errorf("got %#v, wanted nil err", err)
+		}
+		afterEach()
+	})
+
 	t.Run("returns a convertor error", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)

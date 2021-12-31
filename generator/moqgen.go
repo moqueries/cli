@@ -158,6 +158,9 @@ func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
 				Results: typ.Results,
 			},
 		}, nil
+	case *dst.Ident:
+		var funcs []Func
+		return g.loadTypeEquivalent(funcs, typ)
 	default:
 		logs.Panicf("Unknown type: %v", typeSpec.Type)
 		panic("unreachable")
@@ -176,20 +179,30 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType) ([]Func, e
 				Results: typ.Results,
 			})
 		case *dst.Ident:
-			nestedType, _, err := g.typeCache.Type(*typ, false)
+			var err error
+			funcs, err = g.loadTypeEquivalent(funcs, typ)
 			if err != nil {
 				return nil, err
 			}
-
-			newFuncs, err := g.findFuncs(nestedType)
-			if err != nil {
-				return nil, err
-			}
-			funcs = append(funcs, newFuncs...)
 		default:
 			logs.Panicf("Unknown type in interface method list: %v", method.Type)
 		}
 	}
+
+	return funcs, nil
+}
+
+func (g *MoqGenerator) loadTypeEquivalent(funcs []Func, id *dst.Ident) ([]Func, error) {
+	nestedType, _, err := g.typeCache.Type(*id, false)
+	if err != nil {
+		return nil, err
+	}
+
+	newFuncs, err := g.findFuncs(nestedType)
+	if err != nil {
+		return nil, err
+	}
+	funcs = append(funcs, newFuncs...)
 
 	return funcs, nil
 }
@@ -200,7 +213,9 @@ func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) ([]dst.Decl
 		g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent),
 	}
 
-	if _, ok := typeSpec.Type.(*dst.InterfaceType); ok {
+	_, iOk := typeSpec.Type.(*dst.InterfaceType)
+	_, aOk := typeSpec.Type.(*dst.Ident)
+	if iOk || aOk {
 		decls = append(decls,
 			g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent))
 	}
@@ -222,7 +237,7 @@ func (g *MoqGenerator) methods(
 	var decls []dst.Decl
 
 	switch typeSpec.Type.(type) {
-	case *dst.InterfaceType:
+	case *dst.InterfaceType, *dst.Ident:
 		decls = append(
 			decls, g.converter.IsolationAccessor(
 				typeSpec.Name.Name, mockIdent, mockFnName))
