@@ -35,14 +35,14 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func beforeEach(t *testing.T, shallowPointerCompare, shallowInterfaceCompare bool) {
+func beforeEach(t *testing.T) {
 	if scene != nil {
 		t.Fatal("afterEach not called")
 	}
 	scene = moq.NewScene(t)
 	loadFnMoq = newMoqLoadTypesFn(scene, &moq.Config{Sequence: moq.SeqDefaultOn})
 
-	cache = ast.NewCache(shallowPointerCompare, shallowInterfaceCompare, loadFnMoq.mock())
+	cache = ast.NewCache(loadFnMoq.mock())
 
 	type1 = &dst.TypeSpec{Name: ast.Id("type1")}
 	type2 = &dst.TypeSpec{Name: ast.Id("type2")}
@@ -55,7 +55,7 @@ func afterEach() {
 
 func TestTypeSimpleLoad(t *testing.T) {
 	// ASSEMBLE
-	beforeEach(t, false, false)
+	beforeEach(t)
 
 	pkg := "the-pkg"
 	loadFnMoq.onCall(".", true).
@@ -82,7 +82,7 @@ func TestTypeSimpleLoad(t *testing.T) {
 
 func TestTypeLoadError(t *testing.T) {
 	// ASSEMBLE
-	beforeEach(t, false, false)
+	beforeEach(t)
 
 	err := errors.New("load error")
 	loadFnMoq.onCall(".", true).
@@ -109,7 +109,7 @@ func TestTypeLoadError(t *testing.T) {
 
 func TestTypeNotFound(t *testing.T) {
 	// ASSEMBLE
-	beforeEach(t, false, false)
+	beforeEach(t)
 
 	loadFnMoq.onCall("the-pkg", false).
 		returnResults([]*dst.TypeSpec{type1, type2}, "the-pkg", nil)
@@ -135,7 +135,7 @@ func TestTypeNotFound(t *testing.T) {
 
 func TestTypeOnlyLoadPackageOnce(t *testing.T) {
 	// ASSEMBLE
-	beforeEach(t, false, false)
+	beforeEach(t)
 
 	pkg := "the-pkg"
 	loadFnMoq.onCall("the-pkg", true).
@@ -163,7 +163,7 @@ func TestTypeOnlyLoadPackageOnce(t *testing.T) {
 
 func TestTypeReloadTestPackage(t *testing.T) {
 	// ASSEMBLE
-	beforeEach(t, false, false)
+	beforeEach(t)
 
 	pkg := "the-pkg"
 	loadFnMoq.onCall("the-pkg", false).
@@ -193,7 +193,7 @@ func TestTypeReloadTestPackage(t *testing.T) {
 
 func TestTypeOnlyLoadDefaultPackageOnce(t *testing.T) {
 	// ASSEMBLE
-	beforeEach(t, false, false)
+	beforeEach(t)
 
 	pkg := "the-pkg"
 	loadFnMoq.onCall(".", true).
@@ -220,113 +220,129 @@ func TestTypeOnlyLoadDefaultPackageOnce(t *testing.T) {
 }
 
 type tableEntry struct {
-	paramType               string
-	comparable              bool
-	structable              bool
-	shallowPointerCompare   bool
-	shallowInterfaceCompare bool
+	paramType         string
+	comparable        bool
+	defaultComparable bool
+	structable        bool
 }
 
 var entries = []tableEntry{
 	{
-		paramType:               "string",
-		comparable:              true,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "string",
+		comparable:        true,
+		defaultComparable: true,
+		structable:        true,
 	},
 	{
-		paramType:               "[]string",
-		comparable:              false,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "[]string",
+		comparable:        false,
+		defaultComparable: false,
+		structable:        true,
 	},
 	{
-		paramType:               "[3]string",
-		comparable:              true,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "[3]string",
+		comparable:        true,
+		defaultComparable: true,
+		structable:        true,
 	},
 	{
-		paramType:               "map[string]string",
-		comparable:              false,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "map[string]string",
+		comparable:        false,
+		defaultComparable: false,
+		structable:        true,
 	},
 	{
-		paramType:               "...string",
-		comparable:              false,
-		structable:              false,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "...string",
+		comparable:        false,
+		defaultComparable: false,
+		structable:        false,
 	},
 	{
-		paramType:               "*string",
-		comparable:              false,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "*string",
+		comparable:        true,
+		defaultComparable: false,
+		structable:        true,
 	},
 	{
-		paramType:               "*string",
-		comparable:              true,
-		structable:              true,
-		shallowPointerCompare:   true,
-		shallowInterfaceCompare: false,
+		paramType:         "error",
+		comparable:        true,
+		defaultComparable: false,
+		structable:        true,
 	},
 	{
-		paramType:               "error",
-		comparable:              false,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "[3]error",
+		comparable:        true,
+		defaultComparable: false,
+		structable:        true,
 	},
 	{
-		paramType:               "io.Reader",
-		comparable:              false,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: false,
+		paramType:         "io.Reader",
+		comparable:        true,
+		defaultComparable: false,
+		structable:        true,
 	},
 	{
-		paramType:               "io.Reader",
-		comparable:              true,
-		structable:              true,
-		shallowPointerCompare:   false,
-		shallowInterfaceCompare: true,
+		paramType:         "[3]io.Reader",
+		comparable:        true,
+		defaultComparable: false,
+		structable:        true,
 	},
+}
+
+func simpleExpr(t *testing.T, paramType string) dst.Expr {
+	code := `package a
+
+import _ "io"
+
+func b(c %s) {}
+`
+	f := parse(t, fmt.Sprintf(code, paramType))
+	return f.Decls[1].(*dst.FuncDecl).Type.Params.List[0].Type
 }
 
 func TestIsComparableSimpleExprs(t *testing.T) {
 	for _, entry := range entries {
 		t.Run(entry.paramType, func(t *testing.T) {
 			// ASSEMBLE
-			beforeEach(t, entry.shallowPointerCompare, entry.shallowInterfaceCompare)
-
-			code := `package a
-
-import _ "io"
-
-func b(c %s) {}
-`
-			f := parse(t, fmt.Sprintf(code, entry.paramType))
-			expr := f.Decls[1].(*dst.FuncDecl).Type.Params.List[0].Type
+			beforeEach(t)
 
 			loadFnMoq.onCall("io", false).
 				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
 
 			// ACT
-			comparable, err := cache.IsComparable(expr)
+			comparable, err := cache.IsComparable(simpleExpr(t, entry.paramType))
 			// ASSERT
 			if err != nil {
-				t.Errorf("Unexpected error checking comparable: %s, err: %#v", code, err)
+				t.Errorf("Unexpected error checking comparable: %s, err: %#v", entry.paramType, err)
 			}
 			if comparable != entry.comparable {
 				t.Errorf("IsComparable(%s) = %t; want %t",
 					entry.paramType, comparable, entry.comparable)
+			}
+
+			afterEach()
+		})
+	}
+}
+
+func TestIsDefaultComparableSimpleExprs(t *testing.T) {
+	for _, entry := range entries {
+		t.Run(entry.paramType, func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t)
+
+			loadFnMoq.onCall("io", false).
+				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
+
+			// ACT
+			comparable, err := cache.IsDefaultComparable(simpleExpr(t, entry.paramType))
+			// ASSERT
+			if err != nil {
+				t.Errorf("Unexpected error checking comparable: %s, err: %#v", entry.paramType, err)
+			}
+			if comparable != entry.defaultComparable {
+				t.Errorf("IsComparable(%s) = %t; want %t",
+					entry.paramType, comparable, entry.defaultComparable)
 			}
 
 			afterEach()
@@ -342,7 +358,7 @@ func TestIsComparableInlineStructExprs(t *testing.T) {
 				t.Skipf("%s can't be put into a struct, skipping", entry.paramType)
 			}
 
-			beforeEach(t, entry.shallowPointerCompare, entry.shallowInterfaceCompare)
+			beforeEach(t)
 
 			code := `package a
 
@@ -380,7 +396,7 @@ func TestIsComparableStructExprs(t *testing.T) {
 				t.Skipf("%s can't be put into a struct, skipping", entry.paramType)
 			}
 
-			beforeEach(t, entry.shallowPointerCompare, entry.shallowInterfaceCompare)
+			beforeEach(t)
 
 			code := `package a
 
@@ -422,7 +438,7 @@ func TestIsComparableImported(t *testing.T) {
 				t.Skipf("%s can't be put into a struct, skipping", entry.paramType)
 			}
 
-			beforeEach(t, entry.shallowPointerCompare, entry.shallowInterfaceCompare)
+			beforeEach(t)
 
 			code1 := `package a
 
@@ -469,7 +485,7 @@ type e struct {
 
 func TestDSTIdentNotComparable(t *testing.T) {
 	// ASSEMBLE
-	cache := ast.NewCache(false, false, ast.LoadTypes)
+	cache := ast.NewCache(ast.LoadTypes)
 	typ, _, err := cache.Type(
 		*ast.IdPath("TypeCache", "github.com/myshkin5/moqueries/generator"), false)
 	if err != nil {

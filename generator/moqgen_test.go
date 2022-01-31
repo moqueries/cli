@@ -112,6 +112,7 @@ func TestMoqGenerator(t *testing.T) {
 	t.Run("always returns a header comment", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		gen := generator.New(false, "", "dir/file_test.go", typeCacheMoq.mock(), converterMoq.mock())
 
 		// ACT
@@ -130,12 +131,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file.Decs.Start[0] != expectedStart {
 			t.Errorf("got %s, wanted %s", file.Decs.Start[0], expectedStart)
 		}
-		afterEach()
 	})
 
 	t.Run("defaults a test package when not exported and the package isn't specified", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		gen := generator.New(false, "", "dir/file_test.go", typeCacheMoq.mock(), converterMoq.mock())
 
 		// ACT
@@ -147,12 +148,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file.Name.Name != "dir_test" {
 			t.Errorf("got %s, wanted dir_test", file.Name.Name)
 		}
-		afterEach()
 	})
 
 	t.Run("defaults a non-test package when exported and the package isn't specified", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		gen := generator.New(true, "", "dir/file_test.go", typeCacheMoq.mock(), converterMoq.mock())
 
 		// ACT
@@ -164,12 +165,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file.Name.Name != "dir" {
 			t.Errorf("got %s, wanted dir", file.Name.Name)
 		}
-		afterEach()
 	})
 
 	t.Run("can put mocks in parent packages when given a relative destination", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		gen := generator.New(true, "", "../file_test.go", typeCacheMoq.mock(), converterMoq.mock())
 
 		// ACT
@@ -181,13 +182,13 @@ func TestMoqGenerator(t *testing.T) {
 		if file.Name.Name != "moqueries" {
 			t.Errorf("got %s, wanted moqueries", file.Name.Name)
 		}
-		afterEach()
 	})
 
 	t.Run("defaults the package to a test name based on the current"+
 		" directory when it isn't specified and not exported", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
 
 		// ACT
@@ -199,13 +200,13 @@ func TestMoqGenerator(t *testing.T) {
 		if file.Name.Name != "generator_test" {
 			t.Errorf("got %s, wanted generator_test", file.Name.Name)
 		}
-		afterEach()
 	})
 
 	t.Run("defaults the package to a non-test name based on the current"+
 		" directory when it isn't specified and exported", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		gen := generator.New(true, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
 
 		// ACT
@@ -217,12 +218,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file.Name.Name != "generator" {
 			t.Errorf("got %s, wanted generator", file.Name.Name)
 		}
-		afterEach()
 	})
 
 	t.Run("recursively looks up nested interfaces", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		// PublicInterface embeds privateInterface which embeds io.Reader
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -266,7 +267,7 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(nil, nil)
 		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[1]).
 			returnResults(nil, nil)
-		converterMoq.onCall().NewFunc(ifaceSpec1).
+		converterMoq.onCall().NewFunc(ifaceSpec1, ifaceFuncs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
@@ -301,7 +302,7 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(nil)
 		converterMoq.onCall().MethodStructs(ifaceSpec2, iface2Funcs[0]).
 			returnResults(nil, nil)
-		converterMoq.onCall().NewFunc(ifaceSpec2).
+		converterMoq.onCall().NewFunc(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
@@ -327,12 +328,12 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		afterEach()
 	})
 
 	t.Run("successfully navigates type aliases", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 
 		ifaceSpec := &dst.TypeSpec{
 			Name: dst.NewIdent("AliasType"),
@@ -359,7 +360,7 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(nil)
 		converterMoq.onCall().MethodStructs(ifaceSpec, ifaceFuncs[0]).
 			returnResults(nil, nil)
-		converterMoq.onCall().NewFunc(ifaceSpec).
+		converterMoq.onCall().NewFunc(ifaceSpec, ifaceFuncs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"AliasType", "mock", "mock").
@@ -385,12 +386,12 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		afterEach()
 	})
 
 	t.Run("returns a convertor error", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
@@ -421,51 +422,52 @@ func TestMoqGenerator(t *testing.T) {
 		if file != nil {
 			t.Errorf("got %#v, wanted nil", file)
 		}
-		afterEach()
 	})
 
 	t.Run("loads tests types when requested", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), true).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), true).
 			returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
 
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMoq.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
+		iface1Funcs := []generator.Func{{Name: "Func1", Params: func1Params}}
+		converterMoq.onCall().BaseStruct(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("PublicInterface", "mock").
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("PublicInterface", "recorder").
 			returnResults(nil)
-		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
+		converterMoq.onCall().MethodStructs(ifaceSpec1, iface1Funcs[0]).
 			returnResults(nil, nil)
-		converterMoq.onCall().NewFunc(ifaceSpec1).
+		converterMoq.onCall().NewFunc(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
 			returnResults(nil)
-		converterMoq.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
+		converterMoq.onCall().MockMethod("PublicInterface", iface1Funcs[0]).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "recorder", "onCall").
 			returnResults(nil)
 		converterMoq.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
+			"PublicInterface", iface1Funcs[0]).
 			returnResults(nil)
-		converterMoq.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().ResetMethod(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
-		converterMoq.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().AssertMethod(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
 
-		converterMoq.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
+		var iface2Funcs []generator.Func
+		converterMoq.onCall().BaseStruct(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("privateInterface", "mock").
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMoq.onCall().NewFunc(ifaceSpec2).
+		converterMoq.onCall().NewFunc(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
@@ -473,9 +475,9 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "recorder", "onCall").
 			returnResults(nil)
-		converterMoq.onCall().ResetMethod(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().ResetMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
-		converterMoq.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
+		converterMoq.onCall().AssertMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 
 		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
@@ -486,12 +488,12 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		afterEach()
 	})
 
 	t.Run("loads tests types when importing a test package", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		pubId := ast.IdPath("PublicInterface", "github.com/myshkin5/moqueries/generator")
 		typeCacheMoq.onCall().Type(*pubId, true).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
@@ -499,40 +501,41 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().Type(*priId, true).
 			returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
 
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
-		converterMoq.onCall().BaseStruct(ifaceSpec1, ifaceFuncs).
+		iface1Funcs := []generator.Func{{Name: "Func1", Params: func1Params}}
+		converterMoq.onCall().BaseStruct(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("PublicInterface", "mock").
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("PublicInterface", "recorder").
 			returnResults(nil)
-		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
+		converterMoq.onCall().MethodStructs(ifaceSpec1, iface1Funcs[0]).
 			returnResults(nil, nil)
-		converterMoq.onCall().NewFunc(ifaceSpec1).
+		converterMoq.onCall().NewFunc(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "mock", "mock").
 			returnResults(nil)
-		converterMoq.onCall().MockMethod("PublicInterface", ifaceFuncs[0]).
+		converterMoq.onCall().MockMethod("PublicInterface", iface1Funcs[0]).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"PublicInterface", "recorder", "onCall").
 			returnResults(nil)
 		converterMoq.onCall().RecorderMethods(
-			"PublicInterface", ifaceFuncs[0]).
+			"PublicInterface", iface1Funcs[0]).
 			returnResults(nil)
-		converterMoq.onCall().ResetMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().ResetMethod(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
-		converterMoq.onCall().AssertMethod(ifaceSpec1, ifaceFuncs).
+		converterMoq.onCall().AssertMethod(ifaceSpec1, iface1Funcs).
 			returnResults(nil)
 
-		converterMoq.onCall().BaseStruct(ifaceSpec2, []generator.Func{}).
+		var iface2Funcs []generator.Func
+		converterMoq.onCall().BaseStruct(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("privateInterface", "mock").
 			returnResults(nil)
 		converterMoq.onCall().IsolationStruct("privateInterface", "recorder").
 			returnResults(nil)
-		converterMoq.onCall().NewFunc(ifaceSpec2).
+		converterMoq.onCall().NewFunc(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 		converterMoq.onCall().IsolationAccessor(
 			"privateInterface", "mock", "mock").
@@ -556,12 +559,12 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		afterEach()
 	})
 
 	t.Run("returns an error when the type cache returns an error", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		expectedErr := errors.New("bad cache")
 		typeCacheMoq.onCall().Type(*ast.IdPath("BadInterface", "."), false).
 			returnResults(nil, "", expectedErr)
@@ -581,12 +584,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file != nil {
 			t.Errorf("got %#v, wanted nil", file)
 		}
-		afterEach()
 	})
 
 	t.Run("returns an error when recursive lookups return an error", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		// PublicInterface embeds privateInterface
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -615,12 +618,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file != nil {
 			t.Errorf("got %#v, wanted nil", file)
 		}
-		afterEach()
 	})
 
 	t.Run("returns an error when recursive function lookups return an error", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		// PublicInterface embeds privateInterface which embeds io.Reader
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -657,12 +660,12 @@ func TestMoqGenerator(t *testing.T) {
 		if file != nil {
 			t.Errorf("got %#v, wanted nil", file)
 		}
-		afterEach()
 	})
 
 	t.Run("handles function types", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach()
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), false).
 			returnResults(fnSpec, "github.com/myshkin5/moqueries/generator", nil)
 		fnFuncs := []generator.Func{{Params: func1Params}}
@@ -674,7 +677,7 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(nil)
 		converterMoq.onCall().MethodStructs(fnSpec, fnFuncs[0]).
 			returnResults(nil, nil)
-		converterMoq.onCall().NewFunc(fnSpec).
+		converterMoq.onCall().NewFunc(fnSpec, fnFuncs).
 			returnResults(nil)
 		converterMoq.onCall().FuncClosure("PublicFn", "github.com/myshkin5/moqueries/generator", fnFuncs[0]).
 			returnResults(nil)
@@ -695,6 +698,5 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		afterEach()
 	})
 }

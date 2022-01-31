@@ -35,14 +35,6 @@ func generate(cmd *cobra.Command, typs []string) {
 	if err != nil {
 		logs.Panic("Error getting test-import flag", err)
 	}
-	shallowPointerCompare, err := cmd.PersistentFlags().GetBool(shallowPointerCompareFlag)
-	if err != nil {
-		logs.Panic("Error getting shallow-pointer-compare flag", err)
-	}
-	shallowInterfaceCompare, err := cmd.PersistentFlags().GetBool(shallowInterfaceCompareFlag)
-	if err != nil {
-		logs.Panic("Error getting shallow-interface-compare flag", err)
-	}
 
 	logs.Init(debug)
 	if debug {
@@ -53,14 +45,12 @@ func generate(cmd *cobra.Command, typs []string) {
 	}
 
 	err = generator.Generate(generator.GenerateRequest{
-		Types:                   typs,
-		Export:                  export,
-		Destination:             dest,
-		Package:                 pkg,
-		Import:                  imp,
-		TestImport:              testImp,
-		ShallowPointerCompare:   shallowPointerCompare,
-		ShallowInterfaceCompare: shallowInterfaceCompare,
+		Types:       typs,
+		Export:      export,
+		Destination: dest,
+		Package:     pkg,
+		Import:      imp,
+		TestImport:  testImp,
 	})
 	if err != nil {
 		logs.Panic("Error generating mock", err)

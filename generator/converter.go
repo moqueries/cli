@@ -17,12 +17,14 @@ const (
 	moqPkg        = moqueriesPkg + "/moq"
 	syncAtomicPkg = "sync/atomic"
 
-	intType       = "int"
-	configType    = "Config"
-	repeaterType  = "Repeater"
-	repeatValType = "RepeatVal"
-	sceneType     = "Scene"
-	tType         = "T"
+	intType           = "int"
+	configType        = "Config"
+	hashType          = "Hash"
+	paramIndexingType = "ParamIndexing"
+	repeaterType      = "Repeater"
+	repeatValType     = "RepeatVal"
+	sceneType         = "Scene"
+	tType             = "T"
 
 	anyCountIdent          = "anyCount"
 	anyParamsIdent         = "anyParams"
@@ -32,6 +34,7 @@ const (
 	doFnIdent              = "doFn"
 	doReturnFnIdent        = "doReturnFn"
 	expectationIdent       = "Expectation"
+	hashesIdent            = "hashes"
 	iIdent                 = "i"
 	indexIdent             = "index"
 	insertAtIdent          = "insertAt"
@@ -44,6 +47,9 @@ const (
 	nIdent                 = "n"
 	nilIdent               = "nil"
 	okIdent                = "ok"
+	parameterIndexingIdent = "parameterIndexing"
+	paramIndexByValueIdent = "ParamIndexByValue"
+	paramIndexByHashIdent  = "ParamIndexByHash"
 	paramsIdent            = "params"
 	paramsKeyIdent         = "paramsKey"
 	recorderIdent          = "recorder"
@@ -55,6 +61,7 @@ const (
 	resultIdent            = "result"
 	resultCountIdent       = "ResultCount"
 	resultsIdent           = "results"
+	runtimeIdent           = "runtime"
 	sceneIdent             = "scene"
 	sequenceIdent          = "sequence"
 	strictIdent            = "Strict"
@@ -79,6 +86,7 @@ const (
 	paramPrefix      = "param"
 	resultPrefix     = "result"
 	usedSuffix       = "Used"
+	usedHashSuffix   = "UsedHash"
 )
 
 // invalidNames is a list of names that if seen in field lists could cause a
@@ -118,12 +126,16 @@ type Func struct {
 
 // BaseStruct generates the base structure used to store the moq's state
 func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDecl {
+	mName := c.moqName(typeSpec.Name.Name)
+	moqName := fmt.Sprintf("%s_%s", mName, mockIdent)
+
 	fields := []*dst.Field{
 		Field(Star(IdPath(sceneType, moqPkg))).Names(Id(c.export(sceneIdent))).Obj,
 		Field(IdPath(configType, moqPkg)).Names(Id(c.export(configIdent))).Obj,
+		Field(Star(Id(moqName))).Names(Id(c.export(moqIdent))).
+			Decs(FieldDecs(dst.None, dst.EmptyLine).Obj).Obj,
 	}
 
-	mName := c.moqName(typeSpec.Name.Name)
 	for _, fn := range funcs {
 		typePrefix := c.typePrefix(typeSpec.Name.Name, fn)
 		fieldSuffix := ""
@@ -134,6 +146,10 @@ func (c *Converter) BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) *dst.GenDec
 			Field(SliceType(Idf("%s_%s", typePrefix, resultsByParamsIdent))).
 				Names(Id(c.export(resultsByParamsIdent+fieldSuffix))).Obj)
 	}
+
+	fields = append(fields, Field(c.runtimeStruct(funcs)).
+		Names(Id(c.export(runtimeIdent))).
+		Decs(FieldDecs(dst.EmptyLine, dst.None).Obj).Obj)
 
 	return TypeDecl(TypeSpec(mName).Type(Struct(fields...)).Obj).
 		Decs(genDeclDec("// %s holds the state of a moq of the %s type",
@@ -156,11 +172,11 @@ func (c *Converter) IsolationStruct(typeName, suffix string) *dst.GenDecl {
 func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) ([]dst.Decl, error) {
 	prefix := c.typePrefix(typeSpec.Name.Name, fn)
 
-	paramsStruct, err := c.methodStructDecl(typeSpec.Name.Name, prefix, paramsIdent, fn.Params)
+	paramsStruct, err := c.paramsStructDecl(typeSpec.Name.Name, prefix, false, fn.Params)
 	if err != nil {
 		logs.Panic("Creating params struct should never generate errors", err)
 	}
-	paramsKeyStruct, err := c.methodStructDecl(typeSpec.Name.Name, prefix, paramsKeyIdent, fn.Params)
+	paramsKeyStruct, err := c.paramsStructDecl(typeSpec.Name.Name, prefix, true, fn.Params)
 	if err != nil {
 		return nil, err
 	}
@@ -178,9 +194,10 @@ func (c *Converter) MethodStructs(typeSpec *dst.TypeSpec, fn Func) ([]dst.Decl, 
 }
 
 // NewFunc generates a function for constructing a moq
-func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) *dst.FuncDecl {
+func (c *Converter) NewFunc(typeSpec *dst.TypeSpec, funcs []Func) *dst.FuncDecl {
 	fnName := c.export("newMoq" + typeSpec.Name.Name)
 	mName := c.moqName(typeSpec.Name.Name)
+	moqName := fmt.Sprintf("%s_%s", mName, mockIdent)
 	return Fn(fnName).
 		Params(
 			Field(Star(IdPath(sceneType, moqPkg))).Names(Id(sceneIdent)).Obj,
@@ -197,7 +214,19 @@ func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) *dst.FuncDecl {
 						Value(Id(sceneIdent)).Decs(kvExprDec(dst.None)).Obj,
 					Key(Id(c.export(configIdent))).
 						Value(Star(Id(configIdent))).Decs(kvExprDec(dst.None)).Obj,
+					Key(Id(c.export(moqIdent))).
+						Value(Un(token.AND, Comp(Id(moqName)).Obj)).Obj,
+					Key(Id(c.export(runtimeIdent))).
+						Value(Comp(c.runtimeStruct(funcs)).
+							Elts(c.runtimeValues(funcs)...).Obj).Decs(kvExprDec(dst.None)).
+						Decs(kvExprDec(dst.EmptyLine)).Obj,
 				).Decs(litDec()).Obj)).Obj,
+			Assign(Sel(Sel(Id(moqReceiverIdent)).
+				Dot(Id(c.export(moqIdent))).Obj).
+				Dot(Id(c.export(moqIdent))).Obj).
+				Tok(token.ASSIGN).
+				Rhs(Id(moqReceiverIdent)).
+				Decs(AssignDecs(dst.None).After(dst.EmptyLine).Obj).Obj,
 			Expr(Call(Sel(Id(sceneIdent)).Dot(Id("AddMoq")).Obj).
 				Args(Id(moqReceiverIdent)).Obj).Obj,
 			Return(Id(moqReceiverIdent)),
@@ -208,16 +237,23 @@ func (c *Converter) NewFunc(typeSpec *dst.TypeSpec) *dst.FuncDecl {
 
 // IsolationAccessor generates a function to access an isolation interface
 func (c *Converter) IsolationAccessor(typeName, suffix, fnName string) *dst.FuncDecl {
-	fnName = c.export(fnName)
 	mName := c.moqName(typeName)
 	iName := fmt.Sprintf("%s_%s", mName, suffix)
+
+	var retVal dst.Expr
+	retVal = Sel(Id(moqReceiverIdent)).Dot(Id(c.export(moqIdent))).Obj
+	if fnName != mockFnName {
+		retVal = Un(token.AND, Comp(Id(iName)).Elts(
+			Key(Id(c.export(moqIdent))).Value(Id(moqReceiverIdent)).
+				Decs(kvExprDec(dst.None)).Obj).Decs(litDec()).Obj,
+		)
+	}
+
+	fnName = c.export(fnName)
 	return Fn(fnName).
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
 		Results(Field(Star(Id(iName))).Obj).
-		Body(Return(Un(token.AND, Comp(Id(iName)).Elts(
-			Key(Id(c.export(moqIdent))).Value(Id(moqReceiverIdent)).
-				Decs(kvExprDec(dst.None)).Obj).Decs(litDec()).Obj,
-		))).
+		Body(Return(retVal)).
 		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
 			fnName, suffix, typeName)).Obj
 }
@@ -290,6 +326,7 @@ func (c *Converter) RecorderMethods(typeName string, fn Func) []dst.Decl {
 		c.doReturnResultsFn(typeName, fn),
 		c.findResultsFn(typeName, fn),
 		c.recorderRepeatFn(typeName, fn),
+		c.paramsKeyFn(typeName, fn),
 	)
 
 	return decls
@@ -377,17 +414,137 @@ func (c *Converter) typePrefix(typeName string, fn Func) string {
 	return typePrefix
 }
 
-func (c *Converter) methodStructDecl(
-	typeName, prefix, label string, fieldList *dst.FieldList,
-) (*dst.GenDecl, error) {
-	goDocDesc := label
-	if label == paramsKeyIdent {
-		goDocDesc = "map key params"
+func (c *Converter) runtimeStruct(funcs []Func) *dst.StructType {
+	return Struct(Field(c.paramIndexingStruct(funcs)).
+		Names(Id(c.export(parameterIndexingIdent))).Obj)
+}
+
+func (c *Converter) paramIndexingStruct(funcs []Func) *dst.StructType {
+	var piFields []*dst.Field
+	for _, fn := range funcs {
+		if fn.Name == "" {
+			piFields = append(piFields, c.paramIndexingFnStruct(fn).Fields.List...)
+		} else {
+			piFields = append(piFields,
+				Field(c.paramIndexingFnStruct(fn)).Names(Id(fn.Name)).Obj)
+		}
 	}
 
-	mStruct, err := c.methodStruct(label, fieldList)
+	return Struct(piFields...)
+}
+
+func (c *Converter) paramIndexingFnStruct(fn Func) *dst.StructType {
+	var piParamFields []*dst.Field
+	count := 0
+	for _, f := range fn.Params.List {
+		if len(f.Names) == 0 {
+			piParamFields = append(piParamFields,
+				c.paramIndexingField(fmt.Sprintf("%s%d", paramPrefix, count+1)))
+			count++
+		}
+
+		for _, name := range f.Names {
+			piParamFields = append(piParamFields,
+				c.paramIndexingField(validName(name.Name, paramPrefix, count)))
+			count++
+		}
+	}
+
+	return Struct(piParamFields...)
+}
+
+func (c *Converter) paramIndexingField(name string) *dst.Field {
+	return Field(IdPath(paramIndexingType, moqPkg)).Names(Id(c.export(name))).Obj
+}
+
+func (c *Converter) runtimeValues(funcs []Func) []dst.Expr {
+	var vals []dst.Expr
+	kvDec := dst.NewLine
+	for _, fn := range funcs {
+		if fn.Name == "" {
+			vals = append(vals, c.paramIndexingFnValues(fn.Params.List)...)
+		} else {
+			vals = append(vals, Key(Id(fn.Name)).
+				Value(Comp(c.paramIndexingFnStruct(fn)).
+					Elts(c.paramIndexingFnValues(fn.Params.List)...).Obj).Decs(kvExprDec(kvDec)).Obj)
+		}
+		kvDec = dst.None
+	}
+
+	return []dst.Expr{Key(Id(c.export(parameterIndexingIdent))).
+		Value(Comp(c.paramIndexingStruct(funcs)).Elts(vals...).Obj).Obj}
+}
+
+func (c *Converter) paramIndexingFnValues(params []*dst.Field) []dst.Expr {
+	var vals []dst.Expr
+	kvDec := dst.NewLine
+	count := 0
+	for _, f := range params {
+		if len(f.Names) == 0 {
+			val := c.paramIndexingValue(f.Type,
+				fmt.Sprintf("%s%d", paramPrefix, count+1), kvDec)
+
+			vals = append(vals, val)
+			count++
+			kvDec = dst.None
+		}
+
+		for _, name := range f.Names {
+			val := c.paramIndexingValue(f.Type,
+				validName(name.Name, paramPrefix, count), kvDec)
+
+			vals = append(vals, val)
+			count++
+			kvDec = dst.None
+		}
+	}
+
+	return vals
+}
+
+func (c *Converter) paramIndexingValue(typ dst.Expr, name string, kvDec dst.SpaceType) dst.Expr {
+	comp, err := c.typeCache.IsDefaultComparable(typ)
 	if err != nil {
-		return nil, err
+		logs.Panic("Call MethodStructs first to get a meaningful error", err)
+	}
+
+	val := paramIndexByValueIdent
+	if !comp {
+		val = paramIndexByHashIdent
+	}
+
+	return Key(Id(c.export(name))).Value(IdPath(val, moqPkg)).Decs(kvExprDec(kvDec)).Obj
+}
+
+func (c *Converter) paramsStructDecl(
+	typeName, prefix string, paramsKey bool, fieldList *dst.FieldList,
+) (*dst.GenDecl, error) {
+	var mStruct *dst.StructType
+	var label, goDocDesc string
+	if paramsKey {
+		label = paramsKeyIdent
+		goDocDesc = "map key params"
+
+		pStruct, err := c.methodStruct(paramsKeyIdent, fieldList)
+		if err != nil {
+			return nil, err
+		}
+		pkStruct, err := c.methodStruct(hashesIdent, fieldList)
+		if err != nil {
+			return nil, err
+		}
+
+		mStruct = Struct(Field(pStruct).Names(Id(c.export(paramsIdent))).Obj,
+			Field(pkStruct).Names(Id(c.export(hashesIdent))).Obj)
+	} else {
+		label = paramsIdent
+		goDocDesc = label
+
+		var err error
+		mStruct, err = c.methodStruct(paramsIdent, fieldList)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	structName := fmt.Sprintf("%s_%s", prefix, label)
@@ -397,11 +554,12 @@ func (c *Converter) methodStructDecl(
 }
 
 func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.StructType, error) {
-	unnamedPrefix, comparable := labelDirection(label)
+	unnamedPrefix, _ := labelDirection(label)
 	fieldList = cloneNilableFieldList(fieldList, false)
 
 	if fieldList != nil {
 		count := 0
+		var fList []*dst.Field
 		for _, f := range fieldList.List {
 			if len(f.Names) == 0 {
 				f.Names = []*dst.Ident{Idf("%s%d", unnamedPrefix, count+1)}
@@ -412,27 +570,46 @@ func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.S
 				count++
 			}
 
-			var err error
-			f.Type, err = c.comparableType(comparable, f.Type)
+			typ, err := c.comparableType(label, f.Type)
 			if err != nil {
 				return nil, err
 			}
+			if typ != nil {
+				f.Type = typ
+				fList = append(fList, f)
+			}
+		}
+
+		if len(fList) != 0 {
+			fieldList.List = fList
+		} else {
+			fieldList = nil
 		}
 	}
 
 	return StructFromList(fieldList), nil
 }
 
-func (c *Converter) comparableType(needComparable bool, typ dst.Expr) (dst.Expr, error) {
-	if needComparable {
+func (c *Converter) comparableType(label string, typ dst.Expr) (dst.Expr, error) {
+	switch label {
+	case paramsIdent:
+	case resultsIdent:
+	case paramsKeyIdent:
 		comparable, err := c.typeCache.IsComparable(typ)
 		if err != nil {
 			return nil, err
 		}
 		if !comparable {
-			// Non-comparable params are represented as a deep hash
-			return IdPath("Hash", hashPkg), nil
+			// Non-comparable params are not represented in the params section
+			// of the paramsKey
+			return nil, nil
 		}
+	case hashesIdent:
+		// Everything is represented as a hash in the hashes section of the
+		// paramsKey
+		return IdPath(hashType, hashPkg), nil
+	default:
+		logs.Panicf("Unknown label: %s", label)
 	}
 
 	if ellipsis, ok := typ.(*dst.Ellipsis); ok {
@@ -516,8 +693,6 @@ func (c *Converter) fnRecorderStruct(typeName string, prefix string) *dst.GenDec
 	return TypeDecl(TypeSpec(structName).Type(Struct(
 		Field(Idf("%s_%s", prefix, paramsIdent)).
 			Names(Id(c.export(paramsIdent))).Obj,
-		Field(Idf("%s_%s", prefix, paramsKeyIdent)).
-			Names(Id(c.export(paramsKeyIdent))).Obj,
 		Field(Id("uint64")).
 			Names(Id(c.export(anyParamsIdent))).Obj,
 		Field(Id("bool")).
@@ -542,6 +717,11 @@ func (c *Converter) anyParamsStruct(typeName, prefix string) *dst.GenDecl {
 func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt {
 	stateSelector := Sel(Id(moqReceiverIdent)).Dot(Id(c.export(moqIdent))).Obj
 
+	paramsKeyFn := c.export(paramsKeyIdent)
+	if fn.Name != "" {
+		paramsKeyFn = c.export(fmt.Sprintf("%s_%s", paramsKeyIdent, fn.Name))
+	}
+
 	stmts := []dst.Stmt{
 		Assign(Id(paramsIdent)).
 			Tok(token.DEFINE).
@@ -550,11 +730,26 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 		Var(Value(Star(Idf("%s_%s", typePrefix, resultsIdent))).
 			Names(Id(resultsIdent)).Obj),
 		Range(Sel(dst.Clone(stateSelector).(dst.Expr)).
-			Dot(Id(c.export(resultsByParamsIdent + fieldSuffix))).Obj).
+			Dot(Id(c.export(resultsByParamsIdent+fieldSuffix))).Obj).
 			Key(Id("_")).
 			Value(Id(resultsByParamsIdent)).
 			Tok(token.DEFINE).
-			Body(c.mockFuncFindResults(typePrefix, fn)...).Obj,
+			Body(
+				Assign(Id(paramsKeyIdent)).
+					Tok(token.DEFINE).
+					Rhs(Call(Sel(Sel(Id(moqReceiverIdent)).
+						Dot(Id(c.export(moqIdent))).Obj).
+						Dot(Id(paramsKeyFn)).Obj).
+						Args(Id(paramsIdent), Sel(Id(resultsByParamsIdent)).
+							Dot(Id(c.export(anyParamsIdent))).Obj).Obj).Obj,
+				Var(Value(Id("bool")).Names(Id(okIdent)).Obj),
+				Assign(Id(resultsIdent), Id(okIdent)).
+					Tok(token.ASSIGN).
+					Rhs(Index(Sel(Id(resultsByParamsIdent)).
+						Dot(Id(c.export(resultsIdent))).Obj).
+						Sub(Id(paramsKeyIdent)).Obj).Obj,
+				If(Id(okIdent)).Body(Break()).Obj,
+			).Obj,
 	}
 
 	stmts = append(stmts,
@@ -667,69 +862,6 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 	return stmts
 }
 
-func (c *Converter) mockFuncFindResults(typePrefix string, fn Func) []dst.Stmt {
-	var stmts []dst.Stmt
-	var paramPos int
-	count := 0
-	for _, param := range fn.Params.List {
-		if len(param.Names) == 0 {
-			pName := fmt.Sprintf("%s%d", paramPrefix, count+1)
-			stmts = append(stmts, c.mockFuncFindResultsParam(
-				resultsByParamsIdent, nil, pName, paramPos, param.Type)...)
-			paramPos++
-			count++
-		}
-
-		for _, name := range param.Names {
-			stmts = append(stmts, c.mockFuncFindResultsParam(
-				resultsByParamsIdent, nil, validName(
-					name.Name, paramPrefix, count), paramPos, param.Type)...)
-			paramPos++
-			count++
-		}
-	}
-
-	stmts = append(stmts, Assign(Id(paramsKeyIdent)).
-		Tok(token.DEFINE).
-		Rhs(Comp(Idf("%s_%s", typePrefix, paramsKeyIdent)).
-			// Passing through as params not paramsKey as hashing is already done
-			Elts(c.passthroughElements(fn.Params, paramsIdent, usedSuffix, nil)...).Obj).Obj)
-	stmts = append(stmts, Var(Value(Id("bool")).Names(Id(okIdent)).Obj))
-	stmts = append(stmts, Assign(Id(resultsIdent), Id(okIdent)).
-		Tok(token.ASSIGN).
-		Rhs(Index(Sel(Id(resultsByParamsIdent)).Dot(Id(c.export(resultsIdent))).Obj).
-			Sub(Id(paramsKeyIdent)).Obj).Obj)
-	stmts = append(stmts, If(Id(okIdent)).Body(Break()).Obj)
-
-	return stmts
-}
-
-func (c *Converter) mockFuncFindResultsParam(
-	sel string, pKeySel *dst.SelectorExpr, pName string, paramPos int, typ dst.Expr,
-) []dst.Stmt {
-	cType, err := c.comparableType(true, dst.Clone(typ).(dst.Expr))
-	if err != nil {
-		logs.Panic("Call MethodStructs first to get a meaningful error", err)
-	}
-
-	needComparable := true
-	if pKeySel != nil {
-		needComparable = false
-	}
-	pUsed := fmt.Sprintf("%sUsed", pName)
-	return []dst.Stmt{
-		Var(Value(cType).Names(Id(pUsed)).Obj),
-		If(Bin(Bin(Sel(Id(sel)).Dot(Id(c.export(anyParamsIdent))).Obj).
-			Op(token.AND).
-			Y(Paren(Bin(LitInt(1)).Op(token.SHL).Y(LitInt(paramPos)).Obj)).Obj).
-			Op(token.EQL).
-			Y(LitInt(0)).Obj).
-			Body(Assign(Id(pUsed)).
-				Tok(token.ASSIGN).
-				Rhs(c.passthroughValue(Id(pName), typ, needComparable, pKeySel)).Obj).Obj,
-	}
-}
-
 func (c *Converter) recorderFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.moqName(typeName)
 
@@ -764,10 +896,6 @@ func (c *Converter) recorderFnInterfaceBody(
 				Key(Id(c.export(paramsIdent))).
 					Value(Comp(Idf("%s_%s", typePrefix, paramsIdent)).
 						Elts(c.passthroughElements(fn.Params, paramsIdent, "", nil)...).Obj,
-					).Decs(kvExprDec(dst.None)).Obj,
-				Key(Id(c.export(paramsKeyIdent))).
-					Value(Comp(Idf("%s_%s", typePrefix, paramsKeyIdent)).
-						Elts(c.passthroughElements(fn.Params, paramsKeyIdent, "", nil)...).Obj,
 					).Decs(kvExprDec(dst.None)).Obj,
 				Key(Id(c.export(sequenceIdent))).
 					Value(Bin(Sel(Sel(moqVal).
@@ -971,22 +1099,30 @@ func (c *Converter) findResultsFn(typeName string, fn Func) *dst.FuncDecl {
 		fnRecName = fmt.Sprintf("%s_%s", mName, fnRecorderSuffix)
 	}
 
+	incrRepeat := Expr(Call(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+		Dot(Id(c.export(resultsIdent))).Obj).
+		Dot(Id(c.export(repeatIdent))).Obj).
+		Dot(Id(incrementFnName)).Obj).
+		Args(Sel(Sel(Sel(Id(recorderReceiverIdent)).
+			Dot(Id(c.export(moqIdent))).Obj).
+			Dot(Id(c.export(sceneIdent))).Obj).
+			Dot(Id(tType)).Obj).Obj).Obj
+	body := []dst.Stmt{
+		If(Bin(Sel(Id(recorderReceiverIdent)).
+			Dot(Id(c.export(resultsIdent))).Obj).
+			Op(token.NEQ).
+			Y(Id(nilIdent)).Obj).
+			Body(
+				dst.Clone(incrRepeat).(*dst.ExprStmt),
+				Return(),
+			).Decs(IfDecs(dst.EmptyLine).Obj).Obj,
+	}
+	body = append(body, c.findRecorderResults(typeName, fn)...)
+	body = append(body, dst.Clone(incrRepeat).(*dst.ExprStmt))
+
 	return Fn(c.export(findResultsFnName)).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-		Body(If(Bin(Sel(Id(recorderReceiverIdent)).
-			Dot(Id(c.export(resultsIdent))).Obj).
-			Op(token.EQL).
-			Y(Id(nilIdent)).Obj).
-			Body(c.findRecorderResults(typeName, fn)...).Obj,
-			Expr(Call(Sel(Sel(Sel(Id(recorderReceiverIdent)).
-				Dot(Id(c.export(resultsIdent))).Obj).
-				Dot(Id(c.export(repeatIdent))).Obj).
-				Dot(Id(incrementFnName)).Obj).
-				Args(Sel(Sel(Sel(Id(recorderReceiverIdent)).
-					Dot(Id(c.export(moqIdent))).Obj).
-					Dot(Id(c.export(sceneIdent))).Obj).
-					Dot(Id(tType)).Obj).Obj).Obj,
-		).Decs(stdFuncDec()).Obj
+		Body(body...).Decs(stdFuncDec()).Obj
 }
 
 func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
@@ -995,18 +1131,20 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 	results := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultsIdent)
 	resultsByParamsType := fmt.Sprintf("%s_%s_%s", mName, fn.Name, resultsByParamsIdent)
 	paramsKey := fmt.Sprintf("%s_%s_%s", mName, fn.Name, paramsKeyIdent)
+	paramsKeyFn := c.export(fmt.Sprintf("%s_%s", paramsKeyIdent, fn.Name))
 	resultsByParams := fmt.Sprintf("%s_%s", resultsByParamsIdent, fn.Name)
 	if fn.Name == "" {
 		results = fmt.Sprintf("%s_%s", mName, resultsIdent)
 		resultsByParamsType = fmt.Sprintf("%s_%s", mName, resultsByParamsIdent)
 		paramsKey = fmt.Sprintf("%s_%s", mName, paramsKeyIdent)
+		paramsKeyFn = c.export(paramsKeyIdent)
 		resultsByParams = resultsByParamsIdent
 	}
 
 	moqSel := Sel(Sel(Id(recorderReceiverIdent)).
 		Dot(Id(c.export(moqIdent))).Obj).Obj
 
-	stmts := []dst.Stmt{
+	return []dst.Stmt{
 		Assign(Id(anyCountIdent)).
 			Tok(token.DEFINE).
 			Rhs(Call(IdPath("OnesCount64", "math/bits")).Args(
@@ -1071,33 +1209,12 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 					Rhs(Star(Id(resultsIdent))).Obj,
 			).Obj,
 		).Decs(IfDecs(dst.EmptyLine).Obj).Obj,
-	}
-
-	pKeySel := Sel(Sel(Id(recorderReceiverIdent)).
-		Dot(Id(c.export(paramsKeyIdent))).Obj).Obj
-	count := 0
-	for _, param := range fn.Params.List {
-		if len(param.Names) == 0 {
-			pName := fmt.Sprintf("%s%d", paramPrefix, count+1)
-			stmts = append(stmts, c.mockFuncFindResultsParam(
-				recorderReceiverIdent, pKeySel, pName, count, param.Type)...)
-			count++
-		}
-
-		for _, name := range param.Names {
-			stmts = append(stmts, c.mockFuncFindResultsParam(
-				recorderReceiverIdent, pKeySel,
-				validName(name.Name, paramPrefix, count), count, param.Type)...)
-			count++
-		}
-	}
-
-	stmts = append(stmts,
 		Assign(Id(paramsKeyIdent)).
 			Tok(token.DEFINE).
-			Rhs(Comp(Id(paramsKey)).
-				// Passing through as params not paramsKey as hashing is already done
-				Elts(c.passthroughElements(fn.Params, paramsIdent, usedSuffix, nil)...).Obj).
+			Rhs(Call(Sel(Sel(Id(recorderReceiverIdent)).
+				Dot(Id(c.export(moqIdent))).Obj).Dot(Id(paramsKeyFn)).Obj).
+				Args(Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(paramsIdent))).Obj,
+					Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(anyParamsIdent))).Obj).Obj).
 			Decs(AssignDecs(dst.None).After(dst.EmptyLine).Obj).Obj,
 		Var(Value(Id("bool")).Names(Id(okIdent)).Obj),
 		Assign(Sel(Id(recorderReceiverIdent)).Dot(Id(c.export(resultsIdent))).Obj, Id(okIdent)).
@@ -1131,10 +1248,8 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 					Tok(token.ASSIGN).
 					Rhs(Sel(Id(recorderReceiverIdent)).
 						Dot(Id(c.export(resultsIdent))).Obj).Obj,
-			).Obj,
-	)
-
-	return stmts
+			).Decs(IfDecs(dst.EmptyLine).Obj).Obj,
+	}
 }
 
 func (c *Converter) recorderRepeatFn(typeName string, fn Func) *dst.FuncDecl {
@@ -1217,6 +1332,123 @@ func (c *Converter) recorderRepeatFn(typeName string, fn Func) *dst.FuncDecl {
 		Decs(stdFuncDec()).Obj
 }
 
+func (c *Converter) paramsKeyFn(typeName string, fn Func) *dst.FuncDecl {
+	var stmts []dst.Stmt
+	count := 0
+	for _, param := range fn.Params.List {
+		if len(param.Names) == 0 {
+			stmts = append(stmts, c.mockFuncFindResultsParam(
+				fn, fmt.Sprintf("%s%d", paramPrefix, count+1), count, param.Type)...)
+			count++
+		}
+
+		for _, name := range param.Names {
+			stmts = append(stmts,
+				c.mockFuncFindResultsParam(fn, name.Name, count, param.Type)...)
+			count++
+		}
+	}
+
+	mName := c.moqName(typeName)
+	params := fmt.Sprintf("%s_%s_%s", mName, fn.Name, paramsIdent)
+	paramsKey := fmt.Sprintf("%s_%s_%s", mName, fn.Name, paramsKeyIdent)
+	fnName := fmt.Sprintf("%s_%s", paramsKeyIdent, fn.Name)
+	if fn.Name == "" {
+		params = fmt.Sprintf("%s_%s", mName, paramsIdent)
+		paramsKey = fmt.Sprintf("%s_%s", mName, paramsKeyIdent)
+		fnName = paramsKeyIdent
+	}
+
+	pStruct, err := c.methodStruct(paramsKeyIdent, fn.Params)
+	if err != nil {
+		logs.Panic("Call MethodStructs first to get a meaningful error", err)
+	}
+	pkStruct, err := c.methodStruct(hashesIdent, fn.Params)
+	if err != nil {
+		logs.Panic("Call MethodStructs first to get a meaningful error", err)
+	}
+	stmts = append(stmts, Return(Comp(Id(paramsKey)).Elts(
+		Key(Id(c.export(paramsIdent))).Value(Comp(pStruct).
+			Elts(c.passthroughElements(
+				fn.Params, paramsKeyIdent, usedSuffix, nil)...).Obj).
+			Decs(kvExprDec(dst.NewLine)).Obj,
+		Key(Id(c.export(hashesIdent))).Value(Comp(pkStruct).
+			Elts(c.passthroughElements(
+				fn.Params, hashesIdent, usedHashSuffix, nil)...).Obj).Obj).Obj))
+
+	return Fn(c.export(fnName)).
+		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
+		Params(Field(Id(params)).Names(Id(paramsIdent)).Obj,
+			Field(Id("uint64")).Names(Id(anyParamsIdent)).Obj).
+		Results(Field(Id(paramsKey)).Obj).
+		Body(stmts...).Obj
+}
+
+func (c *Converter) mockFuncFindResultsParam(
+	fn Func, pName string, paramPos int, typ dst.Expr,
+) []dst.Stmt {
+	comp, err := c.typeCache.IsComparable(typ)
+	if err != nil {
+		logs.Panic("Call MethodStructs first to get a meaningful error", err)
+	}
+
+	vName := validName(pName, paramPrefix, paramPos)
+
+	var stmts []dst.Stmt
+	pUsed := fmt.Sprintf("%s%s", vName, usedSuffix)
+	if comp {
+		stmts = append(stmts, Var(Value(dst.Clone(typ).(dst.Expr)).Names(Id(pUsed)).Obj))
+	}
+	hashUsed := fmt.Sprintf("%s%s", vName, usedHashSuffix)
+	stmts = append(stmts, Var(Value(IdPath(hashType, hashPkg)).Names(Id(hashUsed)).Obj))
+
+	ifSel := Sel(Sel(Sel(Sel(Id(moqReceiverIdent)).
+		Dot(Id(c.export(runtimeIdent))).Obj).
+		Dot(Id(c.export(parameterIndexingIdent))).Obj).
+		Dot(Id(fn.Name)).Obj).
+		Dot(Id(c.export(vName))).Obj
+	fatalMsg := LitStringf("The %s parameter of the %s function can't be indexed by value",
+		vName, fn.Name)
+	if fn.Name == "" {
+		ifSel = Sel(Sel(Sel(Id(moqReceiverIdent)).
+			Dot(Id(c.export(runtimeIdent))).Obj).
+			Dot(Id(c.export(parameterIndexingIdent))).Obj).
+			Dot(Id(c.export(vName))).Obj
+		fatalMsg = LitStringf("The %s parameter can't be indexed by value", vName)
+	}
+
+	ifCond := If(Bin(ifSel).
+		Op(token.EQL).
+		Y(IdPath(paramIndexByValueIdent, moqPkg)).Obj)
+	pKeySel := Sel(Id(paramsIdent)).Obj
+	hashAssign := Assign(Id(hashUsed)).
+		Tok(token.ASSIGN).
+		Rhs(c.passthroughValue(Id(vName), true, pKeySel)).Obj
+	var usedBody []dst.Stmt
+	if comp {
+		usedBody = append(usedBody, ifCond.Body(
+			Assign(Id(pUsed)).
+				Tok(token.ASSIGN).
+				Rhs(c.passthroughValue(Id(vName), false, pKeySel)).Obj).
+			Else(hashAssign).Obj)
+	} else {
+		usedBody = append(usedBody, ifCond.Body(Expr(Call(Sel(Sel(Sel(Id(moqReceiverIdent)).
+			Dot(Id(c.export(sceneIdent))).Obj).
+			Dot(Id(tType)).Obj).
+			Dot(Id(fatalfFnName)).Obj).
+			Args(fatalMsg).Obj).Obj).Obj)
+		usedBody = append(usedBody, hashAssign)
+	}
+
+	stmts = append(stmts, If(Bin(Bin(Id(anyParamsIdent)).
+		Op(token.AND).
+		Y(Paren(Bin(LitInt(1)).Op(token.SHL).Y(LitInt(paramPos)).Obj)).Obj).
+		Op(token.EQL).
+		Y(LitInt(0)).Obj).
+		Body(usedBody...).Obj)
+	return stmts
+}
+
 func (c *Converter) lastResult(forUpdate bool) *dst.AssignStmt {
 	var rhs dst.Expr = Index(Sel(Sel(Id(recorderReceiverIdent)).
 		Dot(Id(c.export(resultsIdent))).Obj).
@@ -1285,27 +1517,36 @@ func (c *Converter) recorderSeqFn(fnName, assign, typeName string, fn Func) *dst
 func (c *Converter) passthroughElements(
 	fl *dst.FieldList, label, valSuffix string, sel *dst.SelectorExpr,
 ) []dst.Expr {
-	unnamedPrefix, needComparable := labelDirection(label)
+	unnamedPrefix, dropNonComparable := labelDirection(label)
 	var elts []dst.Expr
 	if fl != nil {
 		beforeDec := dst.NewLine
 		count := 0
 		for _, field := range fl.List {
+			comp, err := c.typeCache.IsComparable(field.Type)
+			if err != nil {
+				logs.Panic("Call MethodStructs first to get a meaningful error", err)
+			}
+
 			if len(field.Names) == 0 {
-				pName := fmt.Sprintf("%s%d", unnamedPrefix, count+1)
-				elts = append(elts, Key(Id(c.export(pName))).Value(
-					c.passthroughValue(Id(pName+valSuffix), field.Type, needComparable, sel)).
-					Decs(kvExprDec(beforeDec)).Obj)
-				beforeDec = dst.None
+				if comp || !dropNonComparable {
+					pName := fmt.Sprintf("%s%d", unnamedPrefix, count+1)
+					elts = append(elts, Key(Id(c.export(pName))).Value(
+						c.passthroughValue(Id(pName+valSuffix), false, sel)).
+						Decs(kvExprDec(beforeDec)).Obj)
+					beforeDec = dst.None
+				}
 				count++
 			}
 
 			for _, name := range field.Names {
-				vName := validName(name.Name, unnamedPrefix, count)
-				elts = append(elts, Key(Id(c.export(vName))).Value(
-					c.passthroughValue(Id(vName+valSuffix), field.Type, needComparable, sel)).
-					Decs(kvExprDec(beforeDec)).Obj)
-				beforeDec = dst.None
+				if comp || !dropNonComparable {
+					vName := validName(name.Name, unnamedPrefix, count)
+					elts = append(elts, Key(Id(c.export(vName))).Value(
+						c.passthroughValue(Id(vName+valSuffix), false, sel)).
+						Decs(kvExprDec(beforeDec)).Obj)
+					beforeDec = dst.None
+				}
 				count++
 			}
 		}
@@ -1315,20 +1556,14 @@ func (c *Converter) passthroughElements(
 }
 
 func (c *Converter) passthroughValue(
-	src *dst.Ident, typ dst.Expr, needComparable bool, sel *dst.SelectorExpr,
+	src *dst.Ident, needComparable bool, sel *dst.SelectorExpr,
 ) dst.Expr {
 	var val dst.Expr = src
 	if sel != nil {
 		val = cloneSelect(sel, c.export(src.Name))
 	}
 	if needComparable {
-		c, err := c.typeCache.IsComparable(typ)
-		if err != nil {
-			logs.Panic("Call MethodStructs first to get a meaningful error", err)
-		}
-		if !c {
-			val = Call(IdPath("DeepHash", hashPkg)).Args(val).Obj
-		}
+		val = Call(IdPath("DeepHash", hashPkg)).Args(val).Obj
 	}
 	return val
 }
@@ -1420,22 +1655,25 @@ func stdFuncDec() dst.FuncDeclDecorations {
 	}
 }
 
-func labelDirection(label string) (unnamedPrefix string, needComparable bool) {
+func labelDirection(label string) (unnamedPrefix string, dropNonComparable bool) {
 	switch label {
 	case paramsIdent:
 		unnamedPrefix = paramPrefix
-		needComparable = false
+		dropNonComparable = false
 	case paramsKeyIdent:
 		unnamedPrefix = paramPrefix
-		needComparable = true
+		dropNonComparable = true
+	case hashesIdent:
+		unnamedPrefix = paramPrefix
+		dropNonComparable = false
 	case resultsIdent:
 		unnamedPrefix = resultPrefix
-		needComparable = false
+		dropNonComparable = false
 	default:
 		logs.Panicf("Unknown label: %s", label)
 	}
 
-	return unnamedPrefix, needComparable
+	return unnamedPrefix, dropNonComparable
 }
 
 func isVariadic(fl *dst.FieldList) bool {

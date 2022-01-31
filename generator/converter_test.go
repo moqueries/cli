@@ -92,7 +92,8 @@ func TestConverter(t *testing.T) {
 				Results: func1Results,
 			},
 			{
-				Name: "func2",
+				Name:   "func2",
+				Params: &dst.FieldList{List: nil},
 			},
 		}
 
@@ -347,7 +348,7 @@ func TestConverter(t *testing.T) {
 			beforeEach(t)
 
 			// ACT
-			decl := converter.NewFunc(iSpec)
+			decl := converter.NewFunc(iSpec, nil)
 
 			// ASSERT
 			if len(decl.Decs.Start) < 1 {
@@ -365,7 +366,7 @@ func TestConverter(t *testing.T) {
 			beforeEach(t)
 
 			// ACT
-			decl := converter.NewFunc(fnSpec)
+			decl := converter.NewFunc(fnSpec, nil)
 
 			// ASSERT
 			if len(decl.Decs.Start) < 1 {

@@ -1,8 +1,10 @@
 package testmoqs_test
 
 import (
+	"io"
 	"reflect"
 
+	"github.com/myshkin5/moqueries/generator/testmoqs"
 	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
 	"github.com/myshkin5/moqueries/moq"
 )
@@ -11,9 +13,9 @@ type usualAdaptor struct {
 	m *moqUsual
 }
 
-func (a *usualAdaptor) exported() bool { return false }
+func (a *usualAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *usualAdaptor) tracksParams() bool { return true }
+func (a *usualAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *usualAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &usualRecorder{r: a.m.onCall().Usual(sParams[0], bParam)}
@@ -109,9 +111,11 @@ type exportedUsualAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedUsualAdaptor) exported() bool { return true }
+func (a *exportedUsualAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedUsualAdaptor) tracksParams() bool { return true }
+func (a *exportedUsualAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedUsualAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedUsualRecorder{r: a.m.OnCall().Usual(sParams[0], bParam)}
@@ -207,9 +211,9 @@ type noNamesAdaptor struct {
 	m *moqUsual
 }
 
-func (a *noNamesAdaptor) exported() bool { return false }
+func (a *noNamesAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *noNamesAdaptor) tracksParams() bool { return true }
+func (a *noNamesAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *noNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &noNamesRecorder{r: a.m.onCall().NoNames(sParams[0], bParam)}
@@ -305,9 +309,11 @@ type exportedNoNamesAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedNoNamesAdaptor) exported() bool { return true }
+func (a *exportedNoNamesAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedNoNamesAdaptor) tracksParams() bool { return true }
+func (a *exportedNoNamesAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedNoNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedNoNamesRecorder{r: a.m.OnCall().NoNames(sParams[0], bParam)}
@@ -403,9 +409,9 @@ type noResultsAdaptor struct {
 	m *moqUsual
 }
 
-func (a *noResultsAdaptor) exported() bool { return false }
+func (a *noResultsAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *noResultsAdaptor) tracksParams() bool { return true }
+func (a *noResultsAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *noResultsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &noResultsRecorder{r: a.m.onCall().NoResults(sParams[0], bParam)}
@@ -494,9 +500,11 @@ type exportedNoResultsAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedNoResultsAdaptor) exported() bool { return true }
+func (a *exportedNoResultsAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedNoResultsAdaptor) tracksParams() bool { return true }
+func (a *exportedNoResultsAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedNoResultsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedNoResultsRecorder{r: a.m.OnCall().NoResults(sParams[0], bParam)}
@@ -585,9 +593,11 @@ type noParamsAdaptor struct {
 	m *moqUsual
 }
 
-func (a *noParamsAdaptor) exported() bool { return false }
+func (a *noParamsAdaptor) config() adaptorConfig {
+	return adaptorConfig{noParams: true}
+}
 
-func (a *noParamsAdaptor) tracksParams() bool { return false }
+func (a *noParamsAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *noParamsAdaptor) newRecorder([]string, bool) recorder {
 	return &noParamsRecorder{r: a.m.onCall().NoParams()}
@@ -657,9 +667,11 @@ type exportedNoParamsAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedNoParamsAdaptor) exported() bool { return true }
+func (a *exportedNoParamsAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true, noParams: true}
+}
 
-func (a *exportedNoParamsAdaptor) tracksParams() bool { return false }
+func (a *exportedNoParamsAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedNoParamsAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedNoParamsRecorder{r: a.m.OnCall().NoParams()}
@@ -729,9 +741,11 @@ type nothingAdaptor struct {
 	m *moqUsual
 }
 
-func (a *nothingAdaptor) exported() bool { return false }
+func (a *nothingAdaptor) config() adaptorConfig {
+	return adaptorConfig{noParams: true}
+}
 
-func (a *nothingAdaptor) tracksParams() bool { return false }
+func (a *nothingAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *nothingAdaptor) newRecorder([]string, bool) recorder {
 	return &nothingRecorder{r: a.m.onCall().Nothing()}
@@ -794,9 +808,11 @@ type exportedNothingAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedNothingAdaptor) exported() bool { return true }
+func (a *exportedNothingAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true, noParams: true}
+}
 
-func (a *exportedNothingAdaptor) tracksParams() bool { return false }
+func (a *exportedNothingAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedNothingAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedNothingRecorder{r: a.m.OnCall().Nothing()}
@@ -859,9 +875,9 @@ type variadicAdaptor struct {
 	m *moqUsual
 }
 
-func (a *variadicAdaptor) exported() bool { return false }
+func (a *variadicAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *variadicAdaptor) tracksParams() bool { return true }
+func (a *variadicAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *variadicAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &variadicRecorder{r: a.m.onCall().Variadic(bParam, sParams...)}
@@ -957,9 +973,11 @@ type exportedVariadicAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedVariadicAdaptor) exported() bool { return true }
+func (a *exportedVariadicAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedVariadicAdaptor) tracksParams() bool { return true }
+func (a *exportedVariadicAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedVariadicAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedVariadicRecorder{r: a.m.OnCall().Variadic(bParam, sParams...)}
@@ -1056,9 +1074,9 @@ type repeatedIdsAdaptor struct {
 	m *moqUsual
 }
 
-func (a *repeatedIdsAdaptor) exported() bool { return false }
+func (a *repeatedIdsAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *repeatedIdsAdaptor) tracksParams() bool { return true }
+func (a *repeatedIdsAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *repeatedIdsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &repeatedIdsRecorder{r: a.m.onCall().RepeatedIds(sParams[0], sParams[1], bParam)}
@@ -1163,9 +1181,11 @@ type exportedRepeatedIdsAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedRepeatedIdsAdaptor) exported() bool { return true }
+func (a *exportedRepeatedIdsAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedRepeatedIdsAdaptor) tracksParams() bool { return true }
+func (a *exportedRepeatedIdsAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedRepeatedIdsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedRepeatedIdsRecorder{r: a.m.OnCall().RepeatedIds(sParams[0], sParams[1], bParam)}
@@ -1270,9 +1290,9 @@ type timesAdaptor struct {
 	m *moqUsual
 }
 
-func (a *timesAdaptor) exported() bool { return false }
+func (a *timesAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *timesAdaptor) tracksParams() bool { return true }
+func (a *timesAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *timesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &timesRecorder{r: a.m.onCall().Times(sParams[0], bParam)}
@@ -1368,9 +1388,11 @@ type exportedTimesAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedTimesAdaptor) exported() bool { return true }
+func (a *exportedTimesAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedTimesAdaptor) tracksParams() bool { return true }
+func (a *exportedTimesAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedTimesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedTimesRecorder{r: a.m.OnCall().Times(sParams[0], bParam)}
@@ -1466,9 +1488,9 @@ type difficultParamNamesAdaptor struct {
 	m *moqUsual
 }
 
-func (a *difficultParamNamesAdaptor) exported() bool { return false }
+func (a *difficultParamNamesAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *difficultParamNamesAdaptor) tracksParams() bool { return true }
+func (a *difficultParamNamesAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *difficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &difficultParamNamesRecorder{r: a.m.onCall().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)}
@@ -1557,9 +1579,11 @@ type exportedDifficultParamNamesAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedDifficultParamNamesAdaptor) exported() bool { return true }
+func (a *exportedDifficultParamNamesAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
 
-func (a *exportedDifficultParamNamesAdaptor) tracksParams() bool { return true }
+func (a *exportedDifficultParamNamesAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedDifficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedDifficultParamNamesRecorder{r: a.m.OnCall().DifficultParamNames(
@@ -1649,7 +1673,11 @@ type difficultResultNamesAdaptor struct {
 	m *moqUsual
 }
 
-func (a *difficultResultNamesAdaptor) exported() bool { return false }
+func (a *difficultResultNamesAdaptor) config() adaptorConfig {
+	return adaptorConfig{noParams: true}
+}
+
+func (a *difficultResultNamesAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *difficultResultNamesAdaptor) tracksParams() bool { return false }
 
@@ -1724,9 +1752,11 @@ type exportedDifficultResultNamesAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (a *exportedDifficultResultNamesAdaptor) exported() bool { return true }
+func (a *exportedDifficultResultNamesAdaptor) config() adaptorConfig {
+	return adaptorConfig{exported: true, noParams: true}
+}
 
-func (a *exportedDifficultResultNamesAdaptor) tracksParams() bool { return false }
+func (a *exportedDifficultResultNamesAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedDifficultResultNamesAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedDifficultResultNamesRecorder{r: a.m.OnCall().DifficultResultNames()}
@@ -1792,5 +1822,710 @@ func (r *exportedDifficultResultNamesRecorder) repeat(repeaters ...moq.Repeater)
 }
 
 func (r *exportedDifficultResultNamesRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type passByReferenceAdaptor struct {
+	m *moqUsual
+}
+
+func (a *passByReferenceAdaptor) config() adaptorConfig {
+	return adaptorConfig{
+		opaqueParams: true,
+	}
+}
+
+func (a *passByReferenceAdaptor) mock() interface{} { return a.m.mock() }
+
+func (a *passByReferenceAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &passByReferenceRecorder{r: a.m.onCall().PassByReference(&testmoqs.PassByReferenceParams{
+		SParam: sParams[0],
+		BParam: bParam,
+	})}
+}
+
+func (a *passByReferenceAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+	sResult, err := a.m.mock().PassByReference(&testmoqs.PassByReferenceParams{
+		SParam: sParams[0],
+		BParam: bParam,
+	})
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *passByReferenceAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_PassByReference_params{p: &testmoqs.PassByReferenceParams{
+		SParam: sParams[0],
+		BParam: bParam,
+	}}
+}
+
+func (a *passByReferenceAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type passByReferenceRecorder struct {
+	r *moqUsual_PassByReference_fnRecorder
+}
+
+func (r *passByReferenceRecorder) anySParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.p()
+	}
+}
+
+func (r *passByReferenceRecorder) anyBParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.p()
+	}
+}
+
+func (r *passByReferenceRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *passByReferenceRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *passByReferenceRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *passByReferenceRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(p *testmoqs.PassByReferenceParams) {
+		fn()
+		if p.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
+		}
+		if p.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, p.BParam)
+		}
+	})
+}
+
+func (r *passByReferenceRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(p *testmoqs.PassByReferenceParams) (string, error) {
+		fn()
+		if p.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
+		}
+		if p.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, p.BParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *passByReferenceRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *passByReferenceRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type exportedPassByReferenceAdaptor struct {
+	m *exported.MoqUsual
+}
+
+func (a *exportedPassByReferenceAdaptor) config() adaptorConfig {
+	return adaptorConfig{
+		exported:     true,
+		opaqueParams: true,
+	}
+}
+
+func (a *exportedPassByReferenceAdaptor) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedPassByReferenceAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedPassByReferenceRecorder{r: a.m.OnCall().PassByReference(&testmoqs.PassByReferenceParams{
+		SParam: sParams[0],
+		BParam: bParam,
+	})}
+}
+
+func (a *exportedPassByReferenceAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+	sResult, err := a.m.Mock().PassByReference(&testmoqs.PassByReferenceParams{
+		SParam: sParams[0],
+		BParam: bParam,
+	})
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *exportedPassByReferenceAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_PassByReference_params{p: &testmoqs.PassByReferenceParams{
+		SParam: sParams[0],
+		BParam: bParam,
+	}}
+}
+
+func (a *exportedPassByReferenceAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedPassByReferenceRecorder struct {
+	r *exported.MoqUsual_PassByReference_fnRecorder
+}
+
+func (r *exportedPassByReferenceRecorder) anySParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.P()
+	}
+}
+
+func (r *exportedPassByReferenceRecorder) anyBParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.P()
+	}
+}
+
+func (r *exportedPassByReferenceRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedPassByReferenceRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedPassByReferenceRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedPassByReferenceRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(p *testmoqs.PassByReferenceParams) {
+		fn()
+		if p.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
+		}
+		if p.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, p.BParam)
+		}
+	})
+}
+
+func (r *exportedPassByReferenceRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(p *testmoqs.PassByReferenceParams) (string, error) {
+		fn()
+		if p.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
+		}
+		if p.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, p.BParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *exportedPassByReferenceRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedPassByReferenceRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type interfaceParamAdaptor struct {
+	m *moqUsual
+}
+
+func (a *interfaceParamAdaptor) config() adaptorConfig {
+	return adaptorConfig{
+		opaqueParams: true,
+	}
+}
+
+func (a *interfaceParamAdaptor) mock() interface{} { return a.m.mock() }
+
+func (a *interfaceParamAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &interfaceParamRecorder{r: a.m.onCall().InterfaceParam(&testmoqs.InterfaceParamWriter{
+		SParam: sParams[0],
+		BParam: bParam,
+	})}
+}
+
+func (a *interfaceParamAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+	sResult, err := a.m.mock().InterfaceParam(&testmoqs.InterfaceParamWriter{
+		SParam: sParams[0],
+		BParam: bParam,
+	})
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *interfaceParamAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_InterfaceParam_params{w: &testmoqs.InterfaceParamWriter{
+		SParam: sParams[0],
+		BParam: bParam,
+	}}
+}
+
+func (a *interfaceParamAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type interfaceParamRecorder struct {
+	r *moqUsual_InterfaceParam_fnRecorder
+}
+
+func (r *interfaceParamRecorder) anySParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.w()
+	}
+}
+
+func (r *interfaceParamRecorder) anyBParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.w()
+	}
+}
+
+func (r *interfaceParamRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *interfaceParamRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *interfaceParamRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *interfaceParamRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(w io.Writer) {
+		fn()
+		ipw, ok := w.(*testmoqs.InterfaceParamWriter)
+		if !ok && w != nil {
+			t.Fatalf("wanted a *testmoqs.InterfaceParamWriter, got %#v", w)
+		}
+		if ipw.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], ipw.SParam)
+		}
+		if ipw.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, ipw.BParam)
+		}
+	})
+}
+
+func (r *interfaceParamRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(w io.Writer) (string, error) {
+		fn()
+		ipw, ok := w.(*testmoqs.InterfaceParamWriter)
+		if !ok && w != nil {
+			t.Fatalf("wanted a *testmoqs.InterfaceParamWriter, got %#v", w)
+		}
+		if ipw.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], ipw.SParam)
+		}
+		if ipw.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, ipw.BParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *interfaceParamRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *interfaceParamRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type exportedInterfaceParamAdaptor struct {
+	m *exported.MoqUsual
+}
+
+func (a *exportedInterfaceParamAdaptor) config() adaptorConfig {
+	return adaptorConfig{
+		exported:     true,
+		opaqueParams: true,
+	}
+}
+
+func (a *exportedInterfaceParamAdaptor) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedInterfaceParamAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedInterfaceParamRecorder{r: a.m.OnCall().InterfaceParam(&testmoqs.InterfaceParamWriter{
+		SParam: sParams[0],
+		BParam: bParam,
+	})}
+}
+
+func (a *exportedInterfaceParamAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+	sResult, err := a.m.Mock().InterfaceParam(&testmoqs.InterfaceParamWriter{
+		SParam: sParams[0],
+		BParam: bParam,
+	})
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *exportedInterfaceParamAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_InterfaceParam_params{w: &testmoqs.InterfaceParamWriter{
+		SParam: sParams[0],
+		BParam: bParam,
+	}}
+}
+
+func (a *exportedInterfaceParamAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedInterfaceParamRecorder struct {
+	r *exported.MoqUsual_InterfaceParam_fnRecorder
+}
+
+func (r *exportedInterfaceParamRecorder) anySParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.W()
+	}
+}
+
+func (r *exportedInterfaceParamRecorder) anyBParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.W()
+	}
+}
+
+func (r *exportedInterfaceParamRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedInterfaceParamRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedInterfaceParamRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedInterfaceParamRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(w io.Writer) {
+		fn()
+		ipw, ok := w.(*testmoqs.InterfaceParamWriter)
+		if !ok && w != nil {
+			t.Fatalf("wanted a *testmoqs.InterfaceParamWriter, got %#v", w)
+		}
+		if ipw.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], ipw.SParam)
+		}
+		if ipw.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, ipw.BParam)
+		}
+	})
+}
+
+func (r *exportedInterfaceParamRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(w io.Writer) (string, error) {
+		fn()
+		ipw, ok := w.(*testmoqs.InterfaceParamWriter)
+		if !ok && w != nil {
+			t.Fatalf("wanted a *testmoqs.InterfaceParamWriter, got %#v", w)
+		}
+		if ipw.SParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], ipw.SParam)
+		}
+		if ipw.BParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, ipw.BParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *exportedInterfaceParamRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedInterfaceParamRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type interfaceResultAdaptor struct {
+	m *moqUsual
+}
+
+func (a *interfaceResultAdaptor) config() adaptorConfig {
+	return adaptorConfig{
+		opaqueParams: true,
+	}
+}
+
+func (a *interfaceResultAdaptor) mock() interface{} { return a.m.mock() }
+
+func (a *interfaceResultAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &interfaceResultRecorder{r: a.m.onCall().InterfaceResult(sParams[0], bParam)}
+}
+
+func (a *interfaceResultAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+	r := a.m.mock().InterfaceResult(sParams[0], bParam)
+	irr, ok := r.(*testmoqs.InterfaceResultReader)
+	if !ok {
+		if r != nil {
+			t.Fatalf("wanted a *testmoqs.InterfaceResultReader, got %#v", r)
+		}
+		if res.sResults[0] != "" || res.err != nil {
+			t.Fatalf("wanted real results, got %#v", r)
+		}
+		return
+	}
+	if irr.SResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], irr)
+	}
+	if irr.Err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, irr)
+	}
+}
+
+func (a *interfaceResultAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_InterfaceResult_params{
+		sParam: sParams[0],
+		bParam: bParam,
+	}
+}
+
+func (a *interfaceResultAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type interfaceResultRecorder struct {
+	r *moqUsual_InterfaceResult_fnRecorder
+}
+
+func (r *interfaceResultRecorder) anySParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.sParam()
+	}
+}
+
+func (r *interfaceResultRecorder) anyBParam() {
+	a := r.r.any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.bParam()
+	}
+}
+
+func (r *interfaceResultRecorder) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *interfaceResultRecorder) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *interfaceResultRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(&testmoqs.InterfaceResultReader{
+		SResult: sResults[0],
+		Err:     err,
+	})
+}
+
+func (r *interfaceResultRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *interfaceResultRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) io.Reader {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return &testmoqs.InterfaceResultReader{
+			SResult: sResults[0],
+			Err:     err,
+		}
+	})
+}
+
+func (r *interfaceResultRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *interfaceResultRecorder) isNil() bool {
+	return r.r == nil
+}
+
+type exportedInterfaceResultAdaptor struct {
+	m *exported.MoqUsual
+}
+
+func (a *exportedInterfaceResultAdaptor) config() adaptorConfig {
+	return adaptorConfig{
+		exported:     true,
+		opaqueParams: true,
+	}
+}
+
+func (a *exportedInterfaceResultAdaptor) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedInterfaceResultAdaptor) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedInterfaceResultRecorder{r: a.m.OnCall().InterfaceResult(sParams[0], bParam)}
+}
+
+func (a *exportedInterfaceResultAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+	r := a.m.Mock().InterfaceResult(sParams[0], bParam)
+	irr, ok := r.(*testmoqs.InterfaceResultReader)
+	if !ok {
+		if r != nil {
+			t.Fatalf("wanted a *testmoqs.InterfaceResultReader, got %#v", r)
+		}
+		if res.sResults[0] != "" || res.err != nil {
+			t.Fatalf("wanted real results, got %#v", r)
+		}
+		return
+	}
+	if irr.SResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], irr)
+	}
+	if irr.Err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, irr)
+	}
+}
+
+func (a *exportedInterfaceResultAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
+	return moqUsual_InterfaceResult_params{
+		sParam: sParams[0],
+		bParam: bParam,
+	}
+}
+
+func (a *exportedInterfaceResultAdaptor) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedInterfaceResultRecorder struct {
+	r *exported.MoqUsual_InterfaceResult_fnRecorder
+}
+
+func (r *exportedInterfaceResultRecorder) anySParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.SParam()
+	}
+}
+
+func (r *exportedInterfaceResultRecorder) anyBParam() {
+	a := r.r.Any()
+	if a == nil {
+		r.r = nil
+	} else {
+		r.r = a.BParam()
+	}
+}
+
+func (r *exportedInterfaceResultRecorder) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedInterfaceResultRecorder) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedInterfaceResultRecorder) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(&testmoqs.InterfaceResultReader{
+		SResult: sResults[0],
+		Err:     err,
+	})
+}
+
+func (r *exportedInterfaceResultRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *exportedInterfaceResultRecorder) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) io.Reader {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return &testmoqs.InterfaceResultReader{
+			SResult: sResults[0],
+			Err:     err,
+		}
+	})
+}
+
+func (r *exportedInterfaceResultRecorder) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedInterfaceResultRecorder) isNil() bool {
 	return r.r == nil
 }

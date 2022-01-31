@@ -25,7 +25,7 @@ type Converterer interface {
 	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
 	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
 	MethodStructs(typeSpec *dst.TypeSpec, fn Func) (structDecls []dst.Decl, err error)
-	NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl)
+	NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
 	IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
 	FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
 	MockMethod(typeName string, fn Func) (funcDecl *dst.FuncDecl)
@@ -49,6 +49,7 @@ type MoqGenerator struct {
 type TypeCache interface {
 	Type(id dst.Ident, loadTestTypes bool) (*dst.TypeSpec, string, error)
 	IsComparable(expr dst.Expr) (bool, error)
+	IsDefaultComparable(expr dst.Expr) (bool, error)
 }
 
 // New returns a new MoqGenerator
@@ -93,7 +94,7 @@ func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool
 		}
 		decls = append(decls, structs...)
 
-		decls = append(decls, g.converter.NewFunc(typeSpec))
+		decls = append(decls, g.converter.NewFunc(typeSpec, funcs))
 
 		decls = append(decls, g.methods(typeSpec, pkgPath, funcs)...)
 

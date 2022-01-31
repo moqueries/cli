@@ -165,6 +165,25 @@ func Field(typ dst.Expr) FieldDSL {
 	return FieldDSL{Obj: &dst.Field{Type: typ}}
 }
 
+// Decs adds decorations to a FieldDSL
+func (d FieldDSL) Decs(decs dst.FieldDecorations) FieldDSL {
+	d.Obj.Decs = decs
+	return d
+}
+
+// FieldDecsDSL translates to a dst.FieldDecorations
+type FieldDecsDSL struct{ Obj dst.FieldDecorations }
+
+// FieldDecs creates a new FieldDecsDSL
+func FieldDecs(before, after dst.SpaceType) FieldDecsDSL {
+	return FieldDecsDSL{Obj: dst.FieldDecorations{
+		NodeDecs: dst.NodeDecs{
+			Before: before,
+			After:  after,
+		},
+	}}
+}
+
 // Names sets the names of a field
 func (d FieldDSL) Names(names ...*dst.Ident) FieldDSL {
 	d.Obj.Names = names
@@ -343,15 +362,19 @@ func If(cond dst.Expr) IfDSL {
 	return IfDSL{Obj: &dst.IfStmt{Cond: cond}}
 }
 
-// Cond set the condition of the If
-func (d IfDSL) Cond(cond dst.Expr) IfDSL {
-	d.Obj.Cond = cond
-	return d
-}
-
 // Body specifies the body of the If
 func (d IfDSL) Body(list ...dst.Stmt) IfDSL {
 	d.Obj.Body = Block(list...).Obj
+	return d
+}
+
+// Else specifies an optional else branch of the If
+func (d IfDSL) Else(els ...dst.Stmt) IfDSL {
+	if len(els) == 1 {
+		d.Obj.Else = els[0]
+	} else {
+		d.Obj.Else = Block(els...).Obj
+	}
 	return d
 }
 

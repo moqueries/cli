@@ -1,5 +1,9 @@
 package testmoqs
 
+import "io"
+
+// NB: Keep in sync with testmoq_test.go TestGenerating
+
 //go:generate moqueries --destination moq_usualfn_test.go UsualFn
 //go:generate moqueries --destination exported/moq_usualfn.go --export UsualFn
 
@@ -60,10 +64,56 @@ type DifficultParamNamesFn func(m, r bool, sequence string, param, params int, r
 // DifficultResultNamesFn has parameters with names that have been problematic
 type DifficultResultNamesFn func() (m, r string, sequence error, param, params int, result, results float32)
 
+// PassByReferenceParams encapsulates the parameters for passing by reference
+// tests
+type PassByReferenceParams struct {
+	SParam string
+	BParam bool
+}
+
+//go:generate moqueries --destination moq_passbyreferencefn_test.go PassByReferenceFn
+//go:generate moqueries --destination exported/moq_passbyreferencefn.go --export PassByReferenceFn
+
+// PassByReferenceFn tests passing parameters by reference
+type PassByReferenceFn func(p *PassByReferenceParams) (sResult string, err error)
+
+//go:generate moqueries --destination moq_interfaceparamfn_test.go InterfaceParamFn
+//go:generate moqueries --destination exported/moq_interfaceparamfn.go --export InterfaceParamFn
+
+// InterfaceParamWriter is used for testing functions that take an interface as
+// a parameter
+type InterfaceParamWriter struct {
+	SParam string
+	BParam bool
+}
+
+func (w *InterfaceParamWriter) Write([]byte) (int, error) {
+	return 0, nil
+}
+
+// InterfaceParamFn tests passing interface parameters
+type InterfaceParamFn func(w io.Writer) (sResult string, err error)
+
+//go:generate moqueries --destination moq_interfaceresultfn_test.go InterfaceResultFn
+//go:generate moqueries --destination exported/moq_interfaceresultfn.go --export InterfaceResultFn
+
+// InterfaceResultReader is used for testing functions that return an interface
+type InterfaceResultReader struct {
+	SResult string
+	Err     error
+}
+
+func (r *InterfaceResultReader) Read(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+// InterfaceResultFn tests returning interface results
+type InterfaceResultFn func(sParam string, bParam bool) (r io.Reader)
+
 //go:generate moqueries --destination moq_usual_test.go Usual
 //go:generate moqueries --destination exported/moq_usual.go --export Usual
 
-// Usual combines all of the above function types into an interface
+// Usual combines all the above function types into an interface
 type Usual interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
 	NoNames(string, bool) (string, error)
@@ -75,4 +125,7 @@ type Usual interface {
 	Times(sParam string, times bool) (sResult string, err error)
 	DifficultParamNames(m, r bool, sequence string, param, params int, result, results float32)
 	DifficultResultNames() (m, r string, sequence error, param, params int, result, results float32)
+	PassByReference(p *PassByReferenceParams) (sResult string, err error)
+	InterfaceParam(w io.Writer) (sResult string, err error)
+	InterfaceResult(sParam string, bParam bool) (r io.Reader)
 }

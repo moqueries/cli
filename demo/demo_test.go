@@ -2,6 +2,7 @@ package demo_test
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"reflect"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/myshkin5/moqueries/demo"
+	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
@@ -455,4 +457,58 @@ func TestOptional(t *testing.T) {
 	}
 
 	scene.AssertExpectationsMet()
+}
+
+func TestIndexByHash(t *testing.T) {
+	scene := moq.NewScene(t)
+	writerMoq := newMoqWriter(scene, nil)
+	storeMoq := newMoqStore(scene, nil)
+
+	storeMoq.runtime.parameterIndexing.LightGadgetsByWidgetId.widgetId = moq.ParamIndexByHash
+
+	storeMoq.onCall().AllWidgetsIds().
+		returnResults([]int{42, 43}, nil)
+
+	storeMoq.onCall().GadgetsByWidgetId(0).any().widgetId().
+		returnResults(nil, nil).repeat(moq.Times(2))
+
+	d := demo.FavWriter{
+		W:     writerMoq.mock(),
+		Store: storeMoq.mock(),
+	}
+
+	expected := map[int]demo.Widget{
+		42: {Id: 42, GadgetsByColor: map[string]demo.Gadget{}},
+		43: {Id: 43, GadgetsByColor: map[string]demo.Gadget{}},
+	}
+
+	widgets, err := d.Load(math.MaxUint32)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if !reflect.DeepEqual(widgets, expected) {
+		t.Errorf("unexpected difference in loaded widgets: %#v", widgets)
+	}
+
+	scene.AssertExpectationsMet()
+}
+
+func TestParamsKeyHashes(t *testing.T) {
+	pk := moqStore_LightGadgetsByWidgetId_paramsKey{
+		params: struct {
+			widgetId  int
+			maxWeight uint32
+		}{
+			widgetId: 0,
+		},
+		hashes: struct {
+			widgetId  hash.Hash
+			maxWeight hash.Hash
+		}{
+			maxWeight: hash.DeepHash(uint32(10)),
+		},
+	}
+
+	fmt.Printf("%#v\n%d\n", pk, pk.hashes.maxWeight)
 }

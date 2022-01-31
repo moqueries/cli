@@ -13,6 +13,7 @@ import (
 	"github.com/dave/dst/decorator"
 
 	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/generator/testmoqs"
 	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
 	"github.com/myshkin5/moqueries/moq"
 )
@@ -22,9 +23,20 @@ type results struct {
 	err      error
 }
 
+type adaptorConfig struct {
+	// exported is true when the generated test code is exported
+	exported bool
+	// noParams is true when the function being tested has no parameters
+	noParams bool
+	// opaqueParams is true when the function being tested doesn't show
+	// parameter content when an error occurs (params might be contained in
+	// a separate struct)
+	opaqueParams bool
+}
+
 type adaptor interface {
-	exported() bool
-	tracksParams() bool
+	config() adaptorConfig
+	mock() interface{}
 	newRecorder(sParams []string, bParam bool) recorder
 	invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results)
 	bundleParams(sParams []string, bParam bool) interface{}
@@ -84,6 +96,12 @@ func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 		"exported difficult param names fn":  &exportedDifficultParamNamesFnAdaptor{m: exported.NewMoqDifficultParamNamesFn(moqScene, &c)},
 		"difficult result names fn":          &difficultResultNamesFnAdaptor{m: newMoqDifficultResultNamesFn(moqScene, &c)},
 		"exported difficult result names fn": &exportedDifficultResultNamesFnAdaptor{m: exported.NewMoqDifficultResultNamesFn(moqScene, &c)},
+		"pass by ref fn":                     &passByReferenceFnAdaptor{m: newMoqPassByReferenceFn(moqScene, &c)},
+		"exported pass by ref fn":            &exportedPassByReferenceFnAdaptor{m: exported.NewMoqPassByReferenceFn(moqScene, &c)},
+		"interface param fn":                 &interfaceParamFnAdaptor{m: newMoqInterfaceParamFn(moqScene, &c)},
+		"exported interface param fn":        &exportedInterfaceParamFnAdaptor{m: exported.NewMoqInterfaceParamFn(moqScene, &c)},
+		"interface result fn":                &interfaceResultFnAdaptor{m: newMoqInterfaceResultFn(moqScene, &c)},
+		"exported interface result param fn": &exportedInterfaceResultFnAdaptor{m: exported.NewMoqInterfaceResultFn(moqScene, &c)},
 
 		"usual":                           &usualAdaptor{m: usualMoq},
 		"exported usual":                  &exportedUsualAdaptor{m: exportUsualMoq},
@@ -105,6 +123,12 @@ func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 		"exported difficult param names":  &exportedDifficultParamNamesAdaptor{m: exportUsualMoq},
 		"difficult result names":          &difficultResultNamesAdaptor{m: usualMoq},
 		"exported difficult result names": &exportedDifficultResultNamesAdaptor{m: exportUsualMoq},
+		"pass by ref":                     &passByReferenceAdaptor{m: usualMoq},
+		"exported pass by ref":            &exportedPassByReferenceAdaptor{m: exportUsualMoq},
+		"interface param":                 &interfaceParamAdaptor{m: usualMoq},
+		"exported interface param":        &exportedInterfaceParamAdaptor{m: exportUsualMoq},
+		"interface result":                &interfaceResultAdaptor{m: usualMoq},
+		"exported interface result param": &exportedInterfaceResultAdaptor{m: exportUsualMoq},
 	}
 
 	return entries
@@ -118,25 +142,26 @@ func TestMoqs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil},
 					results{sResults: []string{"green", "purple"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -200,7 +225,8 @@ func TestExpectations(t *testing.T) {
 				// ASSERT
 				scene.AssertExpectationsMet()
 				moqScene.AssertExpectationsMet()
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hi") {
 						t.Errorf("got: %s, want to contain Hi", fmtMsg)
 					}
@@ -236,7 +262,8 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -246,12 +273,12 @@ func TestRepeaters(t *testing.T) {
 				rec.repeat(moq.Times(4))
 				rec.returnResults([]string{"green", "purple"}, nil)
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -259,7 +286,7 @@ func TestRepeaters(t *testing.T) {
 					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 						results{sResults: []string{"blue", "orange"}, err: nil})
 				}
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -282,7 +309,8 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -292,18 +320,18 @@ func TestRepeaters(t *testing.T) {
 				rec.returnResults([]string{"green", "purple"}, nil)
 				rec.repeat(moq.AnyTimes())
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -442,7 +470,8 @@ func TestAnyValues(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -452,18 +481,18 @@ func TestAnyValues(t *testing.T) {
 				rec.returnResults([]string{"blue", "orange"}, nil)
 				rec.returnResults([]string{"green", "purple"}, nil)
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -483,7 +512,8 @@ func TestAnyValues(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				if !entry.tracksParams() {
+				config := entry.config()
+				if config.noParams {
 					t.Skip("With no params to track, there will be no `any` functions")
 				}
 				scene.Reset()
@@ -496,7 +526,7 @@ func TestAnyValues(t *testing.T) {
 
 				rrFn := "returnResults"
 				drrFn := "doReturnResults"
-				if entry.exported() {
+				if config.exported {
 					rrFn = strings.Title(rrFn)
 					drrFn = strings.Title(drrFn)
 				}
@@ -518,7 +548,7 @@ func TestAnyValues(t *testing.T) {
 				}
 				scene.AssertExpectationsMet()
 				moqScene.AssertExpectationsMet()
-				if entry.tracksParams() {
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hi") {
 						t.Errorf("got: %s, want to contain Hi", fmtMsg)
 					}
@@ -553,24 +583,25 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -593,22 +624,23 @@ func TestAssertExpectationsMet(t *testing.T) {
 				moqScene.Reset()
 
 				// ASSEMBLE
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -627,7 +659,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 					results{sResults: []string{"blue", "orange"}, err: nil})
 				scene.AssertExpectationsMet()
 				moqScene.AssertExpectationsMet()
-				if entry.tracksParams() {
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hi") {
 						t.Errorf("got: %s, want to contain Hi", fmtMsg)
 					}
@@ -717,20 +749,21 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams {
 					expectCall(entry, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil},
 					results{sResults: []string{"green", "purple"}, err: nil})
-				if entry.tracksParams() {
+				if !config.noParams {
 					expectCall(entry, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
 				// ACT
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -740,7 +773,7 @@ func TestSequences(t *testing.T) {
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"green", "purple"}, err: nil})
 
-				if entry.tracksParams() {
+				if !config.noParams {
 					entry.invokeMockAndExpectResults(t, []string{"Bye", "now"}, true,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
@@ -756,7 +789,8 @@ func TestSequences(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{Sequence: moq.SeqDefaultOn}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				if !entry.tracksParams() {
+				config := entry.config()
+				if config.noParams {
 					t.Skip("With no params to track, hard to make conflicting calls")
 				}
 				scene.Reset()
@@ -781,8 +815,10 @@ func TestSequences(t *testing.T) {
 					results{sResults: []string{"blue", "orange"}, err: nil})
 
 				// ASSERT
-				if !strings.Contains(fmtMsg, "Hi") {
-					t.Errorf("got: %s, want to contain Hi", fmtMsg)
+				if !config.opaqueParams {
+					if !strings.Contains(fmtMsg, "Hi") {
+						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					}
 				}
 
 				moqScene.AssertExpectationsMet()
@@ -795,7 +831,7 @@ func TestSequences(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{Sequence: moq.SeqDefaultOff}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				if !entry.tracksParams() {
+				if entry.config().noParams {
 					t.Skip("With no params to track, hard to make conflicting calls")
 				}
 				scene.Reset()
@@ -864,7 +900,8 @@ func TestSequences(t *testing.T) {
 				if !rec.isNil() {
 					t.Errorf("got: %t, want true (nil)", rec.isNil())
 				}
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hello") {
 						t.Errorf("got: %s, want to contain Hello", fmtMsg)
 					}
@@ -904,7 +941,8 @@ func TestSequences(t *testing.T) {
 				if !rec.isNil() {
 					t.Errorf("got: %t, want true (nil)", rec.isNil())
 				}
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hello") {
 						t.Errorf("got: %s, want to contain Hello", fmtMsg)
 					}
@@ -920,7 +958,7 @@ func TestSequences(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{Sequence: moq.SeqDefaultOn}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				if !entry.tracksParams() {
+				if entry.config().noParams {
 					t.Skip("With no params to track, hard to make conflicting calls")
 				}
 				scene.Reset()
@@ -965,7 +1003,7 @@ func TestSequences(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{Sequence: moq.SeqDefaultOn}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				if !entry.tracksParams() {
+				if entry.config().noParams {
 					t.Skip("With no params to track, hard to make conflicting calls")
 				}
 				scene.Reset()
@@ -1127,7 +1165,8 @@ func TestDoFuncs(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{Sequence: moq.SeqDefaultOn}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				if !entry.tracksParams() {
+				config := entry.config()
+				if config.noParams {
 					t.Skip("With no params to track, hard to make conflicting calls")
 				}
 				scene.Reset()
@@ -1154,8 +1193,10 @@ func TestDoFuncs(t *testing.T) {
 					results{sResults: []string{"blue", "orange"}, err: nil})
 
 				// ASSERT
-				if !strings.Contains(fmtMsg, "Hi") {
-					t.Errorf("got: %s, want to contain Hi", fmtMsg)
+				if !config.opaqueParams {
+					if !strings.Contains(fmtMsg, "Hi") {
+						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					}
 				}
 
 				moqScene.AssertExpectationsMet()
@@ -1238,7 +1279,8 @@ func TestOptionalInvocations(t *testing.T) {
 				moqScene.AssertExpectationsMet()
 
 				// ASSERT
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hi") {
 						t.Errorf("got: %s, want to contain Hi", fmtMsg)
 					}
@@ -1307,13 +1349,207 @@ func TestOptionalInvocations(t *testing.T) {
 				moqScene.AssertExpectationsMet()
 
 				// ASSERT
-				if entry.tracksParams() {
+				config := entry.config()
+				if !config.noParams && !config.opaqueParams {
 					if !strings.Contains(fmtMsg, "Hi") {
 						t.Errorf("got: %s, want to contain Hi", fmtMsg)
 					}
 				}
 				scene.AssertExpectationsMet()
 			})
+		}
+	})
+}
+
+func TestConsistentMockInstance(t *testing.T) {
+	for name, entry := range testCases(t, moq.Config{}) {
+		t.Run(name, func(t *testing.T) {
+			// ASSEMBLE
+			scene.Reset()
+			moqScene.Reset()
+			mockAddr1 := fmt.Sprintf("%v", entry.mock())
+
+			// ACT
+			mockAddr2 := fmt.Sprintf("%v", entry.mock())
+
+			// ASSERT
+			if mockAddr1 != mockAddr2 {
+				t.Errorf("wanted same instance, got %s != %s", mockAddr1, mockAddr2)
+			}
+		})
+	}
+}
+
+type paramIndexingAdaptor interface{}
+
+type passByReferenceFnParamIndexingAdaptor struct {
+	m *moqPassByReferenceFn
+}
+
+func (m *passByReferenceFnParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	m.m.runtime.parameterIndexing.p = pi
+}
+
+type exportedPassByReferenceParamIndexingFnAdaptor struct {
+	m *exported.MoqPassByReferenceFn
+}
+
+func (m *exportedPassByReferenceParamIndexingFnAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	m.m.Runtime.ParameterIndexing.P = pi
+}
+
+type passByReferenceParamIndexingAdaptor struct {
+	m *moqUsual
+}
+
+func (m *passByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	m.m.runtime.parameterIndexing.PassByReference.p = pi
+}
+
+type exportedPassByReferenceParamIndexingAdaptor struct {
+	m *exported.MoqUsual
+}
+
+func (m *exportedPassByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	m.m.Runtime.ParameterIndexing.PassByReference.P = pi
+}
+
+func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexingAdaptor {
+	scene = moq.NewScene(t)
+	tMoq = moq.NewMoqT(scene, nil)
+	moqScene = moq.NewScene(tMoq.Mock())
+
+	usualMoq := newMoqUsual(moqScene, &c)
+	exportUsualMoq := exported.NewMoqUsual(moqScene, &c)
+	entries := map[string]paramIndexingAdaptor{
+		"pass by ref fn": &passByReferenceFnParamIndexingAdaptor{
+			m: newMoqPassByReferenceFn(moqScene, &c),
+		},
+		"exported pass by ref fn": &exportedPassByReferenceParamIndexingFnAdaptor{
+			m: exported.NewMoqPassByReferenceFn(moqScene, &c),
+		},
+
+		"pass by ref":          &passByReferenceParamIndexingAdaptor{m: usualMoq},
+		"exported pass by ref": &exportedPassByReferenceParamIndexingAdaptor{m: exportUsualMoq},
+	}
+
+	return entries
+}
+
+type sliceWriter []int
+
+func (w sliceWriter) Write(p []byte) (n int, err error) {
+	return 0, err
+}
+
+func TestParamIndexing(t *testing.T) {
+	t.Run("can index a param by value", func(t *testing.T) {
+		for name := range paramIndexingTestCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene = moq.NewScene(t)
+				tMoq = moq.NewMoqT(scene, nil)
+				moqScene = moq.NewScene(tMoq.Mock())
+
+				p := testmoqs.PassByReferenceParams{
+					SParam: "Hi",
+					BParam: true,
+				}
+
+				usualMoq := newMoqUsual(moqScene, nil)
+				usualMoq.runtime.parameterIndexing.PassByReference.p = moq.ParamIndexByValue
+				usualMoq.onCall().PassByReference(&p).returnResults("Hello", nil)
+
+				// If we are indexing by hash, this change would make the expectation
+				// not match
+				p.SParam = "Changed my mind, good bye!"
+				p.BParam = false
+
+				// ACT
+				sResult, err := usualMoq.mock().PassByReference(&p)
+
+				// ASSERT
+				if sResult != "Hello" {
+					t.Errorf("got %s, wanted Hello", sResult)
+				}
+				if err != nil {
+					t.Errorf("got %#v, wanted no error", err)
+				}
+				scene.AssertExpectationsMet()
+			})
+		}
+	})
+
+	t.Run("errors when indexing params by value and the values are equal but different instances", func(t *testing.T) {
+		for name := range paramIndexingTestCases(t, moq.Config{}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene = moq.NewScene(t)
+				tMoq = moq.NewMoqT(scene, nil)
+				moqScene = moq.NewScene(tMoq.Mock())
+
+				p1 := testmoqs.PassByReferenceParams{
+					SParam: "Hi",
+					BParam: true,
+				}
+				p2 := testmoqs.PassByReferenceParams{
+					SParam: "Hi",
+					BParam: true,
+				}
+
+				usualMoq := newMoqUsual(moqScene, nil)
+				usualMoq.runtime.parameterIndexing.PassByReference.p = moq.ParamIndexByValue
+				usualMoq.onCall().PassByReference(&p1).returnResults("Hello", nil)
+
+				a := passByReferenceAdaptor{m: usualMoq}
+				params := a.bundleParams([]string{"Hi"}, true)
+				tMoq.OnCall().Fatalf("Unexpected call with parameters %#v", params).ReturnResults()
+
+				// ACT
+				sResult, err := usualMoq.mock().PassByReference(&p2)
+
+				// ASSERT
+				if sResult != "" {
+					t.Errorf("got %s, wanted \"\"", sResult)
+				}
+				if err != nil {
+					t.Errorf("got %#v, wanted no error", err)
+				}
+				scene.AssertExpectationsMet()
+			})
+		}
+	})
+
+	t.Run("panics if an interface parameter that can't be indexed by value gets indexed by value", func(t *testing.T) {
+		// ASSEMBLE
+		var r interface{}
+		{
+			defer func() {
+				r = recover()
+			}()
+
+			scene = moq.NewScene(t)
+			usualMoq := newMoqUsual(scene, nil)
+			usualMoq.runtime.parameterIndexing.InterfaceParam.w = moq.ParamIndexByValue
+			w := sliceWriter{}
+
+			// ACT
+			usualMoq.onCall().InterfaceParam(w).returnResults("", nil)
+		}
+
+		// ASSERT
+		if r == nil {
+			t.Fatalf("wanted panic, got none")
+		}
+
+		err, ok := r.(error)
+		if !ok {
+			t.Fatalf("wanted error, got none")
+		}
+
+		msg := "hash of unhashable type testmoqs_test.sliceWriter"
+		if err.Error() != msg {
+			t.Errorf("wanted %s, got %s", msg, err.Error())
 		}
 	})
 }
@@ -1332,10 +1568,10 @@ func TestGenerating(t *testing.T) {
 
 		err := generator.Generate(
 			generator.GenerateRequest{
-				Destination: "moq_nonamesfn_test.go", Types: []string{"NoNamesFn"},
+				Destination: "moq_usualfn_test.go", Types: []string{"UsualFn"},
 			},
 			generator.GenerateRequest{
-				Destination: "exported/moq_nonamesfn.go", Export: true, Types: []string{"NoNamesFn"},
+				Destination: "exported/moq_usualfn.go", Export: true, Types: []string{"UsualFn"},
 			},
 		)
 		if err != nil {
@@ -1344,10 +1580,10 @@ func TestGenerating(t *testing.T) {
 
 		err = generator.Generate(
 			generator.GenerateRequest{
-				Destination: "moq_noparamsfn_test.go", Types: []string{"NoParamsFn"},
+				Destination: "moq_nonamesfn_test.go", Types: []string{"NoNamesFn"},
 			},
 			generator.GenerateRequest{
-				Destination: "exported/moq_noparamsfn.go", Export: true, Types: []string{"NoParamsFn"},
+				Destination: "exported/moq_nonamesfn.go", Export: true, Types: []string{"NoNamesFn"},
 			},
 		)
 		if err != nil {
@@ -1368,10 +1604,34 @@ func TestGenerating(t *testing.T) {
 
 		err = generator.Generate(
 			generator.GenerateRequest{
+				Destination: "moq_noparamsfn_test.go", Types: []string{"NoParamsFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_noparamsfn.go", Export: true, Types: []string{"NoParamsFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
 				Destination: "moq_nothingfn_test.go", Types: []string{"NothingFn"},
 			},
 			generator.GenerateRequest{
 				Destination: "exported/moq_nothingfn.go", Export: true, Types: []string{"NothingFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_variadicfn_test.go", Types: []string{"VariadicFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_variadicfn.go", Export: true, Types: []string{"VariadicFn"},
 			},
 		)
 		if err != nil {
@@ -1404,34 +1664,70 @@ func TestGenerating(t *testing.T) {
 
 		err = generator.Generate(
 			generator.GenerateRequest{
+				Destination: "moq_difficultparamnamesfn_test.go", Types: []string{"DifficultParamNamesFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_difficultparamnamesfn.go", Export: true, Types: []string{"DifficultParamNamesFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_difficultresultnamesfn_test.go", Types: []string{"DifficultResultNamesFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_difficultresultnamesfn.go", Export: true, Types: []string{"DifficultResultNamesFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_passbyreferencefn_test.go", Types: []string{"PassByReferenceFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_passbyreferencefn.go", Export: true, Types: []string{"PassByReferenceFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_interfaceparamfn_test.go", Types: []string{"InterfaceParamFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_interfaceparamfn.go", Export: true, Types: []string{"InterfaceParamFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
+				Destination: "moq_interfaceresultfn_test.go", Types: []string{"InterfaceResultFn"},
+			},
+			generator.GenerateRequest{
+				Destination: "exported/moq_interfaceresultfn.go", Export: true, Types: []string{"InterfaceResultFn"},
+			},
+		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		err = generator.Generate(
+			generator.GenerateRequest{
 				Destination: "moq_usual_test.go", Types: []string{"Usual"},
 			},
 			generator.GenerateRequest{
 				Destination: "exported/moq_usual.go", Export: true, Types: []string{"Usual"},
-			},
-		)
-		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
-		}
-
-		err = generator.Generate(
-			generator.GenerateRequest{
-				Destination: "moq_usualfn_test.go", Types: []string{"UsualFn"},
-			},
-			generator.GenerateRequest{
-				Destination: "exported/moq_usualfn.go", Export: true, Types: []string{"UsualFn"},
-			},
-		)
-		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
-		}
-
-		err = generator.Generate(
-			generator.GenerateRequest{
-				Destination: "moq_variadicfn_test.go", Types: []string{"VariadicFn"},
-			},
-			generator.GenerateRequest{
-				Destination: "exported/moq_variadicfn.go", Export: true, Types: []string{"VariadicFn"},
 			},
 		)
 		if err != nil {
@@ -1467,7 +1763,7 @@ func TestGenerating(t *testing.T) {
 }
 
 func export(id string, a adaptor) string {
-	if a.exported() {
+	if a.config().exported {
 		id = strings.Title(id)
 	}
 	return id

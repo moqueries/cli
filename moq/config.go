@@ -29,3 +29,22 @@ type Config struct {
 	Expectation ExpectationMode
 	Sequence    SequenceMode
 }
+
+// ParamIndexing values determine how parameters are indexed in a moq
+type ParamIndexing int
+
+const (
+	// ParamIndexByValue indicates that a specific parameter of a specific
+	// function will be indexed by it value alone. The parameter value will be
+	// copied into a parameter key so simple equality will determine if an
+	// expectation matches an actual call. The exact same instance must be
+	// supplied to both the expectation call and the actual call.
+	ParamIndexByValue ParamIndexing = iota
+	// ParamIndexByHash indicates that a specific parameter of a specific
+	// function will be indexed by a deep hash value. A deep hash library is
+	// used to uniquely identify the parameter's value which includes the
+	// values of any parameter subtypes. The exact same instance will only
+	// match an expectation to an actual call if the internal state of the
+	// instance hasn't changed.
+	ParamIndexByHash
+)

@@ -2,7 +2,7 @@
 
 Understanding the inner workings of a mock is not the highest priority for most developers. But since these mocks are quite a bit different internally, some extra details of the internals won't hurt.
 
-Before we begin zooming into the inner workings of a lock-free mock, to make the journey complete, we first need to zoom out one step &mdash; to first take a look at the whole scene. [As described in the top-level docs](../../README.md#working-with-multiple-mocks):
+Before we begin zooming into the inner workings, to make the journey complete, we first need to zoom out one step &mdash; to first take a look at the whole scene. [As described in the top-level docs](../../README.md#working-with-multiple-mocks):
 > A `Scene` is a collection of mocks, and it allows you to perform actions on all the mocks with a single call.
 
 So our first diagram is the big picture. We see several mocks all working together in the context of a test. The test can use the `Scene` to manipulate all of mocks at once.
@@ -29,10 +29,37 @@ Each of the top-level "any" structures contains a `uint64` bitmask and a count o
 <img src="any-params.svg" alt="Any parameters" height="300"/>
 
 ### Mapping parameters to results
-The next structure is a hashmap that maps a specific set of parameters to a results structure. The key of this hashmap is a structure containing one of the following representatives for each parameter:
-1. The parameter itself if it can safely be used in a map key.
-2. A deep hash of the parameter if it cannot be used in a map key[^1].
-3. The zero value (or zero deep hash) of the parameter if an "any" parameter is in use.
+The next structure is a hashmap that maps a specific set of parameters to a results structure. The key of this hashmap (how things are found in the hashmap) is a structure containing a representation of each parameter. This is the parameter key `struct`. It typically is capable of holding two representations of each parameter (although only one value is actually set per parameter):
+1. The parameter value itself.
+2. A deep hash of the parameter.
+
+In Go, a `struct` can be used as a map key if it is of fixed length. The value (#1 in the above list) is omitted from the generated code if the parameter value has a variable size (a slice for instance). If Moqueries didn't omit the parameter value, the map definition and the mock wouldn't compile. Therefore, variable length parameters (such as slices) can only be represented by a deep hash (`ParamIndexByHash`).
+
+Here's a typical looking parameter key `struct` where all the parameters can be represented by their value or by their deep hash:
+```go
+type moqStore_LightGadgetsByWidgetId_paramsKey struct {
+	params struct {
+		widgetId  int
+		maxWeight uint32
+	}
+	hashes struct {
+		widgetId  hash.Hash
+		maxWeight hash.Hash
+	}
+}
+```
+
+Here is the parameter key `struct` for the `Write` function of the mock to the `io.Writer` interface (the `byte` slice `p` can only be represented by a deep hash):
+```go
+type moqWriter_Write_paramsKey struct {
+	params struct{}
+	hashes struct{ p hash.Hash }
+}
+```
+
+Which value is set (the value or the deep hash) is determined for each parameter by the `runtime` configuration. Each parameter is given a value of `ParamIndexByValue` for value matching or a value of `ParamIndexByHash` for deep hash matching. The runtime configuration shouldn't be altered after setting any expectations or the expectations may not be found.
+
+If a parameter is an "any" parameter, the zero value (or zero value hash) is stored in the parameter key.
 
 <img src="params-key.svg" alt="Mapping parameters to results" height="300"/>
 
@@ -72,20 +99,25 @@ The first step in storing expectations is to calculate the "any" parameters bitm
 <img src="store-any-params.svg" alt="Storing any parameters" height="300"/>
 
 ### Building a parameter key
-Next up in the process of storing expectation is to create an entry in the parameter-to-results map [mentioned above](#mapping-parameters-to-results). And as mentioned above, the key to this map is a structure containing a copy of the actual parameters, a deep hash of the parameters and/or the zero value for the parameter (if representing an "any" parameter). Going back to the example expectation, the map key structure looks like the following:
+Next up in the process of storing expectation is to create an entry in the parameter-to-results map [mentioned above](#mapping-parameters-to-results). And as mentioned above, the key to this map is a structure containing a copy or a deep hash of each parameter (or the zero value if representing an "any" parameter). Going back to the example expectation, the map key structure looks like the following (here the `widgetId` has a zero value and `maxWeight` is represented as a hash):
 ```go
-type moqStore_LightGadgetsByWidgetId_paramsKey struct {
-	widgetId  int
-	maxWeight uint32
-}
-
 paramsKey := moqStore_LightGadgetsByWidgetId_paramsKey{
-	widgetId:  0,
-	maxWeight: 10,
+    params: struct {
+        widgetId  int
+        maxWeight uint32
+    }{
+        widgetId: 0,
+    },
+    hashes: struct {
+        widgetId  hash.Hash
+        maxWeight hash.Hash
+    }{
+        maxWeight: 0xf7431a2832fec7a8,
+    },
 }
 ```
 
-Note that the first parameter will always be represented by a zero value because it is an "any" parameter. Also note that neither parameter is represented by a hash as they are both safe types for a map key. If either type needed a hash value substitution, it's type would be changed to `github.com/myshkin5/moqueries/hash.Hash` (actually just a `uint64`).
+Note that the first parameter will always be represented by a zero value because it is an "any" parameter (even if a real value was supplied, it is ignored). The second value is not specified in the `params` section but does have a hash in the `hashes` section. Deep hashes are represented by the `github.com/myshkin5/moqueries/hash.Hash` type (which is just a `uint64`).
 
 ### Storing results
 The last step in storing expectations is building the results structure. As [mentioned above](#results), this includes the parameters, repeat information, a results index (initialized to `0`), and a slice of result values. Over the course of setting multiple expectations, the same parameters used for the same mock function call can "grow" the results structure. When all expectations are set, the slice of result values will contain an entry for each expected invocation (up to the defined max) plus one set of result values if repeating with the `AnyTimes` function.
@@ -188,5 +220,3 @@ At this stage, all the mock needs to do is invoke any "do" function defined in t
 
 ### Asserting all expectations are met
 As a test is completing, it's common to do some additional validation. You can assert that all required expectations were called via the `AssertExpectationsMet` method. This can be called on each individual mock or for the entire `Scene` (the `Scene` simply iterates through its list of mocks and calls the method for each mock).
-
-[^1]: The rules determining which fields are represented by a deep hash are fairly complicated and there is some configurability (see [Command line reference](../../README.md#command-line-reference)).
