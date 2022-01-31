@@ -12,12 +12,19 @@ import (
 
 // moqNoParamsFn holds the state of a moq of the NoParamsFn type
 type moqNoParamsFn struct {
-	scene           *moq.Scene
-	config          moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqNoParamsFn_mock
+
 	resultsByParams []moqNoParamsFn_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+		}
+	}
+	// moqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
 }
 
-// moqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
 type moqNoParamsFn_mock struct {
 	moq *moqNoParamsFn
 }
@@ -26,7 +33,10 @@ type moqNoParamsFn_mock struct {
 type moqNoParamsFn_params struct{}
 
 // moqNoParamsFn_paramsKey holds the map key params of the NoParamsFn type
-type moqNoParamsFn_paramsKey struct{}
+type moqNoParamsFn_paramsKey struct {
+	params struct{}
+	hashes struct{}
+}
 
 // moqNoParamsFn_resultsByParams contains the results for a given set of parameters for the NoParamsFn type
 type moqNoParamsFn_resultsByParams struct {
@@ -60,7 +70,6 @@ type moqNoParamsFn_results struct {
 // moqNoParamsFn_fnRecorder routes recorded function calls to the moqNoParamsFn moq
 type moqNoParamsFn_fnRecorder struct {
 	params    moqNoParamsFn_params
-	paramsKey moqNoParamsFn_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqNoParamsFn_results
@@ -80,7 +89,16 @@ func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
 	m := &moqNoParamsFn{
 		scene:  scene,
 		config: *config,
+		moq:    &moqNoParamsFn_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+			}
+		}{parameterIndexing: struct {
+		}{}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -94,7 +112,7 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 	params := moqNoParamsFn_params{}
 	var results *moqNoParamsFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := moqNoParamsFn_paramsKey{}
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -143,10 +161,9 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 
 func (m *moqNoParamsFn) onCall() *moqNoParamsFn_fnRecorder {
 	return &moqNoParamsFn_fnRecorder{
-		params:    moqNoParamsFn_params{},
-		paramsKey: moqNoParamsFn_paramsKey{},
-		sequence:  m.config.Sequence == moq.SeqDefaultOn,
-		moq:       m,
+		params:   moqNoParamsFn_params{},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
 	}
 }
 
@@ -236,46 +253,50 @@ func (r *moqNoParamsFn_fnRecorder) doReturnResults(fn moqNoParamsFn_doReturnFn) 
 }
 
 func (r *moqNoParamsFn_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqNoParamsFn_resultsByParams
-		for n, res := range r.moq.resultsByParams {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqNoParamsFn_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqNoParamsFn_paramsKey]*moqNoParamsFn_results{},
-			}
-			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-				copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-				r.moq.resultsByParams[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		paramsKey := moqNoParamsFn_paramsKey{}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqNoParamsFn_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqNoParamsFn_resultsByParams
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqNoParamsFn_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqNoParamsFn_paramsKey]*moqNoParamsFn_results{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqNoParamsFn_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -310,6 +331,12 @@ func (r *moqNoParamsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoParam
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqNoParamsFn) paramsKey(params moqNoParamsFn_params, anyParams uint64) moqNoParamsFn_paramsKey {
+	return moqNoParamsFn_paramsKey{
+		params: struct{}{},
+		hashes: struct{}{}}
 }
 
 // Reset resets the state of the moq

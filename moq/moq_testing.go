@@ -11,13 +11,28 @@ import (
 
 // MoqT holds the state of a moq of the T type
 type MoqT struct {
-	Scene                  *Scene
-	Config                 Config
+	Scene  *Scene
+	Config Config
+	Moq    *MoqT_mock
+
 	ResultsByParams_Errorf []MoqT_Errorf_resultsByParams
 	ResultsByParams_Fatalf []MoqT_Fatalf_resultsByParams
+
+	Runtime struct {
+		ParameterIndexing struct {
+			Errorf struct {
+				Format ParamIndexing
+				Args   ParamIndexing
+			}
+			Fatalf struct {
+				Format ParamIndexing
+				Args   ParamIndexing
+			}
+		}
+	}
+	// MoqT_mock isolates the mock interface of the T type
 }
 
-// MoqT_mock isolates the mock interface of the T type
 type MoqT_mock struct {
 	Moq *MoqT
 }
@@ -35,8 +50,11 @@ type MoqT_Errorf_params struct {
 
 // MoqT_Errorf_paramsKey holds the map key params of the T type
 type MoqT_Errorf_paramsKey struct {
-	Format string
-	Args   hash.Hash
+	Params struct{ Format string }
+	Hashes struct {
+		Format hash.Hash
+		Args   hash.Hash
+	}
 }
 
 // MoqT_Errorf_resultsByParams contains the results for a given set of parameters for the T type
@@ -68,7 +86,6 @@ type MoqT_Errorf_results struct {
 // MoqT_Errorf_fnRecorder routes recorded function calls to the MoqT moq
 type MoqT_Errorf_fnRecorder struct {
 	Params    MoqT_Errorf_params
-	ParamsKey MoqT_Errorf_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqT_Errorf_results
@@ -88,8 +105,11 @@ type MoqT_Fatalf_params struct {
 
 // MoqT_Fatalf_paramsKey holds the map key params of the T type
 type MoqT_Fatalf_paramsKey struct {
-	Format string
-	Args   hash.Hash
+	Params struct{ Format string }
+	Hashes struct {
+		Format hash.Hash
+		Args   hash.Hash
+	}
 }
 
 // MoqT_Fatalf_resultsByParams contains the results for a given set of parameters for the T type
@@ -121,7 +141,6 @@ type MoqT_Fatalf_results struct {
 // MoqT_Fatalf_fnRecorder routes recorded function calls to the MoqT moq
 type MoqT_Fatalf_fnRecorder struct {
 	Params    MoqT_Fatalf_params
-	ParamsKey MoqT_Fatalf_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqT_Fatalf_results
@@ -141,17 +160,53 @@ func NewMoqT(scene *Scene, config *Config) *MoqT {
 	m := &MoqT{
 		Scene:  scene,
 		Config: *config,
+		Moq:    &MoqT_mock{},
+
+		Runtime: struct {
+			ParameterIndexing struct {
+				Errorf struct {
+					Format ParamIndexing
+					Args   ParamIndexing
+				}
+				Fatalf struct {
+					Format ParamIndexing
+					Args   ParamIndexing
+				}
+			}
+		}{ParameterIndexing: struct {
+			Errorf struct {
+				Format ParamIndexing
+				Args   ParamIndexing
+			}
+			Fatalf struct {
+				Format ParamIndexing
+				Args   ParamIndexing
+			}
+		}{
+			Errorf: struct {
+				Format ParamIndexing
+				Args   ParamIndexing
+			}{
+				Format: ParamIndexByValue,
+				Args:   ParamIndexByHash,
+			},
+			Fatalf: struct {
+				Format ParamIndexing
+				Args   ParamIndexing
+			}{
+				Format: ParamIndexByValue,
+				Args:   ParamIndexByHash,
+			},
+		}},
 	}
+	m.Moq.Moq = m
+
 	scene.AddMoq(m)
 	return m
 }
 
 // Mock returns the mock implementation of the T type
-func (m *MoqT) Mock() *MoqT_mock {
-	return &MoqT_mock{
-		Moq: m,
-	}
-}
+func (m *MoqT) Mock() *MoqT_mock { return m.Moq }
 
 func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
 	params := MoqT_Errorf_params{
@@ -160,18 +215,7 @@ func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
 	}
 	var results *MoqT_Errorf_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_Errorf {
-		var formatUsed string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			formatUsed = format
-		}
-		var argsUsed hash.Hash
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			argsUsed = hash.DeepHash(args)
-		}
-		paramsKey := MoqT_Errorf_paramsKey{
-			Format: formatUsed,
-			Args:   argsUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_Errorf(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -221,18 +265,7 @@ func (m *MoqT_mock) Fatalf(format string, args ...interface{}) {
 	}
 	var results *MoqT_Fatalf_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_Fatalf {
-		var formatUsed string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			formatUsed = format
-		}
-		var argsUsed hash.Hash
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			argsUsed = hash.DeepHash(args)
-		}
-		paramsKey := MoqT_Fatalf_paramsKey{
-			Format: formatUsed,
-			Args:   argsUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_Fatalf(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -287,10 +320,6 @@ func (m *MoqT_recorder) Errorf(format string, args ...interface{}) *MoqT_Errorf_
 		Params: MoqT_Errorf_params{
 			Format: format,
 			Args:   args,
-		},
-		ParamsKey: MoqT_Errorf_paramsKey{
-			Format: format,
-			Args:   hash.DeepHash(args),
 		},
 		Sequence: m.Moq.Config.Sequence == SeqDefaultOn,
 		Moq:      m.Moq,
@@ -381,57 +410,50 @@ func (r *MoqT_Errorf_fnRecorder) DoReturnResults(fn MoqT_Errorf_doReturnFn) *Moq
 }
 
 func (r *MoqT_Errorf_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqT_Errorf_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_Errorf {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqT_Errorf_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqT_Errorf_paramsKey]*MoqT_Errorf_results{},
-			}
-			r.Moq.ResultsByParams_Errorf = append(r.Moq.ResultsByParams_Errorf, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Errorf) {
-				copy(r.Moq.ResultsByParams_Errorf[insertAt+1:], r.Moq.ResultsByParams_Errorf[insertAt:0])
-				r.Moq.ResultsByParams_Errorf[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var formatUsed string
-		if r.AnyParams&(1<<0) == 0 {
-			formatUsed = r.ParamsKey.Format
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqT_Errorf_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Errorf {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var argsUsed hash.Hash
-		if r.AnyParams&(1<<1) == 0 {
-			argsUsed = r.ParamsKey.Args
-		}
-		paramsKey := MoqT_Errorf_paramsKey{
-			Format: formatUsed,
-			Args:   argsUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqT_Errorf_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqT_Errorf_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqT_Errorf_paramsKey]*MoqT_Errorf_results{},
+		}
+		r.Moq.ResultsByParams_Errorf = append(r.Moq.ResultsByParams_Errorf, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Errorf) {
+			copy(r.Moq.ResultsByParams_Errorf[insertAt+1:], r.Moq.ResultsByParams_Errorf[insertAt:0])
+			r.Moq.ResultsByParams_Errorf[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Errorf(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqT_Errorf_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -459,15 +481,42 @@ func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRe
 	return r
 }
 
+func (m *MoqT) ParamsKey_Errorf(params MoqT_Errorf_params, anyParams uint64) MoqT_Errorf_paramsKey {
+	var formatUsed string
+	var formatUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.Errorf.Format == ParamIndexByValue {
+			formatUsed = params.Format
+		} else {
+			formatUsedHash = hash.DeepHash(params.Format)
+		}
+	}
+	var argsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.Errorf.Args == ParamIndexByValue {
+			m.Scene.T.Fatalf("The args parameter of the Errorf function can't be indexed by value")
+		}
+		argsUsedHash = hash.DeepHash(params.Args)
+	}
+	return MoqT_Errorf_paramsKey{
+		Params: struct{ Format string }{
+			Format: formatUsed,
+		},
+		Hashes: struct {
+			Format hash.Hash
+			Args   hash.Hash
+		}{
+			Format: formatUsedHash,
+			Args:   argsUsedHash,
+		},
+	}
+}
+
 func (m *MoqT_recorder) Fatalf(format string, args ...interface{}) *MoqT_Fatalf_fnRecorder {
 	return &MoqT_Fatalf_fnRecorder{
 		Params: MoqT_Fatalf_params{
 			Format: format,
 			Args:   args,
-		},
-		ParamsKey: MoqT_Fatalf_paramsKey{
-			Format: format,
-			Args:   hash.DeepHash(args),
 		},
 		Sequence: m.Moq.Config.Sequence == SeqDefaultOn,
 		Moq:      m.Moq,
@@ -558,57 +607,50 @@ func (r *MoqT_Fatalf_fnRecorder) DoReturnResults(fn MoqT_Fatalf_doReturnFn) *Moq
 }
 
 func (r *MoqT_Fatalf_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqT_Fatalf_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_Fatalf {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqT_Fatalf_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqT_Fatalf_paramsKey]*MoqT_Fatalf_results{},
-			}
-			r.Moq.ResultsByParams_Fatalf = append(r.Moq.ResultsByParams_Fatalf, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Fatalf) {
-				copy(r.Moq.ResultsByParams_Fatalf[insertAt+1:], r.Moq.ResultsByParams_Fatalf[insertAt:0])
-				r.Moq.ResultsByParams_Fatalf[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var formatUsed string
-		if r.AnyParams&(1<<0) == 0 {
-			formatUsed = r.ParamsKey.Format
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqT_Fatalf_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Fatalf {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var argsUsed hash.Hash
-		if r.AnyParams&(1<<1) == 0 {
-			argsUsed = r.ParamsKey.Args
-		}
-		paramsKey := MoqT_Fatalf_paramsKey{
-			Format: formatUsed,
-			Args:   argsUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqT_Fatalf_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqT_Fatalf_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqT_Fatalf_paramsKey]*MoqT_Fatalf_results{},
+		}
+		r.Moq.ResultsByParams_Fatalf = append(r.Moq.ResultsByParams_Fatalf, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Fatalf) {
+			copy(r.Moq.ResultsByParams_Fatalf[insertAt+1:], r.Moq.ResultsByParams_Fatalf[insertAt:0])
+			r.Moq.ResultsByParams_Fatalf[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Fatalf(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqT_Fatalf_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -634,6 +676,37 @@ func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRe
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r
+}
+
+func (m *MoqT) ParamsKey_Fatalf(params MoqT_Fatalf_params, anyParams uint64) MoqT_Fatalf_paramsKey {
+	var formatUsed string
+	var formatUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.Fatalf.Format == ParamIndexByValue {
+			formatUsed = params.Format
+		} else {
+			formatUsedHash = hash.DeepHash(params.Format)
+		}
+	}
+	var argsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.Fatalf.Args == ParamIndexByValue {
+			m.Scene.T.Fatalf("The args parameter of the Fatalf function can't be indexed by value")
+		}
+		argsUsedHash = hash.DeepHash(params.Args)
+	}
+	return MoqT_Fatalf_paramsKey{
+		Params: struct{ Format string }{
+			Format: formatUsed,
+		},
+		Hashes: struct {
+			Format hash.Hash
+			Args   hash.Hash
+		}{
+			Format: formatUsedHash,
+			Args:   argsUsedHash,
+		},
+	}
 }
 
 // Reset resets the state of the moq

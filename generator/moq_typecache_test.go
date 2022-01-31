@@ -13,13 +13,31 @@ import (
 
 // moqTypeCache holds the state of a moq of the TypeCache type
 type moqTypeCache struct {
-	scene                        *moq.Scene
-	config                       moq.Config
-	resultsByParams_Type         []moqTypeCache_Type_resultsByParams
-	resultsByParams_IsComparable []moqTypeCache_IsComparable_resultsByParams
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqTypeCache_mock
+
+	resultsByParams_Type                []moqTypeCache_Type_resultsByParams
+	resultsByParams_IsComparable        []moqTypeCache_IsComparable_resultsByParams
+	resultsByParams_IsDefaultComparable []moqTypeCache_IsDefaultComparable_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			Type struct {
+				id            moq.ParamIndexing
+				loadTestTypes moq.ParamIndexing
+			}
+			IsComparable struct {
+				expr moq.ParamIndexing
+			}
+			IsDefaultComparable struct {
+				expr moq.ParamIndexing
+			}
+		}
+	}
+	// moqTypeCache_mock isolates the mock interface of the TypeCache type
 }
 
-// moqTypeCache_mock isolates the mock interface of the TypeCache type
 type moqTypeCache_mock struct {
 	moq *moqTypeCache
 }
@@ -37,8 +55,11 @@ type moqTypeCache_Type_params struct {
 
 // moqTypeCache_Type_paramsKey holds the map key params of the TypeCache type
 type moqTypeCache_Type_paramsKey struct {
-	id            hash.Hash
-	loadTestTypes bool
+	params struct{ loadTestTypes bool }
+	hashes struct {
+		id            hash.Hash
+		loadTestTypes hash.Hash
+	}
 }
 
 // moqTypeCache_Type_resultsByParams contains the results for a given set of parameters for the TypeCache type
@@ -74,7 +95,6 @@ type moqTypeCache_Type_results struct {
 // moqTypeCache_Type_fnRecorder routes recorded function calls to the moqTypeCache moq
 type moqTypeCache_Type_fnRecorder struct {
 	params    moqTypeCache_Type_params
-	paramsKey moqTypeCache_Type_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqTypeCache_Type_results
@@ -90,7 +110,10 @@ type moqTypeCache_Type_anyParams struct {
 type moqTypeCache_IsComparable_params struct{ expr dst.Expr }
 
 // moqTypeCache_IsComparable_paramsKey holds the map key params of the TypeCache type
-type moqTypeCache_IsComparable_paramsKey struct{ expr hash.Hash }
+type moqTypeCache_IsComparable_paramsKey struct {
+	params struct{ expr dst.Expr }
+	hashes struct{ expr hash.Hash }
+}
 
 // moqTypeCache_IsComparable_resultsByParams contains the results for a given set of parameters for the TypeCache type
 type moqTypeCache_IsComparable_resultsByParams struct {
@@ -124,7 +147,6 @@ type moqTypeCache_IsComparable_results struct {
 // moqTypeCache_IsComparable_fnRecorder routes recorded function calls to the moqTypeCache moq
 type moqTypeCache_IsComparable_fnRecorder struct {
 	params    moqTypeCache_IsComparable_params
-	paramsKey moqTypeCache_IsComparable_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqTypeCache_IsComparable_results
@@ -136,6 +158,58 @@ type moqTypeCache_IsComparable_anyParams struct {
 	recorder *moqTypeCache_IsComparable_fnRecorder
 }
 
+// moqTypeCache_IsDefaultComparable_params holds the params of the TypeCache type
+type moqTypeCache_IsDefaultComparable_params struct{ expr dst.Expr }
+
+// moqTypeCache_IsDefaultComparable_paramsKey holds the map key params of the TypeCache type
+type moqTypeCache_IsDefaultComparable_paramsKey struct {
+	params struct{ expr dst.Expr }
+	hashes struct{ expr hash.Hash }
+}
+
+// moqTypeCache_IsDefaultComparable_resultsByParams contains the results for a given set of parameters for the TypeCache type
+type moqTypeCache_IsDefaultComparable_resultsByParams struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqTypeCache_IsDefaultComparable_paramsKey]*moqTypeCache_IsDefaultComparable_results
+}
+
+// moqTypeCache_IsDefaultComparable_doFn defines the type of function needed when calling andDo for the TypeCache type
+type moqTypeCache_IsDefaultComparable_doFn func(expr dst.Expr)
+
+// moqTypeCache_IsDefaultComparable_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
+type moqTypeCache_IsDefaultComparable_doReturnFn func(expr dst.Expr) (bool, error)
+
+// moqTypeCache_IsDefaultComparable_results holds the results of the TypeCache type
+type moqTypeCache_IsDefaultComparable_results struct {
+	params  moqTypeCache_IsDefaultComparable_params
+	results []struct {
+		values *struct {
+			result1 bool
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqTypeCache_IsDefaultComparable_doFn
+		doReturnFn moqTypeCache_IsDefaultComparable_doReturnFn
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqTypeCache_IsDefaultComparable_fnRecorder routes recorded function calls to the moqTypeCache moq
+type moqTypeCache_IsDefaultComparable_fnRecorder struct {
+	params    moqTypeCache_IsDefaultComparable_params
+	anyParams uint64
+	sequence  bool
+	results   *moqTypeCache_IsDefaultComparable_results
+	moq       *moqTypeCache
+}
+
+// moqTypeCache_IsDefaultComparable_anyParams isolates the any params functions of the TypeCache type
+type moqTypeCache_IsDefaultComparable_anyParams struct {
+	recorder *moqTypeCache_IsDefaultComparable_fnRecorder
+}
+
 // newMoqTypeCache creates a new moq of the TypeCache type
 func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 	if config == nil {
@@ -144,17 +218,60 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 	m := &moqTypeCache{
 		scene:  scene,
 		config: *config,
+		moq:    &moqTypeCache_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Type struct {
+					id            moq.ParamIndexing
+					loadTestTypes moq.ParamIndexing
+				}
+				IsComparable struct {
+					expr moq.ParamIndexing
+				}
+				IsDefaultComparable struct {
+					expr moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Type struct {
+				id            moq.ParamIndexing
+				loadTestTypes moq.ParamIndexing
+			}
+			IsComparable struct {
+				expr moq.ParamIndexing
+			}
+			IsDefaultComparable struct {
+				expr moq.ParamIndexing
+			}
+		}{
+			Type: struct {
+				id            moq.ParamIndexing
+				loadTestTypes moq.ParamIndexing
+			}{
+				id:            moq.ParamIndexByHash,
+				loadTestTypes: moq.ParamIndexByValue,
+			},
+			IsComparable: struct {
+				expr moq.ParamIndexing
+			}{
+				expr: moq.ParamIndexByHash,
+			},
+			IsDefaultComparable: struct {
+				expr moq.ParamIndexing
+			}{
+				expr: moq.ParamIndexByHash,
+			},
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
 
 // mock returns the mock implementation of the TypeCache type
-func (m *moqTypeCache) mock() *moqTypeCache_mock {
-	return &moqTypeCache_mock{
-		moq: m,
-	}
-}
+func (m *moqTypeCache) mock() *moqTypeCache_mock { return m.moq }
 
 func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestTypes bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
 	params := moqTypeCache_Type_params{
@@ -163,18 +280,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestTypes bool) (result1 *dst
 	}
 	var results *moqTypeCache_Type_results
 	for _, resultsByParams := range m.moq.resultsByParams_Type {
-		var idUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			idUsed = hash.DeepHash(id)
-		}
-		var loadTestTypesUsed bool
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			loadTestTypesUsed = loadTestTypes
-		}
-		paramsKey := moqTypeCache_Type_paramsKey{
-			id:            idUsed,
-			loadTestTypes: loadTestTypesUsed,
-		}
+		paramsKey := m.moq.paramsKey_Type(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -228,13 +334,60 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 	}
 	var results *moqTypeCache_IsComparable_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsComparable {
-		var exprUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			exprUsed = hash.DeepHash(expr)
+		paramsKey := m.moq.paramsKey_IsComparable(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
 		}
-		paramsKey := moqTypeCache_IsComparable_paramsKey{
-			expr: exprUsed,
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
 		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(expr)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(expr)
+	}
+	return
+}
+
+func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, result2 error) {
+	params := moqTypeCache_IsDefaultComparable_params{
+		expr: expr,
+	}
+	var results *moqTypeCache_IsDefaultComparable_results
+	for _, resultsByParams := range m.moq.resultsByParams_IsDefaultComparable {
+		paramsKey := m.moq.paramsKey_IsDefaultComparable(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -292,10 +445,6 @@ func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestTypes bool) *moqTypeC
 	return &moqTypeCache_Type_fnRecorder{
 		params: moqTypeCache_Type_params{
 			id:            id,
-			loadTestTypes: loadTestTypes,
-		},
-		paramsKey: moqTypeCache_Type_paramsKey{
-			id:            hash.DeepHash(id),
 			loadTestTypes: loadTestTypes,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
@@ -403,57 +552,50 @@ func (r *moqTypeCache_Type_fnRecorder) doReturnResults(fn moqTypeCache_Type_doRe
 }
 
 func (r *moqTypeCache_Type_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqTypeCache_Type_resultsByParams
-		for n, res := range r.moq.resultsByParams_Type {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqTypeCache_Type_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqTypeCache_Type_paramsKey]*moqTypeCache_Type_results{},
-			}
-			r.moq.resultsByParams_Type = append(r.moq.resultsByParams_Type, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Type) {
-				copy(r.moq.resultsByParams_Type[insertAt+1:], r.moq.resultsByParams_Type[insertAt:0])
-				r.moq.resultsByParams_Type[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var idUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			idUsed = r.paramsKey.id
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqTypeCache_Type_resultsByParams
+	for n, res := range r.moq.resultsByParams_Type {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var loadTestTypesUsed bool
-		if r.anyParams&(1<<1) == 0 {
-			loadTestTypesUsed = r.paramsKey.loadTestTypes
-		}
-		paramsKey := moqTypeCache_Type_paramsKey{
-			id:            idUsed,
-			loadTestTypes: loadTestTypesUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqTypeCache_Type_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqTypeCache_Type_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqTypeCache_Type_paramsKey]*moqTypeCache_Type_results{},
+		}
+		r.moq.resultsByParams_Type = append(r.moq.resultsByParams_Type, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Type) {
+			copy(r.moq.resultsByParams_Type[insertAt+1:], r.moq.resultsByParams_Type[insertAt:0])
+			r.moq.resultsByParams_Type[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Type(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqTypeCache_Type_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -493,13 +635,40 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 	return r
 }
 
+func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams uint64) moqTypeCache_Type_paramsKey {
+	var idUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Type.id == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The id parameter of the Type function can't be indexed by value")
+		}
+		idUsedHash = hash.DeepHash(params.id)
+	}
+	var loadTestTypesUsed bool
+	var loadTestTypesUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Type.loadTestTypes == moq.ParamIndexByValue {
+			loadTestTypesUsed = params.loadTestTypes
+		} else {
+			loadTestTypesUsedHash = hash.DeepHash(params.loadTestTypes)
+		}
+	}
+	return moqTypeCache_Type_paramsKey{
+		params: struct{ loadTestTypes bool }{
+			loadTestTypes: loadTestTypesUsed,
+		},
+		hashes: struct {
+			id            hash.Hash
+			loadTestTypes hash.Hash
+		}{
+			id:            idUsedHash,
+			loadTestTypes: loadTestTypesUsedHash,
+		}}
+}
+
 func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr) *moqTypeCache_IsComparable_fnRecorder {
 	return &moqTypeCache_IsComparable_fnRecorder{
 		params: moqTypeCache_IsComparable_params{
 			expr: expr,
-		},
-		paramsKey: moqTypeCache_IsComparable_paramsKey{
-			expr: hash.DeepHash(expr),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -597,52 +766,50 @@ func (r *moqTypeCache_IsComparable_fnRecorder) doReturnResults(fn moqTypeCache_I
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqTypeCache_IsComparable_resultsByParams
-		for n, res := range r.moq.resultsByParams_IsComparable {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqTypeCache_IsComparable_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqTypeCache_IsComparable_paramsKey]*moqTypeCache_IsComparable_results{},
-			}
-			r.moq.resultsByParams_IsComparable = append(r.moq.resultsByParams_IsComparable, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsComparable) {
-				copy(r.moq.resultsByParams_IsComparable[insertAt+1:], r.moq.resultsByParams_IsComparable[insertAt:0])
-				r.moq.resultsByParams_IsComparable[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var exprUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			exprUsed = r.paramsKey.expr
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqTypeCache_IsComparable_resultsByParams
+	for n, res := range r.moq.resultsByParams_IsComparable {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		paramsKey := moqTypeCache_IsComparable_paramsKey{
-			expr: exprUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqTypeCache_IsComparable_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqTypeCache_IsComparable_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqTypeCache_IsComparable_paramsKey]*moqTypeCache_IsComparable_results{},
+		}
+		r.moq.resultsByParams_IsComparable = append(r.moq.resultsByParams_IsComparable, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsComparable) {
+			copy(r.moq.resultsByParams_IsComparable[insertAt+1:], r.moq.resultsByParams_IsComparable[insertAt:0])
+			r.moq.resultsByParams_IsComparable[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_IsComparable(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqTypeCache_IsComparable_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -679,8 +846,231 @@ func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqTypeCache) paramsKey_IsComparable(params moqTypeCache_IsComparable_params, anyParams uint64) moqTypeCache_IsComparable_paramsKey {
+	var exprUsed dst.Expr
+	var exprUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.IsComparable.expr == moq.ParamIndexByValue {
+			exprUsed = params.expr
+		} else {
+			exprUsedHash = hash.DeepHash(params.expr)
+		}
+	}
+	return moqTypeCache_IsComparable_paramsKey{
+		params: struct{ expr dst.Expr }{
+			expr: exprUsed,
+		},
+		hashes: struct{ expr hash.Hash }{
+			expr: exprUsedHash,
+		}}
+}
+
+func (m *moqTypeCache_recorder) IsDefaultComparable(expr dst.Expr) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	return &moqTypeCache_IsDefaultComparable_fnRecorder{
+		params: moqTypeCache_IsDefaultComparable_params{
+			expr: expr,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) any() *moqTypeCache_IsDefaultComparable_anyParams {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	return &moqTypeCache_IsDefaultComparable_anyParams{recorder: r}
+}
+
+func (a *moqTypeCache_IsDefaultComparable_anyParams) expr() *moqTypeCache_IsDefaultComparable_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) seq() *moqTypeCache_IsDefaultComparable_fnRecorder {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) noSeq() *moqTypeCache_IsDefaultComparable_fnRecorder {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) returnResults(result1 bool, result2 error) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 bool
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqTypeCache_IsDefaultComparable_doFn
+		doReturnFn moqTypeCache_IsDefaultComparable_doReturnFn
+	}{
+		values: &struct {
+			result1 bool
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) andDo(fn moqTypeCache_IsDefaultComparable_doFn) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) doReturnResults(fn moqTypeCache_IsDefaultComparable_doReturnFn) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 bool
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqTypeCache_IsDefaultComparable_doFn
+		doReturnFn moqTypeCache_IsDefaultComparable_doReturnFn
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) findResults() {
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqTypeCache_IsDefaultComparable_resultsByParams
+	for n, res := range r.moq.resultsByParams_IsDefaultComparable {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqTypeCache_IsDefaultComparable_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqTypeCache_IsDefaultComparable_paramsKey]*moqTypeCache_IsDefaultComparable_results{},
+		}
+		r.moq.resultsByParams_IsDefaultComparable = append(r.moq.resultsByParams_IsDefaultComparable, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsDefaultComparable) {
+			copy(r.moq.resultsByParams_IsDefaultComparable[insertAt+1:], r.moq.resultsByParams_IsDefaultComparable[insertAt:0])
+			r.moq.resultsByParams_IsDefaultComparable[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_IsDefaultComparable(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqTypeCache_IsDefaultComparable_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqTypeCache_IsDefaultComparable_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 bool
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqTypeCache_IsDefaultComparable_doFn
+				doReturnFn moqTypeCache_IsDefaultComparable_doReturnFn
+			}{
+				values: &struct {
+					result1 bool
+					result2 error
+				}{
+					result1: last.values.result1,
+					result2: last.values.result2,
+				},
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefaultComparable_params, anyParams uint64) moqTypeCache_IsDefaultComparable_paramsKey {
+	var exprUsed dst.Expr
+	var exprUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.IsDefaultComparable.expr == moq.ParamIndexByValue {
+			exprUsed = params.expr
+		} else {
+			exprUsedHash = hash.DeepHash(params.expr)
+		}
+	}
+	return moqTypeCache_IsDefaultComparable_paramsKey{
+		params: struct{ expr dst.Expr }{
+			expr: exprUsed,
+		},
+		hashes: struct{ expr hash.Hash }{
+			expr: exprUsedHash,
+		}}
+}
+
 // Reset resets the state of the moq
-func (m *moqTypeCache) Reset() { m.resultsByParams_Type = nil; m.resultsByParams_IsComparable = nil }
+func (m *moqTypeCache) Reset() {
+	m.resultsByParams_Type = nil
+	m.resultsByParams_IsComparable = nil
+	m.resultsByParams_IsDefaultComparable = nil
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqTypeCache) AssertExpectationsMet() {
@@ -693,6 +1083,14 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 		}
 	}
 	for _, res := range m.resultsByParams_IsComparable {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+			}
+		}
+	}
+	for _, res := range m.resultsByParams_IsDefaultComparable {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {

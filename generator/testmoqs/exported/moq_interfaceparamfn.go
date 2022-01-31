@@ -3,6 +3,7 @@
 package exported
 
 import (
+	"io"
 	"math/bits"
 	"sync/atomic"
 
@@ -11,106 +12,96 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// MoqVariadicFn holds the state of a moq of the VariadicFn type
-type MoqVariadicFn struct {
+// MoqInterfaceParamFn holds the state of a moq of the InterfaceParamFn type
+type MoqInterfaceParamFn struct {
 	Scene  *moq.Scene
 	Config moq.Config
-	Moq    *MoqVariadicFn_mock
+	Moq    *MoqInterfaceParamFn_mock
 
-	ResultsByParams []MoqVariadicFn_resultsByParams
+	ResultsByParams []MoqInterfaceParamFn_resultsByParams
 
 	Runtime struct {
 		ParameterIndexing struct {
-			Other moq.ParamIndexing
-			Args  moq.ParamIndexing
+			W moq.ParamIndexing
 		}
 	}
 }
 
-// MoqVariadicFn_mock isolates the mock interface of the VariadicFn type
-type MoqVariadicFn_mock struct {
-	Moq *MoqVariadicFn
+// MoqInterfaceParamFn_mock isolates the mock interface of the InterfaceParamFn type
+type MoqInterfaceParamFn_mock struct {
+	Moq *MoqInterfaceParamFn
 }
 
-// MoqVariadicFn_params holds the params of the VariadicFn type
-type MoqVariadicFn_params struct {
-	Other bool
-	Args  []string
+// MoqInterfaceParamFn_params holds the params of the InterfaceParamFn type
+type MoqInterfaceParamFn_params struct{ W io.Writer }
+
+// MoqInterfaceParamFn_paramsKey holds the map key params of the InterfaceParamFn type
+type MoqInterfaceParamFn_paramsKey struct {
+	Params struct{ W io.Writer }
+	Hashes struct{ W hash.Hash }
 }
 
-// MoqVariadicFn_paramsKey holds the map key params of the VariadicFn type
-type MoqVariadicFn_paramsKey struct {
-	Params struct{ Other bool }
-	Hashes struct {
-		Other hash.Hash
-		Args  hash.Hash
-	}
-}
-
-// MoqVariadicFn_resultsByParams contains the results for a given set of parameters for the VariadicFn type
-type MoqVariadicFn_resultsByParams struct {
+// MoqInterfaceParamFn_resultsByParams contains the results for a given set of parameters for the InterfaceParamFn type
+type MoqInterfaceParamFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
-	Results   map[MoqVariadicFn_paramsKey]*MoqVariadicFn_results
+	Results   map[MoqInterfaceParamFn_paramsKey]*MoqInterfaceParamFn_results
 }
 
-// MoqVariadicFn_doFn defines the type of function needed when calling AndDo for the VariadicFn type
-type MoqVariadicFn_doFn func(other bool, args ...string)
+// MoqInterfaceParamFn_doFn defines the type of function needed when calling AndDo for the InterfaceParamFn type
+type MoqInterfaceParamFn_doFn func(w io.Writer)
 
-// MoqVariadicFn_doReturnFn defines the type of function needed when calling DoReturnResults for the VariadicFn type
-type MoqVariadicFn_doReturnFn func(other bool, args ...string) (sResult string, err error)
+// MoqInterfaceParamFn_doReturnFn defines the type of function needed when calling DoReturnResults for the InterfaceParamFn type
+type MoqInterfaceParamFn_doReturnFn func(w io.Writer) (sResult string, err error)
 
-// MoqVariadicFn_results holds the results of the VariadicFn type
-type MoqVariadicFn_results struct {
-	Params  MoqVariadicFn_params
+// MoqInterfaceParamFn_results holds the results of the InterfaceParamFn type
+type MoqInterfaceParamFn_results struct {
+	Params  MoqInterfaceParamFn_params
 	Results []struct {
 		Values *struct {
 			SResult string
 			Err     error
 		}
 		Sequence   uint32
-		DoFn       MoqVariadicFn_doFn
-		DoReturnFn MoqVariadicFn_doReturnFn
+		DoFn       MoqInterfaceParamFn_doFn
+		DoReturnFn MoqInterfaceParamFn_doReturnFn
 	}
 	Index  uint32
 	Repeat *moq.RepeatVal
 }
 
-// MoqVariadicFn_fnRecorder routes recorded function calls to the MoqVariadicFn moq
-type MoqVariadicFn_fnRecorder struct {
-	Params    MoqVariadicFn_params
+// MoqInterfaceParamFn_fnRecorder routes recorded function calls to the MoqInterfaceParamFn moq
+type MoqInterfaceParamFn_fnRecorder struct {
+	Params    MoqInterfaceParamFn_params
 	AnyParams uint64
 	Sequence  bool
-	Results   *MoqVariadicFn_results
-	Moq       *MoqVariadicFn
+	Results   *MoqInterfaceParamFn_results
+	Moq       *MoqInterfaceParamFn
 }
 
-// MoqVariadicFn_anyParams isolates the any params functions of the VariadicFn type
-type MoqVariadicFn_anyParams struct {
-	Recorder *MoqVariadicFn_fnRecorder
+// MoqInterfaceParamFn_anyParams isolates the any params functions of the InterfaceParamFn type
+type MoqInterfaceParamFn_anyParams struct {
+	Recorder *MoqInterfaceParamFn_fnRecorder
 }
 
-// NewMoqVariadicFn creates a new moq of the VariadicFn type
-func NewMoqVariadicFn(scene *moq.Scene, config *moq.Config) *MoqVariadicFn {
+// NewMoqInterfaceParamFn creates a new moq of the InterfaceParamFn type
+func NewMoqInterfaceParamFn(scene *moq.Scene, config *moq.Config) *MoqInterfaceParamFn {
 	if config == nil {
 		config = &moq.Config{}
 	}
-	m := &MoqVariadicFn{
+	m := &MoqInterfaceParamFn{
 		Scene:  scene,
 		Config: *config,
-		Moq:    &MoqVariadicFn_mock{},
+		Moq:    &MoqInterfaceParamFn_mock{},
 
 		Runtime: struct {
 			ParameterIndexing struct {
-				Other moq.ParamIndexing
-				Args  moq.ParamIndexing
+				W moq.ParamIndexing
 			}
 		}{ParameterIndexing: struct {
-			Other moq.ParamIndexing
-			Args  moq.ParamIndexing
+			W moq.ParamIndexing
 		}{
-			Other: moq.ParamIndexByValue,
-			Args:  moq.ParamIndexByHash,
+			W: moq.ParamIndexByHash,
 		}},
 	}
 	m.Moq.Moq = m
@@ -119,20 +110,16 @@ func NewMoqVariadicFn(scene *moq.Scene, config *moq.Config) *MoqVariadicFn {
 	return m
 }
 
-// Mock returns the moq implementation of the VariadicFn type
-func (m *MoqVariadicFn) Mock() testmoqs.VariadicFn {
-	return func(other bool, args ...string) (_ string, _ error) {
-		moq := &MoqVariadicFn_mock{Moq: m}
-		return moq.Fn(other, args...)
-	}
+// Mock returns the moq implementation of the InterfaceParamFn type
+func (m *MoqInterfaceParamFn) Mock() testmoqs.InterfaceParamFn {
+	return func(w io.Writer) (_ string, _ error) { moq := &MoqInterfaceParamFn_mock{Moq: m}; return moq.Fn(w) }
 }
 
-func (m *MoqVariadicFn_mock) Fn(other bool, args ...string) (sResult string, err error) {
-	params := MoqVariadicFn_params{
-		Other: other,
-		Args:  args,
+func (m *MoqInterfaceParamFn_mock) Fn(w io.Writer) (sResult string, err error) {
+	params := MoqInterfaceParamFn_params{
+		W: w,
 	}
-	var results *MoqVariadicFn_results
+	var results *MoqInterfaceParamFn_results
 	for _, resultsByParams := range m.Moq.ResultsByParams {
 		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
 		var ok bool
@@ -168,7 +155,7 @@ func (m *MoqVariadicFn_mock) Fn(other bool, args ...string) (sResult string, err
 	}
 
 	if result.DoFn != nil {
-		result.DoFn(other, args...)
+		result.DoFn(w)
 	}
 
 	if result.Values != nil {
@@ -176,41 +163,35 @@ func (m *MoqVariadicFn_mock) Fn(other bool, args ...string) (sResult string, err
 		err = result.Values.Err
 	}
 	if result.DoReturnFn != nil {
-		sResult, err = result.DoReturnFn(other, args...)
+		sResult, err = result.DoReturnFn(w)
 	}
 	return
 }
 
-func (m *MoqVariadicFn) OnCall(other bool, args ...string) *MoqVariadicFn_fnRecorder {
-	return &MoqVariadicFn_fnRecorder{
-		Params: MoqVariadicFn_params{
-			Other: other,
-			Args:  args,
+func (m *MoqInterfaceParamFn) OnCall(w io.Writer) *MoqInterfaceParamFn_fnRecorder {
+	return &MoqInterfaceParamFn_fnRecorder{
+		Params: MoqInterfaceParamFn_params{
+			W: w,
 		},
 		Sequence: m.Config.Sequence == moq.SeqDefaultOn,
 		Moq:      m,
 	}
 }
 
-func (r *MoqVariadicFn_fnRecorder) Any() *MoqVariadicFn_anyParams {
+func (r *MoqInterfaceParamFn_fnRecorder) Any() *MoqInterfaceParamFn_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	return &MoqVariadicFn_anyParams{Recorder: r}
+	return &MoqInterfaceParamFn_anyParams{Recorder: r}
 }
 
-func (a *MoqVariadicFn_anyParams) Other() *MoqVariadicFn_fnRecorder {
+func (a *MoqInterfaceParamFn_anyParams) W() *MoqInterfaceParamFn_fnRecorder {
 	a.Recorder.AnyParams |= 1 << 0
 	return a.Recorder
 }
 
-func (a *MoqVariadicFn_anyParams) Args() *MoqVariadicFn_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 1
-	return a.Recorder
-}
-
-func (r *MoqVariadicFn_fnRecorder) Seq() *MoqVariadicFn_fnRecorder {
+func (r *MoqInterfaceParamFn_fnRecorder) Seq() *MoqInterfaceParamFn_fnRecorder {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -219,7 +200,7 @@ func (r *MoqVariadicFn_fnRecorder) Seq() *MoqVariadicFn_fnRecorder {
 	return r
 }
 
-func (r *MoqVariadicFn_fnRecorder) NoSeq() *MoqVariadicFn_fnRecorder {
+func (r *MoqInterfaceParamFn_fnRecorder) NoSeq() *MoqInterfaceParamFn_fnRecorder {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -228,7 +209,7 @@ func (r *MoqVariadicFn_fnRecorder) NoSeq() *MoqVariadicFn_fnRecorder {
 	return r
 }
 
-func (r *MoqVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *MoqVariadicFn_fnRecorder {
+func (r *MoqInterfaceParamFn_fnRecorder) ReturnResults(sResult string, err error) *MoqInterfaceParamFn_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
@@ -242,8 +223,8 @@ func (r *MoqVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *Moq
 			Err     error
 		}
 		Sequence   uint32
-		DoFn       MoqVariadicFn_doFn
-		DoReturnFn MoqVariadicFn_doReturnFn
+		DoFn       MoqInterfaceParamFn_doFn
+		DoReturnFn MoqInterfaceParamFn_doReturnFn
 	}{
 		Values: &struct {
 			SResult string
@@ -257,7 +238,7 @@ func (r *MoqVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *Moq
 	return r
 }
 
-func (r *MoqVariadicFn_fnRecorder) AndDo(fn MoqVariadicFn_doFn) *MoqVariadicFn_fnRecorder {
+func (r *MoqInterfaceParamFn_fnRecorder) AndDo(fn MoqInterfaceParamFn_doFn) *MoqInterfaceParamFn_fnRecorder {
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
 		return nil
@@ -267,7 +248,7 @@ func (r *MoqVariadicFn_fnRecorder) AndDo(fn MoqVariadicFn_doFn) *MoqVariadicFn_f
 	return r
 }
 
-func (r *MoqVariadicFn_fnRecorder) DoReturnResults(fn MoqVariadicFn_doReturnFn) *MoqVariadicFn_fnRecorder {
+func (r *MoqInterfaceParamFn_fnRecorder) DoReturnResults(fn MoqInterfaceParamFn_doReturnFn) *MoqInterfaceParamFn_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
@@ -281,13 +262,13 @@ func (r *MoqVariadicFn_fnRecorder) DoReturnResults(fn MoqVariadicFn_doReturnFn) 
 			Err     error
 		}
 		Sequence   uint32
-		DoFn       MoqVariadicFn_doFn
-		DoReturnFn MoqVariadicFn_doReturnFn
+		DoFn       MoqInterfaceParamFn_doFn
+		DoReturnFn MoqInterfaceParamFn_doReturnFn
 	}{Sequence: sequence, DoReturnFn: fn})
 	return r
 }
 
-func (r *MoqVariadicFn_fnRecorder) FindResults() {
+func (r *MoqInterfaceParamFn_fnRecorder) FindResults() {
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -295,7 +276,7 @@ func (r *MoqVariadicFn_fnRecorder) FindResults() {
 
 	anyCount := bits.OnesCount64(r.AnyParams)
 	insertAt := -1
-	var results *MoqVariadicFn_resultsByParams
+	var results *MoqInterfaceParamFn_resultsByParams
 	for n, res := range r.Moq.ResultsByParams {
 		if res.AnyParams == r.AnyParams {
 			results = &res
@@ -306,10 +287,10 @@ func (r *MoqVariadicFn_fnRecorder) FindResults() {
 		}
 	}
 	if results == nil {
-		results = &MoqVariadicFn_resultsByParams{
+		results = &MoqInterfaceParamFn_resultsByParams{
 			AnyCount:  anyCount,
 			AnyParams: r.AnyParams,
-			Results:   map[MoqVariadicFn_paramsKey]*MoqVariadicFn_results{},
+			Results:   map[MoqInterfaceParamFn_paramsKey]*MoqInterfaceParamFn_results{},
 		}
 		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
 		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
@@ -323,7 +304,7 @@ func (r *MoqVariadicFn_fnRecorder) FindResults() {
 	var ok bool
 	r.Results, ok = results.Results[paramsKey]
 	if !ok {
-		r.Results = &MoqVariadicFn_results{
+		r.Results = &MoqInterfaceParamFn_results{
 			Params:  r.Params,
 			Results: nil,
 			Index:   0,
@@ -335,7 +316,7 @@ func (r *MoqVariadicFn_fnRecorder) FindResults() {
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
-func (r *MoqVariadicFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqVariadicFn_fnRecorder {
+func (r *MoqInterfaceParamFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqInterfaceParamFn_fnRecorder {
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
@@ -350,8 +331,8 @@ func (r *MoqVariadicFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqVariadi
 					Err     error
 				}
 				Sequence   uint32
-				DoFn       MoqVariadicFn_doFn
-				DoReturnFn MoqVariadicFn_doReturnFn
+				DoFn       MoqInterfaceParamFn_doFn
+				DoReturnFn MoqInterfaceParamFn_doReturnFn
 			}{
 				Values: &struct {
 					SResult string
@@ -368,41 +349,30 @@ func (r *MoqVariadicFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqVariadi
 	return r
 }
 
-func (m *MoqVariadicFn) ParamsKey(params MoqVariadicFn_params, anyParams uint64) MoqVariadicFn_paramsKey {
-	var otherUsed bool
-	var otherUsedHash hash.Hash
+func (m *MoqInterfaceParamFn) ParamsKey(params MoqInterfaceParamFn_params, anyParams uint64) MoqInterfaceParamFn_paramsKey {
+	var wUsed io.Writer
+	var wUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
-		if m.Runtime.ParameterIndexing.Other == moq.ParamIndexByValue {
-			otherUsed = params.Other
+		if m.Runtime.ParameterIndexing.W == moq.ParamIndexByValue {
+			wUsed = params.W
 		} else {
-			otherUsedHash = hash.DeepHash(params.Other)
+			wUsedHash = hash.DeepHash(params.W)
 		}
 	}
-	var argsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.Runtime.ParameterIndexing.Args == moq.ParamIndexByValue {
-			m.Scene.T.Fatalf("The args parameter can't be indexed by value")
-		}
-		argsUsedHash = hash.DeepHash(params.Args)
-	}
-	return MoqVariadicFn_paramsKey{
-		Params: struct{ Other bool }{
-			Other: otherUsed,
+	return MoqInterfaceParamFn_paramsKey{
+		Params: struct{ W io.Writer }{
+			W: wUsed,
 		},
-		Hashes: struct {
-			Other hash.Hash
-			Args  hash.Hash
-		}{
-			Other: otherUsedHash,
-			Args:  argsUsedHash,
+		Hashes: struct{ W hash.Hash }{
+			W: wUsedHash,
 		}}
 }
 
 // Reset resets the state of the moq
-func (m *MoqVariadicFn) Reset() { m.ResultsByParams = nil }
+func (m *MoqInterfaceParamFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *MoqVariadicFn) AssertExpectationsMet() {
+func (m *MoqInterfaceParamFn) AssertExpectationsMet() {
 	for _, res := range m.ResultsByParams {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))

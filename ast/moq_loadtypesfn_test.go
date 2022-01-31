@@ -8,14 +8,24 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/myshkin5/moqueries/ast"
+	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
 // moqLoadTypesFn holds the state of a moq of the LoadTypesFn type
 type moqLoadTypesFn struct {
-	scene           *moq.Scene
-	config          moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqLoadTypesFn_mock
+
 	resultsByParams []moqLoadTypesFn_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			pkg           moq.ParamIndexing
+			loadTestTypes moq.ParamIndexing
+		}
+	}
 }
 
 // moqLoadTypesFn_mock isolates the mock interface of the LoadTypesFn type
@@ -31,8 +41,14 @@ type moqLoadTypesFn_params struct {
 
 // moqLoadTypesFn_paramsKey holds the map key params of the LoadTypesFn type
 type moqLoadTypesFn_paramsKey struct {
-	pkg           string
-	loadTestTypes bool
+	params struct {
+		pkg           string
+		loadTestTypes bool
+	}
+	hashes struct {
+		pkg           hash.Hash
+		loadTestTypes hash.Hash
+	}
 }
 
 // moqLoadTypesFn_resultsByParams contains the results for a given set of parameters for the LoadTypesFn type
@@ -69,7 +85,6 @@ type moqLoadTypesFn_results struct {
 // moqLoadTypesFn_fnRecorder routes recorded function calls to the moqLoadTypesFn moq
 type moqLoadTypesFn_fnRecorder struct {
 	params    moqLoadTypesFn_params
-	paramsKey moqLoadTypesFn_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqLoadTypesFn_results
@@ -89,7 +104,23 @@ func newMoqLoadTypesFn(scene *moq.Scene, config *moq.Config) *moqLoadTypesFn {
 	m := &moqLoadTypesFn{
 		scene:  scene,
 		config: *config,
+		moq:    &moqLoadTypesFn_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				pkg           moq.ParamIndexing
+				loadTestTypes moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			pkg           moq.ParamIndexing
+			loadTestTypes moq.ParamIndexing
+		}{
+			pkg:           moq.ParamIndexByValue,
+			loadTestTypes: moq.ParamIndexByValue,
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -111,18 +142,7 @@ func (m *moqLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 	}
 	var results *moqLoadTypesFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
-		var pkgUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			pkgUsed = pkg
-		}
-		var loadTestTypesUsed bool
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			loadTestTypesUsed = loadTestTypes
-		}
-		paramsKey := moqLoadTypesFn_paramsKey{
-			pkg:           pkgUsed,
-			loadTestTypes: loadTestTypesUsed,
-		}
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -173,10 +193,6 @@ func (m *moqLoadTypesFn_mock) fn(pkg string, loadTestTypes bool) (
 func (m *moqLoadTypesFn) onCall(pkg string, loadTestTypes bool) *moqLoadTypesFn_fnRecorder {
 	return &moqLoadTypesFn_fnRecorder{
 		params: moqLoadTypesFn_params{
-			pkg:           pkg,
-			loadTestTypes: loadTestTypes,
-		},
-		paramsKey: moqLoadTypesFn_paramsKey{
 			pkg:           pkg,
 			loadTestTypes: loadTestTypes,
 		},
@@ -286,57 +302,50 @@ func (r *moqLoadTypesFn_fnRecorder) doReturnResults(fn moqLoadTypesFn_doReturnFn
 }
 
 func (r *moqLoadTypesFn_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqLoadTypesFn_resultsByParams
-		for n, res := range r.moq.resultsByParams {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqLoadTypesFn_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqLoadTypesFn_paramsKey]*moqLoadTypesFn_results{},
-			}
-			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-				copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-				r.moq.resultsByParams[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var pkgUsed string
-		if r.anyParams&(1<<0) == 0 {
-			pkgUsed = r.paramsKey.pkg
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqLoadTypesFn_resultsByParams
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var loadTestTypesUsed bool
-		if r.anyParams&(1<<1) == 0 {
-			loadTestTypesUsed = r.paramsKey.loadTestTypes
-		}
-		paramsKey := moqLoadTypesFn_paramsKey{
-			pkg:           pkgUsed,
-			loadTestTypes: loadTestTypesUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqLoadTypesFn_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqLoadTypesFn_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqLoadTypesFn_paramsKey]*moqLoadTypesFn_results{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqLoadTypesFn_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -374,6 +383,42 @@ func (r *moqLoadTypesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqLoadTy
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqLoadTypesFn) paramsKey(params moqLoadTypesFn_params, anyParams uint64) moqLoadTypesFn_paramsKey {
+	var pkgUsed string
+	var pkgUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.pkg == moq.ParamIndexByValue {
+			pkgUsed = params.pkg
+		} else {
+			pkgUsedHash = hash.DeepHash(params.pkg)
+		}
+	}
+	var loadTestTypesUsed bool
+	var loadTestTypesUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.loadTestTypes == moq.ParamIndexByValue {
+			loadTestTypesUsed = params.loadTestTypes
+		} else {
+			loadTestTypesUsedHash = hash.DeepHash(params.loadTestTypes)
+		}
+	}
+	return moqLoadTypesFn_paramsKey{
+		params: struct {
+			pkg           string
+			loadTestTypes bool
+		}{
+			pkg:           pkgUsed,
+			loadTestTypes: loadTestTypesUsed,
+		},
+		hashes: struct {
+			pkg           hash.Hash
+			loadTestTypes hash.Hash
+		}{
+			pkg:           pkgUsedHash,
+			loadTestTypes: loadTestTypesUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

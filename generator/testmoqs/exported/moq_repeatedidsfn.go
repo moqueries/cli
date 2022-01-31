@@ -7,14 +7,25 @@ import (
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/generator/testmoqs"
+	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
 // MoqRepeatedIdsFn holds the state of a moq of the RepeatedIdsFn type
 type MoqRepeatedIdsFn struct {
-	Scene           *moq.Scene
-	Config          moq.Config
+	Scene  *moq.Scene
+	Config moq.Config
+	Moq    *MoqRepeatedIdsFn_mock
+
 	ResultsByParams []MoqRepeatedIdsFn_resultsByParams
+
+	Runtime struct {
+		ParameterIndexing struct {
+			SParam1 moq.ParamIndexing
+			SParam2 moq.ParamIndexing
+			BParam  moq.ParamIndexing
+		}
+	}
 }
 
 // MoqRepeatedIdsFn_mock isolates the mock interface of the RepeatedIdsFn type
@@ -30,8 +41,14 @@ type MoqRepeatedIdsFn_params struct {
 
 // MoqRepeatedIdsFn_paramsKey holds the map key params of the RepeatedIdsFn type
 type MoqRepeatedIdsFn_paramsKey struct {
-	SParam1, SParam2 string
-	BParam           bool
+	Params struct {
+		SParam1, SParam2 string
+		BParam           bool
+	}
+	Hashes struct {
+		SParam1, SParam2 hash.Hash
+		BParam           hash.Hash
+	}
 }
 
 // MoqRepeatedIdsFn_resultsByParams contains the results for a given set of parameters for the RepeatedIdsFn type
@@ -66,7 +83,6 @@ type MoqRepeatedIdsFn_results struct {
 // MoqRepeatedIdsFn_fnRecorder routes recorded function calls to the MoqRepeatedIdsFn moq
 type MoqRepeatedIdsFn_fnRecorder struct {
 	Params    MoqRepeatedIdsFn_params
-	ParamsKey MoqRepeatedIdsFn_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqRepeatedIdsFn_results
@@ -86,7 +102,26 @@ func NewMoqRepeatedIdsFn(scene *moq.Scene, config *moq.Config) *MoqRepeatedIdsFn
 	m := &MoqRepeatedIdsFn{
 		Scene:  scene,
 		Config: *config,
+		Moq:    &MoqRepeatedIdsFn_mock{},
+
+		Runtime: struct {
+			ParameterIndexing struct {
+				SParam1 moq.ParamIndexing
+				SParam2 moq.ParamIndexing
+				BParam  moq.ParamIndexing
+			}
+		}{ParameterIndexing: struct {
+			SParam1 moq.ParamIndexing
+			SParam2 moq.ParamIndexing
+			BParam  moq.ParamIndexing
+		}{
+			SParam1: moq.ParamIndexByValue,
+			SParam2: moq.ParamIndexByValue,
+			BParam:  moq.ParamIndexByValue,
+		}},
 	}
+	m.Moq.Moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -107,23 +142,7 @@ func (m *MoqRepeatedIdsFn_mock) Fn(sParam1, sParam2 string, bParam bool) (sResul
 	}
 	var results *MoqRepeatedIdsFn_results
 	for _, resultsByParams := range m.Moq.ResultsByParams {
-		var sParam1Used string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			sParam1Used = sParam1
-		}
-		var sParam2Used string
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			sParam2Used = sParam2
-		}
-		var bParamUsed bool
-		if resultsByParams.AnyParams&(1<<2) == 0 {
-			bParamUsed = bParam
-		}
-		paramsKey := MoqRepeatedIdsFn_paramsKey{
-			SParam1: sParam1Used,
-			SParam2: sParam2Used,
-			BParam:  bParamUsed,
-		}
+		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -174,11 +193,6 @@ func (m *MoqRepeatedIdsFn_mock) Fn(sParam1, sParam2 string, bParam bool) (sResul
 func (m *MoqRepeatedIdsFn) OnCall(sParam1, sParam2 string, bParam bool) *MoqRepeatedIdsFn_fnRecorder {
 	return &MoqRepeatedIdsFn_fnRecorder{
 		Params: MoqRepeatedIdsFn_params{
-			SParam1: sParam1,
-			SParam2: sParam2,
-			BParam:  bParam,
-		},
-		ParamsKey: MoqRepeatedIdsFn_paramsKey{
 			SParam1: sParam1,
 			SParam2: sParam2,
 			BParam:  bParam,
@@ -290,62 +304,50 @@ func (r *MoqRepeatedIdsFn_fnRecorder) DoReturnResults(fn MoqRepeatedIdsFn_doRetu
 }
 
 func (r *MoqRepeatedIdsFn_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqRepeatedIdsFn_resultsByParams
-		for n, res := range r.Moq.ResultsByParams {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqRepeatedIdsFn_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqRepeatedIdsFn_paramsKey]*MoqRepeatedIdsFn_results{},
-			}
-			r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
-				copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
-				r.Moq.ResultsByParams[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var sParam1Used string
-		if r.AnyParams&(1<<0) == 0 {
-			sParam1Used = r.ParamsKey.SParam1
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqRepeatedIdsFn_resultsByParams
+	for n, res := range r.Moq.ResultsByParams {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var sParam2Used string
-		if r.AnyParams&(1<<1) == 0 {
-			sParam2Used = r.ParamsKey.SParam2
-		}
-		var bParamUsed bool
-		if r.AnyParams&(1<<2) == 0 {
-			bParamUsed = r.ParamsKey.BParam
-		}
-		paramsKey := MoqRepeatedIdsFn_paramsKey{
-			SParam1: sParam1Used,
-			SParam2: sParam2Used,
-			BParam:  bParamUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqRepeatedIdsFn_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqRepeatedIdsFn_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqRepeatedIdsFn_paramsKey]*MoqRepeatedIdsFn_results{},
+		}
+		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
+			copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
+			r.Moq.ResultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqRepeatedIdsFn_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -381,6 +383,53 @@ func (r *MoqRepeatedIdsFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqRepe
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r
+}
+
+func (m *MoqRepeatedIdsFn) ParamsKey(params MoqRepeatedIdsFn_params, anyParams uint64) MoqRepeatedIdsFn_paramsKey {
+	var sParam1Used string
+	var sParam1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.SParam1 == moq.ParamIndexByValue {
+			sParam1Used = params.SParam1
+		} else {
+			sParam1UsedHash = hash.DeepHash(params.SParam1)
+		}
+	}
+	var sParam2Used string
+	var sParam2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.SParam2 == moq.ParamIndexByValue {
+			sParam2Used = params.SParam2
+		} else {
+			sParam2UsedHash = hash.DeepHash(params.SParam2)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<2) == 0 {
+		if m.Runtime.ParameterIndexing.BParam == moq.ParamIndexByValue {
+			bParamUsed = params.BParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.BParam)
+		}
+	}
+	return MoqRepeatedIdsFn_paramsKey{
+		Params: struct {
+			SParam1, SParam2 string
+			BParam           bool
+		}{
+			SParam1: sParam1Used,
+			SParam2: sParam2Used,
+			BParam:  bParamUsed,
+		},
+		Hashes: struct {
+			SParam1, SParam2 hash.Hash
+			BParam           hash.Hash
+		}{
+			SParam1: sParam1UsedHash,
+			SParam2: sParam2UsedHash,
+			BParam:  bParamUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

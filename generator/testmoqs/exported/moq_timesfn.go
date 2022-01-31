@@ -7,14 +7,24 @@ import (
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/generator/testmoqs"
+	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
 // MoqTimesFn holds the state of a moq of the TimesFn type
 type MoqTimesFn struct {
-	Scene           *moq.Scene
-	Config          moq.Config
+	Scene  *moq.Scene
+	Config moq.Config
+	Moq    *MoqTimesFn_mock
+
 	ResultsByParams []MoqTimesFn_resultsByParams
+
+	Runtime struct {
+		ParameterIndexing struct {
+			Times  moq.ParamIndexing
+			BParam moq.ParamIndexing
+		}
+	}
 }
 
 // MoqTimesFn_mock isolates the mock interface of the TimesFn type
@@ -30,8 +40,14 @@ type MoqTimesFn_params struct {
 
 // MoqTimesFn_paramsKey holds the map key params of the TimesFn type
 type MoqTimesFn_paramsKey struct {
-	Times  string
-	BParam bool
+	Params struct {
+		Times  string
+		BParam bool
+	}
+	Hashes struct {
+		Times  hash.Hash
+		BParam hash.Hash
+	}
 }
 
 // MoqTimesFn_resultsByParams contains the results for a given set of parameters for the TimesFn type
@@ -66,7 +82,6 @@ type MoqTimesFn_results struct {
 // MoqTimesFn_fnRecorder routes recorded function calls to the MoqTimesFn moq
 type MoqTimesFn_fnRecorder struct {
 	Params    MoqTimesFn_params
-	ParamsKey MoqTimesFn_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqTimesFn_results
@@ -86,7 +101,23 @@ func NewMoqTimesFn(scene *moq.Scene, config *moq.Config) *MoqTimesFn {
 	m := &MoqTimesFn{
 		Scene:  scene,
 		Config: *config,
+		Moq:    &MoqTimesFn_mock{},
+
+		Runtime: struct {
+			ParameterIndexing struct {
+				Times  moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+		}{ParameterIndexing: struct {
+			Times  moq.ParamIndexing
+			BParam moq.ParamIndexing
+		}{
+			Times:  moq.ParamIndexByValue,
+			BParam: moq.ParamIndexByValue,
+		}},
 	}
+	m.Moq.Moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -106,18 +137,7 @@ func (m *MoqTimesFn_mock) Fn(times string, bParam bool) (sResult string, err err
 	}
 	var results *MoqTimesFn_results
 	for _, resultsByParams := range m.Moq.ResultsByParams {
-		var timesUsed string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			timesUsed = times
-		}
-		var bParamUsed bool
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			bParamUsed = bParam
-		}
-		paramsKey := MoqTimesFn_paramsKey{
-			Times:  timesUsed,
-			BParam: bParamUsed,
-		}
+		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -167,10 +187,6 @@ func (m *MoqTimesFn_mock) Fn(times string, bParam bool) (sResult string, err err
 func (m *MoqTimesFn) OnCall(times string, bParam bool) *MoqTimesFn_fnRecorder {
 	return &MoqTimesFn_fnRecorder{
 		Params: MoqTimesFn_params{
-			Times:  times,
-			BParam: bParam,
-		},
-		ParamsKey: MoqTimesFn_paramsKey{
 			Times:  times,
 			BParam: bParam,
 		},
@@ -275,57 +291,50 @@ func (r *MoqTimesFn_fnRecorder) DoReturnResults(fn MoqTimesFn_doReturnFn) *MoqTi
 }
 
 func (r *MoqTimesFn_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqTimesFn_resultsByParams
-		for n, res := range r.Moq.ResultsByParams {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqTimesFn_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqTimesFn_paramsKey]*MoqTimesFn_results{},
-			}
-			r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
-				copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
-				r.Moq.ResultsByParams[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var timesUsed string
-		if r.AnyParams&(1<<0) == 0 {
-			timesUsed = r.ParamsKey.Times
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqTimesFn_resultsByParams
+	for n, res := range r.Moq.ResultsByParams {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var bParamUsed bool
-		if r.AnyParams&(1<<1) == 0 {
-			bParamUsed = r.ParamsKey.BParam
-		}
-		paramsKey := MoqTimesFn_paramsKey{
-			Times:  timesUsed,
-			BParam: bParamUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqTimesFn_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqTimesFn_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqTimesFn_paramsKey]*MoqTimesFn_results{},
+		}
+		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
+			copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
+			r.Moq.ResultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqTimesFn_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -360,6 +369,42 @@ func (r *MoqTimesFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqTimesFn_fn
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r
+}
+
+func (m *MoqTimesFn) ParamsKey(params MoqTimesFn_params, anyParams uint64) MoqTimesFn_paramsKey {
+	var timesUsed string
+	var timesUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.Times == moq.ParamIndexByValue {
+			timesUsed = params.Times
+		} else {
+			timesUsedHash = hash.DeepHash(params.Times)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.BParam == moq.ParamIndexByValue {
+			bParamUsed = params.BParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.BParam)
+		}
+	}
+	return MoqTimesFn_paramsKey{
+		Params: struct {
+			Times  string
+			BParam bool
+		}{
+			Times:  timesUsed,
+			BParam: bParamUsed,
+		},
+		Hashes: struct {
+			Times  hash.Hash
+			BParam hash.Hash
+		}{
+			Times:  timesUsedHash,
+			BParam: bParamUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

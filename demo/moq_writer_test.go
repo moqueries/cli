@@ -12,12 +12,22 @@ import (
 
 // moqWriter holds the state of a moq of the Writer type
 type moqWriter struct {
-	scene                 *moq.Scene
-	config                moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqWriter_mock
+
 	resultsByParams_Write []moqWriter_Write_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			Write struct {
+				p moq.ParamIndexing
+			}
+		}
+	}
+	// moqWriter_mock isolates the mock interface of the Writer type
 }
 
-// moqWriter_mock isolates the mock interface of the Writer type
 type moqWriter_mock struct {
 	moq *moqWriter
 }
@@ -31,7 +41,10 @@ type moqWriter_recorder struct {
 type moqWriter_Write_params struct{ p []byte }
 
 // moqWriter_Write_paramsKey holds the map key params of the Writer type
-type moqWriter_Write_paramsKey struct{ p hash.Hash }
+type moqWriter_Write_paramsKey struct {
+	params struct{}
+	hashes struct{ p hash.Hash }
+}
 
 // moqWriter_Write_resultsByParams contains the results for a given set of parameters for the Writer type
 type moqWriter_Write_resultsByParams struct {
@@ -65,7 +78,6 @@ type moqWriter_Write_results struct {
 // moqWriter_Write_fnRecorder routes recorded function calls to the moqWriter moq
 type moqWriter_Write_fnRecorder struct {
 	params    moqWriter_Write_params
-	paramsKey moqWriter_Write_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqWriter_Write_results
@@ -85,17 +97,34 @@ func newMoqWriter(scene *moq.Scene, config *moq.Config) *moqWriter {
 	m := &moqWriter{
 		scene:  scene,
 		config: *config,
+		moq:    &moqWriter_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Write struct {
+					p moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Write struct {
+				p moq.ParamIndexing
+			}
+		}{
+			Write: struct {
+				p moq.ParamIndexing
+			}{
+				p: moq.ParamIndexByHash,
+			},
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
 
 // mock returns the mock implementation of the Writer type
-func (m *moqWriter) mock() *moqWriter_mock {
-	return &moqWriter_mock{
-		moq: m,
-	}
-}
+func (m *moqWriter) mock() *moqWriter_mock { return m.moq }
 
 func (m *moqWriter_mock) Write(p []byte) (n int, err error) {
 	params := moqWriter_Write_params{
@@ -103,13 +132,7 @@ func (m *moqWriter_mock) Write(p []byte) (n int, err error) {
 	}
 	var results *moqWriter_Write_results
 	for _, resultsByParams := range m.moq.resultsByParams_Write {
-		var pUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			pUsed = hash.DeepHash(p)
-		}
-		paramsKey := moqWriter_Write_paramsKey{
-			p: pUsed,
-		}
+		paramsKey := m.moq.paramsKey_Write(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -167,9 +190,6 @@ func (m *moqWriter_recorder) Write(p []byte) *moqWriter_Write_fnRecorder {
 	return &moqWriter_Write_fnRecorder{
 		params: moqWriter_Write_params{
 			p: p,
-		},
-		paramsKey: moqWriter_Write_paramsKey{
-			p: hash.DeepHash(p),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -267,52 +287,50 @@ func (r *moqWriter_Write_fnRecorder) doReturnResults(fn moqWriter_Write_doReturn
 }
 
 func (r *moqWriter_Write_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqWriter_Write_resultsByParams
-		for n, res := range r.moq.resultsByParams_Write {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqWriter_Write_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqWriter_Write_paramsKey]*moqWriter_Write_results{},
-			}
-			r.moq.resultsByParams_Write = append(r.moq.resultsByParams_Write, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Write) {
-				copy(r.moq.resultsByParams_Write[insertAt+1:], r.moq.resultsByParams_Write[insertAt:0])
-				r.moq.resultsByParams_Write[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var pUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			pUsed = r.paramsKey.p
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqWriter_Write_resultsByParams
+	for n, res := range r.moq.resultsByParams_Write {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		paramsKey := moqWriter_Write_paramsKey{
-			p: pUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqWriter_Write_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqWriter_Write_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqWriter_Write_paramsKey]*moqWriter_Write_results{},
+		}
+		r.moq.resultsByParams_Write = append(r.moq.resultsByParams_Write, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Write) {
+			copy(r.moq.resultsByParams_Write[insertAt+1:], r.moq.resultsByParams_Write[insertAt:0])
+			r.moq.resultsByParams_Write[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Write(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqWriter_Write_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -347,6 +365,21 @@ func (r *moqWriter_Write_fnRecorder) repeat(repeaters ...moq.Repeater) *moqWrite
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqWriter) paramsKey_Write(params moqWriter_Write_params, anyParams uint64) moqWriter_Write_paramsKey {
+	var pUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Write.p == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The p parameter of the Write function can't be indexed by value")
+		}
+		pUsedHash = hash.DeepHash(params.p)
+	}
+	return moqWriter_Write_paramsKey{
+		params: struct{}{},
+		hashes: struct{ p hash.Hash }{
+			p: pUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

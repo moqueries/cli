@@ -14,8 +14,10 @@ import (
 
 // moqConverterer holds the state of a moq of the Converterer type
 type moqConverterer struct {
-	scene                             *moq.Scene
-	config                            moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqConverterer_mock
+
 	resultsByParams_BaseStruct        []moqConverterer_BaseStruct_resultsByParams
 	resultsByParams_IsolationStruct   []moqConverterer_IsolationStruct_resultsByParams
 	resultsByParams_MethodStructs     []moqConverterer_MethodStructs_resultsByParams
@@ -26,9 +28,56 @@ type moqConverterer struct {
 	resultsByParams_RecorderMethods   []moqConverterer_RecorderMethods_resultsByParams
 	resultsByParams_ResetMethod       []moqConverterer_ResetMethod_resultsByParams
 	resultsByParams_AssertMethod      []moqConverterer_AssertMethod_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			BaseStruct struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+			IsolationStruct struct {
+				typeName moq.ParamIndexing
+				suffix   moq.ParamIndexing
+			}
+			MethodStructs struct {
+				typeSpec moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			NewFunc struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+			IsolationAccessor struct {
+				typeName moq.ParamIndexing
+				suffix   moq.ParamIndexing
+				fnName   moq.ParamIndexing
+			}
+			FuncClosure struct {
+				typeName moq.ParamIndexing
+				pkgPath  moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			MockMethod struct {
+				typeName moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			RecorderMethods struct {
+				typeName moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			ResetMethod struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+			AssertMethod struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+		}
+	}
+	// moqConverterer_mock isolates the mock interface of the Converterer type
 }
 
-// moqConverterer_mock isolates the mock interface of the Converterer type
 type moqConverterer_mock struct {
 	moq *moqConverterer
 }
@@ -46,8 +95,11 @@ type moqConverterer_BaseStruct_params struct {
 
 // moqConverterer_BaseStruct_paramsKey holds the map key params of the Converterer type
 type moqConverterer_BaseStruct_paramsKey struct {
-	typeSpec hash.Hash
-	funcs    hash.Hash
+	params struct{ typeSpec *dst.TypeSpec }
+	hashes struct {
+		typeSpec hash.Hash
+		funcs    hash.Hash
+	}
 }
 
 // moqConverterer_BaseStruct_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -79,7 +131,6 @@ type moqConverterer_BaseStruct_results struct {
 // moqConverterer_BaseStruct_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_BaseStruct_fnRecorder struct {
 	params    moqConverterer_BaseStruct_params
-	paramsKey moqConverterer_BaseStruct_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_BaseStruct_results
@@ -95,7 +146,10 @@ type moqConverterer_BaseStruct_anyParams struct {
 type moqConverterer_IsolationStruct_params struct{ typeName, suffix string }
 
 // moqConverterer_IsolationStruct_paramsKey holds the map key params of the Converterer type
-type moqConverterer_IsolationStruct_paramsKey struct{ typeName, suffix string }
+type moqConverterer_IsolationStruct_paramsKey struct {
+	params struct{ typeName, suffix string }
+	hashes struct{ typeName, suffix hash.Hash }
+}
 
 // moqConverterer_IsolationStruct_resultsByParams contains the results for a given set of parameters for the Converterer type
 type moqConverterer_IsolationStruct_resultsByParams struct {
@@ -126,7 +180,6 @@ type moqConverterer_IsolationStruct_results struct {
 // moqConverterer_IsolationStruct_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_IsolationStruct_fnRecorder struct {
 	params    moqConverterer_IsolationStruct_params
-	paramsKey moqConverterer_IsolationStruct_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_IsolationStruct_results
@@ -146,8 +199,14 @@ type moqConverterer_MethodStructs_params struct {
 
 // moqConverterer_MethodStructs_paramsKey holds the map key params of the Converterer type
 type moqConverterer_MethodStructs_paramsKey struct {
-	typeSpec hash.Hash
-	fn       hash.Hash
+	params struct {
+		typeSpec *dst.TypeSpec
+		fn       generator.Func
+	}
+	hashes struct {
+		typeSpec hash.Hash
+		fn       hash.Hash
+	}
 }
 
 // moqConverterer_MethodStructs_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -182,7 +241,6 @@ type moqConverterer_MethodStructs_results struct {
 // moqConverterer_MethodStructs_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_MethodStructs_fnRecorder struct {
 	params    moqConverterer_MethodStructs_params
-	paramsKey moqConverterer_MethodStructs_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_MethodStructs_results
@@ -195,10 +253,19 @@ type moqConverterer_MethodStructs_anyParams struct {
 }
 
 // moqConverterer_NewFunc_params holds the params of the Converterer type
-type moqConverterer_NewFunc_params struct{ typeSpec *dst.TypeSpec }
+type moqConverterer_NewFunc_params struct {
+	typeSpec *dst.TypeSpec
+	funcs    []generator.Func
+}
 
 // moqConverterer_NewFunc_paramsKey holds the map key params of the Converterer type
-type moqConverterer_NewFunc_paramsKey struct{ typeSpec hash.Hash }
+type moqConverterer_NewFunc_paramsKey struct {
+	params struct{ typeSpec *dst.TypeSpec }
+	hashes struct {
+		typeSpec hash.Hash
+		funcs    hash.Hash
+	}
+}
 
 // moqConverterer_NewFunc_resultsByParams contains the results for a given set of parameters for the Converterer type
 type moqConverterer_NewFunc_resultsByParams struct {
@@ -208,10 +275,10 @@ type moqConverterer_NewFunc_resultsByParams struct {
 }
 
 // moqConverterer_NewFunc_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_NewFunc_doFn func(typeSpec *dst.TypeSpec)
+type moqConverterer_NewFunc_doFn func(typeSpec *dst.TypeSpec, funcs []generator.Func)
 
 // moqConverterer_NewFunc_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_NewFunc_doReturnFn func(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl)
+type moqConverterer_NewFunc_doReturnFn func(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_NewFunc_results holds the results of the Converterer type
 type moqConverterer_NewFunc_results struct {
@@ -229,7 +296,6 @@ type moqConverterer_NewFunc_results struct {
 // moqConverterer_NewFunc_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_NewFunc_fnRecorder struct {
 	params    moqConverterer_NewFunc_params
-	paramsKey moqConverterer_NewFunc_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_NewFunc_results
@@ -245,7 +311,10 @@ type moqConverterer_NewFunc_anyParams struct {
 type moqConverterer_IsolationAccessor_params struct{ typeName, suffix, fnName string }
 
 // moqConverterer_IsolationAccessor_paramsKey holds the map key params of the Converterer type
-type moqConverterer_IsolationAccessor_paramsKey struct{ typeName, suffix, fnName string }
+type moqConverterer_IsolationAccessor_paramsKey struct {
+	params struct{ typeName, suffix, fnName string }
+	hashes struct{ typeName, suffix, fnName hash.Hash }
+}
 
 // moqConverterer_IsolationAccessor_resultsByParams contains the results for a given set of parameters for the Converterer type
 type moqConverterer_IsolationAccessor_resultsByParams struct {
@@ -276,7 +345,6 @@ type moqConverterer_IsolationAccessor_results struct {
 // moqConverterer_IsolationAccessor_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_IsolationAccessor_fnRecorder struct {
 	params    moqConverterer_IsolationAccessor_params
-	paramsKey moqConverterer_IsolationAccessor_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_IsolationAccessor_results
@@ -296,8 +364,14 @@ type moqConverterer_FuncClosure_params struct {
 
 // moqConverterer_FuncClosure_paramsKey holds the map key params of the Converterer type
 type moqConverterer_FuncClosure_paramsKey struct {
-	typeName, pkgPath string
-	fn                hash.Hash
+	params struct {
+		typeName, pkgPath string
+		fn                generator.Func
+	}
+	hashes struct {
+		typeName, pkgPath hash.Hash
+		fn                hash.Hash
+	}
 }
 
 // moqConverterer_FuncClosure_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -329,7 +403,6 @@ type moqConverterer_FuncClosure_results struct {
 // moqConverterer_FuncClosure_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_FuncClosure_fnRecorder struct {
 	params    moqConverterer_FuncClosure_params
-	paramsKey moqConverterer_FuncClosure_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_FuncClosure_results
@@ -349,8 +422,14 @@ type moqConverterer_MockMethod_params struct {
 
 // moqConverterer_MockMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_MockMethod_paramsKey struct {
-	typeName string
-	fn       hash.Hash
+	params struct {
+		typeName string
+		fn       generator.Func
+	}
+	hashes struct {
+		typeName hash.Hash
+		fn       hash.Hash
+	}
 }
 
 // moqConverterer_MockMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -382,7 +461,6 @@ type moqConverterer_MockMethod_results struct {
 // moqConverterer_MockMethod_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_MockMethod_fnRecorder struct {
 	params    moqConverterer_MockMethod_params
-	paramsKey moqConverterer_MockMethod_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_MockMethod_results
@@ -402,8 +480,14 @@ type moqConverterer_RecorderMethods_params struct {
 
 // moqConverterer_RecorderMethods_paramsKey holds the map key params of the Converterer type
 type moqConverterer_RecorderMethods_paramsKey struct {
-	typeName string
-	fn       hash.Hash
+	params struct {
+		typeName string
+		fn       generator.Func
+	}
+	hashes struct {
+		typeName hash.Hash
+		fn       hash.Hash
+	}
 }
 
 // moqConverterer_RecorderMethods_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -435,7 +519,6 @@ type moqConverterer_RecorderMethods_results struct {
 // moqConverterer_RecorderMethods_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_RecorderMethods_fnRecorder struct {
 	params    moqConverterer_RecorderMethods_params
-	paramsKey moqConverterer_RecorderMethods_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_RecorderMethods_results
@@ -455,8 +538,11 @@ type moqConverterer_ResetMethod_params struct {
 
 // moqConverterer_ResetMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_ResetMethod_paramsKey struct {
-	typeSpec hash.Hash
-	funcs    hash.Hash
+	params struct{ typeSpec *dst.TypeSpec }
+	hashes struct {
+		typeSpec hash.Hash
+		funcs    hash.Hash
+	}
 }
 
 // moqConverterer_ResetMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -488,7 +574,6 @@ type moqConverterer_ResetMethod_results struct {
 // moqConverterer_ResetMethod_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_ResetMethod_fnRecorder struct {
 	params    moqConverterer_ResetMethod_params
-	paramsKey moqConverterer_ResetMethod_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_ResetMethod_results
@@ -508,8 +593,11 @@ type moqConverterer_AssertMethod_params struct {
 
 // moqConverterer_AssertMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_AssertMethod_paramsKey struct {
-	typeSpec hash.Hash
-	funcs    hash.Hash
+	params struct{ typeSpec *dst.TypeSpec }
+	hashes struct {
+		typeSpec hash.Hash
+		funcs    hash.Hash
+	}
 }
 
 // moqConverterer_AssertMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -541,7 +629,6 @@ type moqConverterer_AssertMethod_results struct {
 // moqConverterer_AssertMethod_fnRecorder routes recorded function calls to the moqConverterer moq
 type moqConverterer_AssertMethod_fnRecorder struct {
 	params    moqConverterer_AssertMethod_params
-	paramsKey moqConverterer_AssertMethod_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqConverterer_AssertMethod_results
@@ -561,17 +648,181 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 	m := &moqConverterer{
 		scene:  scene,
 		config: *config,
+		moq:    &moqConverterer_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				BaseStruct struct {
+					typeSpec moq.ParamIndexing
+					funcs    moq.ParamIndexing
+				}
+				IsolationStruct struct {
+					typeName moq.ParamIndexing
+					suffix   moq.ParamIndexing
+				}
+				MethodStructs struct {
+					typeSpec moq.ParamIndexing
+					fn       moq.ParamIndexing
+				}
+				NewFunc struct {
+					typeSpec moq.ParamIndexing
+					funcs    moq.ParamIndexing
+				}
+				IsolationAccessor struct {
+					typeName moq.ParamIndexing
+					suffix   moq.ParamIndexing
+					fnName   moq.ParamIndexing
+				}
+				FuncClosure struct {
+					typeName moq.ParamIndexing
+					pkgPath  moq.ParamIndexing
+					fn       moq.ParamIndexing
+				}
+				MockMethod struct {
+					typeName moq.ParamIndexing
+					fn       moq.ParamIndexing
+				}
+				RecorderMethods struct {
+					typeName moq.ParamIndexing
+					fn       moq.ParamIndexing
+				}
+				ResetMethod struct {
+					typeSpec moq.ParamIndexing
+					funcs    moq.ParamIndexing
+				}
+				AssertMethod struct {
+					typeSpec moq.ParamIndexing
+					funcs    moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			BaseStruct struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+			IsolationStruct struct {
+				typeName moq.ParamIndexing
+				suffix   moq.ParamIndexing
+			}
+			MethodStructs struct {
+				typeSpec moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			NewFunc struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+			IsolationAccessor struct {
+				typeName moq.ParamIndexing
+				suffix   moq.ParamIndexing
+				fnName   moq.ParamIndexing
+			}
+			FuncClosure struct {
+				typeName moq.ParamIndexing
+				pkgPath  moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			MockMethod struct {
+				typeName moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			RecorderMethods struct {
+				typeName moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}
+			ResetMethod struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+			AssertMethod struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}
+		}{
+			BaseStruct: struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}{
+				typeSpec: moq.ParamIndexByHash,
+				funcs:    moq.ParamIndexByHash,
+			},
+			IsolationStruct: struct {
+				typeName moq.ParamIndexing
+				suffix   moq.ParamIndexing
+			}{
+				typeName: moq.ParamIndexByValue,
+				suffix:   moq.ParamIndexByValue,
+			},
+			MethodStructs: struct {
+				typeSpec moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}{
+				typeSpec: moq.ParamIndexByHash,
+				fn:       moq.ParamIndexByHash,
+			},
+			NewFunc: struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}{
+				typeSpec: moq.ParamIndexByHash,
+				funcs:    moq.ParamIndexByHash,
+			},
+			IsolationAccessor: struct {
+				typeName moq.ParamIndexing
+				suffix   moq.ParamIndexing
+				fnName   moq.ParamIndexing
+			}{
+				typeName: moq.ParamIndexByValue,
+				suffix:   moq.ParamIndexByValue,
+				fnName:   moq.ParamIndexByValue,
+			},
+			FuncClosure: struct {
+				typeName moq.ParamIndexing
+				pkgPath  moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}{
+				typeName: moq.ParamIndexByValue,
+				pkgPath:  moq.ParamIndexByValue,
+				fn:       moq.ParamIndexByHash,
+			},
+			MockMethod: struct {
+				typeName moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}{
+				typeName: moq.ParamIndexByValue,
+				fn:       moq.ParamIndexByHash,
+			},
+			RecorderMethods: struct {
+				typeName moq.ParamIndexing
+				fn       moq.ParamIndexing
+			}{
+				typeName: moq.ParamIndexByValue,
+				fn:       moq.ParamIndexByHash,
+			},
+			ResetMethod: struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}{
+				typeSpec: moq.ParamIndexByHash,
+				funcs:    moq.ParamIndexByHash,
+			},
+			AssertMethod: struct {
+				typeSpec moq.ParamIndexing
+				funcs    moq.ParamIndexing
+			}{
+				typeSpec: moq.ParamIndexByHash,
+				funcs:    moq.ParamIndexByHash,
+			},
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
 
 // mock returns the mock implementation of the Converterer type
-func (m *moqConverterer) mock() *moqConverterer_mock {
-	return &moqConverterer_mock{
-		moq: m,
-	}
-}
+func (m *moqConverterer) mock() *moqConverterer_mock { return m.moq }
 
 func (m *moqConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generator.Func) (structDecl *dst.GenDecl) {
 	params := moqConverterer_BaseStruct_params{
@@ -580,18 +831,7 @@ func (m *moqConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generat
 	}
 	var results *moqConverterer_BaseStruct_results
 	for _, resultsByParams := range m.moq.resultsByParams_BaseStruct {
-		var typeSpecUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = hash.DeepHash(typeSpec)
-		}
-		var funcsUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			funcsUsed = hash.DeepHash(funcs)
-		}
-		paramsKey := moqConverterer_BaseStruct_paramsKey{
-			typeSpec: typeSpecUsed,
-			funcs:    funcsUsed,
-		}
+		paramsKey := m.moq.paramsKey_BaseStruct(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -644,18 +884,7 @@ func (m *moqConverterer_mock) IsolationStruct(typeName, suffix string) (structDe
 	}
 	var results *moqConverterer_IsolationStruct_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsolationStruct {
-		var typeNameUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeNameUsed = typeName
-		}
-		var suffixUsed string
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			suffixUsed = suffix
-		}
-		paramsKey := moqConverterer_IsolationStruct_paramsKey{
-			typeName: typeNameUsed,
-			suffix:   suffixUsed,
-		}
+		paramsKey := m.moq.paramsKey_IsolationStruct(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -708,18 +937,7 @@ func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator
 	}
 	var results *moqConverterer_MethodStructs_results
 	for _, resultsByParams := range m.moq.resultsByParams_MethodStructs {
-		var typeSpecUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = hash.DeepHash(typeSpec)
-		}
-		var fnUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			fnUsed = hash.DeepHash(fn)
-		}
-		paramsKey := moqConverterer_MethodStructs_paramsKey{
-			typeSpec: typeSpecUsed,
-			fn:       fnUsed,
-		}
+		paramsKey := m.moq.paramsKey_MethodStructs(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -766,19 +984,14 @@ func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator
 	return
 }
 
-func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
 	params := moqConverterer_NewFunc_params{
 		typeSpec: typeSpec,
+		funcs:    funcs,
 	}
 	var results *moqConverterer_NewFunc_results
 	for _, resultsByParams := range m.moq.resultsByParams_NewFunc {
-		var typeSpecUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = hash.DeepHash(typeSpec)
-		}
-		paramsKey := moqConverterer_NewFunc_paramsKey{
-			typeSpec: typeSpecUsed,
-		}
+		paramsKey := m.moq.paramsKey_NewFunc(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -812,14 +1025,14 @@ func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec) (funcDecl *dst.Fun
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeSpec)
+		result.doFn(typeSpec, funcs)
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeSpec)
+		funcDecl = result.doReturnFn(typeSpec, funcs)
 	}
 	return
 }
@@ -832,23 +1045,7 @@ func (m *moqConverterer_mock) IsolationAccessor(typeName, suffix, fnName string)
 	}
 	var results *moqConverterer_IsolationAccessor_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsolationAccessor {
-		var typeNameUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeNameUsed = typeName
-		}
-		var suffixUsed string
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			suffixUsed = suffix
-		}
-		var fnNameUsed string
-		if resultsByParams.anyParams&(1<<2) == 0 {
-			fnNameUsed = fnName
-		}
-		paramsKey := moqConverterer_IsolationAccessor_paramsKey{
-			typeName: typeNameUsed,
-			suffix:   suffixUsed,
-			fnName:   fnNameUsed,
-		}
+		paramsKey := m.moq.paramsKey_IsolationAccessor(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -902,23 +1099,7 @@ func (m *moqConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator
 	}
 	var results *moqConverterer_FuncClosure_results
 	for _, resultsByParams := range m.moq.resultsByParams_FuncClosure {
-		var typeNameUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeNameUsed = typeName
-		}
-		var pkgPathUsed string
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			pkgPathUsed = pkgPath
-		}
-		var fnUsed hash.Hash
-		if resultsByParams.anyParams&(1<<2) == 0 {
-			fnUsed = hash.DeepHash(fn)
-		}
-		paramsKey := moqConverterer_FuncClosure_paramsKey{
-			typeName: typeNameUsed,
-			pkgPath:  pkgPathUsed,
-			fn:       fnUsed,
-		}
+		paramsKey := m.moq.paramsKey_FuncClosure(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -971,18 +1152,7 @@ func (m *moqConverterer_mock) MockMethod(typeName string, fn generator.Func) (fu
 	}
 	var results *moqConverterer_MockMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_MockMethod {
-		var typeNameUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeNameUsed = typeName
-		}
-		var fnUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			fnUsed = hash.DeepHash(fn)
-		}
-		paramsKey := moqConverterer_MockMethod_paramsKey{
-			typeName: typeNameUsed,
-			fn:       fnUsed,
-		}
+		paramsKey := m.moq.paramsKey_MockMethod(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -1035,18 +1205,7 @@ func (m *moqConverterer_mock) RecorderMethods(typeName string, fn generator.Func
 	}
 	var results *moqConverterer_RecorderMethods_results
 	for _, resultsByParams := range m.moq.resultsByParams_RecorderMethods {
-		var typeNameUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeNameUsed = typeName
-		}
-		var fnUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			fnUsed = hash.DeepHash(fn)
-		}
-		paramsKey := moqConverterer_RecorderMethods_paramsKey{
-			typeName: typeNameUsed,
-			fn:       fnUsed,
-		}
+		paramsKey := m.moq.paramsKey_RecorderMethods(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -1099,18 +1258,7 @@ func (m *moqConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []genera
 	}
 	var results *moqConverterer_ResetMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_ResetMethod {
-		var typeSpecUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = hash.DeepHash(typeSpec)
-		}
-		var funcsUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			funcsUsed = hash.DeepHash(funcs)
-		}
-		paramsKey := moqConverterer_ResetMethod_paramsKey{
-			typeSpec: typeSpecUsed,
-			funcs:    funcsUsed,
-		}
+		paramsKey := m.moq.paramsKey_ResetMethod(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -1163,18 +1311,7 @@ func (m *moqConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []gener
 	}
 	var results *moqConverterer_AssertMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_AssertMethod {
-		var typeSpecUsed hash.Hash
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			typeSpecUsed = hash.DeepHash(typeSpec)
-		}
-		var funcsUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			funcsUsed = hash.DeepHash(funcs)
-		}
-		paramsKey := moqConverterer_AssertMethod_paramsKey{
-			typeSpec: typeSpecUsed,
-			funcs:    funcsUsed,
-		}
+		paramsKey := m.moq.paramsKey_AssertMethod(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -1232,10 +1369,6 @@ func (m *moqConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []gen
 		params: moqConverterer_BaseStruct_params{
 			typeSpec: typeSpec,
 			funcs:    funcs,
-		},
-		paramsKey: moqConverterer_BaseStruct_paramsKey{
-			typeSpec: hash.DeepHash(typeSpec),
-			funcs:    hash.DeepHash(funcs),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1328,57 +1461,50 @@ func (r *moqConverterer_BaseStruct_fnRecorder) doReturnResults(fn moqConverterer
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_BaseStruct_resultsByParams
-		for n, res := range r.moq.resultsByParams_BaseStruct {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_BaseStruct_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_BaseStruct_paramsKey]*moqConverterer_BaseStruct_results{},
-			}
-			r.moq.resultsByParams_BaseStruct = append(r.moq.resultsByParams_BaseStruct, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_BaseStruct) {
-				copy(r.moq.resultsByParams_BaseStruct[insertAt+1:], r.moq.resultsByParams_BaseStruct[insertAt:0])
-				r.moq.resultsByParams_BaseStruct[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeSpecUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			typeSpecUsed = r.paramsKey.typeSpec
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_BaseStruct_resultsByParams
+	for n, res := range r.moq.resultsByParams_BaseStruct {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var funcsUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			funcsUsed = r.paramsKey.funcs
-		}
-		paramsKey := moqConverterer_BaseStruct_paramsKey{
-			typeSpec: typeSpecUsed,
-			funcs:    funcsUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_BaseStruct_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_BaseStruct_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_BaseStruct_paramsKey]*moqConverterer_BaseStruct_results{},
+		}
+		r.moq.resultsByParams_BaseStruct = append(r.moq.resultsByParams_BaseStruct, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_BaseStruct) {
+			copy(r.moq.resultsByParams_BaseStruct[insertAt+1:], r.moq.resultsByParams_BaseStruct[insertAt:0])
+			r.moq.resultsByParams_BaseStruct[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_BaseStruct(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_BaseStruct_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -1408,13 +1534,39 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqConverterer) paramsKey_BaseStruct(params moqConverterer_BaseStruct_params, anyParams uint64) moqConverterer_BaseStruct_paramsKey {
+	var typeSpecUsed *dst.TypeSpec
+	var typeSpecUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.BaseStruct.typeSpec == moq.ParamIndexByValue {
+			typeSpecUsed = params.typeSpec
+		} else {
+			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
+		}
+	}
+	var funcsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.BaseStruct.funcs == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The funcs parameter of the BaseStruct function can't be indexed by value")
+		}
+		funcsUsedHash = hash.DeepHash(params.funcs)
+	}
+	return moqConverterer_BaseStruct_paramsKey{
+		params: struct{ typeSpec *dst.TypeSpec }{
+			typeSpec: typeSpecUsed,
+		},
+		hashes: struct {
+			typeSpec hash.Hash
+			funcs    hash.Hash
+		}{
+			typeSpec: typeSpecUsedHash,
+			funcs:    funcsUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) IsolationStruct(typeName, suffix string) *moqConverterer_IsolationStruct_fnRecorder {
 	return &moqConverterer_IsolationStruct_fnRecorder{
 		params: moqConverterer_IsolationStruct_params{
-			typeName: typeName,
-			suffix:   suffix,
-		},
-		paramsKey: moqConverterer_IsolationStruct_paramsKey{
 			typeName: typeName,
 			suffix:   suffix,
 		},
@@ -1509,57 +1661,50 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) doReturnResults(fn moqConver
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_IsolationStruct_resultsByParams
-		for n, res := range r.moq.resultsByParams_IsolationStruct {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_IsolationStruct_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_IsolationStruct_paramsKey]*moqConverterer_IsolationStruct_results{},
-			}
-			r.moq.resultsByParams_IsolationStruct = append(r.moq.resultsByParams_IsolationStruct, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsolationStruct) {
-				copy(r.moq.resultsByParams_IsolationStruct[insertAt+1:], r.moq.resultsByParams_IsolationStruct[insertAt:0])
-				r.moq.resultsByParams_IsolationStruct[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeNameUsed string
-		if r.anyParams&(1<<0) == 0 {
-			typeNameUsed = r.paramsKey.typeName
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_IsolationStruct_resultsByParams
+	for n, res := range r.moq.resultsByParams_IsolationStruct {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var suffixUsed string
-		if r.anyParams&(1<<1) == 0 {
-			suffixUsed = r.paramsKey.suffix
-		}
-		paramsKey := moqConverterer_IsolationStruct_paramsKey{
-			typeName: typeNameUsed,
-			suffix:   suffixUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_IsolationStruct_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_IsolationStruct_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_IsolationStruct_paramsKey]*moqConverterer_IsolationStruct_results{},
+		}
+		r.moq.resultsByParams_IsolationStruct = append(r.moq.resultsByParams_IsolationStruct, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsolationStruct) {
+			copy(r.moq.resultsByParams_IsolationStruct[insertAt+1:], r.moq.resultsByParams_IsolationStruct[insertAt:0])
+			r.moq.resultsByParams_IsolationStruct[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_IsolationStruct(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_IsolationStruct_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -1589,15 +1734,41 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 	return r
 }
 
+func (m *moqConverterer) paramsKey_IsolationStruct(params moqConverterer_IsolationStruct_params, anyParams uint64) moqConverterer_IsolationStruct_paramsKey {
+	var typeNameUsed string
+	var typeNameUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.IsolationStruct.typeName == moq.ParamIndexByValue {
+			typeNameUsed = params.typeName
+		} else {
+			typeNameUsedHash = hash.DeepHash(params.typeName)
+		}
+	}
+	var suffixUsed string
+	var suffixUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.IsolationStruct.suffix == moq.ParamIndexByValue {
+			suffixUsed = params.suffix
+		} else {
+			suffixUsedHash = hash.DeepHash(params.suffix)
+		}
+	}
+	return moqConverterer_IsolationStruct_paramsKey{
+		params: struct{ typeName, suffix string }{
+			typeName: typeNameUsed,
+			suffix:   suffixUsed,
+		},
+		hashes: struct{ typeName, suffix hash.Hash }{
+			typeName: typeNameUsedHash,
+			suffix:   suffixUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) *moqConverterer_MethodStructs_fnRecorder {
 	return &moqConverterer_MethodStructs_fnRecorder{
 		params: moqConverterer_MethodStructs_params{
 			typeSpec: typeSpec,
 			fn:       fn,
-		},
-		paramsKey: moqConverterer_MethodStructs_paramsKey{
-			typeSpec: hash.DeepHash(typeSpec),
-			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1700,57 +1871,50 @@ func (r *moqConverterer_MethodStructs_fnRecorder) doReturnResults(fn moqConverte
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_MethodStructs_resultsByParams
-		for n, res := range r.moq.resultsByParams_MethodStructs {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_MethodStructs_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_MethodStructs_paramsKey]*moqConverterer_MethodStructs_results{},
-			}
-			r.moq.resultsByParams_MethodStructs = append(r.moq.resultsByParams_MethodStructs, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_MethodStructs) {
-				copy(r.moq.resultsByParams_MethodStructs[insertAt+1:], r.moq.resultsByParams_MethodStructs[insertAt:0])
-				r.moq.resultsByParams_MethodStructs[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeSpecUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			typeSpecUsed = r.paramsKey.typeSpec
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_MethodStructs_resultsByParams
+	for n, res := range r.moq.resultsByParams_MethodStructs {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var fnUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			fnUsed = r.paramsKey.fn
-		}
-		paramsKey := moqConverterer_MethodStructs_paramsKey{
-			typeSpec: typeSpecUsed,
-			fn:       fnUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_MethodStructs_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_MethodStructs_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_MethodStructs_paramsKey]*moqConverterer_MethodStructs_results{},
+		}
+		r.moq.resultsByParams_MethodStructs = append(r.moq.resultsByParams_MethodStructs, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_MethodStructs) {
+			copy(r.moq.resultsByParams_MethodStructs[insertAt+1:], r.moq.resultsByParams_MethodStructs[insertAt:0])
+			r.moq.resultsByParams_MethodStructs[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_MethodStructs(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_MethodStructs_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -1787,13 +1951,47 @@ func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeat
 	return r
 }
 
-func (m *moqConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec) *moqConverterer_NewFunc_fnRecorder {
+func (m *moqConverterer) paramsKey_MethodStructs(params moqConverterer_MethodStructs_params, anyParams uint64) moqConverterer_MethodStructs_paramsKey {
+	var typeSpecUsed *dst.TypeSpec
+	var typeSpecUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.MethodStructs.typeSpec == moq.ParamIndexByValue {
+			typeSpecUsed = params.typeSpec
+		} else {
+			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
+		}
+	}
+	var fnUsed generator.Func
+	var fnUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.MethodStructs.fn == moq.ParamIndexByValue {
+			fnUsed = params.fn
+		} else {
+			fnUsedHash = hash.DeepHash(params.fn)
+		}
+	}
+	return moqConverterer_MethodStructs_paramsKey{
+		params: struct {
+			typeSpec *dst.TypeSpec
+			fn       generator.Func
+		}{
+			typeSpec: typeSpecUsed,
+			fn:       fnUsed,
+		},
+		hashes: struct {
+			typeSpec hash.Hash
+			fn       hash.Hash
+		}{
+			typeSpec: typeSpecUsedHash,
+			fn:       fnUsedHash,
+		}}
+}
+
+func (m *moqConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_NewFunc_fnRecorder {
 	return &moqConverterer_NewFunc_fnRecorder{
 		params: moqConverterer_NewFunc_params{
 			typeSpec: typeSpec,
-		},
-		paramsKey: moqConverterer_NewFunc_paramsKey{
-			typeSpec: hash.DeepHash(typeSpec),
+			funcs:    funcs,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1810,6 +2008,11 @@ func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyPar
 
 func (a *moqConverterer_NewFunc_anyParams) typeSpec() *moqConverterer_NewFunc_fnRecorder {
 	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqConverterer_NewFunc_anyParams) funcs() *moqConverterer_NewFunc_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
 
@@ -1881,52 +2084,50 @@ func (r *moqConverterer_NewFunc_fnRecorder) doReturnResults(fn moqConverterer_Ne
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_NewFunc_resultsByParams
-		for n, res := range r.moq.resultsByParams_NewFunc {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_NewFunc_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_NewFunc_paramsKey]*moqConverterer_NewFunc_results{},
-			}
-			r.moq.resultsByParams_NewFunc = append(r.moq.resultsByParams_NewFunc, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_NewFunc) {
-				copy(r.moq.resultsByParams_NewFunc[insertAt+1:], r.moq.resultsByParams_NewFunc[insertAt:0])
-				r.moq.resultsByParams_NewFunc[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeSpecUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			typeSpecUsed = r.paramsKey.typeSpec
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_NewFunc_resultsByParams
+	for n, res := range r.moq.resultsByParams_NewFunc {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		paramsKey := moqConverterer_NewFunc_paramsKey{
-			typeSpec: typeSpecUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_NewFunc_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_NewFunc_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_NewFunc_paramsKey]*moqConverterer_NewFunc_results{},
+		}
+		r.moq.resultsByParams_NewFunc = append(r.moq.resultsByParams_NewFunc, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_NewFunc) {
+			copy(r.moq.resultsByParams_NewFunc[insertAt+1:], r.moq.resultsByParams_NewFunc[insertAt:0])
+			r.moq.resultsByParams_NewFunc[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_NewFunc(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_NewFunc_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -1956,14 +2157,39 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 	return r
 }
 
+func (m *moqConverterer) paramsKey_NewFunc(params moqConverterer_NewFunc_params, anyParams uint64) moqConverterer_NewFunc_paramsKey {
+	var typeSpecUsed *dst.TypeSpec
+	var typeSpecUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.NewFunc.typeSpec == moq.ParamIndexByValue {
+			typeSpecUsed = params.typeSpec
+		} else {
+			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
+		}
+	}
+	var funcsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.NewFunc.funcs == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The funcs parameter of the NewFunc function can't be indexed by value")
+		}
+		funcsUsedHash = hash.DeepHash(params.funcs)
+	}
+	return moqConverterer_NewFunc_paramsKey{
+		params: struct{ typeSpec *dst.TypeSpec }{
+			typeSpec: typeSpecUsed,
+		},
+		hashes: struct {
+			typeSpec hash.Hash
+			funcs    hash.Hash
+		}{
+			typeSpec: typeSpecUsedHash,
+			funcs:    funcsUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) IsolationAccessor(typeName, suffix, fnName string) *moqConverterer_IsolationAccessor_fnRecorder {
 	return &moqConverterer_IsolationAccessor_fnRecorder{
 		params: moqConverterer_IsolationAccessor_params{
-			typeName: typeName,
-			suffix:   suffix,
-			fnName:   fnName,
-		},
-		paramsKey: moqConverterer_IsolationAccessor_paramsKey{
 			typeName: typeName,
 			suffix:   suffix,
 			fnName:   fnName,
@@ -2064,62 +2290,50 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) doReturnResults(fn moqConv
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_IsolationAccessor_resultsByParams
-		for n, res := range r.moq.resultsByParams_IsolationAccessor {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_IsolationAccessor_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_IsolationAccessor_paramsKey]*moqConverterer_IsolationAccessor_results{},
-			}
-			r.moq.resultsByParams_IsolationAccessor = append(r.moq.resultsByParams_IsolationAccessor, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsolationAccessor) {
-				copy(r.moq.resultsByParams_IsolationAccessor[insertAt+1:], r.moq.resultsByParams_IsolationAccessor[insertAt:0])
-				r.moq.resultsByParams_IsolationAccessor[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeNameUsed string
-		if r.anyParams&(1<<0) == 0 {
-			typeNameUsed = r.paramsKey.typeName
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_IsolationAccessor_resultsByParams
+	for n, res := range r.moq.resultsByParams_IsolationAccessor {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var suffixUsed string
-		if r.anyParams&(1<<1) == 0 {
-			suffixUsed = r.paramsKey.suffix
-		}
-		var fnNameUsed string
-		if r.anyParams&(1<<2) == 0 {
-			fnNameUsed = r.paramsKey.fnName
-		}
-		paramsKey := moqConverterer_IsolationAccessor_paramsKey{
-			typeName: typeNameUsed,
-			suffix:   suffixUsed,
-			fnName:   fnNameUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_IsolationAccessor_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_IsolationAccessor_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_IsolationAccessor_paramsKey]*moqConverterer_IsolationAccessor_results{},
+		}
+		r.moq.resultsByParams_IsolationAccessor = append(r.moq.resultsByParams_IsolationAccessor, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_IsolationAccessor) {
+			copy(r.moq.resultsByParams_IsolationAccessor[insertAt+1:], r.moq.resultsByParams_IsolationAccessor[insertAt:0])
+			r.moq.resultsByParams_IsolationAccessor[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_IsolationAccessor(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_IsolationAccessor_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -2149,17 +2363,53 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 	return r
 }
 
+func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_IsolationAccessor_params, anyParams uint64) moqConverterer_IsolationAccessor_paramsKey {
+	var typeNameUsed string
+	var typeNameUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.IsolationAccessor.typeName == moq.ParamIndexByValue {
+			typeNameUsed = params.typeName
+		} else {
+			typeNameUsedHash = hash.DeepHash(params.typeName)
+		}
+	}
+	var suffixUsed string
+	var suffixUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.IsolationAccessor.suffix == moq.ParamIndexByValue {
+			suffixUsed = params.suffix
+		} else {
+			suffixUsedHash = hash.DeepHash(params.suffix)
+		}
+	}
+	var fnNameUsed string
+	var fnNameUsedHash hash.Hash
+	if anyParams&(1<<2) == 0 {
+		if m.runtime.parameterIndexing.IsolationAccessor.fnName == moq.ParamIndexByValue {
+			fnNameUsed = params.fnName
+		} else {
+			fnNameUsedHash = hash.DeepHash(params.fnName)
+		}
+	}
+	return moqConverterer_IsolationAccessor_paramsKey{
+		params: struct{ typeName, suffix, fnName string }{
+			typeName: typeNameUsed,
+			suffix:   suffixUsed,
+			fnName:   fnNameUsed,
+		},
+		hashes: struct{ typeName, suffix, fnName hash.Hash }{
+			typeName: typeNameUsedHash,
+			suffix:   suffixUsedHash,
+			fnName:   fnNameUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) FuncClosure(typeName, pkgPath string, fn generator.Func) *moqConverterer_FuncClosure_fnRecorder {
 	return &moqConverterer_FuncClosure_fnRecorder{
 		params: moqConverterer_FuncClosure_params{
 			typeName: typeName,
 			pkgPath:  pkgPath,
 			fn:       fn,
-		},
-		paramsKey: moqConverterer_FuncClosure_paramsKey{
-			typeName: typeName,
-			pkgPath:  pkgPath,
-			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2257,62 +2507,50 @@ func (r *moqConverterer_FuncClosure_fnRecorder) doReturnResults(fn moqConvertere
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_FuncClosure_resultsByParams
-		for n, res := range r.moq.resultsByParams_FuncClosure {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_FuncClosure_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_FuncClosure_paramsKey]*moqConverterer_FuncClosure_results{},
-			}
-			r.moq.resultsByParams_FuncClosure = append(r.moq.resultsByParams_FuncClosure, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_FuncClosure) {
-				copy(r.moq.resultsByParams_FuncClosure[insertAt+1:], r.moq.resultsByParams_FuncClosure[insertAt:0])
-				r.moq.resultsByParams_FuncClosure[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeNameUsed string
-		if r.anyParams&(1<<0) == 0 {
-			typeNameUsed = r.paramsKey.typeName
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_FuncClosure_resultsByParams
+	for n, res := range r.moq.resultsByParams_FuncClosure {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var pkgPathUsed string
-		if r.anyParams&(1<<1) == 0 {
-			pkgPathUsed = r.paramsKey.pkgPath
-		}
-		var fnUsed hash.Hash
-		if r.anyParams&(1<<2) == 0 {
-			fnUsed = r.paramsKey.fn
-		}
-		paramsKey := moqConverterer_FuncClosure_paramsKey{
-			typeName: typeNameUsed,
-			pkgPath:  pkgPathUsed,
-			fn:       fnUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_FuncClosure_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_FuncClosure_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_FuncClosure_paramsKey]*moqConverterer_FuncClosure_results{},
+		}
+		r.moq.resultsByParams_FuncClosure = append(r.moq.resultsByParams_FuncClosure, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_FuncClosure) {
+			copy(r.moq.resultsByParams_FuncClosure[insertAt+1:], r.moq.resultsByParams_FuncClosure[insertAt:0])
+			r.moq.resultsByParams_FuncClosure[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_FuncClosure(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_FuncClosure_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -2342,15 +2580,58 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 	return r
 }
 
+func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure_params, anyParams uint64) moqConverterer_FuncClosure_paramsKey {
+	var typeNameUsed string
+	var typeNameUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.FuncClosure.typeName == moq.ParamIndexByValue {
+			typeNameUsed = params.typeName
+		} else {
+			typeNameUsedHash = hash.DeepHash(params.typeName)
+		}
+	}
+	var pkgPathUsed string
+	var pkgPathUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.FuncClosure.pkgPath == moq.ParamIndexByValue {
+			pkgPathUsed = params.pkgPath
+		} else {
+			pkgPathUsedHash = hash.DeepHash(params.pkgPath)
+		}
+	}
+	var fnUsed generator.Func
+	var fnUsedHash hash.Hash
+	if anyParams&(1<<2) == 0 {
+		if m.runtime.parameterIndexing.FuncClosure.fn == moq.ParamIndexByValue {
+			fnUsed = params.fn
+		} else {
+			fnUsedHash = hash.DeepHash(params.fn)
+		}
+	}
+	return moqConverterer_FuncClosure_paramsKey{
+		params: struct {
+			typeName, pkgPath string
+			fn                generator.Func
+		}{
+			typeName: typeNameUsed,
+			pkgPath:  pkgPathUsed,
+			fn:       fnUsed,
+		},
+		hashes: struct {
+			typeName, pkgPath hash.Hash
+			fn                hash.Hash
+		}{
+			typeName: typeNameUsedHash,
+			pkgPath:  pkgPathUsedHash,
+			fn:       fnUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) MockMethod(typeName string, fn generator.Func) *moqConverterer_MockMethod_fnRecorder {
 	return &moqConverterer_MockMethod_fnRecorder{
 		params: moqConverterer_MockMethod_params{
 			typeName: typeName,
 			fn:       fn,
-		},
-		paramsKey: moqConverterer_MockMethod_paramsKey{
-			typeName: typeName,
-			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2443,57 +2724,50 @@ func (r *moqConverterer_MockMethod_fnRecorder) doReturnResults(fn moqConverterer
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_MockMethod_resultsByParams
-		for n, res := range r.moq.resultsByParams_MockMethod {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_MockMethod_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_MockMethod_paramsKey]*moqConverterer_MockMethod_results{},
-			}
-			r.moq.resultsByParams_MockMethod = append(r.moq.resultsByParams_MockMethod, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_MockMethod) {
-				copy(r.moq.resultsByParams_MockMethod[insertAt+1:], r.moq.resultsByParams_MockMethod[insertAt:0])
-				r.moq.resultsByParams_MockMethod[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeNameUsed string
-		if r.anyParams&(1<<0) == 0 {
-			typeNameUsed = r.paramsKey.typeName
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_MockMethod_resultsByParams
+	for n, res := range r.moq.resultsByParams_MockMethod {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var fnUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			fnUsed = r.paramsKey.fn
-		}
-		paramsKey := moqConverterer_MockMethod_paramsKey{
-			typeName: typeNameUsed,
-			fn:       fnUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_MockMethod_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_MockMethod_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_MockMethod_paramsKey]*moqConverterer_MockMethod_results{},
+		}
+		r.moq.resultsByParams_MockMethod = append(r.moq.resultsByParams_MockMethod, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_MockMethod) {
+			copy(r.moq.resultsByParams_MockMethod[insertAt+1:], r.moq.resultsByParams_MockMethod[insertAt:0])
+			r.moq.resultsByParams_MockMethod[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_MockMethod(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_MockMethod_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -2523,15 +2797,47 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqConverterer) paramsKey_MockMethod(params moqConverterer_MockMethod_params, anyParams uint64) moqConverterer_MockMethod_paramsKey {
+	var typeNameUsed string
+	var typeNameUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.MockMethod.typeName == moq.ParamIndexByValue {
+			typeNameUsed = params.typeName
+		} else {
+			typeNameUsedHash = hash.DeepHash(params.typeName)
+		}
+	}
+	var fnUsed generator.Func
+	var fnUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.MockMethod.fn == moq.ParamIndexByValue {
+			fnUsed = params.fn
+		} else {
+			fnUsedHash = hash.DeepHash(params.fn)
+		}
+	}
+	return moqConverterer_MockMethod_paramsKey{
+		params: struct {
+			typeName string
+			fn       generator.Func
+		}{
+			typeName: typeNameUsed,
+			fn:       fnUsed,
+		},
+		hashes: struct {
+			typeName hash.Hash
+			fn       hash.Hash
+		}{
+			typeName: typeNameUsedHash,
+			fn:       fnUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) RecorderMethods(typeName string, fn generator.Func) *moqConverterer_RecorderMethods_fnRecorder {
 	return &moqConverterer_RecorderMethods_fnRecorder{
 		params: moqConverterer_RecorderMethods_params{
 			typeName: typeName,
 			fn:       fn,
-		},
-		paramsKey: moqConverterer_RecorderMethods_paramsKey{
-			typeName: typeName,
-			fn:       hash.DeepHash(fn),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2624,57 +2930,50 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) doReturnResults(fn moqConver
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_RecorderMethods_resultsByParams
-		for n, res := range r.moq.resultsByParams_RecorderMethods {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_RecorderMethods_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_RecorderMethods_paramsKey]*moqConverterer_RecorderMethods_results{},
-			}
-			r.moq.resultsByParams_RecorderMethods = append(r.moq.resultsByParams_RecorderMethods, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_RecorderMethods) {
-				copy(r.moq.resultsByParams_RecorderMethods[insertAt+1:], r.moq.resultsByParams_RecorderMethods[insertAt:0])
-				r.moq.resultsByParams_RecorderMethods[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeNameUsed string
-		if r.anyParams&(1<<0) == 0 {
-			typeNameUsed = r.paramsKey.typeName
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_RecorderMethods_resultsByParams
+	for n, res := range r.moq.resultsByParams_RecorderMethods {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var fnUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			fnUsed = r.paramsKey.fn
-		}
-		paramsKey := moqConverterer_RecorderMethods_paramsKey{
-			typeName: typeNameUsed,
-			fn:       fnUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_RecorderMethods_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_RecorderMethods_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_RecorderMethods_paramsKey]*moqConverterer_RecorderMethods_results{},
+		}
+		r.moq.resultsByParams_RecorderMethods = append(r.moq.resultsByParams_RecorderMethods, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_RecorderMethods) {
+			copy(r.moq.resultsByParams_RecorderMethods[insertAt+1:], r.moq.resultsByParams_RecorderMethods[insertAt:0])
+			r.moq.resultsByParams_RecorderMethods[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_RecorderMethods(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_RecorderMethods_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -2704,15 +3003,47 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 	return r
 }
 
+func (m *moqConverterer) paramsKey_RecorderMethods(params moqConverterer_RecorderMethods_params, anyParams uint64) moqConverterer_RecorderMethods_paramsKey {
+	var typeNameUsed string
+	var typeNameUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.RecorderMethods.typeName == moq.ParamIndexByValue {
+			typeNameUsed = params.typeName
+		} else {
+			typeNameUsedHash = hash.DeepHash(params.typeName)
+		}
+	}
+	var fnUsed generator.Func
+	var fnUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.RecorderMethods.fn == moq.ParamIndexByValue {
+			fnUsed = params.fn
+		} else {
+			fnUsedHash = hash.DeepHash(params.fn)
+		}
+	}
+	return moqConverterer_RecorderMethods_paramsKey{
+		params: struct {
+			typeName string
+			fn       generator.Func
+		}{
+			typeName: typeNameUsed,
+			fn:       fnUsed,
+		},
+		hashes: struct {
+			typeName hash.Hash
+			fn       hash.Hash
+		}{
+			typeName: typeNameUsedHash,
+			fn:       fnUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_ResetMethod_fnRecorder {
 	return &moqConverterer_ResetMethod_fnRecorder{
 		params: moqConverterer_ResetMethod_params{
 			typeSpec: typeSpec,
 			funcs:    funcs,
-		},
-		paramsKey: moqConverterer_ResetMethod_paramsKey{
-			typeSpec: hash.DeepHash(typeSpec),
-			funcs:    hash.DeepHash(funcs),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2805,57 +3136,50 @@ func (r *moqConverterer_ResetMethod_fnRecorder) doReturnResults(fn moqConvertere
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_ResetMethod_resultsByParams
-		for n, res := range r.moq.resultsByParams_ResetMethod {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_ResetMethod_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_ResetMethod_paramsKey]*moqConverterer_ResetMethod_results{},
-			}
-			r.moq.resultsByParams_ResetMethod = append(r.moq.resultsByParams_ResetMethod, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_ResetMethod) {
-				copy(r.moq.resultsByParams_ResetMethod[insertAt+1:], r.moq.resultsByParams_ResetMethod[insertAt:0])
-				r.moq.resultsByParams_ResetMethod[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeSpecUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			typeSpecUsed = r.paramsKey.typeSpec
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_ResetMethod_resultsByParams
+	for n, res := range r.moq.resultsByParams_ResetMethod {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var funcsUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			funcsUsed = r.paramsKey.funcs
-		}
-		paramsKey := moqConverterer_ResetMethod_paramsKey{
-			typeSpec: typeSpecUsed,
-			funcs:    funcsUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_ResetMethod_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_ResetMethod_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_ResetMethod_paramsKey]*moqConverterer_ResetMethod_results{},
+		}
+		r.moq.resultsByParams_ResetMethod = append(r.moq.resultsByParams_ResetMethod, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_ResetMethod) {
+			copy(r.moq.resultsByParams_ResetMethod[insertAt+1:], r.moq.resultsByParams_ResetMethod[insertAt:0])
+			r.moq.resultsByParams_ResetMethod[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_ResetMethod(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_ResetMethod_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -2885,15 +3209,41 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 	return r
 }
 
+func (m *moqConverterer) paramsKey_ResetMethod(params moqConverterer_ResetMethod_params, anyParams uint64) moqConverterer_ResetMethod_paramsKey {
+	var typeSpecUsed *dst.TypeSpec
+	var typeSpecUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.ResetMethod.typeSpec == moq.ParamIndexByValue {
+			typeSpecUsed = params.typeSpec
+		} else {
+			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
+		}
+	}
+	var funcsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.ResetMethod.funcs == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The funcs parameter of the ResetMethod function can't be indexed by value")
+		}
+		funcsUsedHash = hash.DeepHash(params.funcs)
+	}
+	return moqConverterer_ResetMethod_paramsKey{
+		params: struct{ typeSpec *dst.TypeSpec }{
+			typeSpec: typeSpecUsed,
+		},
+		hashes: struct {
+			typeSpec hash.Hash
+			funcs    hash.Hash
+		}{
+			typeSpec: typeSpecUsedHash,
+			funcs:    funcsUsedHash,
+		}}
+}
+
 func (m *moqConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_AssertMethod_fnRecorder {
 	return &moqConverterer_AssertMethod_fnRecorder{
 		params: moqConverterer_AssertMethod_params{
 			typeSpec: typeSpec,
 			funcs:    funcs,
-		},
-		paramsKey: moqConverterer_AssertMethod_paramsKey{
-			typeSpec: hash.DeepHash(typeSpec),
-			funcs:    hash.DeepHash(funcs),
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2986,57 +3336,50 @@ func (r *moqConverterer_AssertMethod_fnRecorder) doReturnResults(fn moqConverter
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqConverterer_AssertMethod_resultsByParams
-		for n, res := range r.moq.resultsByParams_AssertMethod {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqConverterer_AssertMethod_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqConverterer_AssertMethod_paramsKey]*moqConverterer_AssertMethod_results{},
-			}
-			r.moq.resultsByParams_AssertMethod = append(r.moq.resultsByParams_AssertMethod, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_AssertMethod) {
-				copy(r.moq.resultsByParams_AssertMethod[insertAt+1:], r.moq.resultsByParams_AssertMethod[insertAt:0])
-				r.moq.resultsByParams_AssertMethod[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var typeSpecUsed hash.Hash
-		if r.anyParams&(1<<0) == 0 {
-			typeSpecUsed = r.paramsKey.typeSpec
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqConverterer_AssertMethod_resultsByParams
+	for n, res := range r.moq.resultsByParams_AssertMethod {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var funcsUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			funcsUsed = r.paramsKey.funcs
-		}
-		paramsKey := moqConverterer_AssertMethod_paramsKey{
-			typeSpec: typeSpecUsed,
-			funcs:    funcsUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqConverterer_AssertMethod_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqConverterer_AssertMethod_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqConverterer_AssertMethod_paramsKey]*moqConverterer_AssertMethod_results{},
+		}
+		r.moq.resultsByParams_AssertMethod = append(r.moq.resultsByParams_AssertMethod, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_AssertMethod) {
+			copy(r.moq.resultsByParams_AssertMethod[insertAt+1:], r.moq.resultsByParams_AssertMethod[insertAt:0])
+			r.moq.resultsByParams_AssertMethod[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_AssertMethod(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqConverterer_AssertMethod_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -3064,6 +3407,36 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqConverterer) paramsKey_AssertMethod(params moqConverterer_AssertMethod_params, anyParams uint64) moqConverterer_AssertMethod_paramsKey {
+	var typeSpecUsed *dst.TypeSpec
+	var typeSpecUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.AssertMethod.typeSpec == moq.ParamIndexByValue {
+			typeSpecUsed = params.typeSpec
+		} else {
+			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
+		}
+	}
+	var funcsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.AssertMethod.funcs == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The funcs parameter of the AssertMethod function can't be indexed by value")
+		}
+		funcsUsedHash = hash.DeepHash(params.funcs)
+	}
+	return moqConverterer_AssertMethod_paramsKey{
+		params: struct{ typeSpec *dst.TypeSpec }{
+			typeSpec: typeSpecUsed,
+		},
+		hashes: struct {
+			typeSpec hash.Hash
+			funcs    hash.Hash
+		}{
+			typeSpec: typeSpecUsedHash,
+			funcs:    funcsUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

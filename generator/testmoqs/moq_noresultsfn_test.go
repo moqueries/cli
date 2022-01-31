@@ -7,14 +7,24 @@ import (
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/generator/testmoqs"
+	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
 // moqNoResultsFn holds the state of a moq of the NoResultsFn type
 type moqNoResultsFn struct {
-	scene           *moq.Scene
-	config          moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqNoResultsFn_mock
+
 	resultsByParams []moqNoResultsFn_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			sParam moq.ParamIndexing
+			bParam moq.ParamIndexing
+		}
+	}
 }
 
 // moqNoResultsFn_mock isolates the mock interface of the NoResultsFn type
@@ -30,8 +40,14 @@ type moqNoResultsFn_params struct {
 
 // moqNoResultsFn_paramsKey holds the map key params of the NoResultsFn type
 type moqNoResultsFn_paramsKey struct {
-	sParam string
-	bParam bool
+	params struct {
+		sParam string
+		bParam bool
+	}
+	hashes struct {
+		sParam hash.Hash
+		bParam hash.Hash
+	}
 }
 
 // moqNoResultsFn_resultsByParams contains the results for a given set of parameters for the NoResultsFn type
@@ -63,7 +79,6 @@ type moqNoResultsFn_results struct {
 // moqNoResultsFn_fnRecorder routes recorded function calls to the moqNoResultsFn moq
 type moqNoResultsFn_fnRecorder struct {
 	params    moqNoResultsFn_params
-	paramsKey moqNoResultsFn_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqNoResultsFn_results
@@ -83,7 +98,23 @@ func newMoqNoResultsFn(scene *moq.Scene, config *moq.Config) *moqNoResultsFn {
 	m := &moqNoResultsFn{
 		scene:  scene,
 		config: *config,
+		moq:    &moqNoResultsFn_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				sParam moq.ParamIndexing
+				bParam moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			sParam moq.ParamIndexing
+			bParam moq.ParamIndexing
+		}{
+			sParam: moq.ParamIndexByValue,
+			bParam: moq.ParamIndexByValue,
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -100,18 +131,7 @@ func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
 	}
 	var results *moqNoResultsFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
-		var sParamUsed string
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			sParamUsed = sParam
-		}
-		var bParamUsed bool
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			bParamUsed = bParam
-		}
-		paramsKey := moqNoResultsFn_paramsKey{
-			sParam: sParamUsed,
-			bParam: bParamUsed,
-		}
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -157,10 +177,6 @@ func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
 func (m *moqNoResultsFn) onCall(sParam string, bParam bool) *moqNoResultsFn_fnRecorder {
 	return &moqNoResultsFn_fnRecorder{
 		params: moqNoResultsFn_params{
-			sParam: sParam,
-			bParam: bParam,
-		},
-		paramsKey: moqNoResultsFn_paramsKey{
 			sParam: sParam,
 			bParam: bParam,
 		},
@@ -253,57 +269,50 @@ func (r *moqNoResultsFn_fnRecorder) doReturnResults(fn moqNoResultsFn_doReturnFn
 }
 
 func (r *moqNoResultsFn_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqNoResultsFn_resultsByParams
-		for n, res := range r.moq.resultsByParams {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqNoResultsFn_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqNoResultsFn_paramsKey]*moqNoResultsFn_results{},
-			}
-			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-				copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-				r.moq.resultsByParams[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var sParamUsed string
-		if r.anyParams&(1<<0) == 0 {
-			sParamUsed = r.paramsKey.sParam
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqNoResultsFn_resultsByParams
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var bParamUsed bool
-		if r.anyParams&(1<<1) == 0 {
-			bParamUsed = r.paramsKey.bParam
-		}
-		paramsKey := moqNoResultsFn_paramsKey{
-			sParam: sParamUsed,
-			bParam: bParamUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqNoResultsFn_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqNoResultsFn_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqNoResultsFn_paramsKey]*moqNoResultsFn_results{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqNoResultsFn_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -329,6 +338,42 @@ func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResu
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqNoResultsFn) paramsKey(params moqNoResultsFn_params, anyParams uint64) moqNoResultsFn_paramsKey {
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.sParam == moq.ParamIndexByValue {
+			sParamUsed = params.sParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.sParam)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
+			bParamUsed = params.bParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.bParam)
+		}
+	}
+	return moqNoResultsFn_paramsKey{
+		params: struct {
+			sParam string
+			bParam bool
+		}{
+			sParam: sParamUsed,
+			bParam: bParamUsed,
+		},
+		hashes: struct {
+			sParam hash.Hash
+			bParam hash.Hash
+		}{
+			sParam: sParamUsedHash,
+			bParam: bParamUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

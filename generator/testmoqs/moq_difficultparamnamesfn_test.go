@@ -7,14 +7,29 @@ import (
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/generator/testmoqs"
+	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
 // moqDifficultParamNamesFn holds the state of a moq of the DifficultParamNamesFn type
 type moqDifficultParamNamesFn struct {
-	scene           *moq.Scene
-	config          moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqDifficultParamNamesFn_mock
+
 	resultsByParams []moqDifficultParamNamesFn_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+			param3 moq.ParamIndexing
+			param  moq.ParamIndexing
+			param5 moq.ParamIndexing
+			param6 moq.ParamIndexing
+			param7 moq.ParamIndexing
+		}
+	}
 }
 
 // moqDifficultParamNamesFn_mock isolates the mock interface of the DifficultParamNamesFn type
@@ -32,10 +47,18 @@ type moqDifficultParamNamesFn_params struct {
 
 // moqDifficultParamNamesFn_paramsKey holds the map key params of the DifficultParamNamesFn type
 type moqDifficultParamNamesFn_paramsKey struct {
-	param1, param2 bool
-	param3         string
-	param, param5  int
-	param6, param7 float32
+	params struct {
+		param1, param2 bool
+		param3         string
+		param, param5  int
+		param6, param7 float32
+	}
+	hashes struct {
+		param1, param2 hash.Hash
+		param3         hash.Hash
+		param, param5  hash.Hash
+		param6, param7 hash.Hash
+	}
 }
 
 // moqDifficultParamNamesFn_resultsByParams contains the results for a given set of parameters for the DifficultParamNamesFn type
@@ -67,7 +90,6 @@ type moqDifficultParamNamesFn_results struct {
 // moqDifficultParamNamesFn_fnRecorder routes recorded function calls to the moqDifficultParamNamesFn moq
 type moqDifficultParamNamesFn_fnRecorder struct {
 	params    moqDifficultParamNamesFn_params
-	paramsKey moqDifficultParamNamesFn_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqDifficultParamNamesFn_results
@@ -87,7 +109,38 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 	m := &moqDifficultParamNamesFn{
 		scene:  scene,
 		config: *config,
+		moq:    &moqDifficultParamNamesFn_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+				param3 moq.ParamIndexing
+				param  moq.ParamIndexing
+				param5 moq.ParamIndexing
+				param6 moq.ParamIndexing
+				param7 moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+			param3 moq.ParamIndexing
+			param  moq.ParamIndexing
+			param5 moq.ParamIndexing
+			param6 moq.ParamIndexing
+			param7 moq.ParamIndexing
+		}{
+			param1: moq.ParamIndexByValue,
+			param2: moq.ParamIndexByValue,
+			param3: moq.ParamIndexByValue,
+			param:  moq.ParamIndexByValue,
+			param5: moq.ParamIndexByValue,
+			param6: moq.ParamIndexByValue,
+			param7: moq.ParamIndexByValue,
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -112,43 +165,7 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 	}
 	var results *moqDifficultParamNamesFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
-		var param1Used bool
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			param1Used = param1
-		}
-		var param2Used bool
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			param2Used = param2
-		}
-		var param3Used string
-		if resultsByParams.anyParams&(1<<2) == 0 {
-			param3Used = param3
-		}
-		var paramUsed int
-		if resultsByParams.anyParams&(1<<3) == 0 {
-			paramUsed = param
-		}
-		var param5Used int
-		if resultsByParams.anyParams&(1<<4) == 0 {
-			param5Used = param5
-		}
-		var param6Used float32
-		if resultsByParams.anyParams&(1<<5) == 0 {
-			param6Used = param6
-		}
-		var param7Used float32
-		if resultsByParams.anyParams&(1<<6) == 0 {
-			param7Used = param7
-		}
-		paramsKey := moqDifficultParamNamesFn_paramsKey{
-			param1: param1Used,
-			param2: param2Used,
-			param3: param3Used,
-			param:  paramUsed,
-			param5: param5Used,
-			param6: param6Used,
-			param7: param7Used,
-		}
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -194,15 +211,6 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) *moqDifficultParamNamesFn_fnRecorder {
 	return &moqDifficultParamNamesFn_fnRecorder{
 		params: moqDifficultParamNamesFn_params{
-			param1: param1,
-			param2: param2,
-			param3: param3,
-			param:  param,
-			param5: param5,
-			param6: param6,
-			param7: param7,
-		},
-		paramsKey: moqDifficultParamNamesFn_paramsKey{
 			param1: param1,
 			param2: param2,
 			param3: param3,
@@ -325,82 +333,50 @@ func (r *moqDifficultParamNamesFn_fnRecorder) doReturnResults(fn moqDifficultPar
 }
 
 func (r *moqDifficultParamNamesFn_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqDifficultParamNamesFn_resultsByParams
-		for n, res := range r.moq.resultsByParams {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqDifficultParamNamesFn_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqDifficultParamNamesFn_paramsKey]*moqDifficultParamNamesFn_results{},
-			}
-			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-				copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-				r.moq.resultsByParams[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var param1Used bool
-		if r.anyParams&(1<<0) == 0 {
-			param1Used = r.paramsKey.param1
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqDifficultParamNamesFn_resultsByParams
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var param2Used bool
-		if r.anyParams&(1<<1) == 0 {
-			param2Used = r.paramsKey.param2
-		}
-		var param3Used string
-		if r.anyParams&(1<<2) == 0 {
-			param3Used = r.paramsKey.param3
-		}
-		var paramUsed int
-		if r.anyParams&(1<<3) == 0 {
-			paramUsed = r.paramsKey.param
-		}
-		var param5Used int
-		if r.anyParams&(1<<4) == 0 {
-			param5Used = r.paramsKey.param5
-		}
-		var param6Used float32
-		if r.anyParams&(1<<5) == 0 {
-			param6Used = r.paramsKey.param6
-		}
-		var param7Used float32
-		if r.anyParams&(1<<6) == 0 {
-			param7Used = r.paramsKey.param7
-		}
-		paramsKey := moqDifficultParamNamesFn_paramsKey{
-			param1: param1Used,
-			param2: param2Used,
-			param3: param3Used,
-			param:  paramUsed,
-			param5: param5Used,
-			param6: param6Used,
-			param7: param7Used,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqDifficultParamNamesFn_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqDifficultParamNamesFn_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqDifficultParamNamesFn_paramsKey]*moqDifficultParamNamesFn_results{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqDifficultParamNamesFn_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -426,6 +402,101 @@ func (r *moqDifficultParamNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) 
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_params, anyParams uint64) moqDifficultParamNamesFn_paramsKey {
+	var param1Used bool
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
+			param1Used = params.param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	var param3Used string
+	var param3UsedHash hash.Hash
+	if anyParams&(1<<2) == 0 {
+		if m.runtime.parameterIndexing.param3 == moq.ParamIndexByValue {
+			param3Used = params.param3
+		} else {
+			param3UsedHash = hash.DeepHash(params.param3)
+		}
+	}
+	var paramUsed int
+	var paramUsedHash hash.Hash
+	if anyParams&(1<<3) == 0 {
+		if m.runtime.parameterIndexing.param == moq.ParamIndexByValue {
+			paramUsed = params.param
+		} else {
+			paramUsedHash = hash.DeepHash(params.param)
+		}
+	}
+	var param5Used int
+	var param5UsedHash hash.Hash
+	if anyParams&(1<<4) == 0 {
+		if m.runtime.parameterIndexing.param5 == moq.ParamIndexByValue {
+			param5Used = params.param5
+		} else {
+			param5UsedHash = hash.DeepHash(params.param5)
+		}
+	}
+	var param6Used float32
+	var param6UsedHash hash.Hash
+	if anyParams&(1<<5) == 0 {
+		if m.runtime.parameterIndexing.param6 == moq.ParamIndexByValue {
+			param6Used = params.param6
+		} else {
+			param6UsedHash = hash.DeepHash(params.param6)
+		}
+	}
+	var param7Used float32
+	var param7UsedHash hash.Hash
+	if anyParams&(1<<6) == 0 {
+		if m.runtime.parameterIndexing.param7 == moq.ParamIndexByValue {
+			param7Used = params.param7
+		} else {
+			param7UsedHash = hash.DeepHash(params.param7)
+		}
+	}
+	return moqDifficultParamNamesFn_paramsKey{
+		params: struct {
+			param1, param2 bool
+			param3         string
+			param, param5  int
+			param6, param7 float32
+		}{
+			param1: param1Used,
+			param2: param2Used,
+			param3: param3Used,
+			param:  paramUsed,
+			param5: param5Used,
+			param6: param6Used,
+			param7: param7Used,
+		},
+		hashes: struct {
+			param1, param2 hash.Hash
+			param3         hash.Hash
+			param, param5  hash.Hash
+			param6, param7 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+			param3: param3UsedHash,
+			param:  paramUsedHash,
+			param5: param5UsedHash,
+			param6: param6UsedHash,
+			param7: param7UsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

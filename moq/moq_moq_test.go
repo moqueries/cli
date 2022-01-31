@@ -11,13 +11,24 @@ import (
 
 // moqMoq holds the state of a moq of the Moq type
 type moqMoq struct {
-	scene                                 *moq.Scene
-	config                                moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqMoq_mock
+
 	resultsByParams_Reset                 []moqMoq_Reset_resultsByParams
 	resultsByParams_AssertExpectationsMet []moqMoq_AssertExpectationsMet_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			Reset struct {
+			}
+			AssertExpectationsMet struct {
+			}
+		}
+		// moqMoq_mock isolates the mock interface of the Moq type
+	}
 }
 
-// moqMoq_mock isolates the mock interface of the Moq type
 type moqMoq_mock struct {
 	moq *moqMoq
 }
@@ -31,7 +42,10 @@ type moqMoq_recorder struct {
 type moqMoq_Reset_params struct{}
 
 // moqMoq_Reset_paramsKey holds the map key params of the Moq type
-type moqMoq_Reset_paramsKey struct{}
+type moqMoq_Reset_paramsKey struct {
+	params struct{}
+	hashes struct{}
+}
 
 // moqMoq_Reset_resultsByParams contains the results for a given set of parameters for the Moq type
 type moqMoq_Reset_resultsByParams struct {
@@ -62,7 +76,6 @@ type moqMoq_Reset_results struct {
 // moqMoq_Reset_fnRecorder routes recorded function calls to the moqMoq moq
 type moqMoq_Reset_fnRecorder struct {
 	params    moqMoq_Reset_params
-	paramsKey moqMoq_Reset_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqMoq_Reset_results
@@ -78,7 +91,10 @@ type moqMoq_Reset_anyParams struct {
 type moqMoq_AssertExpectationsMet_params struct{}
 
 // moqMoq_AssertExpectationsMet_paramsKey holds the map key params of the Moq type
-type moqMoq_AssertExpectationsMet_paramsKey struct{}
+type moqMoq_AssertExpectationsMet_paramsKey struct {
+	params struct{}
+	hashes struct{}
+}
 
 // moqMoq_AssertExpectationsMet_resultsByParams contains the results for a given set of parameters for the Moq type
 type moqMoq_AssertExpectationsMet_resultsByParams struct {
@@ -109,7 +125,6 @@ type moqMoq_AssertExpectationsMet_results struct {
 // moqMoq_AssertExpectationsMet_fnRecorder routes recorded function calls to the moqMoq moq
 type moqMoq_AssertExpectationsMet_fnRecorder struct {
 	params    moqMoq_AssertExpectationsMet_params
-	paramsKey moqMoq_AssertExpectationsMet_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqMoq_AssertExpectationsMet_results
@@ -129,23 +144,41 @@ func newMoqMoq(scene *moq.Scene, config *moq.Config) *moqMoq {
 	m := &moqMoq{
 		scene:  scene,
 		config: *config,
+		moq:    &moqMoq_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Reset struct {
+				}
+				AssertExpectationsMet struct {
+				}
+			}
+		}{parameterIndexing: struct {
+			Reset struct {
+			}
+			AssertExpectationsMet struct {
+			}
+		}{
+			Reset: struct {
+			}{},
+			AssertExpectationsMet: struct {
+			}{},
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
 
 // mock returns the mock implementation of the Moq type
-func (m *moqMoq) mock() *moqMoq_mock {
-	return &moqMoq_mock{
-		moq: m,
-	}
-}
+func (m *moqMoq) mock() *moqMoq_mock { return m.moq }
 
 func (m *moqMoq_mock) Reset() {
 	params := moqMoq_Reset_params{}
 	var results *moqMoq_Reset_results
 	for _, resultsByParams := range m.moq.resultsByParams_Reset {
-		paramsKey := moqMoq_Reset_paramsKey{}
+		paramsKey := m.moq.paramsKey_Reset(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -192,7 +225,7 @@ func (m *moqMoq_mock) AssertExpectationsMet() {
 	params := moqMoq_AssertExpectationsMet_params{}
 	var results *moqMoq_AssertExpectationsMet_results
 	for _, resultsByParams := range m.moq.resultsByParams_AssertExpectationsMet {
-		paramsKey := moqMoq_AssertExpectationsMet_paramsKey{}
+		paramsKey := m.moq.paramsKey_AssertExpectationsMet(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -244,10 +277,9 @@ func (m *moqMoq) onCall() *moqMoq_recorder {
 
 func (m *moqMoq_recorder) Reset() *moqMoq_Reset_fnRecorder {
 	return &moqMoq_Reset_fnRecorder{
-		params:    moqMoq_Reset_params{},
-		paramsKey: moqMoq_Reset_paramsKey{},
-		sequence:  m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:       m.moq,
+		params:   moqMoq_Reset_params{},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
 	}
 }
 
@@ -325,46 +357,50 @@ func (r *moqMoq_Reset_fnRecorder) doReturnResults(fn moqMoq_Reset_doReturnFn) *m
 }
 
 func (r *moqMoq_Reset_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqMoq_Reset_resultsByParams
-		for n, res := range r.moq.resultsByParams_Reset {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqMoq_Reset_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqMoq_Reset_paramsKey]*moqMoq_Reset_results{},
-			}
-			r.moq.resultsByParams_Reset = append(r.moq.resultsByParams_Reset, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Reset) {
-				copy(r.moq.resultsByParams_Reset[insertAt+1:], r.moq.resultsByParams_Reset[insertAt:0])
-				r.moq.resultsByParams_Reset[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		paramsKey := moqMoq_Reset_paramsKey{}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqMoq_Reset_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqMoq_Reset_resultsByParams
+	for n, res := range r.moq.resultsByParams_Reset {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqMoq_Reset_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqMoq_Reset_paramsKey]*moqMoq_Reset_results{},
+		}
+		r.moq.resultsByParams_Reset = append(r.moq.resultsByParams_Reset, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Reset) {
+			copy(r.moq.resultsByParams_Reset[insertAt+1:], r.moq.resultsByParams_Reset[insertAt:0])
+			r.moq.resultsByParams_Reset[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Reset(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqMoq_Reset_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -392,12 +428,17 @@ func (r *moqMoq_Reset_fnRecorder) repeat(repeaters ...moq.Repeater) *moqMoq_Rese
 	return r
 }
 
+func (m *moqMoq) paramsKey_Reset(params moqMoq_Reset_params, anyParams uint64) moqMoq_Reset_paramsKey {
+	return moqMoq_Reset_paramsKey{
+		params: struct{}{},
+		hashes: struct{}{}}
+}
+
 func (m *moqMoq_recorder) AssertExpectationsMet() *moqMoq_AssertExpectationsMet_fnRecorder {
 	return &moqMoq_AssertExpectationsMet_fnRecorder{
-		params:    moqMoq_AssertExpectationsMet_params{},
-		paramsKey: moqMoq_AssertExpectationsMet_paramsKey{},
-		sequence:  m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:       m.moq,
+		params:   moqMoq_AssertExpectationsMet_params{},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
 	}
 }
 
@@ -475,46 +516,50 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) doReturnResults(fn moqMoq_Asse
 }
 
 func (r *moqMoq_AssertExpectationsMet_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqMoq_AssertExpectationsMet_resultsByParams
-		for n, res := range r.moq.resultsByParams_AssertExpectationsMet {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqMoq_AssertExpectationsMet_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqMoq_AssertExpectationsMet_paramsKey]*moqMoq_AssertExpectationsMet_results{},
-			}
-			r.moq.resultsByParams_AssertExpectationsMet = append(r.moq.resultsByParams_AssertExpectationsMet, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_AssertExpectationsMet) {
-				copy(r.moq.resultsByParams_AssertExpectationsMet[insertAt+1:], r.moq.resultsByParams_AssertExpectationsMet[insertAt:0])
-				r.moq.resultsByParams_AssertExpectationsMet[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		paramsKey := moqMoq_AssertExpectationsMet_paramsKey{}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqMoq_AssertExpectationsMet_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqMoq_AssertExpectationsMet_resultsByParams
+	for n, res := range r.moq.resultsByParams_AssertExpectationsMet {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqMoq_AssertExpectationsMet_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqMoq_AssertExpectationsMet_paramsKey]*moqMoq_AssertExpectationsMet_results{},
+		}
+		r.moq.resultsByParams_AssertExpectationsMet = append(r.moq.resultsByParams_AssertExpectationsMet, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_AssertExpectationsMet) {
+			copy(r.moq.resultsByParams_AssertExpectationsMet[insertAt+1:], r.moq.resultsByParams_AssertExpectationsMet[insertAt:0])
+			r.moq.resultsByParams_AssertExpectationsMet[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_AssertExpectationsMet(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqMoq_AssertExpectationsMet_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -540,6 +585,12 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) repeat(repeaters ...moq.Repeat
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqMoq) paramsKey_AssertExpectationsMet(params moqMoq_AssertExpectationsMet_params, anyParams uint64) moqMoq_AssertExpectationsMet_paramsKey {
+	return moqMoq_AssertExpectationsMet_paramsKey{
+		params: struct{}{},
+		hashes: struct{}{}}
 }
 
 // Reset resets the state of the moq

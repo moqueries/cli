@@ -12,12 +12,19 @@ import (
 
 // MoqDifficultResultNamesFn holds the state of a moq of the DifficultResultNamesFn type
 type MoqDifficultResultNamesFn struct {
-	Scene           *moq.Scene
-	Config          moq.Config
+	Scene  *moq.Scene
+	Config moq.Config
+	Moq    *MoqDifficultResultNamesFn_mock
+
 	ResultsByParams []MoqDifficultResultNamesFn_resultsByParams
+
+	Runtime struct {
+		ParameterIndexing struct {
+		}
+	}
+	// MoqDifficultResultNamesFn_mock isolates the mock interface of the DifficultResultNamesFn type
 }
 
-// MoqDifficultResultNamesFn_mock isolates the mock interface of the DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_mock struct {
 	Moq *MoqDifficultResultNamesFn
 }
@@ -26,7 +33,10 @@ type MoqDifficultResultNamesFn_mock struct {
 type MoqDifficultResultNamesFn_params struct{}
 
 // MoqDifficultResultNamesFn_paramsKey holds the map key params of the DifficultResultNamesFn type
-type MoqDifficultResultNamesFn_paramsKey struct{}
+type MoqDifficultResultNamesFn_paramsKey struct {
+	Params struct{}
+	Hashes struct{}
+}
 
 // MoqDifficultResultNamesFn_resultsByParams contains the results for a given set of parameters for the DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_resultsByParams struct {
@@ -62,7 +72,6 @@ type MoqDifficultResultNamesFn_results struct {
 // MoqDifficultResultNamesFn_fnRecorder routes recorded function calls to the MoqDifficultResultNamesFn moq
 type MoqDifficultResultNamesFn_fnRecorder struct {
 	Params    MoqDifficultResultNamesFn_params
-	ParamsKey MoqDifficultResultNamesFn_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqDifficultResultNamesFn_results
@@ -82,7 +91,16 @@ func NewMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *MoqDiff
 	m := &MoqDifficultResultNamesFn{
 		Scene:  scene,
 		Config: *config,
+		Moq:    &MoqDifficultResultNamesFn_mock{},
+
+		Runtime: struct {
+			ParameterIndexing struct {
+			}
+		}{ParameterIndexing: struct {
+		}{}},
 	}
+	m.Moq.Moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -99,7 +117,7 @@ func (m *MoqDifficultResultNamesFn_mock) Fn() (result1, result2 string, result3 
 	params := MoqDifficultResultNamesFn_params{}
 	var results *MoqDifficultResultNamesFn_results
 	for _, resultsByParams := range m.Moq.ResultsByParams {
-		paramsKey := MoqDifficultResultNamesFn_paramsKey{}
+		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -153,10 +171,9 @@ func (m *MoqDifficultResultNamesFn_mock) Fn() (result1, result2 string, result3 
 
 func (m *MoqDifficultResultNamesFn) OnCall() *MoqDifficultResultNamesFn_fnRecorder {
 	return &MoqDifficultResultNamesFn_fnRecorder{
-		Params:    MoqDifficultResultNamesFn_params{},
-		ParamsKey: MoqDifficultResultNamesFn_paramsKey{},
-		Sequence:  m.Config.Sequence == moq.SeqDefaultOn,
-		Moq:       m,
+		Params:   MoqDifficultResultNamesFn_params{},
+		Sequence: m.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m,
 	}
 }
 
@@ -257,46 +274,50 @@ func (r *MoqDifficultResultNamesFn_fnRecorder) DoReturnResults(fn MoqDifficultRe
 }
 
 func (r *MoqDifficultResultNamesFn_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqDifficultResultNamesFn_resultsByParams
-		for n, res := range r.Moq.ResultsByParams {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqDifficultResultNamesFn_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqDifficultResultNamesFn_paramsKey]*MoqDifficultResultNamesFn_results{},
-			}
-			r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
-				copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
-				r.Moq.ResultsByParams[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		paramsKey := MoqDifficultResultNamesFn_paramsKey{}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqDifficultResultNamesFn_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqDifficultResultNamesFn_resultsByParams
+	for n, res := range r.Moq.ResultsByParams {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqDifficultResultNamesFn_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqDifficultResultNamesFn_paramsKey]*MoqDifficultResultNamesFn_results{},
+		}
+		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
+			copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
+			r.Moq.ResultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqDifficultResultNamesFn_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -340,6 +361,12 @@ func (r *MoqDifficultResultNamesFn_fnRecorder) Repeat(repeaters ...moq.Repeater)
 		r.Results.Results = append(r.Results.Results, last)
 	}
 	return r
+}
+
+func (m *MoqDifficultResultNamesFn) ParamsKey(params MoqDifficultResultNamesFn_params, anyParams uint64) MoqDifficultResultNamesFn_paramsKey {
+	return MoqDifficultResultNamesFn_paramsKey{
+		Params: struct{}{},
+		Hashes: struct{}{}}
 }
 
 // Reset resets the state of the moq

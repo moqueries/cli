@@ -3,6 +3,7 @@
 package exported
 
 import (
+	"io"
 	"math/bits"
 	"sync/atomic"
 
@@ -11,13 +12,13 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// MoqNoResultsFn holds the state of a moq of the NoResultsFn type
-type MoqNoResultsFn struct {
+// MoqInterfaceResultFn holds the state of a moq of the InterfaceResultFn type
+type MoqInterfaceResultFn struct {
 	Scene  *moq.Scene
 	Config moq.Config
-	Moq    *MoqNoResultsFn_mock
+	Moq    *MoqInterfaceResultFn_mock
 
-	ResultsByParams []MoqNoResultsFn_resultsByParams
+	ResultsByParams []MoqInterfaceResultFn_resultsByParams
 
 	Runtime struct {
 		ParameterIndexing struct {
@@ -27,19 +28,19 @@ type MoqNoResultsFn struct {
 	}
 }
 
-// MoqNoResultsFn_mock isolates the mock interface of the NoResultsFn type
-type MoqNoResultsFn_mock struct {
-	Moq *MoqNoResultsFn
+// MoqInterfaceResultFn_mock isolates the mock interface of the InterfaceResultFn type
+type MoqInterfaceResultFn_mock struct {
+	Moq *MoqInterfaceResultFn
 }
 
-// MoqNoResultsFn_params holds the params of the NoResultsFn type
-type MoqNoResultsFn_params struct {
+// MoqInterfaceResultFn_params holds the params of the InterfaceResultFn type
+type MoqInterfaceResultFn_params struct {
 	SParam string
 	BParam bool
 }
 
-// MoqNoResultsFn_paramsKey holds the map key params of the NoResultsFn type
-type MoqNoResultsFn_paramsKey struct {
+// MoqInterfaceResultFn_paramsKey holds the map key params of the InterfaceResultFn type
+type MoqInterfaceResultFn_paramsKey struct {
 	Params struct {
 		SParam string
 		BParam bool
@@ -50,55 +51,55 @@ type MoqNoResultsFn_paramsKey struct {
 	}
 }
 
-// MoqNoResultsFn_resultsByParams contains the results for a given set of parameters for the NoResultsFn type
-type MoqNoResultsFn_resultsByParams struct {
+// MoqInterfaceResultFn_resultsByParams contains the results for a given set of parameters for the InterfaceResultFn type
+type MoqInterfaceResultFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
-	Results   map[MoqNoResultsFn_paramsKey]*MoqNoResultsFn_results
+	Results   map[MoqInterfaceResultFn_paramsKey]*MoqInterfaceResultFn_results
 }
 
-// MoqNoResultsFn_doFn defines the type of function needed when calling AndDo for the NoResultsFn type
-type MoqNoResultsFn_doFn func(sParam string, bParam bool)
+// MoqInterfaceResultFn_doFn defines the type of function needed when calling AndDo for the InterfaceResultFn type
+type MoqInterfaceResultFn_doFn func(sParam string, bParam bool)
 
-// MoqNoResultsFn_doReturnFn defines the type of function needed when calling DoReturnResults for the NoResultsFn type
-type MoqNoResultsFn_doReturnFn func(sParam string, bParam bool)
+// MoqInterfaceResultFn_doReturnFn defines the type of function needed when calling DoReturnResults for the InterfaceResultFn type
+type MoqInterfaceResultFn_doReturnFn func(sParam string, bParam bool) (r io.Reader)
 
-// MoqNoResultsFn_results holds the results of the NoResultsFn type
-type MoqNoResultsFn_results struct {
-	Params  MoqNoResultsFn_params
+// MoqInterfaceResultFn_results holds the results of the InterfaceResultFn type
+type MoqInterfaceResultFn_results struct {
+	Params  MoqInterfaceResultFn_params
 	Results []struct {
-		Values     *struct{}
+		Values     *struct{ Result1 io.Reader }
 		Sequence   uint32
-		DoFn       MoqNoResultsFn_doFn
-		DoReturnFn MoqNoResultsFn_doReturnFn
+		DoFn       MoqInterfaceResultFn_doFn
+		DoReturnFn MoqInterfaceResultFn_doReturnFn
 	}
 	Index  uint32
 	Repeat *moq.RepeatVal
 }
 
-// MoqNoResultsFn_fnRecorder routes recorded function calls to the MoqNoResultsFn moq
-type MoqNoResultsFn_fnRecorder struct {
-	Params    MoqNoResultsFn_params
+// MoqInterfaceResultFn_fnRecorder routes recorded function calls to the MoqInterfaceResultFn moq
+type MoqInterfaceResultFn_fnRecorder struct {
+	Params    MoqInterfaceResultFn_params
 	AnyParams uint64
 	Sequence  bool
-	Results   *MoqNoResultsFn_results
-	Moq       *MoqNoResultsFn
+	Results   *MoqInterfaceResultFn_results
+	Moq       *MoqInterfaceResultFn
 }
 
-// MoqNoResultsFn_anyParams isolates the any params functions of the NoResultsFn type
-type MoqNoResultsFn_anyParams struct {
-	Recorder *MoqNoResultsFn_fnRecorder
+// MoqInterfaceResultFn_anyParams isolates the any params functions of the InterfaceResultFn type
+type MoqInterfaceResultFn_anyParams struct {
+	Recorder *MoqInterfaceResultFn_fnRecorder
 }
 
-// NewMoqNoResultsFn creates a new moq of the NoResultsFn type
-func NewMoqNoResultsFn(scene *moq.Scene, config *moq.Config) *MoqNoResultsFn {
+// NewMoqInterfaceResultFn creates a new moq of the InterfaceResultFn type
+func NewMoqInterfaceResultFn(scene *moq.Scene, config *moq.Config) *MoqInterfaceResultFn {
 	if config == nil {
 		config = &moq.Config{}
 	}
-	m := &MoqNoResultsFn{
+	m := &MoqInterfaceResultFn{
 		Scene:  scene,
 		Config: *config,
-		Moq:    &MoqNoResultsFn_mock{},
+		Moq:    &MoqInterfaceResultFn_mock{},
 
 		Runtime: struct {
 			ParameterIndexing struct {
@@ -119,17 +120,20 @@ func NewMoqNoResultsFn(scene *moq.Scene, config *moq.Config) *MoqNoResultsFn {
 	return m
 }
 
-// Mock returns the moq implementation of the NoResultsFn type
-func (m *MoqNoResultsFn) Mock() testmoqs.NoResultsFn {
-	return func(sParam string, bParam bool) { moq := &MoqNoResultsFn_mock{Moq: m}; moq.Fn(sParam, bParam) }
+// Mock returns the moq implementation of the InterfaceResultFn type
+func (m *MoqInterfaceResultFn) Mock() testmoqs.InterfaceResultFn {
+	return func(sParam string, bParam bool) (_ io.Reader) {
+		moq := &MoqInterfaceResultFn_mock{Moq: m}
+		return moq.Fn(sParam, bParam)
+	}
 }
 
-func (m *MoqNoResultsFn_mock) Fn(sParam string, bParam bool) {
-	params := MoqNoResultsFn_params{
+func (m *MoqInterfaceResultFn_mock) Fn(sParam string, bParam bool) (result1 io.Reader) {
+	params := MoqInterfaceResultFn_params{
 		SParam: sParam,
 		BParam: bParam,
 	}
-	var results *MoqNoResultsFn_results
+	var results *MoqInterfaceResultFn_results
 	for _, resultsByParams := range m.Moq.ResultsByParams {
 		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
 		var ok bool
@@ -168,15 +172,18 @@ func (m *MoqNoResultsFn_mock) Fn(sParam string, bParam bool) {
 		result.DoFn(sParam, bParam)
 	}
 
+	if result.Values != nil {
+		result1 = result.Values.Result1
+	}
 	if result.DoReturnFn != nil {
-		result.DoReturnFn(sParam, bParam)
+		result1 = result.DoReturnFn(sParam, bParam)
 	}
 	return
 }
 
-func (m *MoqNoResultsFn) OnCall(sParam string, bParam bool) *MoqNoResultsFn_fnRecorder {
-	return &MoqNoResultsFn_fnRecorder{
-		Params: MoqNoResultsFn_params{
+func (m *MoqInterfaceResultFn) OnCall(sParam string, bParam bool) *MoqInterfaceResultFn_fnRecorder {
+	return &MoqInterfaceResultFn_fnRecorder{
+		Params: MoqInterfaceResultFn_params{
 			SParam: sParam,
 			BParam: bParam,
 		},
@@ -185,25 +192,25 @@ func (m *MoqNoResultsFn) OnCall(sParam string, bParam bool) *MoqNoResultsFn_fnRe
 	}
 }
 
-func (r *MoqNoResultsFn_fnRecorder) Any() *MoqNoResultsFn_anyParams {
+func (r *MoqInterfaceResultFn_fnRecorder) Any() *MoqInterfaceResultFn_anyParams {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
 	}
-	return &MoqNoResultsFn_anyParams{Recorder: r}
+	return &MoqInterfaceResultFn_anyParams{Recorder: r}
 }
 
-func (a *MoqNoResultsFn_anyParams) SParam() *MoqNoResultsFn_fnRecorder {
+func (a *MoqInterfaceResultFn_anyParams) SParam() *MoqInterfaceResultFn_fnRecorder {
 	a.Recorder.AnyParams |= 1 << 0
 	return a.Recorder
 }
 
-func (a *MoqNoResultsFn_anyParams) BParam() *MoqNoResultsFn_fnRecorder {
+func (a *MoqInterfaceResultFn_anyParams) BParam() *MoqInterfaceResultFn_fnRecorder {
 	a.Recorder.AnyParams |= 1 << 1
 	return a.Recorder
 }
 
-func (r *MoqNoResultsFn_fnRecorder) Seq() *MoqNoResultsFn_fnRecorder {
+func (r *MoqInterfaceResultFn_fnRecorder) Seq() *MoqInterfaceResultFn_fnRecorder {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -212,7 +219,7 @@ func (r *MoqNoResultsFn_fnRecorder) Seq() *MoqNoResultsFn_fnRecorder {
 	return r
 }
 
-func (r *MoqNoResultsFn_fnRecorder) NoSeq() *MoqNoResultsFn_fnRecorder {
+func (r *MoqInterfaceResultFn_fnRecorder) NoSeq() *MoqInterfaceResultFn_fnRecorder {
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -221,7 +228,7 @@ func (r *MoqNoResultsFn_fnRecorder) NoSeq() *MoqNoResultsFn_fnRecorder {
 	return r
 }
 
-func (r *MoqNoResultsFn_fnRecorder) ReturnResults() *MoqNoResultsFn_fnRecorder {
+func (r *MoqInterfaceResultFn_fnRecorder) ReturnResults(result1 io.Reader) *MoqInterfaceResultFn_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
@@ -230,18 +237,20 @@ func (r *MoqNoResultsFn_fnRecorder) ReturnResults() *MoqNoResultsFn_fnRecorder {
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
+		Values     *struct{ Result1 io.Reader }
 		Sequence   uint32
-		DoFn       MoqNoResultsFn_doFn
-		DoReturnFn MoqNoResultsFn_doReturnFn
+		DoFn       MoqInterfaceResultFn_doFn
+		DoReturnFn MoqInterfaceResultFn_doReturnFn
 	}{
-		Values:   &struct{}{},
+		Values: &struct{ Result1 io.Reader }{
+			Result1: result1,
+		},
 		Sequence: sequence,
 	})
 	return r
 }
 
-func (r *MoqNoResultsFn_fnRecorder) AndDo(fn MoqNoResultsFn_doFn) *MoqNoResultsFn_fnRecorder {
+func (r *MoqInterfaceResultFn_fnRecorder) AndDo(fn MoqInterfaceResultFn_doFn) *MoqInterfaceResultFn_fnRecorder {
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
 		return nil
@@ -251,7 +260,7 @@ func (r *MoqNoResultsFn_fnRecorder) AndDo(fn MoqNoResultsFn_doFn) *MoqNoResultsF
 	return r
 }
 
-func (r *MoqNoResultsFn_fnRecorder) DoReturnResults(fn MoqNoResultsFn_doReturnFn) *MoqNoResultsFn_fnRecorder {
+func (r *MoqInterfaceResultFn_fnRecorder) DoReturnResults(fn MoqInterfaceResultFn_doReturnFn) *MoqInterfaceResultFn_fnRecorder {
 	r.FindResults()
 
 	var sequence uint32
@@ -260,15 +269,15 @@ func (r *MoqNoResultsFn_fnRecorder) DoReturnResults(fn MoqNoResultsFn_doReturnFn
 	}
 
 	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
+		Values     *struct{ Result1 io.Reader }
 		Sequence   uint32
-		DoFn       MoqNoResultsFn_doFn
-		DoReturnFn MoqNoResultsFn_doReturnFn
+		DoFn       MoqInterfaceResultFn_doFn
+		DoReturnFn MoqInterfaceResultFn_doReturnFn
 	}{Sequence: sequence, DoReturnFn: fn})
 	return r
 }
 
-func (r *MoqNoResultsFn_fnRecorder) FindResults() {
+func (r *MoqInterfaceResultFn_fnRecorder) FindResults() {
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -276,7 +285,7 @@ func (r *MoqNoResultsFn_fnRecorder) FindResults() {
 
 	anyCount := bits.OnesCount64(r.AnyParams)
 	insertAt := -1
-	var results *MoqNoResultsFn_resultsByParams
+	var results *MoqInterfaceResultFn_resultsByParams
 	for n, res := range r.Moq.ResultsByParams {
 		if res.AnyParams == r.AnyParams {
 			results = &res
@@ -287,10 +296,10 @@ func (r *MoqNoResultsFn_fnRecorder) FindResults() {
 		}
 	}
 	if results == nil {
-		results = &MoqNoResultsFn_resultsByParams{
+		results = &MoqInterfaceResultFn_resultsByParams{
 			AnyCount:  anyCount,
 			AnyParams: r.AnyParams,
-			Results:   map[MoqNoResultsFn_paramsKey]*MoqNoResultsFn_results{},
+			Results:   map[MoqInterfaceResultFn_paramsKey]*MoqInterfaceResultFn_results{},
 		}
 		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
 		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
@@ -304,7 +313,7 @@ func (r *MoqNoResultsFn_fnRecorder) FindResults() {
 	var ok bool
 	r.Results, ok = results.Results[paramsKey]
 	if !ok {
-		r.Results = &MoqNoResultsFn_results{
+		r.Results = &MoqInterfaceResultFn_results{
 			Params:  r.Params,
 			Results: nil,
 			Index:   0,
@@ -316,7 +325,7 @@ func (r *MoqNoResultsFn_fnRecorder) FindResults() {
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
-func (r *MoqNoResultsFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqNoResultsFn_fnRecorder {
+func (r *MoqInterfaceResultFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqInterfaceResultFn_fnRecorder {
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
@@ -326,12 +335,14 @@ func (r *MoqNoResultsFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqNoResu
 	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
 		if r.Sequence {
 			last = struct {
-				Values     *struct{}
+				Values     *struct{ Result1 io.Reader }
 				Sequence   uint32
-				DoFn       MoqNoResultsFn_doFn
-				DoReturnFn MoqNoResultsFn_doReturnFn
+				DoFn       MoqInterfaceResultFn_doFn
+				DoReturnFn MoqInterfaceResultFn_doReturnFn
 			}{
-				Values:   &struct{}{},
+				Values: &struct{ Result1 io.Reader }{
+					Result1: last.Values.Result1,
+				},
 				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
@@ -340,7 +351,7 @@ func (r *MoqNoResultsFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqNoResu
 	return r
 }
 
-func (m *MoqNoResultsFn) ParamsKey(params MoqNoResultsFn_params, anyParams uint64) MoqNoResultsFn_paramsKey {
+func (m *MoqInterfaceResultFn) ParamsKey(params MoqInterfaceResultFn_params, anyParams uint64) MoqInterfaceResultFn_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -359,7 +370,7 @@ func (m *MoqNoResultsFn) ParamsKey(params MoqNoResultsFn_params, anyParams uint6
 			bParamUsedHash = hash.DeepHash(params.BParam)
 		}
 	}
-	return MoqNoResultsFn_paramsKey{
+	return MoqInterfaceResultFn_paramsKey{
 		Params: struct {
 			SParam string
 			BParam bool
@@ -377,10 +388,10 @@ func (m *MoqNoResultsFn) ParamsKey(params MoqNoResultsFn_params, anyParams uint6
 }
 
 // Reset resets the state of the moq
-func (m *MoqNoResultsFn) Reset() { m.ResultsByParams = nil }
+func (m *MoqInterfaceResultFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
-func (m *MoqNoResultsFn) AssertExpectationsMet() {
+func (m *MoqInterfaceResultFn) AssertExpectationsMet() {
 	for _, res := range m.ResultsByParams {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))

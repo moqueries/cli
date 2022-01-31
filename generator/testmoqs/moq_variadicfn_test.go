@@ -13,9 +13,18 @@ import (
 
 // moqVariadicFn holds the state of a moq of the VariadicFn type
 type moqVariadicFn struct {
-	scene           *moq.Scene
-	config          moq.Config
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqVariadicFn_mock
+
 	resultsByParams []moqVariadicFn_resultsByParams
+
+	runtime struct {
+		parameterIndexing struct {
+			other moq.ParamIndexing
+			args  moq.ParamIndexing
+		}
+	}
 }
 
 // moqVariadicFn_mock isolates the mock interface of the VariadicFn type
@@ -31,8 +40,11 @@ type moqVariadicFn_params struct {
 
 // moqVariadicFn_paramsKey holds the map key params of the VariadicFn type
 type moqVariadicFn_paramsKey struct {
-	other bool
-	args  hash.Hash
+	params struct{ other bool }
+	hashes struct {
+		other hash.Hash
+		args  hash.Hash
+	}
 }
 
 // moqVariadicFn_resultsByParams contains the results for a given set of parameters for the VariadicFn type
@@ -67,7 +79,6 @@ type moqVariadicFn_results struct {
 // moqVariadicFn_fnRecorder routes recorded function calls to the moqVariadicFn moq
 type moqVariadicFn_fnRecorder struct {
 	params    moqVariadicFn_params
-	paramsKey moqVariadicFn_paramsKey
 	anyParams uint64
 	sequence  bool
 	results   *moqVariadicFn_results
@@ -87,7 +98,23 @@ func newMoqVariadicFn(scene *moq.Scene, config *moq.Config) *moqVariadicFn {
 	m := &moqVariadicFn{
 		scene:  scene,
 		config: *config,
+		moq:    &moqVariadicFn_mock{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				other moq.ParamIndexing
+				args  moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			other moq.ParamIndexing
+			args  moq.ParamIndexing
+		}{
+			other: moq.ParamIndexByValue,
+			args:  moq.ParamIndexByHash,
+		}},
 	}
+	m.moq.moq = m
+
 	scene.AddMoq(m)
 	return m
 }
@@ -107,18 +134,7 @@ func (m *moqVariadicFn_mock) fn(other bool, args ...string) (sResult string, err
 	}
 	var results *moqVariadicFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
-		var otherUsed bool
-		if resultsByParams.anyParams&(1<<0) == 0 {
-			otherUsed = other
-		}
-		var argsUsed hash.Hash
-		if resultsByParams.anyParams&(1<<1) == 0 {
-			argsUsed = hash.DeepHash(args)
-		}
-		paramsKey := moqVariadicFn_paramsKey{
-			other: otherUsed,
-			args:  argsUsed,
-		}
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -170,10 +186,6 @@ func (m *moqVariadicFn) onCall(other bool, args ...string) *moqVariadicFn_fnReco
 		params: moqVariadicFn_params{
 			other: other,
 			args:  args,
-		},
-		paramsKey: moqVariadicFn_paramsKey{
-			other: other,
-			args:  hash.DeepHash(args),
 		},
 		sequence: m.config.Sequence == moq.SeqDefaultOn,
 		moq:      m,
@@ -276,57 +288,50 @@ func (r *moqVariadicFn_fnRecorder) doReturnResults(fn moqVariadicFn_doReturnFn) 
 }
 
 func (r *moqVariadicFn_fnRecorder) findResults() {
-	if r.results == nil {
-		anyCount := bits.OnesCount64(r.anyParams)
-		insertAt := -1
-		var results *moqVariadicFn_resultsByParams
-		for n, res := range r.moq.resultsByParams {
-			if res.anyParams == r.anyParams {
-				results = &res
-				break
-			}
-			if res.anyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &moqVariadicFn_resultsByParams{
-				anyCount:  anyCount,
-				anyParams: r.anyParams,
-				results:   map[moqVariadicFn_paramsKey]*moqVariadicFn_results{},
-			}
-			r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-				copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-				r.moq.resultsByParams[insertAt] = *results
-			}
-		}
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
 
-		var otherUsed bool
-		if r.anyParams&(1<<0) == 0 {
-			otherUsed = r.paramsKey.other
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqVariadicFn_resultsByParams
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
 		}
-		var argsUsed hash.Hash
-		if r.anyParams&(1<<1) == 0 {
-			argsUsed = r.paramsKey.args
-		}
-		paramsKey := moqVariadicFn_paramsKey{
-			other: otherUsed,
-			args:  argsUsed,
-		}
-
-		var ok bool
-		r.results, ok = results.results[paramsKey]
-		if !ok {
-			r.results = &moqVariadicFn_results{
-				params:  r.params,
-				results: nil,
-				index:   0,
-				repeat:  &moq.RepeatVal{},
-			}
-			results.results[paramsKey] = r.results
+		if res.anyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &moqVariadicFn_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqVariadicFn_paramsKey]*moqVariadicFn_results{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqVariadicFn_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
@@ -361,6 +366,36 @@ func (r *moqVariadicFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqVariadi
 		r.results.results = append(r.results.results, last)
 	}
 	return r
+}
+
+func (m *moqVariadicFn) paramsKey(params moqVariadicFn_params, anyParams uint64) moqVariadicFn_paramsKey {
+	var otherUsed bool
+	var otherUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.other == moq.ParamIndexByValue {
+			otherUsed = params.other
+		} else {
+			otherUsedHash = hash.DeepHash(params.other)
+		}
+	}
+	var argsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.args == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The args parameter can't be indexed by value")
+		}
+		argsUsedHash = hash.DeepHash(params.args)
+	}
+	return moqVariadicFn_paramsKey{
+		params: struct{ other bool }{
+			other: otherUsed,
+		},
+		hashes: struct {
+			other hash.Hash
+			args  hash.Hash
+		}{
+			other: otherUsedHash,
+			args:  argsUsedHash,
+		}}
 }
 
 // Reset resets the state of the moq

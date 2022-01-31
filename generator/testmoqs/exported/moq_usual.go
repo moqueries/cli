@@ -3,17 +3,21 @@
 package exported
 
 import (
+	"io"
 	"math/bits"
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/generator/testmoqs"
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
 
 // MoqUsual holds the state of a moq of the Usual type
 type MoqUsual struct {
-	Scene                                *moq.Scene
-	Config                               moq.Config
+	Scene  *moq.Scene
+	Config moq.Config
+	Moq    *MoqUsual_mock
+
 	ResultsByParams_Usual                []MoqUsual_Usual_resultsByParams
 	ResultsByParams_NoNames              []MoqUsual_NoNames_resultsByParams
 	ResultsByParams_NoResults            []MoqUsual_NoResults_resultsByParams
@@ -24,9 +28,67 @@ type MoqUsual struct {
 	ResultsByParams_Times                []MoqUsual_Times_resultsByParams
 	ResultsByParams_DifficultParamNames  []MoqUsual_DifficultParamNames_resultsByParams
 	ResultsByParams_DifficultResultNames []MoqUsual_DifficultResultNames_resultsByParams
+	ResultsByParams_PassByReference      []MoqUsual_PassByReference_resultsByParams
+	ResultsByParams_InterfaceParam       []MoqUsual_InterfaceParam_resultsByParams
+	ResultsByParams_InterfaceResult      []MoqUsual_InterfaceResult_resultsByParams
+
+	Runtime struct {
+		ParameterIndexing struct {
+			Usual struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+			NoNames struct {
+				Param1 moq.ParamIndexing
+				Param2 moq.ParamIndexing
+			}
+			NoResults struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+			NoParams struct {
+			}
+			Nothing struct {
+			}
+			Variadic struct {
+				Other moq.ParamIndexing
+				Args  moq.ParamIndexing
+			}
+			RepeatedIds struct {
+				SParam1 moq.ParamIndexing
+				SParam2 moq.ParamIndexing
+				BParam  moq.ParamIndexing
+			}
+			Times struct {
+				SParam moq.ParamIndexing
+				Times  moq.ParamIndexing
+			}
+			DifficultParamNames struct {
+				Param1 moq.ParamIndexing
+				Param2 moq.ParamIndexing
+				Param3 moq.ParamIndexing
+				Param  moq.ParamIndexing
+				Param5 moq.ParamIndexing
+				Param6 moq.ParamIndexing
+				Param7 moq.ParamIndexing
+			}
+			DifficultResultNames struct {
+			}
+			PassByReference struct {
+				P moq.ParamIndexing
+			}
+			InterfaceParam struct {
+				W moq.ParamIndexing
+			}
+			InterfaceResult struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+		}
+	}
+	// MoqUsual_mock isolates the mock interface of the Usual type
 }
 
-// MoqUsual_mock isolates the mock interface of the Usual type
 type MoqUsual_mock struct {
 	Moq *MoqUsual
 }
@@ -44,8 +106,14 @@ type MoqUsual_Usual_params struct {
 
 // MoqUsual_Usual_paramsKey holds the map key params of the Usual type
 type MoqUsual_Usual_paramsKey struct {
-	SParam string
-	BParam bool
+	Params struct {
+		SParam string
+		BParam bool
+	}
+	Hashes struct {
+		SParam hash.Hash
+		BParam hash.Hash
+	}
 }
 
 // MoqUsual_Usual_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -80,7 +148,6 @@ type MoqUsual_Usual_results struct {
 // MoqUsual_Usual_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_Usual_fnRecorder struct {
 	Params    MoqUsual_Usual_params
-	ParamsKey MoqUsual_Usual_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_Usual_results
@@ -100,8 +167,14 @@ type MoqUsual_NoNames_params struct {
 
 // MoqUsual_NoNames_paramsKey holds the map key params of the Usual type
 type MoqUsual_NoNames_paramsKey struct {
-	Param1 string
-	Param2 bool
+	Params struct {
+		Param1 string
+		Param2 bool
+	}
+	Hashes struct {
+		Param1 hash.Hash
+		Param2 hash.Hash
+	}
 }
 
 // MoqUsual_NoNames_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -136,7 +209,6 @@ type MoqUsual_NoNames_results struct {
 // MoqUsual_NoNames_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_NoNames_fnRecorder struct {
 	Params    MoqUsual_NoNames_params
-	ParamsKey MoqUsual_NoNames_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_NoNames_results
@@ -156,8 +228,14 @@ type MoqUsual_NoResults_params struct {
 
 // MoqUsual_NoResults_paramsKey holds the map key params of the Usual type
 type MoqUsual_NoResults_paramsKey struct {
-	SParam string
-	BParam bool
+	Params struct {
+		SParam string
+		BParam bool
+	}
+	Hashes struct {
+		SParam hash.Hash
+		BParam hash.Hash
+	}
 }
 
 // MoqUsual_NoResults_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -189,7 +267,6 @@ type MoqUsual_NoResults_results struct {
 // MoqUsual_NoResults_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_NoResults_fnRecorder struct {
 	Params    MoqUsual_NoResults_params
-	ParamsKey MoqUsual_NoResults_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_NoResults_results
@@ -205,7 +282,10 @@ type MoqUsual_NoResults_anyParams struct {
 type MoqUsual_NoParams_params struct{}
 
 // MoqUsual_NoParams_paramsKey holds the map key params of the Usual type
-type MoqUsual_NoParams_paramsKey struct{}
+type MoqUsual_NoParams_paramsKey struct {
+	Params struct{}
+	Hashes struct{}
+}
 
 // MoqUsual_NoParams_resultsByParams contains the results for a given set of parameters for the Usual type
 type MoqUsual_NoParams_resultsByParams struct {
@@ -239,7 +319,6 @@ type MoqUsual_NoParams_results struct {
 // MoqUsual_NoParams_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_NoParams_fnRecorder struct {
 	Params    MoqUsual_NoParams_params
-	ParamsKey MoqUsual_NoParams_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_NoParams_results
@@ -255,7 +334,10 @@ type MoqUsual_NoParams_anyParams struct {
 type MoqUsual_Nothing_params struct{}
 
 // MoqUsual_Nothing_paramsKey holds the map key params of the Usual type
-type MoqUsual_Nothing_paramsKey struct{}
+type MoqUsual_Nothing_paramsKey struct {
+	Params struct{}
+	Hashes struct{}
+}
 
 // MoqUsual_Nothing_resultsByParams contains the results for a given set of parameters for the Usual type
 type MoqUsual_Nothing_resultsByParams struct {
@@ -286,7 +368,6 @@ type MoqUsual_Nothing_results struct {
 // MoqUsual_Nothing_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_Nothing_fnRecorder struct {
 	Params    MoqUsual_Nothing_params
-	ParamsKey MoqUsual_Nothing_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_Nothing_results
@@ -306,8 +387,11 @@ type MoqUsual_Variadic_params struct {
 
 // MoqUsual_Variadic_paramsKey holds the map key params of the Usual type
 type MoqUsual_Variadic_paramsKey struct {
-	Other bool
-	Args  hash.Hash
+	Params struct{ Other bool }
+	Hashes struct {
+		Other hash.Hash
+		Args  hash.Hash
+	}
 }
 
 // MoqUsual_Variadic_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -342,7 +426,6 @@ type MoqUsual_Variadic_results struct {
 // MoqUsual_Variadic_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_Variadic_fnRecorder struct {
 	Params    MoqUsual_Variadic_params
-	ParamsKey MoqUsual_Variadic_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_Variadic_results
@@ -362,8 +445,14 @@ type MoqUsual_RepeatedIds_params struct {
 
 // MoqUsual_RepeatedIds_paramsKey holds the map key params of the Usual type
 type MoqUsual_RepeatedIds_paramsKey struct {
-	SParam1, SParam2 string
-	BParam           bool
+	Params struct {
+		SParam1, SParam2 string
+		BParam           bool
+	}
+	Hashes struct {
+		SParam1, SParam2 hash.Hash
+		BParam           hash.Hash
+	}
 }
 
 // MoqUsual_RepeatedIds_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -398,7 +487,6 @@ type MoqUsual_RepeatedIds_results struct {
 // MoqUsual_RepeatedIds_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_RepeatedIds_fnRecorder struct {
 	Params    MoqUsual_RepeatedIds_params
-	ParamsKey MoqUsual_RepeatedIds_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_RepeatedIds_results
@@ -418,8 +506,14 @@ type MoqUsual_Times_params struct {
 
 // MoqUsual_Times_paramsKey holds the map key params of the Usual type
 type MoqUsual_Times_paramsKey struct {
-	SParam string
-	Times  bool
+	Params struct {
+		SParam string
+		Times  bool
+	}
+	Hashes struct {
+		SParam hash.Hash
+		Times  hash.Hash
+	}
 }
 
 // MoqUsual_Times_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -454,7 +548,6 @@ type MoqUsual_Times_results struct {
 // MoqUsual_Times_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_Times_fnRecorder struct {
 	Params    MoqUsual_Times_params
-	ParamsKey MoqUsual_Times_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_Times_results
@@ -476,10 +569,18 @@ type MoqUsual_DifficultParamNames_params struct {
 
 // MoqUsual_DifficultParamNames_paramsKey holds the map key params of the Usual type
 type MoqUsual_DifficultParamNames_paramsKey struct {
-	Param1, Param2 bool
-	Param3         string
-	Param, Param5  int
-	Param6, Param7 float32
+	Params struct {
+		Param1, Param2 bool
+		Param3         string
+		Param, Param5  int
+		Param6, Param7 float32
+	}
+	Hashes struct {
+		Param1, Param2 hash.Hash
+		Param3         hash.Hash
+		Param, Param5  hash.Hash
+		Param6, Param7 hash.Hash
+	}
 }
 
 // MoqUsual_DifficultParamNames_resultsByParams contains the results for a given set of parameters for the Usual type
@@ -511,7 +612,6 @@ type MoqUsual_DifficultParamNames_results struct {
 // MoqUsual_DifficultParamNames_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_DifficultParamNames_fnRecorder struct {
 	Params    MoqUsual_DifficultParamNames_params
-	ParamsKey MoqUsual_DifficultParamNames_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_DifficultParamNames_results
@@ -527,7 +627,10 @@ type MoqUsual_DifficultParamNames_anyParams struct {
 type MoqUsual_DifficultResultNames_params struct{}
 
 // MoqUsual_DifficultResultNames_paramsKey holds the map key params of the Usual type
-type MoqUsual_DifficultResultNames_paramsKey struct{}
+type MoqUsual_DifficultResultNames_paramsKey struct {
+	Params struct{}
+	Hashes struct{}
+}
 
 // MoqUsual_DifficultResultNames_resultsByParams contains the results for a given set of parameters for the Usual type
 type MoqUsual_DifficultResultNames_resultsByParams struct {
@@ -563,7 +666,6 @@ type MoqUsual_DifficultResultNames_results struct {
 // MoqUsual_DifficultResultNames_fnRecorder routes recorded function calls to the MoqUsual moq
 type MoqUsual_DifficultResultNames_fnRecorder struct {
 	Params    MoqUsual_DifficultResultNames_params
-	ParamsKey MoqUsual_DifficultResultNames_paramsKey
 	AnyParams uint64
 	Sequence  bool
 	Results   *MoqUsual_DifficultResultNames_results
@@ -575,6 +677,172 @@ type MoqUsual_DifficultResultNames_anyParams struct {
 	Recorder *MoqUsual_DifficultResultNames_fnRecorder
 }
 
+// MoqUsual_PassByReference_params holds the params of the Usual type
+type MoqUsual_PassByReference_params struct {
+	P *testmoqs.PassByReferenceParams
+}
+
+// MoqUsual_PassByReference_paramsKey holds the map key params of the Usual type
+type MoqUsual_PassByReference_paramsKey struct {
+	Params struct {
+		P *testmoqs.PassByReferenceParams
+	}
+	Hashes struct{ P hash.Hash }
+}
+
+// MoqUsual_PassByReference_resultsByParams contains the results for a given set of parameters for the Usual type
+type MoqUsual_PassByReference_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUsual_PassByReference_paramsKey]*MoqUsual_PassByReference_results
+}
+
+// MoqUsual_PassByReference_doFn defines the type of function needed when calling AndDo for the Usual type
+type MoqUsual_PassByReference_doFn func(p *testmoqs.PassByReferenceParams)
+
+// MoqUsual_PassByReference_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+type MoqUsual_PassByReference_doReturnFn func(p *testmoqs.PassByReferenceParams) (sResult string, err error)
+
+// MoqUsual_PassByReference_results holds the results of the Usual type
+type MoqUsual_PassByReference_results struct {
+	Params  MoqUsual_PassByReference_params
+	Results []struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_PassByReference_doFn
+		DoReturnFn MoqUsual_PassByReference_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqUsual_PassByReference_fnRecorder routes recorded function calls to the MoqUsual moq
+type MoqUsual_PassByReference_fnRecorder struct {
+	Params    MoqUsual_PassByReference_params
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUsual_PassByReference_results
+	Moq       *MoqUsual
+}
+
+// MoqUsual_PassByReference_anyParams isolates the any params functions of the Usual type
+type MoqUsual_PassByReference_anyParams struct {
+	Recorder *MoqUsual_PassByReference_fnRecorder
+}
+
+// MoqUsual_InterfaceParam_params holds the params of the Usual type
+type MoqUsual_InterfaceParam_params struct{ W io.Writer }
+
+// MoqUsual_InterfaceParam_paramsKey holds the map key params of the Usual type
+type MoqUsual_InterfaceParam_paramsKey struct {
+	Params struct{ W io.Writer }
+	Hashes struct{ W hash.Hash }
+}
+
+// MoqUsual_InterfaceParam_resultsByParams contains the results for a given set of parameters for the Usual type
+type MoqUsual_InterfaceParam_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUsual_InterfaceParam_paramsKey]*MoqUsual_InterfaceParam_results
+}
+
+// MoqUsual_InterfaceParam_doFn defines the type of function needed when calling AndDo for the Usual type
+type MoqUsual_InterfaceParam_doFn func(w io.Writer)
+
+// MoqUsual_InterfaceParam_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+type MoqUsual_InterfaceParam_doReturnFn func(w io.Writer) (sResult string, err error)
+
+// MoqUsual_InterfaceParam_results holds the results of the Usual type
+type MoqUsual_InterfaceParam_results struct {
+	Params  MoqUsual_InterfaceParam_params
+	Results []struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_InterfaceParam_doFn
+		DoReturnFn MoqUsual_InterfaceParam_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqUsual_InterfaceParam_fnRecorder routes recorded function calls to the MoqUsual moq
+type MoqUsual_InterfaceParam_fnRecorder struct {
+	Params    MoqUsual_InterfaceParam_params
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUsual_InterfaceParam_results
+	Moq       *MoqUsual
+}
+
+// MoqUsual_InterfaceParam_anyParams isolates the any params functions of the Usual type
+type MoqUsual_InterfaceParam_anyParams struct {
+	Recorder *MoqUsual_InterfaceParam_fnRecorder
+}
+
+// MoqUsual_InterfaceResult_params holds the params of the Usual type
+type MoqUsual_InterfaceResult_params struct {
+	SParam string
+	BParam bool
+}
+
+// MoqUsual_InterfaceResult_paramsKey holds the map key params of the Usual type
+type MoqUsual_InterfaceResult_paramsKey struct {
+	Params struct {
+		SParam string
+		BParam bool
+	}
+	Hashes struct {
+		SParam hash.Hash
+		BParam hash.Hash
+	}
+}
+
+// MoqUsual_InterfaceResult_resultsByParams contains the results for a given set of parameters for the Usual type
+type MoqUsual_InterfaceResult_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUsual_InterfaceResult_paramsKey]*MoqUsual_InterfaceResult_results
+}
+
+// MoqUsual_InterfaceResult_doFn defines the type of function needed when calling AndDo for the Usual type
+type MoqUsual_InterfaceResult_doFn func(sParam string, bParam bool)
+
+// MoqUsual_InterfaceResult_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+type MoqUsual_InterfaceResult_doReturnFn func(sParam string, bParam bool) (r io.Reader)
+
+// MoqUsual_InterfaceResult_results holds the results of the Usual type
+type MoqUsual_InterfaceResult_results struct {
+	Params  MoqUsual_InterfaceResult_params
+	Results []struct {
+		Values     *struct{ Result1 io.Reader }
+		Sequence   uint32
+		DoFn       MoqUsual_InterfaceResult_doFn
+		DoReturnFn MoqUsual_InterfaceResult_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqUsual_InterfaceResult_fnRecorder routes recorded function calls to the MoqUsual moq
+type MoqUsual_InterfaceResult_fnRecorder struct {
+	Params    MoqUsual_InterfaceResult_params
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUsual_InterfaceResult_results
+	Moq       *MoqUsual
+}
+
+// MoqUsual_InterfaceResult_anyParams isolates the any params functions of the Usual type
+type MoqUsual_InterfaceResult_anyParams struct {
+	Recorder *MoqUsual_InterfaceResult_fnRecorder
+}
+
 // NewMoqUsual creates a new moq of the Usual type
 func NewMoqUsual(scene *moq.Scene, config *moq.Config) *MoqUsual {
 	if config == nil {
@@ -583,17 +851,207 @@ func NewMoqUsual(scene *moq.Scene, config *moq.Config) *MoqUsual {
 	m := &MoqUsual{
 		Scene:  scene,
 		Config: *config,
+		Moq:    &MoqUsual_mock{},
+
+		Runtime: struct {
+			ParameterIndexing struct {
+				Usual struct {
+					SParam moq.ParamIndexing
+					BParam moq.ParamIndexing
+				}
+				NoNames struct {
+					Param1 moq.ParamIndexing
+					Param2 moq.ParamIndexing
+				}
+				NoResults struct {
+					SParam moq.ParamIndexing
+					BParam moq.ParamIndexing
+				}
+				NoParams struct {
+				}
+				Nothing struct {
+				}
+				Variadic struct {
+					Other moq.ParamIndexing
+					Args  moq.ParamIndexing
+				}
+				RepeatedIds struct {
+					SParam1 moq.ParamIndexing
+					SParam2 moq.ParamIndexing
+					BParam  moq.ParamIndexing
+				}
+				Times struct {
+					SParam moq.ParamIndexing
+					Times  moq.ParamIndexing
+				}
+				DifficultParamNames struct {
+					Param1 moq.ParamIndexing
+					Param2 moq.ParamIndexing
+					Param3 moq.ParamIndexing
+					Param  moq.ParamIndexing
+					Param5 moq.ParamIndexing
+					Param6 moq.ParamIndexing
+					Param7 moq.ParamIndexing
+				}
+				DifficultResultNames struct {
+				}
+				PassByReference struct {
+					P moq.ParamIndexing
+				}
+				InterfaceParam struct {
+					W moq.ParamIndexing
+				}
+				InterfaceResult struct {
+					SParam moq.ParamIndexing
+					BParam moq.ParamIndexing
+				}
+			}
+		}{ParameterIndexing: struct {
+			Usual struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+			NoNames struct {
+				Param1 moq.ParamIndexing
+				Param2 moq.ParamIndexing
+			}
+			NoResults struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+			NoParams struct {
+			}
+			Nothing struct {
+			}
+			Variadic struct {
+				Other moq.ParamIndexing
+				Args  moq.ParamIndexing
+			}
+			RepeatedIds struct {
+				SParam1 moq.ParamIndexing
+				SParam2 moq.ParamIndexing
+				BParam  moq.ParamIndexing
+			}
+			Times struct {
+				SParam moq.ParamIndexing
+				Times  moq.ParamIndexing
+			}
+			DifficultParamNames struct {
+				Param1 moq.ParamIndexing
+				Param2 moq.ParamIndexing
+				Param3 moq.ParamIndexing
+				Param  moq.ParamIndexing
+				Param5 moq.ParamIndexing
+				Param6 moq.ParamIndexing
+				Param7 moq.ParamIndexing
+			}
+			DifficultResultNames struct {
+			}
+			PassByReference struct {
+				P moq.ParamIndexing
+			}
+			InterfaceParam struct {
+				W moq.ParamIndexing
+			}
+			InterfaceResult struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}{
+				SParam: moq.ParamIndexByValue,
+				BParam: moq.ParamIndexByValue,
+			},
+			NoNames: struct {
+				Param1 moq.ParamIndexing
+				Param2 moq.ParamIndexing
+			}{
+				Param1: moq.ParamIndexByValue,
+				Param2: moq.ParamIndexByValue,
+			},
+			NoResults: struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}{
+				SParam: moq.ParamIndexByValue,
+				BParam: moq.ParamIndexByValue,
+			},
+			NoParams: struct {
+			}{},
+			Nothing: struct {
+			}{},
+			Variadic: struct {
+				Other moq.ParamIndexing
+				Args  moq.ParamIndexing
+			}{
+				Other: moq.ParamIndexByValue,
+				Args:  moq.ParamIndexByHash,
+			},
+			RepeatedIds: struct {
+				SParam1 moq.ParamIndexing
+				SParam2 moq.ParamIndexing
+				BParam  moq.ParamIndexing
+			}{
+				SParam1: moq.ParamIndexByValue,
+				SParam2: moq.ParamIndexByValue,
+				BParam:  moq.ParamIndexByValue,
+			},
+			Times: struct {
+				SParam moq.ParamIndexing
+				Times  moq.ParamIndexing
+			}{
+				SParam: moq.ParamIndexByValue,
+				Times:  moq.ParamIndexByValue,
+			},
+			DifficultParamNames: struct {
+				Param1 moq.ParamIndexing
+				Param2 moq.ParamIndexing
+				Param3 moq.ParamIndexing
+				Param  moq.ParamIndexing
+				Param5 moq.ParamIndexing
+				Param6 moq.ParamIndexing
+				Param7 moq.ParamIndexing
+			}{
+				Param1: moq.ParamIndexByValue,
+				Param2: moq.ParamIndexByValue,
+				Param3: moq.ParamIndexByValue,
+				Param:  moq.ParamIndexByValue,
+				Param5: moq.ParamIndexByValue,
+				Param6: moq.ParamIndexByValue,
+				Param7: moq.ParamIndexByValue,
+			},
+			DifficultResultNames: struct {
+			}{},
+			PassByReference: struct {
+				P moq.ParamIndexing
+			}{
+				P: moq.ParamIndexByHash,
+			},
+			InterfaceParam: struct {
+				W moq.ParamIndexing
+			}{
+				W: moq.ParamIndexByHash,
+			},
+			InterfaceResult: struct {
+				SParam moq.ParamIndexing
+				BParam moq.ParamIndexing
+			}{
+				SParam: moq.ParamIndexByValue,
+				BParam: moq.ParamIndexByValue,
+			},
+		}},
 	}
+	m.Moq.Moq = m
+
 	scene.AddMoq(m)
 	return m
 }
 
 // Mock returns the mock implementation of the Usual type
-func (m *MoqUsual) Mock() *MoqUsual_mock {
-	return &MoqUsual_mock{
-		Moq: m,
-	}
-}
+func (m *MoqUsual) Mock() *MoqUsual_mock { return m.Moq }
 
 func (m *MoqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err error) {
 	params := MoqUsual_Usual_params{
@@ -602,18 +1060,7 @@ func (m *MoqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err e
 	}
 	var results *MoqUsual_Usual_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_Usual {
-		var sParamUsed string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			sParamUsed = sParam
-		}
-		var bParamUsed bool
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			bParamUsed = bParam
-		}
-		paramsKey := MoqUsual_Usual_paramsKey{
-			SParam: sParamUsed,
-			BParam: bParamUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_Usual(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -667,18 +1114,7 @@ func (m *MoqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, res
 	}
 	var results *MoqUsual_NoNames_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_NoNames {
-		var param1Used string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			param1Used = param1
-		}
-		var param2Used bool
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			param2Used = param2
-		}
-		paramsKey := MoqUsual_NoNames_paramsKey{
-			Param1: param1Used,
-			Param2: param2Used,
-		}
+		paramsKey := m.Moq.ParamsKey_NoNames(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -732,18 +1168,7 @@ func (m *MoqUsual_mock) NoResults(sParam string, bParam bool) {
 	}
 	var results *MoqUsual_NoResults_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_NoResults {
-		var sParamUsed string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			sParamUsed = sParam
-		}
-		var bParamUsed bool
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			bParamUsed = bParam
-		}
-		paramsKey := MoqUsual_NoResults_paramsKey{
-			SParam: sParamUsed,
-			BParam: bParamUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_NoResults(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -790,7 +1215,7 @@ func (m *MoqUsual_mock) NoParams() (sResult string, err error) {
 	params := MoqUsual_NoParams_params{}
 	var results *MoqUsual_NoParams_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_NoParams {
-		paramsKey := MoqUsual_NoParams_paramsKey{}
+		paramsKey := m.Moq.ParamsKey_NoParams(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -841,7 +1266,7 @@ func (m *MoqUsual_mock) Nothing() {
 	params := MoqUsual_Nothing_params{}
 	var results *MoqUsual_Nothing_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_Nothing {
-		paramsKey := MoqUsual_Nothing_paramsKey{}
+		paramsKey := m.Moq.ParamsKey_Nothing(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -891,18 +1316,7 @@ func (m *MoqUsual_mock) Variadic(other bool, args ...string) (sResult string, er
 	}
 	var results *MoqUsual_Variadic_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_Variadic {
-		var otherUsed bool
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			otherUsed = other
-		}
-		var argsUsed hash.Hash
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			argsUsed = hash.DeepHash(args)
-		}
-		paramsKey := MoqUsual_Variadic_paramsKey{
-			Other: otherUsed,
-			Args:  argsUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_Variadic(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -957,23 +1371,7 @@ func (m *MoqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 	}
 	var results *MoqUsual_RepeatedIds_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_RepeatedIds {
-		var sParam1Used string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			sParam1Used = sParam1
-		}
-		var sParam2Used string
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			sParam2Used = sParam2
-		}
-		var bParamUsed bool
-		if resultsByParams.AnyParams&(1<<2) == 0 {
-			bParamUsed = bParam
-		}
-		paramsKey := MoqUsual_RepeatedIds_paramsKey{
-			SParam1: sParam1Used,
-			SParam2: sParam2Used,
-			BParam:  bParamUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_RepeatedIds(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -1028,18 +1426,7 @@ func (m *MoqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	}
 	var results *MoqUsual_Times_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_Times {
-		var sParamUsed string
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			sParamUsed = sParam
-		}
-		var timesUsed bool
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			timesUsed = times
-		}
-		paramsKey := MoqUsual_Times_paramsKey{
-			SParam: sParamUsed,
-			Times:  timesUsed,
-		}
+		paramsKey := m.Moq.ParamsKey_Times(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -1098,43 +1485,7 @@ func (m *MoqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 	}
 	var results *MoqUsual_DifficultParamNames_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_DifficultParamNames {
-		var param1Used bool
-		if resultsByParams.AnyParams&(1<<0) == 0 {
-			param1Used = param1
-		}
-		var param2Used bool
-		if resultsByParams.AnyParams&(1<<1) == 0 {
-			param2Used = param2
-		}
-		var param3Used string
-		if resultsByParams.AnyParams&(1<<2) == 0 {
-			param3Used = param3
-		}
-		var paramUsed int
-		if resultsByParams.AnyParams&(1<<3) == 0 {
-			paramUsed = param
-		}
-		var param5Used int
-		if resultsByParams.AnyParams&(1<<4) == 0 {
-			param5Used = param5
-		}
-		var param6Used float32
-		if resultsByParams.AnyParams&(1<<5) == 0 {
-			param6Used = param6
-		}
-		var param7Used float32
-		if resultsByParams.AnyParams&(1<<6) == 0 {
-			param7Used = param7
-		}
-		paramsKey := MoqUsual_DifficultParamNames_paramsKey{
-			Param1: param1Used,
-			Param2: param2Used,
-			Param3: param3Used,
-			Param:  paramUsed,
-			Param5: param5Used,
-			Param6: param6Used,
-			Param7: param7Used,
-		}
+		paramsKey := m.Moq.ParamsKey_DifficultParamNames(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -1181,7 +1532,7 @@ func (m *MoqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 	params := MoqUsual_DifficultResultNames_params{}
 	var results *MoqUsual_DifficultResultNames_results
 	for _, resultsByParams := range m.Moq.ResultsByParams_DifficultResultNames {
-		paramsKey := MoqUsual_DifficultResultNames_paramsKey{}
+		paramsKey := m.Moq.ParamsKey_DifficultResultNames(params, resultsByParams.AnyParams)
 		var ok bool
 		results, ok = resultsByParams.Results[paramsKey]
 		if ok {
@@ -1233,6 +1584,165 @@ func (m *MoqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 	return
 }
 
+func (m *MoqUsual_mock) PassByReference(p *testmoqs.PassByReferenceParams) (sResult string, err error) {
+	params := MoqUsual_PassByReference_params{
+		P: p,
+	}
+	var results *MoqUsual_PassByReference_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_PassByReference {
+		paramsKey := m.Moq.ParamsKey_PassByReference(params, resultsByParams.AnyParams)
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn(p)
+	}
+
+	if result.Values != nil {
+		sResult = result.Values.SResult
+		err = result.Values.Err
+	}
+	if result.DoReturnFn != nil {
+		sResult, err = result.DoReturnFn(p)
+	}
+	return
+}
+
+func (m *MoqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) {
+	params := MoqUsual_InterfaceParam_params{
+		W: w,
+	}
+	var results *MoqUsual_InterfaceParam_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_InterfaceParam {
+		paramsKey := m.Moq.ParamsKey_InterfaceParam(params, resultsByParams.AnyParams)
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn(w)
+	}
+
+	if result.Values != nil {
+		sResult = result.Values.SResult
+		err = result.Values.Err
+	}
+	if result.DoReturnFn != nil {
+		sResult, err = result.DoReturnFn(w)
+	}
+	return
+}
+
+func (m *MoqUsual_mock) InterfaceResult(sParam string, bParam bool) (result1 io.Reader) {
+	params := MoqUsual_InterfaceResult_params{
+		SParam: sParam,
+		BParam: bParam,
+	}
+	var results *MoqUsual_InterfaceResult_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_InterfaceResult {
+		paramsKey := m.Moq.ParamsKey_InterfaceResult(params, resultsByParams.AnyParams)
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn(sParam, bParam)
+	}
+
+	if result.Values != nil {
+		result1 = result.Values.Result1
+	}
+	if result.DoReturnFn != nil {
+		result1 = result.DoReturnFn(sParam, bParam)
+	}
+	return
+}
+
 // OnCall returns the recorder implementation of the Usual type
 func (m *MoqUsual) OnCall() *MoqUsual_recorder {
 	return &MoqUsual_recorder{
@@ -1243,10 +1753,6 @@ func (m *MoqUsual) OnCall() *MoqUsual_recorder {
 func (m *MoqUsual_recorder) Usual(sParam string, bParam bool) *MoqUsual_Usual_fnRecorder {
 	return &MoqUsual_Usual_fnRecorder{
 		Params: MoqUsual_Usual_params{
-			SParam: sParam,
-			BParam: bParam,
-		},
-		ParamsKey: MoqUsual_Usual_paramsKey{
 			SParam: sParam,
 			BParam: bParam,
 		},
@@ -1351,57 +1857,50 @@ func (r *MoqUsual_Usual_fnRecorder) DoReturnResults(fn MoqUsual_Usual_doReturnFn
 }
 
 func (r *MoqUsual_Usual_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_Usual_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_Usual {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_Usual_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_Usual_paramsKey]*MoqUsual_Usual_results{},
-			}
-			r.Moq.ResultsByParams_Usual = append(r.Moq.ResultsByParams_Usual, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Usual) {
-				copy(r.Moq.ResultsByParams_Usual[insertAt+1:], r.Moq.ResultsByParams_Usual[insertAt:0])
-				r.Moq.ResultsByParams_Usual[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var sParamUsed string
-		if r.AnyParams&(1<<0) == 0 {
-			sParamUsed = r.ParamsKey.SParam
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_Usual_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Usual {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var bParamUsed bool
-		if r.AnyParams&(1<<1) == 0 {
-			bParamUsed = r.ParamsKey.BParam
-		}
-		paramsKey := MoqUsual_Usual_paramsKey{
-			SParam: sParamUsed,
-			BParam: bParamUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_Usual_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_Usual_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_Usual_paramsKey]*MoqUsual_Usual_results{},
+		}
+		r.Moq.ResultsByParams_Usual = append(r.Moq.ResultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Usual) {
+			copy(r.Moq.ResultsByParams_Usual[insertAt+1:], r.Moq.ResultsByParams_Usual[insertAt:0])
+			r.Moq.ResultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Usual(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_Usual_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -1438,13 +1937,45 @@ func (r *MoqUsual_Usual_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_Usual(params MoqUsual_Usual_params, anyParams uint64) MoqUsual_Usual_paramsKey {
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.Usual.SParam == moq.ParamIndexByValue {
+			sParamUsed = params.SParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.SParam)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.Usual.BParam == moq.ParamIndexByValue {
+			bParamUsed = params.BParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.BParam)
+		}
+	}
+	return MoqUsual_Usual_paramsKey{
+		Params: struct {
+			SParam string
+			BParam bool
+		}{
+			SParam: sParamUsed,
+			BParam: bParamUsed,
+		},
+		Hashes: struct {
+			SParam hash.Hash
+			BParam hash.Hash
+		}{
+			SParam: sParamUsedHash,
+			BParam: bParamUsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) NoNames(param1 string, param2 bool) *MoqUsual_NoNames_fnRecorder {
 	return &MoqUsual_NoNames_fnRecorder{
 		Params: MoqUsual_NoNames_params{
-			Param1: param1,
-			Param2: param2,
-		},
-		ParamsKey: MoqUsual_NoNames_paramsKey{
 			Param1: param1,
 			Param2: param2,
 		},
@@ -1549,57 +2080,50 @@ func (r *MoqUsual_NoNames_fnRecorder) DoReturnResults(fn MoqUsual_NoNames_doRetu
 }
 
 func (r *MoqUsual_NoNames_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_NoNames_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_NoNames {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_NoNames_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_NoNames_paramsKey]*MoqUsual_NoNames_results{},
-			}
-			r.Moq.ResultsByParams_NoNames = append(r.Moq.ResultsByParams_NoNames, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_NoNames) {
-				copy(r.Moq.ResultsByParams_NoNames[insertAt+1:], r.Moq.ResultsByParams_NoNames[insertAt:0])
-				r.Moq.ResultsByParams_NoNames[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var param1Used string
-		if r.AnyParams&(1<<0) == 0 {
-			param1Used = r.ParamsKey.Param1
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_NoNames_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_NoNames {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var param2Used bool
-		if r.AnyParams&(1<<1) == 0 {
-			param2Used = r.ParamsKey.Param2
-		}
-		paramsKey := MoqUsual_NoNames_paramsKey{
-			Param1: param1Used,
-			Param2: param2Used,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_NoNames_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_NoNames_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_NoNames_paramsKey]*MoqUsual_NoNames_results{},
+		}
+		r.Moq.ResultsByParams_NoNames = append(r.Moq.ResultsByParams_NoNames, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_NoNames) {
+			copy(r.Moq.ResultsByParams_NoNames[insertAt+1:], r.Moq.ResultsByParams_NoNames[insertAt:0])
+			r.Moq.ResultsByParams_NoNames[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_NoNames(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_NoNames_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -1636,13 +2160,45 @@ func (r *MoqUsual_NoNames_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsua
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_NoNames(params MoqUsual_NoNames_params, anyParams uint64) MoqUsual_NoNames_paramsKey {
+	var param1Used string
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.NoNames.Param1 == moq.ParamIndexByValue {
+			param1Used = params.Param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.Param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.NoNames.Param2 == moq.ParamIndexByValue {
+			param2Used = params.Param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.Param2)
+		}
+	}
+	return MoqUsual_NoNames_paramsKey{
+		Params: struct {
+			Param1 string
+			Param2 bool
+		}{
+			Param1: param1Used,
+			Param2: param2Used,
+		},
+		Hashes: struct {
+			Param1 hash.Hash
+			Param2 hash.Hash
+		}{
+			Param1: param1UsedHash,
+			Param2: param2UsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) NoResults(sParam string, bParam bool) *MoqUsual_NoResults_fnRecorder {
 	return &MoqUsual_NoResults_fnRecorder{
 		Params: MoqUsual_NoResults_params{
-			SParam: sParam,
-			BParam: bParam,
-		},
-		ParamsKey: MoqUsual_NoResults_paramsKey{
 			SParam: sParam,
 			BParam: bParam,
 		},
@@ -1735,57 +2291,50 @@ func (r *MoqUsual_NoResults_fnRecorder) DoReturnResults(fn MoqUsual_NoResults_do
 }
 
 func (r *MoqUsual_NoResults_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_NoResults_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_NoResults {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_NoResults_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_NoResults_paramsKey]*MoqUsual_NoResults_results{},
-			}
-			r.Moq.ResultsByParams_NoResults = append(r.Moq.ResultsByParams_NoResults, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_NoResults) {
-				copy(r.Moq.ResultsByParams_NoResults[insertAt+1:], r.Moq.ResultsByParams_NoResults[insertAt:0])
-				r.Moq.ResultsByParams_NoResults[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var sParamUsed string
-		if r.AnyParams&(1<<0) == 0 {
-			sParamUsed = r.ParamsKey.SParam
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_NoResults_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_NoResults {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var bParamUsed bool
-		if r.AnyParams&(1<<1) == 0 {
-			bParamUsed = r.ParamsKey.BParam
-		}
-		paramsKey := MoqUsual_NoResults_paramsKey{
-			SParam: sParamUsed,
-			BParam: bParamUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_NoResults_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_NoResults_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_NoResults_paramsKey]*MoqUsual_NoResults_results{},
+		}
+		r.Moq.ResultsByParams_NoResults = append(r.Moq.ResultsByParams_NoResults, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_NoResults) {
+			copy(r.Moq.ResultsByParams_NoResults[insertAt+1:], r.Moq.ResultsByParams_NoResults[insertAt:0])
+			r.Moq.ResultsByParams_NoResults[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_NoResults(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_NoResults_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -1813,12 +2362,47 @@ func (r *MoqUsual_NoResults_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUs
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_NoResults(params MoqUsual_NoResults_params, anyParams uint64) MoqUsual_NoResults_paramsKey {
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.NoResults.SParam == moq.ParamIndexByValue {
+			sParamUsed = params.SParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.SParam)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.NoResults.BParam == moq.ParamIndexByValue {
+			bParamUsed = params.BParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.BParam)
+		}
+	}
+	return MoqUsual_NoResults_paramsKey{
+		Params: struct {
+			SParam string
+			BParam bool
+		}{
+			SParam: sParamUsed,
+			BParam: bParamUsed,
+		},
+		Hashes: struct {
+			SParam hash.Hash
+			BParam hash.Hash
+		}{
+			SParam: sParamUsedHash,
+			BParam: bParamUsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) NoParams() *MoqUsual_NoParams_fnRecorder {
 	return &MoqUsual_NoParams_fnRecorder{
-		Params:    MoqUsual_NoParams_params{},
-		ParamsKey: MoqUsual_NoParams_paramsKey{},
-		Sequence:  m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:       m.Moq,
+		Params:   MoqUsual_NoParams_params{},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
 	}
 }
 
@@ -1908,46 +2492,50 @@ func (r *MoqUsual_NoParams_fnRecorder) DoReturnResults(fn MoqUsual_NoParams_doRe
 }
 
 func (r *MoqUsual_NoParams_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_NoParams_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_NoParams {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_NoParams_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_NoParams_paramsKey]*MoqUsual_NoParams_results{},
-			}
-			r.Moq.ResultsByParams_NoParams = append(r.Moq.ResultsByParams_NoParams, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_NoParams) {
-				copy(r.Moq.ResultsByParams_NoParams[insertAt+1:], r.Moq.ResultsByParams_NoParams[insertAt:0])
-				r.Moq.ResultsByParams_NoParams[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		paramsKey := MoqUsual_NoParams_paramsKey{}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_NoParams_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_NoParams_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_NoParams {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_NoParams_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_NoParams_paramsKey]*MoqUsual_NoParams_results{},
+		}
+		r.Moq.ResultsByParams_NoParams = append(r.Moq.ResultsByParams_NoParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_NoParams) {
+			copy(r.Moq.ResultsByParams_NoParams[insertAt+1:], r.Moq.ResultsByParams_NoParams[insertAt:0])
+			r.Moq.ResultsByParams_NoParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_NoParams(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_NoParams_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -1984,12 +2572,17 @@ func (r *MoqUsual_NoParams_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsu
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_NoParams(params MoqUsual_NoParams_params, anyParams uint64) MoqUsual_NoParams_paramsKey {
+	return MoqUsual_NoParams_paramsKey{
+		Params: struct{}{},
+		Hashes: struct{}{}}
+}
+
 func (m *MoqUsual_recorder) Nothing() *MoqUsual_Nothing_fnRecorder {
 	return &MoqUsual_Nothing_fnRecorder{
-		Params:    MoqUsual_Nothing_params{},
-		ParamsKey: MoqUsual_Nothing_paramsKey{},
-		Sequence:  m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:       m.Moq,
+		Params:   MoqUsual_Nothing_params{},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
 	}
 }
 
@@ -2067,46 +2660,50 @@ func (r *MoqUsual_Nothing_fnRecorder) DoReturnResults(fn MoqUsual_Nothing_doRetu
 }
 
 func (r *MoqUsual_Nothing_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_Nothing_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_Nothing {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_Nothing_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_Nothing_paramsKey]*MoqUsual_Nothing_results{},
-			}
-			r.Moq.ResultsByParams_Nothing = append(r.Moq.ResultsByParams_Nothing, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Nothing) {
-				copy(r.Moq.ResultsByParams_Nothing[insertAt+1:], r.Moq.ResultsByParams_Nothing[insertAt:0])
-				r.Moq.ResultsByParams_Nothing[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		paramsKey := MoqUsual_Nothing_paramsKey{}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_Nothing_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_Nothing_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Nothing {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_Nothing_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_Nothing_paramsKey]*MoqUsual_Nothing_results{},
+		}
+		r.Moq.ResultsByParams_Nothing = append(r.Moq.ResultsByParams_Nothing, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Nothing) {
+			copy(r.Moq.ResultsByParams_Nothing[insertAt+1:], r.Moq.ResultsByParams_Nothing[insertAt:0])
+			r.Moq.ResultsByParams_Nothing[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Nothing(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_Nothing_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -2134,15 +2731,17 @@ func (r *MoqUsual_Nothing_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsua
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_Nothing(params MoqUsual_Nothing_params, anyParams uint64) MoqUsual_Nothing_paramsKey {
+	return MoqUsual_Nothing_paramsKey{
+		Params: struct{}{},
+		Hashes: struct{}{}}
+}
+
 func (m *MoqUsual_recorder) Variadic(other bool, args ...string) *MoqUsual_Variadic_fnRecorder {
 	return &MoqUsual_Variadic_fnRecorder{
 		Params: MoqUsual_Variadic_params{
 			Other: other,
 			Args:  args,
-		},
-		ParamsKey: MoqUsual_Variadic_paramsKey{
-			Other: other,
-			Args:  hash.DeepHash(args),
 		},
 		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
 		Moq:      m.Moq,
@@ -2245,57 +2844,50 @@ func (r *MoqUsual_Variadic_fnRecorder) DoReturnResults(fn MoqUsual_Variadic_doRe
 }
 
 func (r *MoqUsual_Variadic_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_Variadic_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_Variadic {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_Variadic_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_Variadic_paramsKey]*MoqUsual_Variadic_results{},
-			}
-			r.Moq.ResultsByParams_Variadic = append(r.Moq.ResultsByParams_Variadic, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Variadic) {
-				copy(r.Moq.ResultsByParams_Variadic[insertAt+1:], r.Moq.ResultsByParams_Variadic[insertAt:0])
-				r.Moq.ResultsByParams_Variadic[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var otherUsed bool
-		if r.AnyParams&(1<<0) == 0 {
-			otherUsed = r.ParamsKey.Other
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_Variadic_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Variadic {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var argsUsed hash.Hash
-		if r.AnyParams&(1<<1) == 0 {
-			argsUsed = r.ParamsKey.Args
-		}
-		paramsKey := MoqUsual_Variadic_paramsKey{
-			Other: otherUsed,
-			Args:  argsUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_Variadic_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_Variadic_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_Variadic_paramsKey]*MoqUsual_Variadic_results{},
+		}
+		r.Moq.ResultsByParams_Variadic = append(r.Moq.ResultsByParams_Variadic, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Variadic) {
+			copy(r.Moq.ResultsByParams_Variadic[insertAt+1:], r.Moq.ResultsByParams_Variadic[insertAt:0])
+			r.Moq.ResultsByParams_Variadic[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Variadic(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_Variadic_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -2332,14 +2924,39 @@ func (r *MoqUsual_Variadic_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsu
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_Variadic(params MoqUsual_Variadic_params, anyParams uint64) MoqUsual_Variadic_paramsKey {
+	var otherUsed bool
+	var otherUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.Variadic.Other == moq.ParamIndexByValue {
+			otherUsed = params.Other
+		} else {
+			otherUsedHash = hash.DeepHash(params.Other)
+		}
+	}
+	var argsUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.Variadic.Args == moq.ParamIndexByValue {
+			m.Scene.T.Fatalf("The args parameter of the Variadic function can't be indexed by value")
+		}
+		argsUsedHash = hash.DeepHash(params.Args)
+	}
+	return MoqUsual_Variadic_paramsKey{
+		Params: struct{ Other bool }{
+			Other: otherUsed,
+		},
+		Hashes: struct {
+			Other hash.Hash
+			Args  hash.Hash
+		}{
+			Other: otherUsedHash,
+			Args:  argsUsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *MoqUsual_RepeatedIds_fnRecorder {
 	return &MoqUsual_RepeatedIds_fnRecorder{
 		Params: MoqUsual_RepeatedIds_params{
-			SParam1: sParam1,
-			SParam2: sParam2,
-			BParam:  bParam,
-		},
-		ParamsKey: MoqUsual_RepeatedIds_paramsKey{
 			SParam1: sParam1,
 			SParam2: sParam2,
 			BParam:  bParam,
@@ -2451,62 +3068,50 @@ func (r *MoqUsual_RepeatedIds_fnRecorder) DoReturnResults(fn MoqUsual_RepeatedId
 }
 
 func (r *MoqUsual_RepeatedIds_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_RepeatedIds_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_RepeatedIds {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_RepeatedIds_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_RepeatedIds_paramsKey]*MoqUsual_RepeatedIds_results{},
-			}
-			r.Moq.ResultsByParams_RepeatedIds = append(r.Moq.ResultsByParams_RepeatedIds, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_RepeatedIds) {
-				copy(r.Moq.ResultsByParams_RepeatedIds[insertAt+1:], r.Moq.ResultsByParams_RepeatedIds[insertAt:0])
-				r.Moq.ResultsByParams_RepeatedIds[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var sParam1Used string
-		if r.AnyParams&(1<<0) == 0 {
-			sParam1Used = r.ParamsKey.SParam1
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_RepeatedIds_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_RepeatedIds {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var sParam2Used string
-		if r.AnyParams&(1<<1) == 0 {
-			sParam2Used = r.ParamsKey.SParam2
-		}
-		var bParamUsed bool
-		if r.AnyParams&(1<<2) == 0 {
-			bParamUsed = r.ParamsKey.BParam
-		}
-		paramsKey := MoqUsual_RepeatedIds_paramsKey{
-			SParam1: sParam1Used,
-			SParam2: sParam2Used,
-			BParam:  bParamUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_RepeatedIds_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_RepeatedIds_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_RepeatedIds_paramsKey]*MoqUsual_RepeatedIds_results{},
+		}
+		r.Moq.ResultsByParams_RepeatedIds = append(r.Moq.ResultsByParams_RepeatedIds, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_RepeatedIds) {
+			copy(r.Moq.ResultsByParams_RepeatedIds[insertAt+1:], r.Moq.ResultsByParams_RepeatedIds[insertAt:0])
+			r.Moq.ResultsByParams_RepeatedIds[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_RepeatedIds(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_RepeatedIds_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -2544,13 +3149,56 @@ func (r *MoqUsual_RepeatedIds_fnRecorder) Repeat(repeaters ...moq.Repeater) *Moq
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_RepeatedIds(params MoqUsual_RepeatedIds_params, anyParams uint64) MoqUsual_RepeatedIds_paramsKey {
+	var sParam1Used string
+	var sParam1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.RepeatedIds.SParam1 == moq.ParamIndexByValue {
+			sParam1Used = params.SParam1
+		} else {
+			sParam1UsedHash = hash.DeepHash(params.SParam1)
+		}
+	}
+	var sParam2Used string
+	var sParam2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.RepeatedIds.SParam2 == moq.ParamIndexByValue {
+			sParam2Used = params.SParam2
+		} else {
+			sParam2UsedHash = hash.DeepHash(params.SParam2)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<2) == 0 {
+		if m.Runtime.ParameterIndexing.RepeatedIds.BParam == moq.ParamIndexByValue {
+			bParamUsed = params.BParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.BParam)
+		}
+	}
+	return MoqUsual_RepeatedIds_paramsKey{
+		Params: struct {
+			SParam1, SParam2 string
+			BParam           bool
+		}{
+			SParam1: sParam1Used,
+			SParam2: sParam2Used,
+			BParam:  bParamUsed,
+		},
+		Hashes: struct {
+			SParam1, SParam2 hash.Hash
+			BParam           hash.Hash
+		}{
+			SParam1: sParam1UsedHash,
+			SParam2: sParam2UsedHash,
+			BParam:  bParamUsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) Times(sParam string, times bool) *MoqUsual_Times_fnRecorder {
 	return &MoqUsual_Times_fnRecorder{
 		Params: MoqUsual_Times_params{
-			SParam: sParam,
-			Times:  times,
-		},
-		ParamsKey: MoqUsual_Times_paramsKey{
 			SParam: sParam,
 			Times:  times,
 		},
@@ -2655,57 +3303,50 @@ func (r *MoqUsual_Times_fnRecorder) DoReturnResults(fn MoqUsual_Times_doReturnFn
 }
 
 func (r *MoqUsual_Times_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_Times_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_Times {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_Times_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_Times_paramsKey]*MoqUsual_Times_results{},
-			}
-			r.Moq.ResultsByParams_Times = append(r.Moq.ResultsByParams_Times, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Times) {
-				copy(r.Moq.ResultsByParams_Times[insertAt+1:], r.Moq.ResultsByParams_Times[insertAt:0])
-				r.Moq.ResultsByParams_Times[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var sParamUsed string
-		if r.AnyParams&(1<<0) == 0 {
-			sParamUsed = r.ParamsKey.SParam
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_Times_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Times {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var timesUsed bool
-		if r.AnyParams&(1<<1) == 0 {
-			timesUsed = r.ParamsKey.Times
-		}
-		paramsKey := MoqUsual_Times_paramsKey{
-			SParam: sParamUsed,
-			Times:  timesUsed,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_Times_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_Times_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_Times_paramsKey]*MoqUsual_Times_results{},
+		}
+		r.Moq.ResultsByParams_Times = append(r.Moq.ResultsByParams_Times, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Times) {
+			copy(r.Moq.ResultsByParams_Times[insertAt+1:], r.Moq.ResultsByParams_Times[insertAt:0])
+			r.Moq.ResultsByParams_Times[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Times(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_Times_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -2742,18 +3383,45 @@ func (r *MoqUsual_Times_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_Times(params MoqUsual_Times_params, anyParams uint64) MoqUsual_Times_paramsKey {
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.Times.SParam == moq.ParamIndexByValue {
+			sParamUsed = params.SParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.SParam)
+		}
+	}
+	var timesUsed bool
+	var timesUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.Times.Times == moq.ParamIndexByValue {
+			timesUsed = params.Times
+		} else {
+			timesUsedHash = hash.DeepHash(params.Times)
+		}
+	}
+	return MoqUsual_Times_paramsKey{
+		Params: struct {
+			SParam string
+			Times  bool
+		}{
+			SParam: sParamUsed,
+			Times:  timesUsed,
+		},
+		Hashes: struct {
+			SParam hash.Hash
+			Times  hash.Hash
+		}{
+			SParam: sParamUsedHash,
+			Times:  timesUsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) *MoqUsual_DifficultParamNames_fnRecorder {
 	return &MoqUsual_DifficultParamNames_fnRecorder{
 		Params: MoqUsual_DifficultParamNames_params{
-			Param1: param1,
-			Param2: param2,
-			Param3: param3,
-			Param:  param,
-			Param5: param5,
-			Param6: param6,
-			Param7: param7,
-		},
-		ParamsKey: MoqUsual_DifficultParamNames_paramsKey{
 			Param1: param1,
 			Param2: param2,
 			Param3: param3,
@@ -2876,82 +3544,50 @@ func (r *MoqUsual_DifficultParamNames_fnRecorder) DoReturnResults(fn MoqUsual_Di
 }
 
 func (r *MoqUsual_DifficultParamNames_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_DifficultParamNames_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_DifficultParamNames {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_DifficultParamNames_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_DifficultParamNames_paramsKey]*MoqUsual_DifficultParamNames_results{},
-			}
-			r.Moq.ResultsByParams_DifficultParamNames = append(r.Moq.ResultsByParams_DifficultParamNames, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_DifficultParamNames) {
-				copy(r.Moq.ResultsByParams_DifficultParamNames[insertAt+1:], r.Moq.ResultsByParams_DifficultParamNames[insertAt:0])
-				r.Moq.ResultsByParams_DifficultParamNames[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		var param1Used bool
-		if r.AnyParams&(1<<0) == 0 {
-			param1Used = r.ParamsKey.Param1
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_DifficultParamNames_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_DifficultParamNames {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
 		}
-		var param2Used bool
-		if r.AnyParams&(1<<1) == 0 {
-			param2Used = r.ParamsKey.Param2
-		}
-		var param3Used string
-		if r.AnyParams&(1<<2) == 0 {
-			param3Used = r.ParamsKey.Param3
-		}
-		var paramUsed int
-		if r.AnyParams&(1<<3) == 0 {
-			paramUsed = r.ParamsKey.Param
-		}
-		var param5Used int
-		if r.AnyParams&(1<<4) == 0 {
-			param5Used = r.ParamsKey.Param5
-		}
-		var param6Used float32
-		if r.AnyParams&(1<<5) == 0 {
-			param6Used = r.ParamsKey.Param6
-		}
-		var param7Used float32
-		if r.AnyParams&(1<<6) == 0 {
-			param7Used = r.ParamsKey.Param7
-		}
-		paramsKey := MoqUsual_DifficultParamNames_paramsKey{
-			Param1: param1Used,
-			Param2: param2Used,
-			Param3: param3Used,
-			Param:  paramUsed,
-			Param5: param5Used,
-			Param6: param6Used,
-			Param7: param7Used,
-		}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_DifficultParamNames_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_DifficultParamNames_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_DifficultParamNames_paramsKey]*MoqUsual_DifficultParamNames_results{},
+		}
+		r.Moq.ResultsByParams_DifficultParamNames = append(r.Moq.ResultsByParams_DifficultParamNames, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_DifficultParamNames) {
+			copy(r.Moq.ResultsByParams_DifficultParamNames[insertAt+1:], r.Moq.ResultsByParams_DifficultParamNames[insertAt:0])
+			r.Moq.ResultsByParams_DifficultParamNames[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_DifficultParamNames(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_DifficultParamNames_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -2979,12 +3615,106 @@ func (r *MoqUsual_DifficultParamNames_fnRecorder) Repeat(repeaters ...moq.Repeat
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_DifficultParamNames(params MoqUsual_DifficultParamNames_params, anyParams uint64) MoqUsual_DifficultParamNames_paramsKey {
+	var param1Used bool
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param1 == moq.ParamIndexByValue {
+			param1Used = params.Param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.Param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param2 == moq.ParamIndexByValue {
+			param2Used = params.Param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.Param2)
+		}
+	}
+	var param3Used string
+	var param3UsedHash hash.Hash
+	if anyParams&(1<<2) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param3 == moq.ParamIndexByValue {
+			param3Used = params.Param3
+		} else {
+			param3UsedHash = hash.DeepHash(params.Param3)
+		}
+	}
+	var paramUsed int
+	var paramUsedHash hash.Hash
+	if anyParams&(1<<3) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param == moq.ParamIndexByValue {
+			paramUsed = params.Param
+		} else {
+			paramUsedHash = hash.DeepHash(params.Param)
+		}
+	}
+	var param5Used int
+	var param5UsedHash hash.Hash
+	if anyParams&(1<<4) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param5 == moq.ParamIndexByValue {
+			param5Used = params.Param5
+		} else {
+			param5UsedHash = hash.DeepHash(params.Param5)
+		}
+	}
+	var param6Used float32
+	var param6UsedHash hash.Hash
+	if anyParams&(1<<5) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param6 == moq.ParamIndexByValue {
+			param6Used = params.Param6
+		} else {
+			param6UsedHash = hash.DeepHash(params.Param6)
+		}
+	}
+	var param7Used float32
+	var param7UsedHash hash.Hash
+	if anyParams&(1<<6) == 0 {
+		if m.Runtime.ParameterIndexing.DifficultParamNames.Param7 == moq.ParamIndexByValue {
+			param7Used = params.Param7
+		} else {
+			param7UsedHash = hash.DeepHash(params.Param7)
+		}
+	}
+	return MoqUsual_DifficultParamNames_paramsKey{
+		Params: struct {
+			Param1, Param2 bool
+			Param3         string
+			Param, Param5  int
+			Param6, Param7 float32
+		}{
+			Param1: param1Used,
+			Param2: param2Used,
+			Param3: param3Used,
+			Param:  paramUsed,
+			Param5: param5Used,
+			Param6: param6Used,
+			Param7: param7Used,
+		},
+		Hashes: struct {
+			Param1, Param2 hash.Hash
+			Param3         hash.Hash
+			Param, Param5  hash.Hash
+			Param6, Param7 hash.Hash
+		}{
+			Param1: param1UsedHash,
+			Param2: param2UsedHash,
+			Param3: param3UsedHash,
+			Param:  paramUsedHash,
+			Param5: param5UsedHash,
+			Param6: param6UsedHash,
+			Param7: param7UsedHash,
+		}}
+}
+
 func (m *MoqUsual_recorder) DifficultResultNames() *MoqUsual_DifficultResultNames_fnRecorder {
 	return &MoqUsual_DifficultResultNames_fnRecorder{
-		Params:    MoqUsual_DifficultResultNames_params{},
-		ParamsKey: MoqUsual_DifficultResultNames_paramsKey{},
-		Sequence:  m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:       m.Moq,
+		Params:   MoqUsual_DifficultResultNames_params{},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
 	}
 }
 
@@ -3085,46 +3815,50 @@ func (r *MoqUsual_DifficultResultNames_fnRecorder) DoReturnResults(fn MoqUsual_D
 }
 
 func (r *MoqUsual_DifficultResultNames_fnRecorder) FindResults() {
-	if r.Results == nil {
-		anyCount := bits.OnesCount64(r.AnyParams)
-		insertAt := -1
-		var results *MoqUsual_DifficultResultNames_resultsByParams
-		for n, res := range r.Moq.ResultsByParams_DifficultResultNames {
-			if res.AnyParams == r.AnyParams {
-				results = &res
-				break
-			}
-			if res.AnyCount > anyCount {
-				insertAt = n
-			}
-		}
-		if results == nil {
-			results = &MoqUsual_DifficultResultNames_resultsByParams{
-				AnyCount:  anyCount,
-				AnyParams: r.AnyParams,
-				Results:   map[MoqUsual_DifficultResultNames_paramsKey]*MoqUsual_DifficultResultNames_results{},
-			}
-			r.Moq.ResultsByParams_DifficultResultNames = append(r.Moq.ResultsByParams_DifficultResultNames, *results)
-			if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_DifficultResultNames) {
-				copy(r.Moq.ResultsByParams_DifficultResultNames[insertAt+1:], r.Moq.ResultsByParams_DifficultResultNames[insertAt:0])
-				r.Moq.ResultsByParams_DifficultResultNames[insertAt] = *results
-			}
-		}
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
 
-		paramsKey := MoqUsual_DifficultResultNames_paramsKey{}
-
-		var ok bool
-		r.Results, ok = results.Results[paramsKey]
-		if !ok {
-			r.Results = &MoqUsual_DifficultResultNames_results{
-				Params:  r.Params,
-				Results: nil,
-				Index:   0,
-				Repeat:  &moq.RepeatVal{},
-			}
-			results.Results[paramsKey] = r.Results
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_DifficultResultNames_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_DifficultResultNames {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
 		}
 	}
+	if results == nil {
+		results = &MoqUsual_DifficultResultNames_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_DifficultResultNames_paramsKey]*MoqUsual_DifficultResultNames_results{},
+		}
+		r.Moq.ResultsByParams_DifficultResultNames = append(r.Moq.ResultsByParams_DifficultResultNames, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_DifficultResultNames) {
+			copy(r.Moq.ResultsByParams_DifficultResultNames[insertAt+1:], r.Moq.ResultsByParams_DifficultResultNames[insertAt:0])
+			r.Moq.ResultsByParams_DifficultResultNames[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_DifficultResultNames(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_DifficultResultNames_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
 	r.Results.Repeat.Increment(r.Moq.Scene.T)
 }
 
@@ -3170,6 +3904,620 @@ func (r *MoqUsual_DifficultResultNames_fnRecorder) Repeat(repeaters ...moq.Repea
 	return r
 }
 
+func (m *MoqUsual) ParamsKey_DifficultResultNames(params MoqUsual_DifficultResultNames_params, anyParams uint64) MoqUsual_DifficultResultNames_paramsKey {
+	return MoqUsual_DifficultResultNames_paramsKey{
+		Params: struct{}{},
+		Hashes: struct{}{}}
+}
+
+func (m *MoqUsual_recorder) PassByReference(p *testmoqs.PassByReferenceParams) *MoqUsual_PassByReference_fnRecorder {
+	return &MoqUsual_PassByReference_fnRecorder{
+		Params: MoqUsual_PassByReference_params{
+			P: p,
+		},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) Any() *MoqUsual_PassByReference_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_PassByReference_anyParams{Recorder: r}
+}
+
+func (a *MoqUsual_PassByReference_anyParams) P() *MoqUsual_PassByReference_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) Seq() *MoqUsual_PassByReference_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) NoSeq() *MoqUsual_PassByReference_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) ReturnResults(sResult string, err error) *MoqUsual_PassByReference_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_PassByReference_doFn
+		DoReturnFn MoqUsual_PassByReference_doReturnFn
+	}{
+		Values: &struct {
+			SResult string
+			Err     error
+		}{
+			SResult: sResult,
+			Err:     err,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) AndDo(fn MoqUsual_PassByReference_doFn) *MoqUsual_PassByReference_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) DoReturnResults(fn MoqUsual_PassByReference_doReturnFn) *MoqUsual_PassByReference_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_PassByReference_doFn
+		DoReturnFn MoqUsual_PassByReference_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) FindResults() {
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_PassByReference_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_PassByReference {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &MoqUsual_PassByReference_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_PassByReference_paramsKey]*MoqUsual_PassByReference_results{},
+		}
+		r.Moq.ResultsByParams_PassByReference = append(r.Moq.ResultsByParams_PassByReference, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_PassByReference) {
+			copy(r.Moq.ResultsByParams_PassByReference[insertAt+1:], r.Moq.ResultsByParams_PassByReference[insertAt:0])
+			r.Moq.ResultsByParams_PassByReference[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_PassByReference(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_PassByReference_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqUsual_PassByReference_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_PassByReference_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values *struct {
+					SResult string
+					Err     error
+				}
+				Sequence   uint32
+				DoFn       MoqUsual_PassByReference_doFn
+				DoReturnFn MoqUsual_PassByReference_doReturnFn
+			}{
+				Values: &struct {
+					SResult string
+					Err     error
+				}{
+					SResult: last.Values.SResult,
+					Err:     last.Values.Err,
+				},
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqUsual) ParamsKey_PassByReference(params MoqUsual_PassByReference_params, anyParams uint64) MoqUsual_PassByReference_paramsKey {
+	var pUsed *testmoqs.PassByReferenceParams
+	var pUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.PassByReference.P == moq.ParamIndexByValue {
+			pUsed = params.P
+		} else {
+			pUsedHash = hash.DeepHash(params.P)
+		}
+	}
+	return MoqUsual_PassByReference_paramsKey{
+		Params: struct {
+			P *testmoqs.PassByReferenceParams
+		}{
+			P: pUsed,
+		},
+		Hashes: struct{ P hash.Hash }{
+			P: pUsedHash,
+		}}
+}
+
+func (m *MoqUsual_recorder) InterfaceParam(w io.Writer) *MoqUsual_InterfaceParam_fnRecorder {
+	return &MoqUsual_InterfaceParam_fnRecorder{
+		Params: MoqUsual_InterfaceParam_params{
+			W: w,
+		},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) Any() *MoqUsual_InterfaceParam_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_InterfaceParam_anyParams{Recorder: r}
+}
+
+func (a *MoqUsual_InterfaceParam_anyParams) W() *MoqUsual_InterfaceParam_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) Seq() *MoqUsual_InterfaceParam_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) NoSeq() *MoqUsual_InterfaceParam_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) ReturnResults(sResult string, err error) *MoqUsual_InterfaceParam_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_InterfaceParam_doFn
+		DoReturnFn MoqUsual_InterfaceParam_doReturnFn
+	}{
+		Values: &struct {
+			SResult string
+			Err     error
+		}{
+			SResult: sResult,
+			Err:     err,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) AndDo(fn MoqUsual_InterfaceParam_doFn) *MoqUsual_InterfaceParam_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) DoReturnResults(fn MoqUsual_InterfaceParam_doReturnFn) *MoqUsual_InterfaceParam_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			SResult string
+			Err     error
+		}
+		Sequence   uint32
+		DoFn       MoqUsual_InterfaceParam_doFn
+		DoReturnFn MoqUsual_InterfaceParam_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) FindResults() {
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_InterfaceParam_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_InterfaceParam {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &MoqUsual_InterfaceParam_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_InterfaceParam_paramsKey]*MoqUsual_InterfaceParam_results{},
+		}
+		r.Moq.ResultsByParams_InterfaceParam = append(r.Moq.ResultsByParams_InterfaceParam, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_InterfaceParam) {
+			copy(r.Moq.ResultsByParams_InterfaceParam[insertAt+1:], r.Moq.ResultsByParams_InterfaceParam[insertAt:0])
+			r.Moq.ResultsByParams_InterfaceParam[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_InterfaceParam(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_InterfaceParam_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqUsual_InterfaceParam_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_InterfaceParam_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values *struct {
+					SResult string
+					Err     error
+				}
+				Sequence   uint32
+				DoFn       MoqUsual_InterfaceParam_doFn
+				DoReturnFn MoqUsual_InterfaceParam_doReturnFn
+			}{
+				Values: &struct {
+					SResult string
+					Err     error
+				}{
+					SResult: last.Values.SResult,
+					Err:     last.Values.Err,
+				},
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqUsual) ParamsKey_InterfaceParam(params MoqUsual_InterfaceParam_params, anyParams uint64) MoqUsual_InterfaceParam_paramsKey {
+	var wUsed io.Writer
+	var wUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.InterfaceParam.W == moq.ParamIndexByValue {
+			wUsed = params.W
+		} else {
+			wUsedHash = hash.DeepHash(params.W)
+		}
+	}
+	return MoqUsual_InterfaceParam_paramsKey{
+		Params: struct{ W io.Writer }{
+			W: wUsed,
+		},
+		Hashes: struct{ W hash.Hash }{
+			W: wUsedHash,
+		}}
+}
+
+func (m *MoqUsual_recorder) InterfaceResult(sParam string, bParam bool) *MoqUsual_InterfaceResult_fnRecorder {
+	return &MoqUsual_InterfaceResult_fnRecorder{
+		Params: MoqUsual_InterfaceResult_params{
+			SParam: sParam,
+			BParam: bParam,
+		},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) Any() *MoqUsual_InterfaceResult_anyParams {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	return &MoqUsual_InterfaceResult_anyParams{Recorder: r}
+}
+
+func (a *MoqUsual_InterfaceResult_anyParams) SParam() *MoqUsual_InterfaceResult_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (a *MoqUsual_InterfaceResult_anyParams) BParam() *MoqUsual_InterfaceResult_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 1
+	return a.Recorder
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) Seq() *MoqUsual_InterfaceResult_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) NoSeq() *MoqUsual_InterfaceResult_fnRecorder {
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) ReturnResults(result1 io.Reader) *MoqUsual_InterfaceResult_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{ Result1 io.Reader }
+		Sequence   uint32
+		DoFn       MoqUsual_InterfaceResult_doFn
+		DoReturnFn MoqUsual_InterfaceResult_doReturnFn
+	}{
+		Values: &struct{ Result1 io.Reader }{
+			Result1: result1,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) AndDo(fn MoqUsual_InterfaceResult_doFn) *MoqUsual_InterfaceResult_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) DoReturnResults(fn MoqUsual_InterfaceResult_doReturnFn) *MoqUsual_InterfaceResult_fnRecorder {
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{ Result1 io.Reader }
+		Sequence   uint32
+		DoFn       MoqUsual_InterfaceResult_doFn
+		DoReturnFn MoqUsual_InterfaceResult_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) FindResults() {
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUsual_InterfaceResult_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_InterfaceResult {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &MoqUsual_InterfaceResult_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUsual_InterfaceResult_paramsKey]*MoqUsual_InterfaceResult_results{},
+		}
+		r.Moq.ResultsByParams_InterfaceResult = append(r.Moq.ResultsByParams_InterfaceResult, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_InterfaceResult) {
+			copy(r.Moq.ResultsByParams_InterfaceResult[insertAt+1:], r.Moq.ResultsByParams_InterfaceResult[insertAt:0])
+			r.Moq.ResultsByParams_InterfaceResult[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_InterfaceResult(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUsual_InterfaceResult_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqUsual_InterfaceResult_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUsual_InterfaceResult_fnRecorder {
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values     *struct{ Result1 io.Reader }
+				Sequence   uint32
+				DoFn       MoqUsual_InterfaceResult_doFn
+				DoReturnFn MoqUsual_InterfaceResult_doReturnFn
+			}{
+				Values: &struct{ Result1 io.Reader }{
+					Result1: last.Values.Result1,
+				},
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqUsual) ParamsKey_InterfaceResult(params MoqUsual_InterfaceResult_params, anyParams uint64) MoqUsual_InterfaceResult_paramsKey {
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.InterfaceResult.SParam == moq.ParamIndexByValue {
+			sParamUsed = params.SParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.SParam)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.Runtime.ParameterIndexing.InterfaceResult.BParam == moq.ParamIndexByValue {
+			bParamUsed = params.BParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.BParam)
+		}
+	}
+	return MoqUsual_InterfaceResult_paramsKey{
+		Params: struct {
+			SParam string
+			BParam bool
+		}{
+			SParam: sParamUsed,
+			BParam: bParamUsed,
+		},
+		Hashes: struct {
+			SParam hash.Hash
+			BParam hash.Hash
+		}{
+			SParam: sParamUsedHash,
+			BParam: bParamUsedHash,
+		}}
+}
+
 // Reset resets the state of the moq
 func (m *MoqUsual) Reset() {
 	m.ResultsByParams_Usual = nil
@@ -3182,6 +4530,9 @@ func (m *MoqUsual) Reset() {
 	m.ResultsByParams_Times = nil
 	m.ResultsByParams_DifficultParamNames = nil
 	m.ResultsByParams_DifficultResultNames = nil
+	m.ResultsByParams_PassByReference = nil
+	m.ResultsByParams_InterfaceParam = nil
+	m.ResultsByParams_InterfaceResult = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
@@ -3259,6 +4610,30 @@ func (m *MoqUsual) AssertExpectationsMet() {
 		}
 	}
 	for _, res := range m.ResultsByParams_DifficultResultNames {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_PassByReference {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_InterfaceParam {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_InterfaceResult {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
