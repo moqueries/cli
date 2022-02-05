@@ -404,7 +404,8 @@ func (m *moqNoNamesFn) paramsKey(params moqNoNamesFn_params, anyParams uint64) m
 		}{
 			param1: param1UsedHash,
 			param2: param2UsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

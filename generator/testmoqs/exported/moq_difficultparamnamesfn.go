@@ -496,7 +496,8 @@ func (m *MoqDifficultParamNamesFn) ParamsKey(params MoqDifficultParamNamesFn_par
 			Param5: param5UsedHash,
 			Param6: param6UsedHash,
 			Param7: param7UsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

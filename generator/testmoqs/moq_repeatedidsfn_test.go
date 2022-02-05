@@ -429,7 +429,8 @@ func (m *moqRepeatedIdsFn) paramsKey(params moqRepeatedIdsFn_params, anyParams u
 			sParam1: sParam1UsedHash,
 			sParam2: sParam2UsedHash,
 			bParam:  bParamUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

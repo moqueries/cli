@@ -404,7 +404,8 @@ func (m *MoqTimesFn) ParamsKey(params MoqTimesFn_params, anyParams uint64) MoqTi
 		}{
 			Times:  timesUsedHash,
 			BParam: bParamUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

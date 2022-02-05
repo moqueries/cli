@@ -418,7 +418,8 @@ func (m *moqLoadTypesFn) paramsKey(params moqLoadTypesFn_params, anyParams uint6
 		}{
 			pkg:           pkgUsedHash,
 			loadTestTypes: loadTestTypesUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

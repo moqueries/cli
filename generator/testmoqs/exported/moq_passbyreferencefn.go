@@ -373,7 +373,8 @@ func (m *MoqPassByReferenceFn) ParamsKey(params MoqPassByReferenceFn_params, any
 		},
 		Hashes: struct{ P hash.Hash }{
 			P: pUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

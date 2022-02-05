@@ -1561,7 +1561,8 @@ func (m *moqConverterer) paramsKey_BaseStruct(params moqConverterer_BaseStruct_p
 		}{
 			typeSpec: typeSpecUsedHash,
 			funcs:    funcsUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) IsolationStruct(typeName, suffix string) *moqConverterer_IsolationStruct_fnRecorder {
@@ -1761,7 +1762,8 @@ func (m *moqConverterer) paramsKey_IsolationStruct(params moqConverterer_Isolati
 		hashes: struct{ typeName, suffix hash.Hash }{
 			typeName: typeNameUsedHash,
 			suffix:   suffixUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) *moqConverterer_MethodStructs_fnRecorder {
@@ -1984,7 +1986,8 @@ func (m *moqConverterer) paramsKey_MethodStructs(params moqConverterer_MethodStr
 		}{
 			typeSpec: typeSpecUsedHash,
 			fn:       fnUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_NewFunc_fnRecorder {
@@ -2184,7 +2187,8 @@ func (m *moqConverterer) paramsKey_NewFunc(params moqConverterer_NewFunc_params,
 		}{
 			typeSpec: typeSpecUsedHash,
 			funcs:    funcsUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) IsolationAccessor(typeName, suffix, fnName string) *moqConverterer_IsolationAccessor_fnRecorder {
@@ -2401,7 +2405,8 @@ func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_Isola
 			typeName: typeNameUsedHash,
 			suffix:   suffixUsedHash,
 			fnName:   fnNameUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) FuncClosure(typeName, pkgPath string, fn generator.Func) *moqConverterer_FuncClosure_fnRecorder {
@@ -2624,7 +2629,8 @@ func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure
 			typeName: typeNameUsedHash,
 			pkgPath:  pkgPathUsedHash,
 			fn:       fnUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) MockMethod(typeName string, fn generator.Func) *moqConverterer_MockMethod_fnRecorder {
@@ -2830,7 +2836,8 @@ func (m *moqConverterer) paramsKey_MockMethod(params moqConverterer_MockMethod_p
 		}{
 			typeName: typeNameUsedHash,
 			fn:       fnUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) RecorderMethods(typeName string, fn generator.Func) *moqConverterer_RecorderMethods_fnRecorder {
@@ -3036,7 +3043,8 @@ func (m *moqConverterer) paramsKey_RecorderMethods(params moqConverterer_Recorde
 		}{
 			typeName: typeNameUsedHash,
 			fn:       fnUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_ResetMethod_fnRecorder {
@@ -3236,7 +3244,8 @@ func (m *moqConverterer) paramsKey_ResetMethod(params moqConverterer_ResetMethod
 		}{
 			typeSpec: typeSpecUsedHash,
 			funcs:    funcsUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_AssertMethod_fnRecorder {
@@ -3436,7 +3445,8 @@ func (m *moqConverterer) paramsKey_AssertMethod(params moqConverterer_AssertMeth
 		}{
 			typeSpec: typeSpecUsedHash,
 			funcs:    funcsUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

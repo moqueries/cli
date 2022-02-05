@@ -23,8 +23,7 @@ type moqStore struct {
 
 	runtime struct {
 		parameterIndexing struct {
-			AllWidgetsIds struct {
-			}
+			AllWidgetsIds     struct{}
 			GadgetsByWidgetId struct {
 				widgetId moq.ParamIndexing
 			}
@@ -223,8 +222,7 @@ func newMoqStore(scene *moq.Scene, config *moq.Config) *moqStore {
 
 		runtime: struct {
 			parameterIndexing struct {
-				AllWidgetsIds struct {
-				}
+				AllWidgetsIds     struct{}
 				GadgetsByWidgetId struct {
 					widgetId moq.ParamIndexing
 				}
@@ -234,8 +232,7 @@ func newMoqStore(scene *moq.Scene, config *moq.Config) *moqStore {
 				}
 			}
 		}{parameterIndexing: struct {
-			AllWidgetsIds struct {
-			}
+			AllWidgetsIds     struct{}
 			GadgetsByWidgetId struct {
 				widgetId moq.ParamIndexing
 			}
@@ -244,8 +241,7 @@ func newMoqStore(scene *moq.Scene, config *moq.Config) *moqStore {
 				maxWeight moq.ParamIndexing
 			}
 		}{
-			AllWidgetsIds: struct {
-			}{},
+			AllWidgetsIds: struct{}{},
 			GadgetsByWidgetId: struct {
 				widgetId moq.ParamIndexing
 			}{
@@ -611,7 +607,8 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 func (m *moqStore) paramsKey_AllWidgetsIds(params moqStore_AllWidgetsIds_params, anyParams uint64) moqStore_AllWidgetsIds_paramsKey {
 	return moqStore_AllWidgetsIds_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByWidgetId_fnRecorder {
@@ -811,7 +808,8 @@ func (m *moqStore) paramsKey_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId
 		},
 		hashes: struct{ widgetId hash.Hash }{
 			widgetId: widgetIdUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) *moqStore_LightGadgetsByWidgetId_fnRecorder {
@@ -1034,7 +1032,8 @@ func (m *moqStore) paramsKey_LightGadgetsByWidgetId(params moqStore_LightGadgets
 		}{
 			widgetId:  widgetIdUsedHash,
 			maxWeight: maxWeightUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

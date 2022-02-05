@@ -19,8 +19,7 @@ type moqNothingFn struct {
 	resultsByParams []moqNothingFn_resultsByParams
 
 	runtime struct {
-		parameterIndexing struct {
-		}
+		parameterIndexing struct{}
 	}
 	// moqNothingFn_mock isolates the mock interface of the NothingFn type
 }
@@ -89,10 +88,8 @@ func newMoqNothingFn(scene *moq.Scene, config *moq.Config) *moqNothingFn {
 		moq:    &moqNothingFn_mock{},
 
 		runtime: struct {
-			parameterIndexing struct {
-			}
-		}{parameterIndexing: struct {
-		}{}},
+			parameterIndexing struct{}
+		}{parameterIndexing: struct{}{}},
 	}
 	m.moq.moq = m
 
@@ -308,7 +305,8 @@ func (r *moqNothingFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNothingF
 func (m *moqNothingFn) paramsKey(params moqNothingFn_params, anyParams uint64) moqNothingFn_paramsKey {
 	return moqNothingFn_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 // Reset resets the state of the moq

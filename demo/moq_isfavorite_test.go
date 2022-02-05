@@ -355,7 +355,8 @@ func (m *moqIsFavorite) paramsKey(params moqIsFavorite_params, anyParams uint64)
 		},
 		hashes: struct{ n hash.Hash }{
 			n: nUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

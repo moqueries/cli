@@ -379,7 +379,8 @@ func (m *moqWriter) paramsKey_Write(params moqWriter_Write_params, anyParams uin
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
 			p: pUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

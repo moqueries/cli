@@ -395,7 +395,8 @@ func (m *moqVariadicFn) paramsKey(params moqVariadicFn_params, anyParams uint64)
 		}{
 			other: otherUsedHash,
 			args:  argsUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

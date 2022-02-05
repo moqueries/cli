@@ -373,7 +373,8 @@ func (m *MoqNoResultsFn) ParamsKey(params MoqNoResultsFn_params, anyParams uint6
 		}{
 			SParam: sParamUsedHash,
 			BParam: bParamUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

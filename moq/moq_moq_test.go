@@ -20,10 +20,8 @@ type moqMoq struct {
 
 	runtime struct {
 		parameterIndexing struct {
-			Reset struct {
-			}
-			AssertExpectationsMet struct {
-			}
+			Reset                 struct{}
+			AssertExpectationsMet struct{}
 		}
 		// moqMoq_mock isolates the mock interface of the Moq type
 	}
@@ -148,21 +146,15 @@ func newMoqMoq(scene *moq.Scene, config *moq.Config) *moqMoq {
 
 		runtime: struct {
 			parameterIndexing struct {
-				Reset struct {
-				}
-				AssertExpectationsMet struct {
-				}
+				Reset                 struct{}
+				AssertExpectationsMet struct{}
 			}
 		}{parameterIndexing: struct {
-			Reset struct {
-			}
-			AssertExpectationsMet struct {
-			}
+			Reset                 struct{}
+			AssertExpectationsMet struct{}
 		}{
-			Reset: struct {
-			}{},
-			AssertExpectationsMet: struct {
-			}{},
+			Reset:                 struct{}{},
+			AssertExpectationsMet: struct{}{},
 		}},
 	}
 	m.moq.moq = m
@@ -431,7 +423,8 @@ func (r *moqMoq_Reset_fnRecorder) repeat(repeaters ...moq.Repeater) *moqMoq_Rese
 func (m *moqMoq) paramsKey_Reset(params moqMoq_Reset_params, anyParams uint64) moqMoq_Reset_paramsKey {
 	return moqMoq_Reset_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 func (m *moqMoq_recorder) AssertExpectationsMet() *moqMoq_AssertExpectationsMet_fnRecorder {
@@ -590,7 +583,8 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) repeat(repeaters ...moq.Repeat
 func (m *moqMoq) paramsKey_AssertExpectationsMet(params moqMoq_AssertExpectationsMet_params, anyParams uint64) moqMoq_AssertExpectationsMet_paramsKey {
 	return moqMoq_AssertExpectationsMet_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 // Reset resets the state of the moq

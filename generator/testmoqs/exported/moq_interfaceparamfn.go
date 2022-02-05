@@ -365,7 +365,8 @@ func (m *MoqInterfaceParamFn) ParamsKey(params MoqInterfaceParamFn_params, anyPa
 		},
 		Hashes: struct{ W hash.Hash }{
 			W: wUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

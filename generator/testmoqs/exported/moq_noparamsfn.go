@@ -19,8 +19,7 @@ type MoqNoParamsFn struct {
 	ResultsByParams []MoqNoParamsFn_resultsByParams
 
 	Runtime struct {
-		ParameterIndexing struct {
-		}
+		ParameterIndexing struct{}
 	}
 	// MoqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
 }
@@ -92,10 +91,8 @@ func NewMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *MoqNoParamsFn {
 		Moq:    &MoqNoParamsFn_mock{},
 
 		Runtime: struct {
-			ParameterIndexing struct {
-			}
-		}{ParameterIndexing: struct {
-		}{}},
+			ParameterIndexing struct{}
+		}{ParameterIndexing: struct{}{}},
 	}
 	m.Moq.Moq = m
 
@@ -336,7 +333,8 @@ func (r *MoqNoParamsFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqNoParam
 func (m *MoqNoParamsFn) ParamsKey(params MoqNoParamsFn_params, anyParams uint64) MoqNoParamsFn_paramsKey {
 	return MoqNoParamsFn_paramsKey{
 		Params: struct{}{},
-		Hashes: struct{}{}}
+		Hashes: struct{}{},
+	}
 }
 
 // Reset resets the state of the moq

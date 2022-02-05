@@ -46,10 +46,8 @@ type moqUsual struct {
 				sParam moq.ParamIndexing
 				bParam moq.ParamIndexing
 			}
-			NoParams struct {
-			}
-			Nothing struct {
-			}
+			NoParams struct{}
+			Nothing  struct{}
 			Variadic struct {
 				other moq.ParamIndexing
 				args  moq.ParamIndexing
@@ -72,9 +70,8 @@ type moqUsual struct {
 				param6 moq.ParamIndexing
 				param7 moq.ParamIndexing
 			}
-			DifficultResultNames struct {
-			}
-			PassByReference struct {
+			DifficultResultNames struct{}
+			PassByReference      struct {
 				p moq.ParamIndexing
 			}
 			InterfaceParam struct {
@@ -867,10 +864,8 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 					sParam moq.ParamIndexing
 					bParam moq.ParamIndexing
 				}
-				NoParams struct {
-				}
-				Nothing struct {
-				}
+				NoParams struct{}
+				Nothing  struct{}
 				Variadic struct {
 					other moq.ParamIndexing
 					args  moq.ParamIndexing
@@ -893,9 +888,8 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 					param6 moq.ParamIndexing
 					param7 moq.ParamIndexing
 				}
-				DifficultResultNames struct {
-				}
-				PassByReference struct {
+				DifficultResultNames struct{}
+				PassByReference      struct {
 					p moq.ParamIndexing
 				}
 				InterfaceParam struct {
@@ -919,10 +913,8 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				sParam moq.ParamIndexing
 				bParam moq.ParamIndexing
 			}
-			NoParams struct {
-			}
-			Nothing struct {
-			}
+			NoParams struct{}
+			Nothing  struct{}
 			Variadic struct {
 				other moq.ParamIndexing
 				args  moq.ParamIndexing
@@ -945,9 +937,8 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				param6 moq.ParamIndexing
 				param7 moq.ParamIndexing
 			}
-			DifficultResultNames struct {
-			}
-			PassByReference struct {
+			DifficultResultNames struct{}
+			PassByReference      struct {
 				p moq.ParamIndexing
 			}
 			InterfaceParam struct {
@@ -979,10 +970,8 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				sParam: moq.ParamIndexByValue,
 				bParam: moq.ParamIndexByValue,
 			},
-			NoParams: struct {
-			}{},
-			Nothing: struct {
-			}{},
+			NoParams: struct{}{},
+			Nothing:  struct{}{},
 			Variadic: struct {
 				other moq.ParamIndexing
 				args  moq.ParamIndexing
@@ -1023,8 +1012,7 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				param6: moq.ParamIndexByValue,
 				param7: moq.ParamIndexByValue,
 			},
-			DifficultResultNames: struct {
-			}{},
+			DifficultResultNames: struct{}{},
 			PassByReference: struct {
 				p moq.ParamIndexing
 			}{
@@ -1970,7 +1958,8 @@ func (m *moqUsual) paramsKey_Usual(params moqUsual_Usual_params, anyParams uint6
 		}{
 			sParam: sParamUsedHash,
 			bParam: bParamUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) NoNames(param1 string, param2 bool) *moqUsual_NoNames_fnRecorder {
@@ -2193,7 +2182,8 @@ func (m *moqUsual) paramsKey_NoNames(params moqUsual_NoNames_params, anyParams u
 		}{
 			param1: param1UsedHash,
 			param2: param2UsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) NoResults(sParam string, bParam bool) *moqUsual_NoResults_fnRecorder {
@@ -2395,7 +2385,8 @@ func (m *moqUsual) paramsKey_NoResults(params moqUsual_NoResults_params, anyPara
 		}{
 			sParam: sParamUsedHash,
 			bParam: bParamUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) NoParams() *moqUsual_NoParams_fnRecorder {
@@ -2575,7 +2566,8 @@ func (r *moqUsual_NoParams_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsu
 func (m *moqUsual) paramsKey_NoParams(params moqUsual_NoParams_params, anyParams uint64) moqUsual_NoParams_paramsKey {
 	return moqUsual_NoParams_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 func (m *moqUsual_recorder) Nothing() *moqUsual_Nothing_fnRecorder {
@@ -2734,7 +2726,8 @@ func (r *moqUsual_Nothing_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsua
 func (m *moqUsual) paramsKey_Nothing(params moqUsual_Nothing_params, anyParams uint64) moqUsual_Nothing_paramsKey {
 	return moqUsual_Nothing_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 func (m *moqUsual_recorder) Variadic(other bool, args ...string) *moqUsual_Variadic_fnRecorder {
@@ -2951,7 +2944,8 @@ func (m *moqUsual) paramsKey_Variadic(params moqUsual_Variadic_params, anyParams
 		}{
 			other: otherUsedHash,
 			args:  argsUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *moqUsual_RepeatedIds_fnRecorder {
@@ -3193,7 +3187,8 @@ func (m *moqUsual) paramsKey_RepeatedIds(params moqUsual_RepeatedIds_params, any
 			sParam1: sParam1UsedHash,
 			sParam2: sParam2UsedHash,
 			bParam:  bParamUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) Times(sParam string, times bool) *moqUsual_Times_fnRecorder {
@@ -3416,7 +3411,8 @@ func (m *moqUsual) paramsKey_Times(params moqUsual_Times_params, anyParams uint6
 		}{
 			sParam: sParamUsedHash,
 			times:  timesUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) *moqUsual_DifficultParamNames_fnRecorder {
@@ -3707,7 +3703,8 @@ func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamN
 			param5: param5UsedHash,
 			param6: param6UsedHash,
 			param7: param7UsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) DifficultResultNames() *moqUsual_DifficultResultNames_fnRecorder {
@@ -3907,7 +3904,8 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) repeat(repeaters ...moq.Repea
 func (m *moqUsual) paramsKey_DifficultResultNames(params moqUsual_DifficultResultNames_params, anyParams uint64) moqUsual_DifficultResultNames_paramsKey {
 	return moqUsual_DifficultResultNames_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 func (m *moqUsual_recorder) PassByReference(p *testmoqs.PassByReferenceParams) *moqUsual_PassByReference_fnRecorder {
@@ -4109,7 +4107,8 @@ func (m *moqUsual) paramsKey_PassByReference(params moqUsual_PassByReference_par
 		},
 		hashes: struct{ p hash.Hash }{
 			p: pUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) InterfaceParam(w io.Writer) *moqUsual_InterfaceParam_fnRecorder {
@@ -4309,7 +4308,8 @@ func (m *moqUsual) paramsKey_InterfaceParam(params moqUsual_InterfaceParam_param
 		},
 		hashes: struct{ w hash.Hash }{
 			w: wUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqUsual_recorder) InterfaceResult(sParam string, bParam bool) *moqUsual_InterfaceResult_fnRecorder {
@@ -4515,7 +4515,8 @@ func (m *moqUsual) paramsKey_InterfaceResult(params moqUsual_InterfaceResult_par
 		}{
 			sParam: sParamUsedHash,
 			bParam: bParamUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

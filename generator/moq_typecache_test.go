@@ -662,7 +662,8 @@ func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams
 		}{
 			id:            idUsedHash,
 			loadTestTypes: loadTestTypesUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr) *moqTypeCache_IsComparable_fnRecorder {
@@ -862,7 +863,8 @@ func (m *moqTypeCache) paramsKey_IsComparable(params moqTypeCache_IsComparable_p
 		},
 		hashes: struct{ expr hash.Hash }{
 			expr: exprUsedHash,
-		}}
+		},
+	}
 }
 
 func (m *moqTypeCache_recorder) IsDefaultComparable(expr dst.Expr) *moqTypeCache_IsDefaultComparable_fnRecorder {
@@ -1062,7 +1064,8 @@ func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefau
 		},
 		hashes: struct{ expr hash.Hash }{
 			expr: exprUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq

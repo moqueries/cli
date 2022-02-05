@@ -19,8 +19,7 @@ type moqDifficultResultNamesFn struct {
 	resultsByParams []moqDifficultResultNamesFn_resultsByParams
 
 	runtime struct {
-		parameterIndexing struct {
-		}
+		parameterIndexing struct{}
 	}
 	// moqDifficultResultNamesFn_mock isolates the mock interface of the DifficultResultNamesFn type
 }
@@ -94,10 +93,8 @@ func newMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *moqDiff
 		moq:    &moqDifficultResultNamesFn_mock{},
 
 		runtime: struct {
-			parameterIndexing struct {
-			}
-		}{parameterIndexing: struct {
-		}{}},
+			parameterIndexing struct{}
+		}{parameterIndexing: struct{}{}},
 	}
 	m.moq.moq = m
 
@@ -366,7 +363,8 @@ func (r *moqDifficultResultNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater)
 func (m *moqDifficultResultNamesFn) paramsKey(params moqDifficultResultNamesFn_params, anyParams uint64) moqDifficultResultNamesFn_paramsKey {
 	return moqDifficultResultNamesFn_paramsKey{
 		params: struct{}{},
-		hashes: struct{}{}}
+		hashes: struct{}{},
+	}
 }
 
 // Reset resets the state of the moq

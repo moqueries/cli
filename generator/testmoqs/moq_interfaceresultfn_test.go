@@ -384,7 +384,8 @@ func (m *moqInterfaceResultFn) paramsKey(params moqInterfaceResultFn_params, any
 		}{
 			sParam: sParamUsedHash,
 			bParam: bParamUsedHash,
-		}}
+		},
+	}
 }
 
 // Reset resets the state of the moq
