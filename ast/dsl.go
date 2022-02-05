@@ -560,7 +560,7 @@ func Struct(fields ...*dst.Field) *dst.StructType {
 
 // StructFromList returns a dst.StructType given a dst.FieldList
 func StructFromList(fieldList *dst.FieldList) *dst.StructType {
-	if fieldList == nil {
+	if fieldList == nil || len(fieldList.List) == 0 {
 		fieldList = emptyFieldList()
 	}
 	return &dst.StructType{Fields: fieldList}

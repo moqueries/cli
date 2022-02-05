@@ -78,6 +78,7 @@ const (
 	lenFnName             = "len"
 	mockFnName            = "mock"
 	onCallFnName          = "onCall"
+	paramsKeyFnName       = "paramsKey"
 	repeatFnName          = "repeat"
 	resetFnName           = "Reset"
 	returnFnName          = "returnResults"
@@ -722,9 +723,9 @@ func (c *Converter) anyParamsStruct(typeName, prefix string) *dst.GenDecl {
 func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt {
 	stateSelector := Sel(Id(moqReceiverIdent)).Dot(c.exportId(moqIdent)).Obj
 
-	paramsKeyFn := c.export(paramsKeyIdent)
+	paramsKeyFn := c.export(paramsKeyFnName)
 	if fn.Name != "" {
-		paramsKeyFn = c.export(fmt.Sprintf(double, paramsKeyIdent, fn.Name))
+		paramsKeyFn = c.export(fmt.Sprintf(double, paramsKeyFnName, fn.Name))
 	}
 
 	stmts := []dst.Stmt{
@@ -1136,13 +1137,13 @@ func (c *Converter) findRecorderResults(typeName string, fn Func) []dst.Stmt {
 	results := fmt.Sprintf(triple, mName, fn.Name, resultsIdent)
 	resultsByParamsType := fmt.Sprintf(triple, mName, fn.Name, resultsByParamsIdent)
 	paramsKey := fmt.Sprintf(triple, mName, fn.Name, paramsKeyIdent)
-	paramsKeyFn := c.export(fmt.Sprintf(double, paramsKeyIdent, fn.Name))
+	paramsKeyFn := c.export(fmt.Sprintf(double, paramsKeyFnName, fn.Name))
 	resultsByParams := fmt.Sprintf(double, resultsByParamsIdent, fn.Name)
 	if fn.Name == "" {
 		results = fmt.Sprintf(double, mName, resultsIdent)
 		resultsByParamsType = fmt.Sprintf(double, mName, resultsByParamsIdent)
 		paramsKey = fmt.Sprintf(double, mName, paramsKeyIdent)
-		paramsKeyFn = c.export(paramsKeyIdent)
+		paramsKeyFn = c.export(paramsKeyFnName)
 		resultsByParams = resultsByParamsIdent
 	}
 
@@ -1357,11 +1358,11 @@ func (c *Converter) paramsKeyFn(typeName string, fn Func) *dst.FuncDecl {
 	mName := c.moqName(typeName)
 	params := fmt.Sprintf(triple, mName, fn.Name, paramsIdent)
 	paramsKey := fmt.Sprintf(triple, mName, fn.Name, paramsKeyIdent)
-	fnName := fmt.Sprintf(double, paramsKeyIdent, fn.Name)
+	fnName := fmt.Sprintf(double, paramsKeyFnName, fn.Name)
 	if fn.Name == "" {
 		params = fmt.Sprintf(double, mName, paramsIdent)
 		paramsKey = fmt.Sprintf(double, mName, paramsKeyIdent)
-		fnName = paramsKeyIdent
+		fnName = paramsKeyFnName
 	}
 
 	pStruct, err := c.methodStruct(paramsKeyIdent, fn.Params)
@@ -1379,7 +1380,8 @@ func (c *Converter) paramsKeyFn(typeName string, fn Func) *dst.FuncDecl {
 			Decs(kvExprDec(dst.NewLine)).Obj,
 		Key(c.exportId(hashesIdent)).Value(Comp(pkStruct).
 			Elts(c.passthroughElements(
-				fn.Params, hashesIdent, usedHashSuffix, nil)...).Obj).Obj).Obj))
+				fn.Params, hashesIdent, usedHashSuffix, nil)...).Obj).
+			Decs(kvExprDec(dst.NewLine)).Obj).Obj))
 
 	return Fn(c.export(fnName)).
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
