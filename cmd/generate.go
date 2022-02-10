@@ -53,6 +53,6 @@ func generate(cmd *cobra.Command, typs []string) {
 		TestImport:  testImp,
 	})
 	if err != nil {
-		logs.Panic("Error generating mock", err)
+		logs.Panicf("Error generating mock for %s in %s: %#v", typs, imp, err)
 	}
 }

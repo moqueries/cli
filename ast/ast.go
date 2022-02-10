@@ -9,33 +9,40 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// FindPackageDir find the directory containing a package where pkg is either
-// the current directory (".") or an external module
-func FindPackageDir(pkg string) (string, error) {
-	pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedFiles}, pkg)
+// FindPackage finds the package for a given directory
+func FindPackage(dir string) (string, error) {
+	if !filepath.IsAbs(dir) {
+		// go list (which is called by packages.Load) requires that relative
+		// paths start with a ./
+		dir = "./" + dir
+	}
+	pkgs, err := packages.Load(&packages.Config{
+		Mode:  packages.NeedName,
+		Tests: false,
+	}, dir)
 	if err != nil {
 		return "", err
 	}
 	if len(pkgs) == 0 {
-		return "", fmt.Errorf("no packages found for package %s", pkg)
+		return "", fmt.Errorf("no packages found in %s", dir)
 	}
 	if len(pkgs) > 1 {
-		return "", fmt.Errorf("more than one packages found for package %s", pkg)
+		return "", fmt.Errorf("too many packages found in %s (%d)", dir, len(pkgs))
 	}
-	if len(pkgs[0].GoFiles) == 0 {
-		return "", fmt.Errorf("no files found for package %s", pkg)
+	if len(pkgs[0].Errors) > 0 {
+		return "", pkgs[0].Errors[0]
 	}
 
-	return filepath.Dir(pkgs[0].GoFiles[0]), nil
+	return pkgs[0].Name, nil
 }
 
 //go:generate moqueries --destination moq_loadtypesfn_test.go LoadTypesFn
 
-// LoadTypesFn is used to load types from a given package
+// LoadTypesFn is the function type of LoadTypes
 type LoadTypesFn func(pkg string, loadTestTypes bool) (
 	typeSpecs []*dst.TypeSpec, pkgPath string, err error)
 
-// LoadTypes loads all of the types in the specified package
+// LoadTypes loads all the types in the specified package
 func LoadTypes(loadPkg string, loadTestTypes bool) ([]*dst.TypeSpec, string, error) {
 	pkgs, err := load(loadPkg, loadTestTypes)
 	if err != nil {

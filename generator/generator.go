@@ -44,7 +44,7 @@ func generate(req GenerateRequest) error {
 
 	cache := ast.NewCache(ast.LoadTypes)
 	converter := NewConverter(req.Export, cache)
-	gen := New(req.Export, req.Package, req.Destination, cache, converter)
+	gen := New(req.Export, req.Package, req.Destination, ast.FindPackage, cache, converter)
 
 	_, file, err := gen.Generate(req.Types, req.Import, req.TestImport)
 	if err != nil {

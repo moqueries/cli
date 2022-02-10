@@ -19,3 +19,7 @@ moq_*_dst.txt
 
 # macOS
 .DS_Store
+
+# other
+.envrc
+/.idea

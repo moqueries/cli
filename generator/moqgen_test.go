@@ -14,9 +14,10 @@ import (
 
 func TestMoqGenerator(t *testing.T) {
 	var (
-		scene        *moq.Scene
-		typeCacheMoq *moqTypeCache
-		converterMoq *moqConverterer
+		scene            *moq.Scene
+		findPackageFnMoq *moqFindPackageFn
+		typeCacheMoq     *moqTypeCache
+		converterMoq     *moqConverterer
 
 		ifaceSpec1    *dst.TypeSpec
 		ifaceSpec2    *dst.TypeSpec
@@ -38,6 +39,7 @@ func TestMoqGenerator(t *testing.T) {
 			t.Fatal("afterEach not called")
 		}
 		scene = moq.NewScene(t)
+		findPackageFnMoq = newMoqFindPackageFn(scene, nil)
 		typeCacheMoq = newMoqTypeCache(scene, nil)
 		converterMoq = newMoqConverterer(scene, nil)
 
@@ -109,11 +111,23 @@ func TestMoqGenerator(t *testing.T) {
 		scene = nil
 	}
 
+	newGenerator := func(export bool, dest string) *generator.MoqGenerator {
+		return generator.New(
+			export,
+			"",
+			dest,
+			findPackageFnMoq.mock(),
+			typeCacheMoq.mock(),
+			converterMoq.mock())
+	}
+
 	t.Run("always returns a header comment", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		gen := generator.New(false, "", "dir/file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "dir/file_test.go")
+
+		findPackageFnMoq.onCall("dir").returnResults("dir", nil)
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -137,7 +151,9 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		gen := generator.New(false, "", "dir/file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "dir/file_test.go")
+
+		findPackageFnMoq.onCall("dir").returnResults("dir", nil)
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -154,7 +170,9 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		gen := generator.New(true, "", "dir/file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(true, "dir/file_test.go")
+
+		findPackageFnMoq.onCall("dir").returnResults("dir", nil)
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -171,7 +189,9 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		gen := generator.New(true, "", "../file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(true, "../file_test.go")
+
+		findPackageFnMoq.onCall("..").returnResults("otherpkg", nil)
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -179,8 +199,8 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		if file.Name.Name != "moqueries" {
-			t.Errorf("got %s, wanted moqueries", file.Name.Name)
+		if file.Name.Name != "otherpkg" {
+			t.Errorf("got %s, wanted otherpkg", file.Name.Name)
 		}
 	})
 
@@ -189,7 +209,9 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
+
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -197,7 +219,7 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		if file.Name.Name != "generator_test" {
+		if file.Name.Name != "thispkg_test" {
 			t.Errorf("got %s, wanted generator_test", file.Name.Name)
 		}
 	})
@@ -207,7 +229,9 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		gen := generator.New(true, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(true, "file_test.go")
+
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 
 		// ACT
 		_, file, err := gen.Generate(nil, ".", false)
@@ -215,7 +239,7 @@ func TestMoqGenerator(t *testing.T) {
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
-		if file.Name.Name != "generator" {
+		if file.Name.Name != "thispkg" {
 			t.Errorf("got %s, wanted generator", file.Name.Name)
 		}
 	})
@@ -224,6 +248,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		// PublicInterface embeds privateInterface which embeds io.Reader
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -320,7 +345,7 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().AssertMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		_, _, err := gen.Generate([]string{"PublicInterface", "privateInterface"}, ".", false)
@@ -334,6 +359,8 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 
 		ifaceSpec := &dst.TypeSpec{
 			Name: dst.NewIdent("AliasType"),
@@ -378,7 +405,7 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().AssertMethod(ifaceSpec, ifaceFuncs).
 			returnResults(nil)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		_, _, err := gen.Generate([]string{"AliasType"}, ".", false)
@@ -392,6 +419,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
@@ -407,7 +435,7 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().MethodStructs(ifaceSpec1, ifaceFuncs[0]).
 			returnResults(nil, expectedErr)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -428,6 +456,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), true).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), true).
@@ -480,7 +509,7 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().AssertMethod(ifaceSpec2, iface2Funcs).
 			returnResults(nil)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		_, _, err := gen.Generate([]string{"PublicInterface", "privateInterface"}, ".", true)
@@ -494,6 +523,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		pubId := ast.IdPath("PublicInterface", "github.com/myshkin5/moqueries/generator")
 		typeCacheMoq.onCall().Type(*pubId, true).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
@@ -548,7 +578,7 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().AssertMethod(ifaceSpec2, []generator.Func{}).
 			returnResults(nil)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		_, _, err := gen.Generate(
@@ -565,11 +595,12 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		expectedErr := errors.New("bad cache")
 		typeCacheMoq.onCall().Type(*ast.IdPath("BadInterface", "."), false).
 			returnResults(nil, "", expectedErr)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"BadInterface"}, ".", false)
@@ -590,6 +621,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		// PublicInterface embeds privateInterface
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -603,7 +635,7 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "github.com/myshkin5/moqueries/generator"), false).
 			returnResults(nil, "", expectedErr)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -624,6 +656,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		// PublicInterface embeds privateInterface which embeds io.Reader
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -645,7 +678,7 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), false).
 			returnResults(nil, "", expectedErr)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		fSet, file, err := gen.Generate([]string{"PublicInterface"}, ".", false)
@@ -666,6 +699,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
+		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), false).
 			returnResults(fnSpec, "github.com/myshkin5/moqueries/generator", nil)
 		fnFuncs := []generator.Func{{Params: func1Params}}
@@ -690,7 +724,7 @@ func TestMoqGenerator(t *testing.T) {
 		converterMoq.onCall().AssertMethod(fnSpec, fnFuncs).
 			returnResults(nil)
 
-		gen := generator.New(false, "", "file_test.go", typeCacheMoq.mock(), converterMoq.mock())
+		gen := newGenerator(false, "file_test.go")
 
 		// ACT
 		_, _, err := gen.Generate([]string{"PublicFn"}, ".", false)

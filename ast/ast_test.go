@@ -9,38 +9,49 @@ import (
 	"github.com/myshkin5/moqueries/ast"
 )
 
-func TestFindPackageDir(t *testing.T) {
-	t.Run("finds the package dir of the current directory", func(t *testing.T) {
+func TestFindPackage(t *testing.T) {
+	t.Run("finds the package of the current directory", func(t *testing.T) {
 		// ASSEMBLE
 
 		// ACT
-		dir, err := ast.FindPackageDir(".")
+		pkg, err := ast.FindPackage(".")
 		// ASSERT
 		if err != nil {
 			t.Errorf("got %#v, wanted no err", err)
 		}
-		expectedSuffix := "github.com/myshkin5/moqueries/ast"
-		if !strings.HasSuffix(dir, expectedSuffix) {
-			t.Errorf("got %s, wanted suffix %s", dir, expectedSuffix)
+		expectedPkg := "ast"
+		if !strings.HasSuffix(pkg, expectedPkg) {
+			t.Errorf("got %s, wanted suffix %s", pkg, expectedPkg)
 		}
 	})
 
-	t.Run("finds the package dir of an external module", func(t *testing.T) {
+	t.Run("finds a package relative to the current package", func(t *testing.T) {
 		// ASSEMBLE
 
 		// ACT
-		dir, err := ast.FindPackageDir("github.com/dave/dst")
+		pkg, err := ast.FindPackage("./testpkg")
 		// ASSERT
 		if err != nil {
 			t.Errorf("got %#v, wanted no err", err)
 		}
-		splits := strings.Split(dir, "@")
-		if len(splits) != 2 {
-			t.Errorf("got %d, wanted 2", len(splits))
+		expectedPkg := "testpkg"
+		if !strings.HasSuffix(pkg, expectedPkg) {
+			t.Errorf("got %s, wanted suffix %s", pkg, expectedPkg)
 		}
-		expectedSuffix := "pkg/mod/github.com/dave/dst"
-		if !strings.HasSuffix(splits[0], expectedSuffix) {
-			t.Errorf("got %s, wanted suffix %s", splits[0], expectedSuffix)
+	})
+
+	t.Run("finds a package relative to the current package (without initial `.`)", func(t *testing.T) {
+		// ASSEMBLE
+
+		// ACT
+		pkg, err := ast.FindPackage("testpkg")
+		// ASSERT
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+		expectedPkg := "testpkg"
+		if !strings.HasSuffix(pkg, expectedPkg) {
+			t.Errorf("got %s, wanted suffix %s", pkg, expectedPkg)
 		}
 	})
 
@@ -48,15 +59,15 @@ func TestFindPackageDir(t *testing.T) {
 		// ASSEMBLE
 
 		// ACT
-		_, err := ast.FindPackageDir("randomandnonexistent")
+		_, err := ast.FindPackage("randomandnonexistent")
 
 		// ASSERT
 		if err == nil {
 			t.Errorf("got nil, wanted not nil")
 		}
-		expectedErr := "no files found for package randomandnonexistent"
-		if err != nil && err.Error() != expectedErr {
-			t.Errorf("got %s, wanted %s", err.Error(), expectedErr)
+		expectedErr := "ast/randomandnonexistent: directory not found"
+		if err != nil && !strings.Contains(err.Error(), expectedErr) {
+			t.Errorf("got %s, wanted to contain %s", err.Error(), expectedErr)
 		}
 	})
 }
@@ -160,6 +171,22 @@ func TestLoadTypes(t *testing.T) {
 			if funcIdent.Path != expectedPath {
 				t.Errorf("got %s, wanted %s", funcIdent, expectedPath)
 			}
+		}
+	})
+
+	t.Run("resolves relative paths", func(t *testing.T) {
+		// ASSEMBLE
+
+		// ACT
+		_, pkgPath, err := ast.LoadTypes(".", false)
+		// ASSERT
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		expectedPkgPath := "github.com/myshkin5/moqueries/ast"
+		if pkgPath != expectedPkgPath {
+			t.Errorf("got %s, wanted %s", pkgPath, expectedPkgPath)
 		}
 	})
 

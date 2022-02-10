@@ -36,11 +36,12 @@ type Converterer interface {
 
 // MoqGenerator generates moqs
 type MoqGenerator struct {
-	export    bool
-	pkg       string
-	dest      string
-	typeCache TypeCache
-	converter Converterer
+	export       bool
+	pkg          string
+	dest         string
+	packageDirFn FindPackageFn
+	typeCache    TypeCache
+	converter    Converterer
 }
 
 //go:generate moqueries --destination moq_typecache_test.go TypeCache
@@ -52,19 +53,26 @@ type TypeCache interface {
 	IsDefaultComparable(expr dst.Expr) (bool, error)
 }
 
+//go:generate moqueries --destination moq_findpackagefn_test.go FindPackageFn
+
+// FindPackageFn is the function type of FindPackage
+type FindPackageFn func(pattern string) (pkg string, err error)
+
 // New returns a new MoqGenerator
 func New(
 	export bool,
 	pkg, dest string,
+	packageDirFn FindPackageFn,
 	typeCache TypeCache,
 	converter Converterer,
 ) *MoqGenerator {
 	return &MoqGenerator{
-		export:    export,
-		pkg:       pkg,
-		dest:      dest,
-		typeCache: typeCache,
-		converter: converter,
+		export:       export,
+		pkg:          pkg,
+		dest:         dest,
+		packageDirFn: packageDirFn,
+		typeCache:    typeCache,
+		converter:    converter,
 	}
 }
 
@@ -74,7 +82,11 @@ func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool
 	*dst.File,
 	error,
 ) {
-	fSet, file := initializeFile(g.defaultPackage())
+	pkg, err := g.defaultPackage()
+	if err != nil {
+		return nil, nil, err
+	}
+	fSet, file := initializeFile(pkg)
 
 	var decls []dst.Decl
 	for _, inType := range inTypes {
@@ -107,21 +119,22 @@ func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool
 	return fSet, file, nil
 }
 
-func (g *MoqGenerator) defaultPackage() string {
+func (g *MoqGenerator) defaultPackage() (string, error) {
 	pkg := g.pkg
 	if pkg == "" {
-		abs, err := filepath.Abs(g.dest)
+		var err error
+		pkg, err = g.packageDirFn(filepath.Dir(g.dest))
 		if err != nil {
-			logs.Panicf("Could not get absolute path to destination %s: %#v", g.dest, err)
+			return "", err
 		}
-		dirName := filepath.Base(filepath.Dir(abs))
+		dirName := filepath.Base(pkg)
 		pkg = dirName
 		if !g.export {
 			pkg = pkg + "_test"
 		}
 	}
 	logs.Debugf("Output package: %s", pkg)
-	return pkg
+	return pkg, nil
 }
 
 func initializeFile(pkg string) (*token.FileSet, *dst.File) {
