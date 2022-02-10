@@ -7,9 +7,9 @@ import (
 	"strconv"
 )
 
-//go:generate moqueries --destination moq_writer_test.go --import io Writer
+//go:generate moqueries --import io Writer
 
-//go:generate moqueries --destination moq_isfavorite_test.go IsFavorite
+//go:generate moqueries IsFavorite
 
 type IsFavorite func(n int) bool
 
@@ -44,7 +44,7 @@ type Gadget struct {
 	Weight   uint32
 }
 
-//go:generate moqueries --destination moq_store_test.go Store
+//go:generate moqueries Store
 
 type Store interface {
 	AllWidgetsIds() ([]int, error)

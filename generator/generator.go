@@ -14,7 +14,7 @@ import (
 	"github.com/myshkin5/moqueries/logs"
 )
 
-// GenerateRequest contains all of the parameters needed to call Generate
+// GenerateRequest contains all the parameters needed to call Generate
 type GenerateRequest struct {
 	Types       []string
 	Export      bool
@@ -40,6 +40,21 @@ func generate(req GenerateRequest) error {
 		logs.Warn("Exported moq in a test file will not be accessible in" +
 			" other packages. Remove --export option or set the --destination" +
 			" to a non-test file.")
+	}
+
+	if req.Destination == "" {
+		dest := "moq_"
+		for n, typ := range req.Types {
+			dest += strings.ToLower(typ)
+			if n+1 < len(req.Types) {
+				dest += "_"
+			}
+		}
+		if !req.Export {
+			dest += "_test"
+		}
+		dest += ".go"
+		req.Destination = dest
 	}
 
 	cache := ast.NewCache(ast.LoadTypes)

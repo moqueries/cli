@@ -10,7 +10,7 @@ type Scene struct {
 	nextMockSeq     uint32
 }
 
-//go:generate moqueries --destination moq_moq_test.go Moq
+//go:generate moqueries Moq
 
 // Moq is implemented by all moqs so that they can integrate with a scene
 type Moq interface {

@@ -34,11 +34,9 @@ func init() {
 
 	rootCmd.PersistentFlags().String(destinationFlag, "",
 		"The file path where mocks are generated relative to the directory "+
-			"containing the generate directive (or relative to the current directory)")
-	err := rootCmd.MarkPersistentFlagRequired(destinationFlag)
-	if err != nil {
-		logs.Panic("Error configuring required flag", err)
-	}
+			"containing the generate directive (or relative to the current directory) "+
+			"(defaults to ./moq_<type>.go when exported or ./moq_<type>_test.go "+
+			"when not exported)")
 
 	rootCmd.PersistentFlags().String(packageFlag, "",
 		"The package to generate code into (defaults to the test package of the "+

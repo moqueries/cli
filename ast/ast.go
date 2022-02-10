@@ -36,7 +36,7 @@ func FindPackage(dir string) (string, error) {
 	return pkgs[0].Name, nil
 }
 
-//go:generate moqueries --destination moq_loadtypesfn_test.go LoadTypesFn
+//go:generate moqueries LoadTypesFn
 
 // LoadTypesFn is the function type of LoadTypes
 type LoadTypesFn func(pkg string, loadTestTypes bool) (
