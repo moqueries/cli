@@ -21,9 +21,9 @@ type MoqNoParamsFn struct {
 	Runtime struct {
 		ParameterIndexing struct{}
 	}
-	// MoqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
 }
 
+// MoqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
 type MoqNoParamsFn_mock struct {
 	Moq *MoqNoParamsFn
 }

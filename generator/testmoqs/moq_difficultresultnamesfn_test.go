@@ -21,9 +21,9 @@ type moqDifficultResultNamesFn struct {
 	runtime struct {
 		parameterIndexing struct{}
 	}
-	// moqDifficultResultNamesFn_mock isolates the mock interface of the DifficultResultNamesFn type
 }
 
+// moqDifficultResultNamesFn_mock isolates the mock interface of the DifficultResultNamesFn type
 type moqDifficultResultNamesFn_mock struct {
 	moq *moqDifficultResultNamesFn
 }

@@ -23,10 +23,10 @@ type moqMoq struct {
 			Reset                 struct{}
 			AssertExpectationsMet struct{}
 		}
-		// moqMoq_mock isolates the mock interface of the Moq type
 	}
 }
 
+// moqMoq_mock isolates the mock interface of the Moq type
 type moqMoq_mock struct {
 	moq *moqMoq
 }

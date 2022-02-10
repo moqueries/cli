@@ -21,9 +21,9 @@ type moqNothingFn struct {
 	runtime struct {
 		parameterIndexing struct{}
 	}
-	// moqNothingFn_mock isolates the mock interface of the NothingFn type
 }
 
+// moqNothingFn_mock isolates the mock interface of the NothingFn type
 type moqNothingFn_mock struct {
 	moq *moqNothingFn
 }
