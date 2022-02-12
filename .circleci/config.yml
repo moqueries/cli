@@ -25,6 +25,7 @@ jobs:
         name: Generate code
 
         command: |
+          go build -o $GOPATH/bin/moqueries github.com/myshkin5/moqueries
           go generate ./...
           # See https://github.com/myshkin5/moqueries/issues/7
           git restore moq/moq_testing.go
