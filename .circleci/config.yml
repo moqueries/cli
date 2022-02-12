@@ -21,12 +21,36 @@ jobs:
         keys:
         - go-mod-v4-{{ checksum "go.sum" }}
 
+    - generate:
+        name: Generate code
+
+        command: |
+          go generate ./...
+          # See https://github.com/myshkin5/moqueries/issues/7
+          git restore moq/moq_testing.go
+
     - run:
         name: Run tests
 
         command: |
           PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
           gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
+
+    - lint:
+        name: Run code linters
+
+        command: |
+          GOLANGCI_LINT_VER=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint)
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+            sh -s -- -b $(go env GOPATH)/bin "$GOLANGCI_LINT_VER"
+          golangci-lint run
+
+    - dirty_check:
+        name: Check for dirty working directory
+
+        command: |
+          git status
+          [[ -z $(git status --short) ]] || echo 'Untracked changes' && exit 1
 
     - save_cache:
         key: go-mod-v4-{{ checksum "go.sum" }}
