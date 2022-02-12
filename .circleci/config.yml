@@ -21,7 +21,7 @@ jobs:
         keys:
         - go-mod-v4-{{ checksum "go.sum" }}
 
-    - generate:
+    - run:
         name: Generate code
 
         command: |
@@ -36,7 +36,7 @@ jobs:
           PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
           gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
 
-    - lint:
+    - run:
         name: Run code linters
 
         command: |
@@ -45,7 +45,7 @@ jobs:
             sh -s -- -b $(go env GOPATH)/bin "$GOLANGCI_LINT_VER"
           golangci-lint run
 
-    - dirty_check:
+    - run:
         name: Check for dirty working directory
 
         command: |
