@@ -1380,38 +1380,123 @@ func TestConsistentMockInstance(t *testing.T) {
 	}
 }
 
-type paramIndexingAdaptor interface{}
+type paramIndexingAdaptor interface {
+	setParamIndexing(pi moq.ParamIndexing)
+	onCall(params *testmoqs.PassByReferenceParams, sResult string, err error)
+	invokeMockAndExpectResults(t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error)
+	bundleParams(params *testmoqs.PassByReferenceParams) interface{}
+}
 
 type passByReferenceFnParamIndexingAdaptor struct {
 	m *moqPassByReferenceFn
 }
 
-func (m *passByReferenceFnParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
-	m.m.runtime.parameterIndexing.p = pi
+func (a *passByReferenceFnParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	a.m.runtime.parameterIndexing.p = pi
+}
+
+func (a *passByReferenceFnParamIndexingAdaptor) onCall(
+	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	a.m.onCall(params).returnResults(sResult, err)
+}
+
+func (a *passByReferenceFnParamIndexingAdaptor) invokeMockAndExpectResults(
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	actualSResult, actualErr := a.m.mock()(params)
+	if sResult != actualSResult {
+		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	}
+	if err != actualErr {
+		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	}
+}
+
+func (a *passByReferenceFnParamIndexingAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
+	return moqPassByReferenceFn_params{p: params}
 }
 
 type exportedPassByReferenceParamIndexingFnAdaptor struct {
 	m *exported.MoqPassByReferenceFn
 }
 
-func (m *exportedPassByReferenceParamIndexingFnAdaptor) setParamIndexing(pi moq.ParamIndexing) {
-	m.m.Runtime.ParameterIndexing.P = pi
+func (a *exportedPassByReferenceParamIndexingFnAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	a.m.Runtime.ParameterIndexing.P = pi
+}
+
+func (a *exportedPassByReferenceParamIndexingFnAdaptor) onCall(
+	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	a.m.OnCall(params).ReturnResults(sResult, err)
+}
+
+func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResults(
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	actualSResult, actualErr := a.m.Mock()(params)
+	if sResult != actualSResult {
+		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	}
+	if err != actualErr {
+		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	}
+}
+
+func (a *exportedPassByReferenceParamIndexingFnAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
+	return exported.MoqPassByReferenceFn_params{P: params}
 }
 
 type passByReferenceParamIndexingAdaptor struct {
 	m *moqUsual
 }
 
-func (m *passByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
-	m.m.runtime.parameterIndexing.PassByReference.p = pi
+func (a *passByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	a.m.runtime.parameterIndexing.PassByReference.p = pi
+}
+
+func (a *passByReferenceParamIndexingAdaptor) onCall(
+	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	a.m.onCall().PassByReference(params).returnResults(sResult, err)
+}
+
+func (a *passByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	actualSResult, actualErr := a.m.mock().PassByReference(params)
+	if sResult != actualSResult {
+		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	}
+	if err != actualErr {
+		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	}
+}
+
+func (a *passByReferenceParamIndexingAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
+	return moqUsual_PassByReference_params{p: params}
 }
 
 type exportedPassByReferenceParamIndexingAdaptor struct {
 	m *exported.MoqUsual
 }
 
-func (m *exportedPassByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
-	m.m.Runtime.ParameterIndexing.PassByReference.P = pi
+func (a *exportedPassByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndexing) {
+	a.m.Runtime.ParameterIndexing.PassByReference.P = pi
+}
+
+func (a *exportedPassByReferenceParamIndexingAdaptor) onCall(
+	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	a.m.OnCall().PassByReference(params).ReturnResults(sResult, err)
+}
+
+func (a *exportedPassByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	actualSResult, actualErr := a.m.Mock().PassByReference(params)
+	if sResult != actualSResult {
+		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	}
+	if err != actualErr {
+		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	}
+}
+
+func (a *exportedPassByReferenceParamIndexingAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
+	return exported.MoqUsual_PassByReference_params{P: params}
 }
 
 func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexingAdaptor {
@@ -1438,27 +1523,22 @@ func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexing
 
 type sliceWriter []int
 
-func (w sliceWriter) Write(p []byte) (n int, err error) {
+func (w sliceWriter) Write([]byte) (n int, err error) {
 	return 0, err
 }
 
 func TestParamIndexing(t *testing.T) {
 	t.Run("can index a param by value", func(t *testing.T) {
-		for name := range paramIndexingTestCases(t, moq.Config{}) {
+		for name, entry := range paramIndexingTestCases(t, moq.Config{}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				scene = moq.NewScene(t)
-				tMoq = moq.NewMoqT(scene, nil)
-				moqScene = moq.NewScene(tMoq.Mock())
-
 				p := testmoqs.PassByReferenceParams{
 					SParam: "Hi",
 					BParam: true,
 				}
 
-				usualMoq := newMoqUsual(moqScene, nil)
-				usualMoq.runtime.parameterIndexing.PassByReference.p = moq.ParamIndexByValue
-				usualMoq.onCall().PassByReference(&p).returnResults("Hello", nil)
+				entry.setParamIndexing(moq.ParamIndexByValue)
+				entry.onCall(&p, "Hello", nil)
 
 				// If we are indexing by hash, this change would make the expectation
 				// not match
@@ -1466,28 +1546,18 @@ func TestParamIndexing(t *testing.T) {
 				p.BParam = false
 
 				// ACT
-				sResult, err := usualMoq.mock().PassByReference(&p)
+				entry.invokeMockAndExpectResults(t, &p, "Hello", nil)
 
 				// ASSERT
-				if sResult != "Hello" {
-					t.Errorf("got %s, wanted Hello", sResult)
-				}
-				if err != nil {
-					t.Errorf("got %#v, wanted no error", err)
-				}
 				scene.AssertExpectationsMet()
 			})
 		}
 	})
 
 	t.Run("errors when indexing params by value and the values are equal but different instances", func(t *testing.T) {
-		for name := range paramIndexingTestCases(t, moq.Config{}) {
+		for name, entry := range paramIndexingTestCases(t, moq.Config{}) {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
-				scene = moq.NewScene(t)
-				tMoq = moq.NewMoqT(scene, nil)
-				moqScene = moq.NewScene(tMoq.Mock())
-
 				p1 := testmoqs.PassByReferenceParams{
 					SParam: "Hi",
 					BParam: true,
@@ -1497,24 +1567,16 @@ func TestParamIndexing(t *testing.T) {
 					BParam: true,
 				}
 
-				usualMoq := newMoqUsual(moqScene, nil)
-				usualMoq.runtime.parameterIndexing.PassByReference.p = moq.ParamIndexByValue
-				usualMoq.onCall().PassByReference(&p1).returnResults("Hello", nil)
+				entry.setParamIndexing(moq.ParamIndexByValue)
+				entry.onCall(&p1, "Hello", nil)
 
-				a := passByReferenceAdaptor{m: usualMoq}
-				params := a.bundleParams([]string{"Hi"}, true)
+				params := entry.bundleParams(&p1)
 				tMoq.OnCall().Fatalf("Unexpected call with parameters %#v", params).ReturnResults()
 
 				// ACT
-				sResult, err := usualMoq.mock().PassByReference(&p2)
+				entry.invokeMockAndExpectResults(t, &p2, "", nil)
 
 				// ASSERT
-				if sResult != "" {
-					t.Errorf("got %s, wanted \"\"", sResult)
-				}
-				if err != nil {
-					t.Errorf("got %#v, wanted no error", err)
-				}
 				scene.AssertExpectationsMet()
 			})
 		}
