@@ -30,7 +30,7 @@ func TestAtomicSequences(t *testing.T) {
 		// to be made.
 		repeat(moq.Times(callsPerRoutine * routines * 10))
 
-	start := make(chan struct{}, 0)
+	start := make(chan struct{})
 	done := sync.WaitGroup{}
 	mockFn := usualMoq.mock()
 
