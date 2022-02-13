@@ -54,7 +54,7 @@ jobs:
 
         command: |
           set -ux
-          git status || true
+          git status
           [[ -z $(git status --short) ]] || (echo 'Untracked changes' && exit 1)
 
     - save_cache:
