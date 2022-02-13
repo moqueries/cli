@@ -1679,8 +1679,6 @@ func (a *difficultResultNamesAdaptor) config() adaptorConfig {
 
 func (a *difficultResultNamesAdaptor) mock() interface{} { return a.m.mock() }
 
-func (a *difficultResultNamesAdaptor) tracksParams() bool { return false }
-
 func (a *difficultResultNamesAdaptor) newRecorder([]string, bool) recorder {
 	return &difficultResultNamesRecorder{r: a.m.onCall().DifficultResultNames()}
 }

@@ -136,7 +136,7 @@ func TestMoqGenerator(t *testing.T) {
 			t.Errorf("got %#v, wanted nil err", err)
 		}
 		if file == nil {
-			t.Errorf("got nil file, wanted not nil")
+			t.Fatalf("got nil file, wanted not nil")
 		}
 		if len(file.Decs.Start) < 1 {
 			t.Errorf("got %d, wanted > 0 len start", len(file.Decs.Start))
