@@ -18,6 +18,7 @@ func TestScene(t *testing.T) {
 	)
 
 	beforeEach := func(t *testing.T) {
+		t.Helper()
 		if scene != nil {
 			t.Fatal("afterEach not called")
 		}

@@ -44,8 +44,7 @@ type usualRecorder struct {
 }
 
 func (r *usualRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.sParam()
@@ -53,8 +52,7 @@ func (r *usualRecorder) anySParam() {
 }
 
 func (r *usualRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.bParam()
@@ -144,8 +142,7 @@ type exportedUsualRecorder struct {
 }
 
 func (r *exportedUsualRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.SParam()
@@ -153,8 +150,7 @@ func (r *exportedUsualRecorder) anySParam() {
 }
 
 func (r *exportedUsualRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.BParam()
@@ -242,8 +238,7 @@ type noNamesRecorder struct {
 }
 
 func (r *noNamesRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.param1()
@@ -251,8 +246,7 @@ func (r *noNamesRecorder) anySParam() {
 }
 
 func (r *noNamesRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.param2()
@@ -342,8 +336,7 @@ type exportedNoNamesRecorder struct {
 }
 
 func (r *exportedNoNamesRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Param1()
@@ -351,8 +344,7 @@ func (r *exportedNoNamesRecorder) anySParam() {
 }
 
 func (r *exportedNoNamesRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Param2()
@@ -434,8 +426,7 @@ type noResultsRecorder struct {
 }
 
 func (r *noResultsRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.sParam()
@@ -443,8 +434,7 @@ func (r *noResultsRecorder) anySParam() {
 }
 
 func (r *noResultsRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.bParam()
@@ -527,8 +517,7 @@ type exportedNoResultsRecorder struct {
 }
 
 func (r *exportedNoResultsRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.SParam()
@@ -536,8 +525,7 @@ func (r *exportedNoResultsRecorder) anySParam() {
 }
 
 func (r *exportedNoResultsRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.BParam()
@@ -906,8 +894,7 @@ type variadicRecorder struct {
 }
 
 func (r *variadicRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.args()
@@ -915,8 +902,7 @@ func (r *variadicRecorder) anySParam() {
 }
 
 func (r *variadicRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.other()
@@ -1007,8 +993,7 @@ type exportedVariadicRecorder struct {
 }
 
 func (r *exportedVariadicRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Args()
@@ -1016,8 +1001,7 @@ func (r *exportedVariadicRecorder) anySParam() {
 }
 
 func (r *exportedVariadicRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Other()
@@ -1108,8 +1092,7 @@ type repeatedIdsRecorder struct {
 }
 
 func (r *repeatedIdsRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.sParam1()
@@ -1117,8 +1100,7 @@ func (r *repeatedIdsRecorder) anySParam() {
 }
 
 func (r *repeatedIdsRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.bParam()
@@ -1217,8 +1199,7 @@ type exportedRepeatedIdsRecorder struct {
 }
 
 func (r *exportedRepeatedIdsRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.SParam1()
@@ -1226,8 +1207,7 @@ func (r *exportedRepeatedIdsRecorder) anySParam() {
 }
 
 func (r *exportedRepeatedIdsRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.BParam()
@@ -1321,8 +1301,7 @@ type timesRecorder struct {
 }
 
 func (r *timesRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.sParam()
@@ -1330,8 +1309,7 @@ func (r *timesRecorder) anySParam() {
 }
 
 func (r *timesRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.times()
@@ -1421,8 +1399,7 @@ type exportedTimesRecorder struct {
 }
 
 func (r *exportedTimesRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.SParam()
@@ -1430,8 +1407,7 @@ func (r *exportedTimesRecorder) anySParam() {
 }
 
 func (r *exportedTimesRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Times()
@@ -1513,8 +1489,7 @@ type difficultParamNamesRecorder struct {
 }
 
 func (r *difficultParamNamesRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.param3()
@@ -1522,8 +1497,7 @@ func (r *difficultParamNamesRecorder) anySParam() {
 }
 
 func (r *difficultParamNamesRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.param1()
@@ -1590,7 +1564,8 @@ func (a *exportedDifficultParamNamesAdaptor) newRecorder(sParams []string, bPara
 		bParam, false, sParams[0], 0, 0, 0.0, 0.0)}
 }
 
-func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
+func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(
+	_ moq.T, sParams []string, bParam bool, _ results) {
 	a.m.Mock().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
 }
 
@@ -1607,8 +1582,7 @@ type exportedDifficultParamNamesRecorder struct {
 }
 
 func (r *exportedDifficultParamNamesRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Param3()
@@ -1616,8 +1590,7 @@ func (r *exportedDifficultParamNamesRecorder) anySParam() {
 }
 
 func (r *exportedDifficultParamNamesRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.Param1()
@@ -1732,6 +1705,7 @@ func (r *difficultResultNamesRecorder) andDo(_ moq.T, fn func(), _ []string, _ b
 
 func (r *difficultResultNamesRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	//nolint:stylecheck // doReturnFn functions may have error in middle of params
 	r.r = r.r.doReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
@@ -1809,6 +1783,7 @@ func (r *exportedDifficultResultNamesRecorder) andDo(_ moq.T, fn func(), _ []str
 
 func (r *exportedDifficultResultNamesRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	//nolint:stylecheck // doReturnFn functions may have error in middle of params
 	r.r = r.r.DoReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
@@ -1871,8 +1846,7 @@ type passByReferenceRecorder struct {
 }
 
 func (r *passByReferenceRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.p()
@@ -1880,8 +1854,7 @@ func (r *passByReferenceRecorder) anySParam() {
 }
 
 func (r *passByReferenceRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.p()
@@ -1954,7 +1927,8 @@ func (a *exportedPassByReferenceAdaptor) newRecorder(sParams []string, bParam bo
 	})}
 }
 
-func (a *exportedPassByReferenceAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+func (a *exportedPassByReferenceAdaptor) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock().PassByReference(&testmoqs.PassByReferenceParams{
 		SParam: sParams[0],
 		BParam: bParam,
@@ -1983,8 +1957,7 @@ type exportedPassByReferenceRecorder struct {
 }
 
 func (r *exportedPassByReferenceRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.P()
@@ -1992,8 +1965,7 @@ func (r *exportedPassByReferenceRecorder) anySParam() {
 }
 
 func (r *exportedPassByReferenceRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.P()
@@ -2094,8 +2066,7 @@ type interfaceParamRecorder struct {
 }
 
 func (r *interfaceParamRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.w()
@@ -2103,8 +2074,7 @@ func (r *interfaceParamRecorder) anySParam() {
 }
 
 func (r *interfaceParamRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.w()
@@ -2185,7 +2155,8 @@ func (a *exportedInterfaceParamAdaptor) newRecorder(sParams []string, bParam boo
 	})}
 }
 
-func (a *exportedInterfaceParamAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+func (a *exportedInterfaceParamAdaptor) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results) {
 	sResult, err := a.m.Mock().InterfaceParam(&testmoqs.InterfaceParamWriter{
 		SParam: sParams[0],
 		BParam: bParam,
@@ -2214,8 +2185,7 @@ type exportedInterfaceParamRecorder struct {
 }
 
 func (r *exportedInterfaceParamRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.W()
@@ -2223,8 +2193,7 @@ func (r *exportedInterfaceParamRecorder) anySParam() {
 }
 
 func (r *exportedInterfaceParamRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.W()
@@ -2337,8 +2306,7 @@ type interfaceResultRecorder struct {
 }
 
 func (r *interfaceResultRecorder) anySParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.sParam()
@@ -2346,8 +2314,7 @@ func (r *interfaceResultRecorder) anySParam() {
 }
 
 func (r *interfaceResultRecorder) anyBParam() {
-	a := r.r.any()
-	if a == nil {
+	if a := r.r.any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.bParam()
@@ -2423,7 +2390,8 @@ func (a *exportedInterfaceResultAdaptor) newRecorder(sParams []string, bParam bo
 	return &exportedInterfaceResultRecorder{r: a.m.OnCall().InterfaceResult(sParams[0], bParam)}
 }
 
-func (a *exportedInterfaceResultAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
+func (a *exportedInterfaceResultAdaptor) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results) {
 	r := a.m.Mock().InterfaceResult(sParams[0], bParam)
 	irr, ok := r.(*testmoqs.InterfaceResultReader)
 	if !ok {
@@ -2459,8 +2427,7 @@ type exportedInterfaceResultRecorder struct {
 }
 
 func (r *exportedInterfaceResultRecorder) anySParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.SParam()
@@ -2468,8 +2435,7 @@ func (r *exportedInterfaceResultRecorder) anySParam() {
 }
 
 func (r *exportedInterfaceResultRecorder) anyBParam() {
-	a := r.r.Any()
-	if a == nil {
+	if a := r.r.Any(); a == nil {
 		r.r = nil
 	} else {
 		r.r = a.BParam()

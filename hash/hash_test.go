@@ -10,6 +10,7 @@ func TestNil(t *testing.T) {
 	// ASSEMBLE
 
 	// ACT
+	//nolint:ifshort // short syntax here blurs ACT/ASSERT
 	h := hash.DeepHash(nil)
 
 	// ASSERT

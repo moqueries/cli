@@ -130,7 +130,7 @@ func (g *MoqGenerator) defaultPackage() (string, error) {
 		dirName := filepath.Base(pkg)
 		pkg = dirName
 		if !g.export {
-			pkg = pkg + "_test"
+			pkg += "_test"
 		}
 	}
 	logs.Debugf("Output package: %s", pkg)
