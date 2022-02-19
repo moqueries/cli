@@ -153,24 +153,38 @@ func TestLoadTypes(t *testing.T) {
 
 		var baseStruct *dst.FuncType
 		if len(iTypes) > 0 {
-			for _, field := range iTypes[0].Type.(*dst.InterfaceType).Methods.List {
+			iType, ok := iTypes[0].Type.(*dst.InterfaceType)
+			if !ok {
+				t.Fatalf("wanted an interface type, got %#v", iTypes[0].Type)
+			}
+			for _, field := range iType.Methods.List {
 				if field.Names[0].Name == "BaseStruct" {
-					baseStruct = field.Type.(*dst.FuncType)
+					baseStruct, ok = field.Type.(*dst.FuncType)
+					if !ok {
+						t.Fatalf("wanted a function type, got %#v", field.Type)
+					}
 				}
 			}
 		}
 		if baseStruct == nil {
-			t.Errorf("got nil, wanted not nil")
-		} else {
-			paramIdent := baseStruct.Params.List[1].Names[0].Name
-			if paramIdent != "funcs" {
-				t.Errorf("got %s, wanted funcs", paramIdent)
-			}
-			funcIdent := baseStruct.Params.List[1].Type.(*dst.ArrayType).Elt.(*dst.Ident)
-			expectedPath := "github.com/myshkin5/moqueries/generator"
-			if funcIdent.Path != expectedPath {
-				t.Errorf("got %s, wanted %s", funcIdent, expectedPath)
-			}
+			t.Fatalf("got nil, wanted not nil")
+		}
+
+		paramIdent := baseStruct.Params.List[1].Names[0].Name
+		if paramIdent != "funcs" {
+			t.Errorf("got %s, wanted funcs", paramIdent)
+		}
+		aType, ok := baseStruct.Params.List[1].Type.(*dst.ArrayType)
+		if !ok {
+			t.Fatalf("wanted an array type, got %#v", baseStruct.Params.List[1].Type)
+		}
+		funcIdent, ok := aType.Elt.(*dst.Ident)
+		if !ok {
+			t.Fatalf("wanted an identifier, got %#v", aType.Elt)
+		}
+		expectedPath := "github.com/myshkin5/moqueries/generator"
+		if funcIdent.Path != expectedPath {
+			t.Errorf("got %s, wanted %s", funcIdent, expectedPath)
 		}
 	})
 

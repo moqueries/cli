@@ -510,5 +510,6 @@ func TestParamsKeyHashes(t *testing.T) {
 		},
 	}
 
+	//nolint:forbidigo // test prints hashes which are used in documentation
 	fmt.Printf("%#v\n%d\n", pk, pk.hashes.maxWeight)
 }

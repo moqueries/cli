@@ -69,12 +69,14 @@ var (
 )
 
 func testCases(t *testing.T, c moq.Config) map[string]adaptor {
+	t.Helper()
 	scene = moq.NewScene(t)
 	tMoq = moq.NewMoqT(scene, nil)
 	moqScene = moq.NewScene(tMoq.Mock())
 
 	usualMoq := newMoqUsual(moqScene, &c)
 	exportUsualMoq := exported.NewMoqUsual(moqScene, &c)
+	//nolint:lll // chopped down entries are reverted by gofumpt
 	entries := map[string]adaptor{
 		"usual fn":                           &usualFnAdaptor{m: newMoqUsualFn(moqScene, &c)},
 		"exported usual fn":                  &exportedUsualFnAdaptor{m: exported.NewMoqUsualFn(moqScene, &c)},
@@ -872,84 +874,54 @@ func TestSequences(t *testing.T) {
 		}
 	})
 
-	t.Run("returns an error if sequences are added after returnResults is called", func(t *testing.T) {
-		for name, entry := range testCases(t, moq.Config{}) {
-			t.Run(name, func(t *testing.T) {
-				// ASSEMBLE
-				scene.Reset()
-				moqScene.Reset()
+	t.Run("returns an error if sequences are altered after returnResults is called", func(t *testing.T) {
+		for _, seqNoSeq := range []string{"seq", "noSeq"} {
+			t.Run(seqNoSeq, func(t *testing.T) {
+				for name, entry := range testCases(t, moq.Config{}) {
+					t.Run(name, func(t *testing.T) {
+						// ASSEMBLE
+						scene.Reset()
+						moqScene.Reset()
 
-				result := results{sResults: []string{"red", "yellow"}, err: io.EOF}
-				rec := entry.newRecorder([]string{"Hello", "there"}, false)
-				rec.returnResults(result.sResults, result.err)
+						result := results{sResults: []string{"red", "yellow"}, err: io.EOF}
+						rec := entry.newRecorder([]string{"Hello", "there"}, false)
+						rec.returnResults(result.sResults, result.err)
 
-				msg := fmt.Sprintf("%s must be called before %s or %s calls, parameters: %%#v",
-					export("seq", entry),
-					export("returnResults", entry),
-					export("doReturnResults", entry))
-				bParams := entry.bundleParams([]string{"Hello", "there"}, false)
-				tMoq.OnCall().Fatalf(msg, bParams).
-					ReturnResults()
-				fmtMsg := fmt.Sprintf(msg, bParams)
+						msg := fmt.Sprintf("%s must be called before %s or %s calls, parameters: %%#v",
+							export(seqNoSeq, entry),
+							export("returnResults", entry),
+							export("doReturnResults", entry))
+						bParams := entry.bundleParams([]string{"Hello", "there"}, false)
+						tMoq.OnCall().Fatalf(msg, bParams).
+							ReturnResults()
+						fmtMsg := fmt.Sprintf(msg, bParams)
 
-				// ACT
-				rec.seq()
+						// ACT
+						switch seqNoSeq {
+						case "seq":
+							rec.seq()
+						case "noSeq":
+							rec.noSeq()
+						default:
+							t.Fatalf(seqNoSeq)
+						}
 
-				// ASSERT
-				entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false, result)
-				if !rec.isNil() {
-					t.Errorf("got: %t, want true (nil)", rec.isNil())
+						// ASSERT
+						entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false, result)
+						if !rec.isNil() {
+							t.Errorf("got: %t, want true (nil)", rec.isNil())
+						}
+						config := entry.config()
+						if !config.noParams && !config.opaqueParams {
+							if !strings.Contains(fmtMsg, "Hello") {
+								t.Errorf("got: %s, want to contain Hello", fmtMsg)
+							}
+						}
+
+						moqScene.AssertExpectationsMet()
+						scene.AssertExpectationsMet()
+					})
 				}
-				config := entry.config()
-				if !config.noParams && !config.opaqueParams {
-					if !strings.Contains(fmtMsg, "Hello") {
-						t.Errorf("got: %s, want to contain Hello", fmtMsg)
-					}
-				}
-
-				moqScene.AssertExpectationsMet()
-				scene.AssertExpectationsMet()
-			})
-		}
-	})
-
-	t.Run("returns an error if sequences are removed after returnResults is called", func(t *testing.T) {
-		for name, entry := range testCases(t, moq.Config{}) {
-			t.Run(name, func(t *testing.T) {
-				// ASSEMBLE
-				scene.Reset()
-				moqScene.Reset()
-
-				result := results{sResults: []string{"red", "yellow"}, err: io.EOF}
-				rec := entry.newRecorder([]string{"Hello", "there"}, false)
-				rec.returnResults(result.sResults, result.err)
-
-				msg := fmt.Sprintf("%s must be called before %s or %s calls, parameters: %%#v",
-					export("noSeq", entry),
-					export("returnResults", entry),
-					export("doReturnResults", entry))
-				bParams := entry.bundleParams([]string{"Hello", "there"}, false)
-				tMoq.OnCall().Fatalf(msg, bParams).
-					ReturnResults()
-				fmtMsg := fmt.Sprintf(msg, bParams)
-
-				// ACT
-				rec.noSeq()
-
-				// ASSERT
-				entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false, result)
-				if !rec.isNil() {
-					t.Errorf("got: %t, want true (nil)", rec.isNil())
-				}
-				config := entry.config()
-				if !config.noParams && !config.opaqueParams {
-					if !strings.Contains(fmtMsg, "Hello") {
-						t.Errorf("got: %s, want to contain Hello", fmtMsg)
-					}
-				}
-
-				moqScene.AssertExpectationsMet()
-				scene.AssertExpectationsMet()
 			})
 		}
 	})
@@ -1319,46 +1291,47 @@ func TestOptionalInvocations(t *testing.T) {
 		}
 	})
 
-	t.Run("failure with multiple independent identical expectations and less than min optional invocations", func(t *testing.T) {
-		for name, entry := range testCases(t, moq.Config{}) {
-			t.Run(name, func(t *testing.T) {
-				// ASSEMBLE
-				scene.Reset()
-				moqScene.Reset()
+	t.Run("failure with multiple independent identical expectations and less than min optional invocations",
+		func(t *testing.T) {
+			for name, entry := range testCases(t, moq.Config{}) {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					scene.Reset()
+					moqScene.Reset()
 
-				rec := entry.newRecorder([]string{"Hi", "you"}, true)
-				rec.returnResults([]string{"blue", "orange"}, nil)
-				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+					rec := entry.newRecorder([]string{"Hi", "you"}, true)
+					rec.returnResults([]string{"blue", "orange"}, nil)
+					rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
 
-				rec = entry.newRecorder([]string{"Hi", "you"}, true)
-				rec.returnResults([]string{"blue", "orange"}, nil)
-				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+					rec = entry.newRecorder([]string{"Hi", "you"}, true)
+					rec.returnResults([]string{"blue", "orange"}, nil)
+					rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
 
-				for n := 0; n < 3; n++ {
-					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
-						results{sResults: []string{"blue", "orange"}, err: nil})
-				}
-
-				msg := "Expected %d additional call(s) with parameters %#v"
-				params := entry.bundleParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Errorf(msg, 1, params).
-					ReturnResults()
-				fmtMsg := fmt.Sprintf(msg, 1, params)
-
-				// ACT
-				moqScene.AssertExpectationsMet()
-
-				// ASSERT
-				config := entry.config()
-				if !config.noParams && !config.opaqueParams {
-					if !strings.Contains(fmtMsg, "Hi") {
-						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					for n := 0; n < 3; n++ {
+						entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+							results{sResults: []string{"blue", "orange"}, err: nil})
 					}
-				}
-				scene.AssertExpectationsMet()
-			})
-		}
-	})
+
+					msg := "Expected %d additional call(s) with parameters %#v"
+					params := entry.bundleParams([]string{"Hi", "you"}, true)
+					tMoq.OnCall().Errorf(msg, 1, params).
+						ReturnResults()
+					fmtMsg := fmt.Sprintf(msg, 1, params)
+
+					// ACT
+					moqScene.AssertExpectationsMet()
+
+					// ASSERT
+					config := entry.config()
+					if !config.noParams && !config.opaqueParams {
+						if !strings.Contains(fmtMsg, "Hi") {
+							t.Errorf("got: %s, want to contain Hi", fmtMsg)
+						}
+					}
+					scene.AssertExpectationsMet()
+				})
+			}
+		})
 }
 
 func TestConsistentMockInstance(t *testing.T) {
@@ -1439,7 +1412,8 @@ func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResul
 	}
 }
 
-func (a *exportedPassByReferenceParamIndexingFnAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
+func (a *exportedPassByReferenceParamIndexingFnAdaptor) bundleParams(
+	params *testmoqs.PassByReferenceParams) interface{} {
 	return exported.MoqPassByReferenceFn_params{P: params}
 }
 
@@ -1500,6 +1474,7 @@ func (a *exportedPassByReferenceParamIndexingAdaptor) bundleParams(params *testm
 }
 
 func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexingAdaptor {
+	t.Helper()
 	scene = moq.NewScene(t)
 	tMoq = moq.NewMoqT(scene, nil)
 	moqScene = moq.NewScene(tMoq.Mock())

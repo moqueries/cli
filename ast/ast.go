@@ -1,12 +1,21 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"golang.org/x/tools/go/packages"
+)
+
+var (
+	// ErrNoPackagesFound is returned when a package can't be found
+	ErrNoPackagesFound = errors.New("no packages found")
+	// ErrTooManyPackagesFound is returned when more than one package is found
+	// for a single directory
+	ErrTooManyPackagesFound = errors.New("too many packages found")
 )
 
 // FindPackage finds the package for a given directory
@@ -24,10 +33,11 @@ func FindPackage(dir string) (string, error) {
 		return "", err
 	}
 	if len(pkgs) == 0 {
-		return "", fmt.Errorf("no packages found in %s", dir)
+		return "", fmt.Errorf("%q: %w", dir, ErrNoPackagesFound)
 	}
 	if len(pkgs) > 1 {
-		return "", fmt.Errorf("too many packages found in %s (%d)", dir, len(pkgs))
+		return "", fmt.Errorf("%q (length %d): %w",
+			dir, len(pkgs), ErrTooManyPackagesFound)
 	}
 	if len(pkgs[0].Errors) > 0 {
 		return "", pkgs[0].Errors[0]
@@ -112,7 +122,6 @@ func convert(pkg *packages.Package, dpkgs map[*packages.Package]*decorator.Packa
 	}
 	dpkgs[pkg] = p
 	if len(pkg.Syntax) > 0 {
-
 		// Only decorate files in the GoFiles list. Syntax also has preprocessed cgo files which
 		// break things.
 		goFiles := make(map[string]bool, len(pkg.GoFiles))

@@ -58,7 +58,7 @@ writerMoq.onCall().Write([]byte("3")).
 Note in the above code, we told the mock to return `1` and `nil` with a call to the generated `returnResults` method. Per the interface definition of a writer, we wrote one byte successfully with no errors. Alternatively, we could indicate an error with [a small change](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L48-L49):
 ```go
 writerMoq.onCall().Write([]byte("3")).
-    returnResults(0, errors.New("couldn't write"))
+    returnResults(0, fmt.Errorf("couldn't write"))
 ```
 
 ### Arbitrary (any) parameters
@@ -275,7 +275,7 @@ Now all of the mock's structs and methods are exported, so they can be used from
 ```go
 writerMoq := mockpkg.NewMoqWriter()
 
-writerMoq.OnCall().Write([]byte("3")).ReturnResults(0, errors.New("couldn't write"))
+writerMoq.OnCall().Write([]byte("3")).ReturnResults(0, fmt.Errorf("couldn't write"))
 ```
 
 ## Command line reference

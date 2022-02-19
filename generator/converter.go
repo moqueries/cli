@@ -281,7 +281,7 @@ func (c *Converter) FuncClosure(typeName, pkgPath string, fn Func) *dst.FuncDecl
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
 		Results(Field(IdPath(typeName, pkgPath)).Obj).
 		Body(Return(FnLit(FnType(cloneAndNameUnnamed(paramPrefix, fn.Params)).
-			Results(cloneNilableFieldList(fn.Results, true)).Obj).
+			Results(cloneFieldList(fn.Results, true)).Obj).
 			Body(Assign(Id(moqIdent)).
 				Tok(token.DEFINE).
 				Rhs(Un(
@@ -508,7 +508,7 @@ func (c *Converter) paramIndexingFnValues(params []*dst.Field) []dst.Expr {
 	return vals
 }
 
-func (c *Converter) paramIndexingValue(typ dst.Expr, name string, kvDec dst.SpaceType) dst.Expr {
+func (c *Converter) paramIndexingValue(typ dst.Expr, name string, kvDec dst.SpaceType) *dst.KeyValueExpr {
 	comp, err := c.typeCache.IsDefaultComparable(typ)
 	if err != nil {
 		logs.Panic("Call MethodStructs first to get a meaningful error", err)
@@ -561,38 +561,39 @@ func (c *Converter) paramsStructDecl(
 
 func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.StructType, error) {
 	unnamedPrefix, _ := labelDirection(label)
-	fieldList = cloneNilableFieldList(fieldList, false)
+	fieldList = cloneFieldList(fieldList, false)
 
-	if fieldList != nil {
-		count := 0
-		var fList []*dst.Field
-		for _, f := range fieldList.List {
-			if len(f.Names) == 0 {
-				f.Names = []*dst.Ident{Idf(unnamed, unnamedPrefix, count+1)}
-			}
+	if fieldList == nil {
+		return StructFromList(nil), nil
+	}
 
-			for n, name := range f.Names {
-				f.Names[n] = Id(c.export(validName(name.Name, unnamedPrefix, count)))
-				count++
-			}
-
-			typ, err := c.comparableType(label, f.Type)
-			if err != nil {
-				return nil, err
-			}
-			if typ != nil {
-				f.Type = typ
-				fList = append(fList, f)
-			}
+	count := 0
+	var fList []*dst.Field
+	for _, f := range fieldList.List {
+		if len(f.Names) == 0 {
+			f.Names = []*dst.Ident{Idf(unnamed, unnamedPrefix, count+1)}
 		}
 
-		if len(fList) != 0 {
-			fieldList.List = fList
-		} else {
-			fieldList = nil
+		for n, name := range f.Names {
+			f.Names[n] = Id(c.export(validName(name.Name, unnamedPrefix, count)))
+			count++
+		}
+
+		typ, err := c.comparableType(label, f.Type)
+		if err != nil {
+			return nil, err
+		}
+		if typ != nil {
+			f.Type = typ
+			fList = append(fList, f)
 		}
 	}
 
+	if len(fList) != 0 {
+		fieldList.List = fList
+	} else {
+		fieldList = nil
+	}
 	return StructFromList(fieldList), nil
 }
 
@@ -641,10 +642,10 @@ func (c *Converter) resultByParamsStruct(typeName, prefix string) *dst.GenDecl {
 		typeName)).Obj
 }
 
-func (c *Converter) doFuncType(typeName, prefix string, params *dst.FieldList) dst.Decl {
+func (c *Converter) doFuncType(typeName, prefix string, params *dst.FieldList) *dst.GenDecl {
 	fnName := fmt.Sprintf(double, prefix, doFnIdent)
 	return TypeDecl(TypeSpec(fnName).
-		Type(FuncType(dst.Clone(params).(*dst.FieldList)).Obj).Obj).
+		Type(FuncType(cloneFieldList(params, false)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -652,11 +653,11 @@ func (c *Converter) doFuncType(typeName, prefix string, params *dst.FieldList) d
 			typeName)).Obj
 }
 
-func (c *Converter) doReturnFuncType(typeName, prefix string, fn Func) dst.Decl {
+func (c *Converter) doReturnFuncType(typeName, prefix string, fn Func) *dst.GenDecl {
 	fnName := fmt.Sprintf(double, prefix, doReturnFnIdent)
 	return TypeDecl(TypeSpec(fnName).
-		Type(FuncType(dst.Clone(fn.Params).(*dst.FieldList)).
-			ResultList(cloneNilableFieldList(fn.Results, false)).Obj).Obj).
+		Type(FuncType(cloneFieldList(fn.Params, false)).
+			ResultList(cloneFieldList(fn.Results, false)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -735,7 +736,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 				Elts(c.passthroughElements(fn.Params, paramsIdent, "", nil)...).Obj).Obj,
 		Var(Value(Star(Idf(double, typePrefix, resultsIdent))).
 			Names(Id(resultsIdent)).Obj),
-		Range(Sel(dst.Clone(stateSelector).(dst.Expr)).
+		Range(Sel(cloneExpr(stateSelector)).
 			Dot(c.exportId(resultsByParamsIdent+fieldSuffix)).Obj).
 			Key(Id(sep)).
 			Value(Id(resultsByParamsIdent)).
@@ -760,13 +761,13 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 
 	stmts = append(stmts,
 		If(Bin(Id(resultsIdent)).Op(token.EQL).Y(Id(nilIdent)).Obj).Body(
-			If(Bin(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+			If(Bin(Sel(Sel(cloneExpr(stateSelector)).
 				Dot(c.exportId(configIdent)).Obj).
 				Dot(Id(expectationIdent)).Obj).
 				Op(token.EQL).
 				Y(IdPath(strictIdent, moqPkg)).Obj).
 				Body(
-					Expr(Call(Sel(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+					Expr(Call(Sel(Sel(Sel(cloneExpr(stateSelector)).
 						Dot(c.exportId(sceneIdent)).Obj).
 						Dot(Id(tType)).Obj).
 						Dot(Id(fatalfFnName)).Obj).
@@ -793,12 +794,12 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 				If(Un(token.NOT, Sel(Sel(Id(resultsIdent)).
 					Dot(c.exportId(repeatIdent)).Obj).Dot(Id(anyTimesIdent)).Obj)).
 					Body(
-						If(Bin(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+						If(Bin(Sel(Sel(cloneExpr(stateSelector)).
 							Dot(c.exportId(configIdent)).Obj).
 							Dot(Id(expectationIdent)).Obj).
 							Op(token.EQL).
 							Y(IdPath(strictIdent, moqPkg)).Obj).
-							Body(Expr(Call(Sel(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+							Body(Expr(Call(Sel(Sel(Sel(cloneExpr(stateSelector)).
 								Dot(c.exportId(sceneIdent)).Obj).
 								Dot(Id(tType)).Obj).
 								Dot(Id(fatalfFnName)).Obj).
@@ -834,7 +835,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 				Op(token.NEQ).Y(Id(sequenceIdent)).Obj).Obj)).Op(token.LOR).
 			Y(Bin(Sel(Id(resultIdent)).Dot(c.exportId(sequenceIdent)).Obj).
 				Op(token.GTR).Y(Id(sequenceIdent)).Obj).Obj).Body(
-			Expr(Call(Sel(Sel(Sel(dst.Clone(stateSelector).(dst.Expr)).
+			Expr(Call(Sel(Sel(Sel(cloneExpr(stateSelector)).
 				Dot(c.exportId(sceneIdent)).Obj).
 				Dot(Id(tType)).Obj).
 				Dot(Id(fatalfFnName)).Obj).
@@ -911,7 +912,7 @@ func (c *Converter) recorderFnInterfaceBody(
 						Y(IdPath("SeqDefaultOn", moqPkg)).Obj).
 					Decs(kvExprDec(dst.None)).Obj,
 				Key(c.exportId(moqIdent)).
-					Value(dst.Clone(moqVal).(dst.Expr)).Decs(kvExprDec(dst.None)).Obj,
+					Value(cloneExpr(moqVal)).Decs(kvExprDec(dst.None)).Obj,
 			).Decs(litDec()).Obj,
 	))}
 }
@@ -944,7 +945,7 @@ func (c *Converter) anyParamFns(typeName string, fn Func) []dst.Decl {
 	return decls
 }
 
-func (c *Converter) anyParamAnyFn(anyParamsName, fnRecName string) dst.Decl {
+func (c *Converter) anyParamAnyFn(anyParamsName, fnRecName string) *dst.FuncDecl {
 	moqSel := Sel(Sel(Id(recorderReceiverIdent)).
 		Dot(c.exportId(moqIdent)).Obj).Obj
 
@@ -974,7 +975,7 @@ func (c *Converter) anyParamAnyFn(anyParamsName, fnRecName string) dst.Decl {
 		Decs(stdFuncDec()).Obj
 }
 
-func (c *Converter) anyParamFn(anyParamsName, fnRecName, pName string, paramPos int) dst.Decl {
+func (c *Converter) anyParamFn(anyParamsName, fnRecName, pName string, paramPos int) *dst.FuncDecl {
 	return Fn(c.export(pName)).
 		Recv(Field(Star(Id(anyParamsName))).Names(Id(anyParamsReceiverIdent)).Obj).
 		Results(Field(Star(Id(fnRecName))).Obj).
@@ -1119,12 +1120,12 @@ func (c *Converter) findResultsFn(typeName string, fn Func) *dst.FuncDecl {
 			Op(token.NEQ).
 			Y(Id(nilIdent)).Obj).
 			Body(
-				dst.Clone(incrRepeat).(*dst.ExprStmt),
+				cloneStmt(incrRepeat),
 				Return(),
 			).Decs(IfDecs(dst.EmptyLine).Obj).Obj,
 	}
 	body = append(body, c.findRecorderResults(typeName, fn)...)
-	body = append(body, dst.Clone(incrRepeat).(*dst.ExprStmt))
+	body = append(body, cloneStmt(incrRepeat))
 
 	return Fn(c.export(findResultsFnName)).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
@@ -1404,7 +1405,7 @@ func (c *Converter) mockFuncFindResultsParam(
 	var stmts []dst.Stmt
 	pUsed := fmt.Sprintf("%s%s", vName, usedSuffix)
 	if comp {
-		stmts = append(stmts, Var(Value(dst.Clone(typ).(dst.Expr)).Names(Id(pUsed)).Obj))
+		stmts = append(stmts, Var(Value(cloneExpr(typ)).Names(Id(pUsed)).Obj))
 	}
 	hashUsed := fmt.Sprintf("%s%s", vName, usedHashSuffix)
 	stmts = append(stmts, Var(Value(IdPath(hashType, hashPkg)).Names(Id(hashUsed)).Obj))
@@ -1524,38 +1525,40 @@ func (c *Converter) recorderSeqFn(fnName, assign, typeName string, fn Func) *dst
 func (c *Converter) passthroughElements(
 	fl *dst.FieldList, label, valSuffix string, sel *dst.SelectorExpr,
 ) []dst.Expr {
+	if fl == nil {
+		return nil
+	}
+
 	unnamedPrefix, dropNonComparable := labelDirection(label)
 	var elts []dst.Expr
-	if fl != nil {
-		beforeDec := dst.NewLine
-		count := 0
-		for _, field := range fl.List {
-			comp, err := c.typeCache.IsComparable(field.Type)
-			if err != nil {
-				logs.Panic("Call MethodStructs first to get a meaningful error", err)
-			}
+	beforeDec := dst.NewLine
+	count := 0
+	for _, field := range fl.List {
+		comp, err := c.typeCache.IsComparable(field.Type)
+		if err != nil {
+			logs.Panic("Call MethodStructs first to get a meaningful error", err)
+		}
 
-			if len(field.Names) == 0 {
-				if comp || !dropNonComparable {
-					pName := fmt.Sprintf(unnamed, unnamedPrefix, count+1)
-					elts = append(elts, Key(c.exportId(pName)).Value(
-						c.passthroughValue(Id(pName+valSuffix), false, sel)).
-						Decs(kvExprDec(beforeDec)).Obj)
-					beforeDec = dst.None
-				}
-				count++
+		if len(field.Names) == 0 {
+			if comp || !dropNonComparable {
+				pName := fmt.Sprintf(unnamed, unnamedPrefix, count+1)
+				elts = append(elts, Key(c.exportId(pName)).Value(
+					c.passthroughValue(Id(pName+valSuffix), false, sel)).
+					Decs(kvExprDec(beforeDec)).Obj)
+				beforeDec = dst.None
 			}
+			count++
+		}
 
-			for _, name := range field.Names {
-				if comp || !dropNonComparable {
-					vName := validName(name.Name, unnamedPrefix, count)
-					elts = append(elts, Key(c.exportId(vName)).Value(
-						c.passthroughValue(Id(vName+valSuffix), false, sel)).
-						Decs(kvExprDec(beforeDec)).Obj)
-					beforeDec = dst.None
-				}
-				count++
+		for _, name := range field.Names {
+			if comp || !dropNonComparable {
+				vName := validName(name.Name, unnamedPrefix, count)
+				elts = append(elts, Key(c.exportId(vName)).Value(
+					c.passthroughValue(Id(vName+valSuffix), false, sel)).
+					Decs(kvExprDec(beforeDec)).Obj)
+				beforeDec = dst.None
 			}
+			count++
 		}
 	}
 
@@ -1622,7 +1625,7 @@ func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
 }
 
 func cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList) *dst.FieldList {
-	fieldList = cloneNilableFieldList(fieldList, false)
+	fieldList = cloneFieldList(fieldList, false)
 	if fieldList != nil {
 		count := 0
 		for _, f := range fieldList.List {
@@ -1696,8 +1699,9 @@ func isVariadic(fl *dst.FieldList) bool {
 	return false
 }
 
-func cloneNilableFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
+func cloneFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
 	if fl != nil {
+		//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 		fl = dst.Clone(fl).(*dst.FieldList)
 		if removeNames {
 			for _, field := range fl.List {
@@ -1711,9 +1715,20 @@ func cloneNilableFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
 }
 
 func cloneSelect(x *dst.SelectorExpr, sel string) *dst.SelectorExpr {
+	//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 	x = dst.Clone(x).(*dst.SelectorExpr)
 	x.Sel = Id(sel)
 	return x
+}
+
+func cloneExpr(expr dst.Expr) dst.Expr {
+	//nolint:forcetypeassert // if dst.Clone returns a different type, panic
+	return dst.Clone(expr).(dst.Expr)
+}
+
+func cloneStmt(stmt dst.Stmt) dst.Stmt {
+	//nolint:forcetypeassert // if dst.Clone returns a different type, panic
+	return dst.Clone(stmt).(dst.Stmt)
 }
 
 func genDeclDec(format string, a ...interface{}) dst.GenDeclDecorations {

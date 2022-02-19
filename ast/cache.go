@@ -1,9 +1,19 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/dave/dst"
+)
+
+var (
+	// ErrTypeNotFound is returned when a type isn't in the cache and can't be
+	// loaded
+	ErrTypeNotFound = errors.New("type not found")
+	// ErrInvalidType is returned when the type doesn't have the expected
+	// structure
+	ErrInvalidType = errors.New("type did not have expected format")
 )
 
 // Cache loads types from the AST and caches results
@@ -39,7 +49,8 @@ func (c *Cache) Type(id dst.Ident, loadTestTypes bool) (*dst.TypeSpec, string, e
 	realId := IdPath(id.Name, pkgPath).String()
 	typ, ok := c.typesByIdent[realId]
 	if !ok {
-		return nil, "", fmt.Errorf("type %s not found, original package %s", realId, id.Path)
+		return nil, "", fmt.Errorf(
+			"%q (original package %q): %w", realId, id.Path, ErrTypeNotFound)
 	}
 
 	return typ, pkgPath, nil
@@ -73,7 +84,11 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 		return interfacePointerDefault, nil
 	case *dst.Ident:
 		if e.Obj != nil {
-			return c.isDefaultComparable(e.Obj.Decl.(*dst.TypeSpec).Type, interfacePointerDefault)
+			typ, ok := e.Obj.Decl.(*dst.TypeSpec)
+			if !ok {
+				return false, fmt.Errorf("%q: %w", e.String(), ErrInvalidType)
+			}
+			return c.isDefaultComparable(typ.Type, interfacePointerDefault)
 		}
 		typ, ok := c.typesByIdent[e.String()]
 		if ok {
@@ -103,7 +118,11 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 
 		return true, nil
 	case *dst.SelectorExpr:
-		path := e.X.(*dst.Ident).Name
+		ex, ok := e.X.(*dst.Ident)
+		if !ok {
+			return false, fmt.Errorf("%q: %w", e.X, ErrInvalidType)
+		}
+		path := ex.Name
 		_, err := c.loadPackage(path, false)
 		if err != nil {
 			return false, err

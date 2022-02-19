@@ -33,6 +33,7 @@ func TestMoqGenerator(t *testing.T) {
 	)
 
 	beforeEach := func(t *testing.T) {
+		t.Helper()
 		logs.Init(false)
 
 		if scene != nil {
