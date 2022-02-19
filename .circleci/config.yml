@@ -3,7 +3,7 @@ version: 2.1
 executors:
   go:
     docker:
-    - image: circleci/golang:1.17
+    - image: cimg/go:1.17
 
 jobs:
   build:
@@ -16,10 +16,6 @@ jobs:
     steps:
     - checkout
     - run: mkdir -p $TEST_RESULTS
-
-    - restore_cache:
-        keys:
-        - go-mod-v4-{{ checksum "go.sum" }}
 
     - run:
         name: Generate code
@@ -35,7 +31,17 @@ jobs:
         command: |
           set -ux
           PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
-          gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
+          gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- \
+            -race -covermode=atomic -coverprofile=coverage.out $PACKAGE_NAMES
+
+    - run:
+        name: Upload coverage to Codecov
+        command: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}
+          rm codecov
 
     - run:
         name: Run code linters
@@ -55,11 +61,6 @@ jobs:
           git status
           git diff
           [[ -z $(git status --short) ]] || (echo 'Untracked changes' && exit 1)
-
-    - save_cache:
-        key: go-mod-v4-{{ checksum "go.sum" }}
-        paths:
-        - "/go/pkg/mod"
 
     - store_artifacts:
         path: /tmp/test-results
