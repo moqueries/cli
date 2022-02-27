@@ -50,8 +50,8 @@ func generate(req GenerateRequest) error {
 				dest += "_"
 			}
 		}
-		if !req.Export {
-			dest += "_test"
+		if !req.Export || (req.Package != "" && strings.HasSuffix(req.Package, testPkgSuffix)) {
+			dest += testPkgSuffix
 		}
 		dest += ".go"
 		req.Destination = dest
