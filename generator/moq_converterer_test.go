@@ -31,53 +31,35 @@ type moqConverterer struct {
 
 	runtime struct {
 		parameterIndexing struct {
-			BaseStruct struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
+			BaseStruct      struct{}
 			IsolationStruct struct {
-				typeName moq.ParamIndexing
-				suffix   moq.ParamIndexing
+				suffix moq.ParamIndexing
 			}
 			MethodStructs struct {
-				typeSpec moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
-			NewFunc struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
+			NewFunc           struct{}
 			IsolationAccessor struct {
-				typeName moq.ParamIndexing
-				suffix   moq.ParamIndexing
-				fnName   moq.ParamIndexing
+				suffix moq.ParamIndexing
+				fnName moq.ParamIndexing
 			}
 			FuncClosure struct {
-				typeName moq.ParamIndexing
-				pkgPath  moq.ParamIndexing
-				fn       moq.ParamIndexing
+				pkgPath moq.ParamIndexing
+				fn      moq.ParamIndexing
 			}
 			MockMethod struct {
-				typeName moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
 			RecorderMethods struct {
-				typeName moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
-			ResetMethod struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
-			AssertMethod struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
+			ResetMethod  struct{}
+			AssertMethod struct{}
 		}
 	}
-	// moqConverterer_mock isolates the mock interface of the Converterer type
 }
 
+// moqConverterer_mock isolates the mock interface of the Converterer type
 type moqConverterer_mock struct {
 	moq *moqConverterer
 }
@@ -88,18 +70,12 @@ type moqConverterer_recorder struct {
 }
 
 // moqConverterer_BaseStruct_params holds the params of the Converterer type
-type moqConverterer_BaseStruct_params struct {
-	typeSpec *dst.TypeSpec
-	funcs    []generator.Func
-}
+type moqConverterer_BaseStruct_params struct{}
 
 // moqConverterer_BaseStruct_paramsKey holds the map key params of the Converterer type
 type moqConverterer_BaseStruct_paramsKey struct {
-	params struct{ typeSpec *dst.TypeSpec }
-	hashes struct {
-		typeSpec hash.Hash
-		funcs    hash.Hash
-	}
+	params struct{}
+	hashes struct{}
 }
 
 // moqConverterer_BaseStruct_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -110,10 +86,10 @@ type moqConverterer_BaseStruct_resultsByParams struct {
 }
 
 // moqConverterer_BaseStruct_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_BaseStruct_doFn func(typeSpec *dst.TypeSpec, funcs []generator.Func)
+type moqConverterer_BaseStruct_doFn func()
 
 // moqConverterer_BaseStruct_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_BaseStruct_doReturnFn func(typeSpec *dst.TypeSpec, funcs []generator.Func) (structDecl *dst.GenDecl)
+type moqConverterer_BaseStruct_doReturnFn func() (structDecl *dst.GenDecl)
 
 // moqConverterer_BaseStruct_results holds the results of the Converterer type
 type moqConverterer_BaseStruct_results struct {
@@ -143,12 +119,12 @@ type moqConverterer_BaseStruct_anyParams struct {
 }
 
 // moqConverterer_IsolationStruct_params holds the params of the Converterer type
-type moqConverterer_IsolationStruct_params struct{ typeName, suffix string }
+type moqConverterer_IsolationStruct_params struct{ suffix string }
 
 // moqConverterer_IsolationStruct_paramsKey holds the map key params of the Converterer type
 type moqConverterer_IsolationStruct_paramsKey struct {
-	params struct{ typeName, suffix string }
-	hashes struct{ typeName, suffix hash.Hash }
+	params struct{ suffix string }
+	hashes struct{ suffix hash.Hash }
 }
 
 // moqConverterer_IsolationStruct_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -159,10 +135,10 @@ type moqConverterer_IsolationStruct_resultsByParams struct {
 }
 
 // moqConverterer_IsolationStruct_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_IsolationStruct_doFn func(typeName, suffix string)
+type moqConverterer_IsolationStruct_doFn func(suffix string)
 
 // moqConverterer_IsolationStruct_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_IsolationStruct_doReturnFn func(typeName, suffix string) (structDecl *dst.GenDecl)
+type moqConverterer_IsolationStruct_doReturnFn func(suffix string) (structDecl *dst.GenDecl)
 
 // moqConverterer_IsolationStruct_results holds the results of the Converterer type
 type moqConverterer_IsolationStruct_results struct {
@@ -192,21 +168,12 @@ type moqConverterer_IsolationStruct_anyParams struct {
 }
 
 // moqConverterer_MethodStructs_params holds the params of the Converterer type
-type moqConverterer_MethodStructs_params struct {
-	typeSpec *dst.TypeSpec
-	fn       generator.Func
-}
+type moqConverterer_MethodStructs_params struct{ fn generator.Func }
 
 // moqConverterer_MethodStructs_paramsKey holds the map key params of the Converterer type
 type moqConverterer_MethodStructs_paramsKey struct {
-	params struct {
-		typeSpec *dst.TypeSpec
-		fn       generator.Func
-	}
-	hashes struct {
-		typeSpec hash.Hash
-		fn       hash.Hash
-	}
+	params struct{ fn generator.Func }
+	hashes struct{ fn hash.Hash }
 }
 
 // moqConverterer_MethodStructs_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -217,10 +184,10 @@ type moqConverterer_MethodStructs_resultsByParams struct {
 }
 
 // moqConverterer_MethodStructs_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_MethodStructs_doFn func(typeSpec *dst.TypeSpec, fn generator.Func)
+type moqConverterer_MethodStructs_doFn func(fn generator.Func)
 
 // moqConverterer_MethodStructs_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_MethodStructs_doReturnFn func(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl, err error)
+type moqConverterer_MethodStructs_doReturnFn func(fn generator.Func) (structDecls []dst.Decl, err error)
 
 // moqConverterer_MethodStructs_results holds the results of the Converterer type
 type moqConverterer_MethodStructs_results struct {
@@ -253,18 +220,12 @@ type moqConverterer_MethodStructs_anyParams struct {
 }
 
 // moqConverterer_NewFunc_params holds the params of the Converterer type
-type moqConverterer_NewFunc_params struct {
-	typeSpec *dst.TypeSpec
-	funcs    []generator.Func
-}
+type moqConverterer_NewFunc_params struct{}
 
 // moqConverterer_NewFunc_paramsKey holds the map key params of the Converterer type
 type moqConverterer_NewFunc_paramsKey struct {
-	params struct{ typeSpec *dst.TypeSpec }
-	hashes struct {
-		typeSpec hash.Hash
-		funcs    hash.Hash
-	}
+	params struct{}
+	hashes struct{}
 }
 
 // moqConverterer_NewFunc_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -275,10 +236,10 @@ type moqConverterer_NewFunc_resultsByParams struct {
 }
 
 // moqConverterer_NewFunc_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_NewFunc_doFn func(typeSpec *dst.TypeSpec, funcs []generator.Func)
+type moqConverterer_NewFunc_doFn func()
 
 // moqConverterer_NewFunc_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_NewFunc_doReturnFn func(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_NewFunc_doReturnFn func() (funcDecl *dst.FuncDecl)
 
 // moqConverterer_NewFunc_results holds the results of the Converterer type
 type moqConverterer_NewFunc_results struct {
@@ -308,12 +269,12 @@ type moqConverterer_NewFunc_anyParams struct {
 }
 
 // moqConverterer_IsolationAccessor_params holds the params of the Converterer type
-type moqConverterer_IsolationAccessor_params struct{ typeName, suffix, fnName string }
+type moqConverterer_IsolationAccessor_params struct{ suffix, fnName string }
 
 // moqConverterer_IsolationAccessor_paramsKey holds the map key params of the Converterer type
 type moqConverterer_IsolationAccessor_paramsKey struct {
-	params struct{ typeName, suffix, fnName string }
-	hashes struct{ typeName, suffix, fnName hash.Hash }
+	params struct{ suffix, fnName string }
+	hashes struct{ suffix, fnName hash.Hash }
 }
 
 // moqConverterer_IsolationAccessor_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -324,10 +285,10 @@ type moqConverterer_IsolationAccessor_resultsByParams struct {
 }
 
 // moqConverterer_IsolationAccessor_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_IsolationAccessor_doFn func(typeName, suffix, fnName string)
+type moqConverterer_IsolationAccessor_doFn func(suffix, fnName string)
 
 // moqConverterer_IsolationAccessor_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_IsolationAccessor_doReturnFn func(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
+type moqConverterer_IsolationAccessor_doReturnFn func(suffix, fnName string) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_IsolationAccessor_results holds the results of the Converterer type
 type moqConverterer_IsolationAccessor_results struct {
@@ -358,19 +319,19 @@ type moqConverterer_IsolationAccessor_anyParams struct {
 
 // moqConverterer_FuncClosure_params holds the params of the Converterer type
 type moqConverterer_FuncClosure_params struct {
-	typeName, pkgPath string
-	fn                generator.Func
+	pkgPath string
+	fn      generator.Func
 }
 
 // moqConverterer_FuncClosure_paramsKey holds the map key params of the Converterer type
 type moqConverterer_FuncClosure_paramsKey struct {
 	params struct {
-		typeName, pkgPath string
-		fn                generator.Func
+		pkgPath string
+		fn      generator.Func
 	}
 	hashes struct {
-		typeName, pkgPath hash.Hash
-		fn                hash.Hash
+		pkgPath hash.Hash
+		fn      hash.Hash
 	}
 }
 
@@ -382,10 +343,10 @@ type moqConverterer_FuncClosure_resultsByParams struct {
 }
 
 // moqConverterer_FuncClosure_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_FuncClosure_doFn func(typeName, pkgPath string, fn generator.Func)
+type moqConverterer_FuncClosure_doFn func(pkgPath string, fn generator.Func)
 
 // moqConverterer_FuncClosure_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_FuncClosure_doReturnFn func(typeName, pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_FuncClosure_doReturnFn func(pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_FuncClosure_results holds the results of the Converterer type
 type moqConverterer_FuncClosure_results struct {
@@ -415,21 +376,12 @@ type moqConverterer_FuncClosure_anyParams struct {
 }
 
 // moqConverterer_MockMethod_params holds the params of the Converterer type
-type moqConverterer_MockMethod_params struct {
-	typeName string
-	fn       generator.Func
-}
+type moqConverterer_MockMethod_params struct{ fn generator.Func }
 
 // moqConverterer_MockMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_MockMethod_paramsKey struct {
-	params struct {
-		typeName string
-		fn       generator.Func
-	}
-	hashes struct {
-		typeName hash.Hash
-		fn       hash.Hash
-	}
+	params struct{ fn generator.Func }
+	hashes struct{ fn hash.Hash }
 }
 
 // moqConverterer_MockMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -440,10 +392,10 @@ type moqConverterer_MockMethod_resultsByParams struct {
 }
 
 // moqConverterer_MockMethod_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_MockMethod_doFn func(typeName string, fn generator.Func)
+type moqConverterer_MockMethod_doFn func(fn generator.Func)
 
 // moqConverterer_MockMethod_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_MockMethod_doReturnFn func(typeName string, fn generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_MockMethod_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_MockMethod_results holds the results of the Converterer type
 type moqConverterer_MockMethod_results struct {
@@ -473,21 +425,12 @@ type moqConverterer_MockMethod_anyParams struct {
 }
 
 // moqConverterer_RecorderMethods_params holds the params of the Converterer type
-type moqConverterer_RecorderMethods_params struct {
-	typeName string
-	fn       generator.Func
-}
+type moqConverterer_RecorderMethods_params struct{ fn generator.Func }
 
 // moqConverterer_RecorderMethods_paramsKey holds the map key params of the Converterer type
 type moqConverterer_RecorderMethods_paramsKey struct {
-	params struct {
-		typeName string
-		fn       generator.Func
-	}
-	hashes struct {
-		typeName hash.Hash
-		fn       hash.Hash
-	}
+	params struct{ fn generator.Func }
+	hashes struct{ fn hash.Hash }
 }
 
 // moqConverterer_RecorderMethods_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -498,10 +441,10 @@ type moqConverterer_RecorderMethods_resultsByParams struct {
 }
 
 // moqConverterer_RecorderMethods_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_RecorderMethods_doFn func(typeName string, fn generator.Func)
+type moqConverterer_RecorderMethods_doFn func(fn generator.Func)
 
 // moqConverterer_RecorderMethods_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_RecorderMethods_doReturnFn func(typeName string, fn generator.Func) (funcDecls []dst.Decl)
+type moqConverterer_RecorderMethods_doReturnFn func(fn generator.Func) (funcDecls []dst.Decl)
 
 // moqConverterer_RecorderMethods_results holds the results of the Converterer type
 type moqConverterer_RecorderMethods_results struct {
@@ -531,18 +474,12 @@ type moqConverterer_RecorderMethods_anyParams struct {
 }
 
 // moqConverterer_ResetMethod_params holds the params of the Converterer type
-type moqConverterer_ResetMethod_params struct {
-	typeSpec *dst.TypeSpec
-	funcs    []generator.Func
-}
+type moqConverterer_ResetMethod_params struct{}
 
 // moqConverterer_ResetMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_ResetMethod_paramsKey struct {
-	params struct{ typeSpec *dst.TypeSpec }
-	hashes struct {
-		typeSpec hash.Hash
-		funcs    hash.Hash
-	}
+	params struct{}
+	hashes struct{}
 }
 
 // moqConverterer_ResetMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -553,10 +490,10 @@ type moqConverterer_ResetMethod_resultsByParams struct {
 }
 
 // moqConverterer_ResetMethod_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_ResetMethod_doFn func(typeSpec *dst.TypeSpec, funcs []generator.Func)
+type moqConverterer_ResetMethod_doFn func()
 
 // moqConverterer_ResetMethod_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_ResetMethod_doReturnFn func(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_ResetMethod_doReturnFn func() (funcDecl *dst.FuncDecl)
 
 // moqConverterer_ResetMethod_results holds the results of the Converterer type
 type moqConverterer_ResetMethod_results struct {
@@ -586,18 +523,12 @@ type moqConverterer_ResetMethod_anyParams struct {
 }
 
 // moqConverterer_AssertMethod_params holds the params of the Converterer type
-type moqConverterer_AssertMethod_params struct {
-	typeSpec *dst.TypeSpec
-	funcs    []generator.Func
-}
+type moqConverterer_AssertMethod_params struct{}
 
 // moqConverterer_AssertMethod_paramsKey holds the map key params of the Converterer type
 type moqConverterer_AssertMethod_paramsKey struct {
-	params struct{ typeSpec *dst.TypeSpec }
-	hashes struct {
-		typeSpec hash.Hash
-		funcs    hash.Hash
-	}
+	params struct{}
+	hashes struct{}
 }
 
 // moqConverterer_AssertMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -608,10 +539,10 @@ type moqConverterer_AssertMethod_resultsByParams struct {
 }
 
 // moqConverterer_AssertMethod_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_AssertMethod_doFn func(typeSpec *dst.TypeSpec, funcs []generator.Func)
+type moqConverterer_AssertMethod_doFn func()
 
 // moqConverterer_AssertMethod_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_AssertMethod_doReturnFn func(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_AssertMethod_doReturnFn func() (funcDecl *dst.FuncDecl)
 
 // moqConverterer_AssertMethod_results holds the results of the Converterer type
 type moqConverterer_AssertMethod_results struct {
@@ -652,167 +583,95 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 
 		runtime: struct {
 			parameterIndexing struct {
-				BaseStruct struct {
-					typeSpec moq.ParamIndexing
-					funcs    moq.ParamIndexing
-				}
+				BaseStruct      struct{}
 				IsolationStruct struct {
-					typeName moq.ParamIndexing
-					suffix   moq.ParamIndexing
+					suffix moq.ParamIndexing
 				}
 				MethodStructs struct {
-					typeSpec moq.ParamIndexing
-					fn       moq.ParamIndexing
+					fn moq.ParamIndexing
 				}
-				NewFunc struct {
-					typeSpec moq.ParamIndexing
-					funcs    moq.ParamIndexing
-				}
+				NewFunc           struct{}
 				IsolationAccessor struct {
-					typeName moq.ParamIndexing
-					suffix   moq.ParamIndexing
-					fnName   moq.ParamIndexing
+					suffix moq.ParamIndexing
+					fnName moq.ParamIndexing
 				}
 				FuncClosure struct {
-					typeName moq.ParamIndexing
-					pkgPath  moq.ParamIndexing
-					fn       moq.ParamIndexing
+					pkgPath moq.ParamIndexing
+					fn      moq.ParamIndexing
 				}
 				MockMethod struct {
-					typeName moq.ParamIndexing
-					fn       moq.ParamIndexing
+					fn moq.ParamIndexing
 				}
 				RecorderMethods struct {
-					typeName moq.ParamIndexing
-					fn       moq.ParamIndexing
+					fn moq.ParamIndexing
 				}
-				ResetMethod struct {
-					typeSpec moq.ParamIndexing
-					funcs    moq.ParamIndexing
-				}
-				AssertMethod struct {
-					typeSpec moq.ParamIndexing
-					funcs    moq.ParamIndexing
-				}
+				ResetMethod  struct{}
+				AssertMethod struct{}
 			}
 		}{parameterIndexing: struct {
-			BaseStruct struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
+			BaseStruct      struct{}
 			IsolationStruct struct {
-				typeName moq.ParamIndexing
-				suffix   moq.ParamIndexing
+				suffix moq.ParamIndexing
 			}
 			MethodStructs struct {
-				typeSpec moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
-			NewFunc struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
+			NewFunc           struct{}
 			IsolationAccessor struct {
-				typeName moq.ParamIndexing
-				suffix   moq.ParamIndexing
-				fnName   moq.ParamIndexing
+				suffix moq.ParamIndexing
+				fnName moq.ParamIndexing
 			}
 			FuncClosure struct {
-				typeName moq.ParamIndexing
-				pkgPath  moq.ParamIndexing
-				fn       moq.ParamIndexing
+				pkgPath moq.ParamIndexing
+				fn      moq.ParamIndexing
 			}
 			MockMethod struct {
-				typeName moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
 			RecorderMethods struct {
-				typeName moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
-			ResetMethod struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
-			AssertMethod struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}
+			ResetMethod  struct{}
+			AssertMethod struct{}
 		}{
-			BaseStruct: struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}{
-				typeSpec: moq.ParamIndexByHash,
-				funcs:    moq.ParamIndexByHash,
-			},
+			BaseStruct: struct{}{},
 			IsolationStruct: struct {
-				typeName moq.ParamIndexing
-				suffix   moq.ParamIndexing
+				suffix moq.ParamIndexing
 			}{
-				typeName: moq.ParamIndexByValue,
-				suffix:   moq.ParamIndexByValue,
+				suffix: moq.ParamIndexByValue,
 			},
 			MethodStructs: struct {
-				typeSpec moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}{
-				typeSpec: moq.ParamIndexByHash,
-				fn:       moq.ParamIndexByHash,
+				fn: moq.ParamIndexByHash,
 			},
-			NewFunc: struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}{
-				typeSpec: moq.ParamIndexByHash,
-				funcs:    moq.ParamIndexByHash,
-			},
+			NewFunc: struct{}{},
 			IsolationAccessor: struct {
-				typeName moq.ParamIndexing
-				suffix   moq.ParamIndexing
-				fnName   moq.ParamIndexing
+				suffix moq.ParamIndexing
+				fnName moq.ParamIndexing
 			}{
-				typeName: moq.ParamIndexByValue,
-				suffix:   moq.ParamIndexByValue,
-				fnName:   moq.ParamIndexByValue,
+				suffix: moq.ParamIndexByValue,
+				fnName: moq.ParamIndexByValue,
 			},
 			FuncClosure: struct {
-				typeName moq.ParamIndexing
-				pkgPath  moq.ParamIndexing
-				fn       moq.ParamIndexing
+				pkgPath moq.ParamIndexing
+				fn      moq.ParamIndexing
 			}{
-				typeName: moq.ParamIndexByValue,
-				pkgPath:  moq.ParamIndexByValue,
-				fn:       moq.ParamIndexByHash,
+				pkgPath: moq.ParamIndexByValue,
+				fn:      moq.ParamIndexByHash,
 			},
 			MockMethod: struct {
-				typeName moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}{
-				typeName: moq.ParamIndexByValue,
-				fn:       moq.ParamIndexByHash,
+				fn: moq.ParamIndexByHash,
 			},
 			RecorderMethods: struct {
-				typeName moq.ParamIndexing
-				fn       moq.ParamIndexing
+				fn moq.ParamIndexing
 			}{
-				typeName: moq.ParamIndexByValue,
-				fn:       moq.ParamIndexByHash,
+				fn: moq.ParamIndexByHash,
 			},
-			ResetMethod: struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}{
-				typeSpec: moq.ParamIndexByHash,
-				funcs:    moq.ParamIndexByHash,
-			},
-			AssertMethod: struct {
-				typeSpec moq.ParamIndexing
-				funcs    moq.ParamIndexing
-			}{
-				typeSpec: moq.ParamIndexByHash,
-				funcs:    moq.ParamIndexByHash,
-			},
+			ResetMethod:  struct{}{},
+			AssertMethod: struct{}{},
 		}},
 	}
 	m.moq.moq = m
@@ -824,11 +683,8 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 // mock returns the mock implementation of the Converterer type
 func (m *moqConverterer) mock() *moqConverterer_mock { return m.moq }
 
-func (m *moqConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generator.Func) (structDecl *dst.GenDecl) {
-	params := moqConverterer_BaseStruct_params{
-		typeSpec: typeSpec,
-		funcs:    funcs,
-	}
+func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
+	params := moqConverterer_BaseStruct_params{}
 	var results *moqConverterer_BaseStruct_results
 	for _, resultsByParams := range m.moq.resultsByParams_BaseStruct {
 		paramsKey := m.moq.paramsKey_BaseStruct(params, resultsByParams.anyParams)
@@ -865,22 +721,21 @@ func (m *moqConverterer_mock) BaseStruct(typeSpec *dst.TypeSpec, funcs []generat
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeSpec, funcs)
+		result.doFn()
 	}
 
 	if result.values != nil {
 		structDecl = result.values.structDecl
 	}
 	if result.doReturnFn != nil {
-		structDecl = result.doReturnFn(typeSpec, funcs)
+		structDecl = result.doReturnFn()
 	}
 	return
 }
 
-func (m *moqConverterer_mock) IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl) {
+func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.GenDecl) {
 	params := moqConverterer_IsolationStruct_params{
-		typeName: typeName,
-		suffix:   suffix,
+		suffix: suffix,
 	}
 	var results *moqConverterer_IsolationStruct_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsolationStruct {
@@ -918,22 +773,21 @@ func (m *moqConverterer_mock) IsolationStruct(typeName, suffix string) (structDe
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeName, suffix)
+		result.doFn(suffix)
 	}
 
 	if result.values != nil {
 		structDecl = result.values.structDecl
 	}
 	if result.doReturnFn != nil {
-		structDecl = result.doReturnFn(typeName, suffix)
+		structDecl = result.doReturnFn(suffix)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) (structDecls []dst.Decl, err error) {
+func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []dst.Decl, err error) {
 	params := moqConverterer_MethodStructs_params{
-		typeSpec: typeSpec,
-		fn:       fn,
+		fn: fn,
 	}
 	var results *moqConverterer_MethodStructs_results
 	for _, resultsByParams := range m.moq.resultsByParams_MethodStructs {
@@ -971,7 +825,7 @@ func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeSpec, fn)
+		result.doFn(fn)
 	}
 
 	if result.values != nil {
@@ -979,16 +833,13 @@ func (m *moqConverterer_mock) MethodStructs(typeSpec *dst.TypeSpec, fn generator
 		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		structDecls, err = result.doReturnFn(typeSpec, fn)
+		structDecls, err = result.doReturnFn(fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
-	params := moqConverterer_NewFunc_params{
-		typeSpec: typeSpec,
-		funcs:    funcs,
-	}
+func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
+	params := moqConverterer_NewFunc_params{}
 	var results *moqConverterer_NewFunc_results
 	for _, resultsByParams := range m.moq.resultsByParams_NewFunc {
 		paramsKey := m.moq.paramsKey_NewFunc(params, resultsByParams.anyParams)
@@ -1025,23 +876,22 @@ func (m *moqConverterer_mock) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeSpec, funcs)
+		result.doFn()
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeSpec, funcs)
+		funcDecl = result.doReturnFn()
 	}
 	return
 }
 
-func (m *moqConverterer_mock) IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl) {
 	params := moqConverterer_IsolationAccessor_params{
-		typeName: typeName,
-		suffix:   suffix,
-		fnName:   fnName,
+		suffix: suffix,
+		fnName: fnName,
 	}
 	var results *moqConverterer_IsolationAccessor_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsolationAccessor {
@@ -1079,23 +929,22 @@ func (m *moqConverterer_mock) IsolationAccessor(typeName, suffix, fnName string)
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeName, suffix, fnName)
+		result.doFn(suffix, fnName)
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeName, suffix, fnName)
+		funcDecl = result.doReturnFn(suffix, fnName)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) FuncClosure(pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl) {
 	params := moqConverterer_FuncClosure_params{
-		typeName: typeName,
-		pkgPath:  pkgPath,
-		fn:       fn,
+		pkgPath: pkgPath,
+		fn:      fn,
 	}
 	var results *moqConverterer_FuncClosure_results
 	for _, resultsByParams := range m.moq.resultsByParams_FuncClosure {
@@ -1133,22 +982,21 @@ func (m *moqConverterer_mock) FuncClosure(typeName, pkgPath string, fn generator
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeName, pkgPath, fn)
+		result.doFn(pkgPath, fn)
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeName, pkgPath, fn)
+		funcDecl = result.doReturnFn(pkgPath, fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) MockMethod(typeName string, fn generator.Func) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncDecl) {
 	params := moqConverterer_MockMethod_params{
-		typeName: typeName,
-		fn:       fn,
+		fn: fn,
 	}
 	var results *moqConverterer_MockMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_MockMethod {
@@ -1186,22 +1034,21 @@ func (m *moqConverterer_mock) MockMethod(typeName string, fn generator.Func) (fu
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeName, fn)
+		result.doFn(fn)
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeName, fn)
+		funcDecl = result.doReturnFn(fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) RecorderMethods(typeName string, fn generator.Func) (funcDecls []dst.Decl) {
+func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []dst.Decl) {
 	params := moqConverterer_RecorderMethods_params{
-		typeName: typeName,
-		fn:       fn,
+		fn: fn,
 	}
 	var results *moqConverterer_RecorderMethods_results
 	for _, resultsByParams := range m.moq.resultsByParams_RecorderMethods {
@@ -1239,23 +1086,20 @@ func (m *moqConverterer_mock) RecorderMethods(typeName string, fn generator.Func
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeName, fn)
+		result.doFn(fn)
 	}
 
 	if result.values != nil {
 		funcDecls = result.values.funcDecls
 	}
 	if result.doReturnFn != nil {
-		funcDecls = result.doReturnFn(typeName, fn)
+		funcDecls = result.doReturnFn(fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
-	params := moqConverterer_ResetMethod_params{
-		typeSpec: typeSpec,
-		funcs:    funcs,
-	}
+func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
+	params := moqConverterer_ResetMethod_params{}
 	var results *moqConverterer_ResetMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_ResetMethod {
 		paramsKey := m.moq.paramsKey_ResetMethod(params, resultsByParams.anyParams)
@@ -1292,23 +1136,20 @@ func (m *moqConverterer_mock) ResetMethod(typeSpec *dst.TypeSpec, funcs []genera
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeSpec, funcs)
+		result.doFn()
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeSpec, funcs)
+		funcDecl = result.doReturnFn()
 	}
 	return
 }
 
-func (m *moqConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) (funcDecl *dst.FuncDecl) {
-	params := moqConverterer_AssertMethod_params{
-		typeSpec: typeSpec,
-		funcs:    funcs,
-	}
+func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
+	params := moqConverterer_AssertMethod_params{}
 	var results *moqConverterer_AssertMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_AssertMethod {
 		paramsKey := m.moq.paramsKey_AssertMethod(params, resultsByParams.anyParams)
@@ -1345,14 +1186,14 @@ func (m *moqConverterer_mock) AssertMethod(typeSpec *dst.TypeSpec, funcs []gener
 	}
 
 	if result.doFn != nil {
-		result.doFn(typeSpec, funcs)
+		result.doFn()
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(typeSpec, funcs)
+		funcDecl = result.doReturnFn()
 	}
 	return
 }
@@ -1364,12 +1205,9 @@ func (m *moqConverterer) onCall() *moqConverterer_recorder {
 	}
 }
 
-func (m *moqConverterer_recorder) BaseStruct(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_BaseStruct_fnRecorder {
+func (m *moqConverterer_recorder) BaseStruct() *moqConverterer_BaseStruct_fnRecorder {
 	return &moqConverterer_BaseStruct_fnRecorder{
-		params: moqConverterer_BaseStruct_params{
-			typeSpec: typeSpec,
-			funcs:    funcs,
-		},
+		params:   moqConverterer_BaseStruct_params{},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
 	}
@@ -1381,16 +1219,6 @@ func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_
 		return nil
 	}
 	return &moqConverterer_BaseStruct_anyParams{recorder: r}
-}
-
-func (a *moqConverterer_BaseStruct_anyParams) typeSpec() *moqConverterer_BaseStruct_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
-func (a *moqConverterer_BaseStruct_anyParams) funcs() *moqConverterer_BaseStruct_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
-	return a.recorder
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_fnRecorder {
@@ -1535,41 +1363,16 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 }
 
 func (m *moqConverterer) paramsKey_BaseStruct(params moqConverterer_BaseStruct_params, anyParams uint64) moqConverterer_BaseStruct_paramsKey {
-	var typeSpecUsed *dst.TypeSpec
-	var typeSpecUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.BaseStruct.typeSpec == moq.ParamIndexByValue {
-			typeSpecUsed = params.typeSpec
-		} else {
-			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
-		}
-	}
-	var funcsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.BaseStruct.funcs == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The funcs parameter of the BaseStruct function can't be indexed by value")
-		}
-		funcsUsedHash = hash.DeepHash(params.funcs)
-	}
 	return moqConverterer_BaseStruct_paramsKey{
-		params: struct{ typeSpec *dst.TypeSpec }{
-			typeSpec: typeSpecUsed,
-		},
-		hashes: struct {
-			typeSpec hash.Hash
-			funcs    hash.Hash
-		}{
-			typeSpec: typeSpecUsedHash,
-			funcs:    funcsUsedHash,
-		},
+		params: struct{}{},
+		hashes: struct{}{},
 	}
 }
 
-func (m *moqConverterer_recorder) IsolationStruct(typeName, suffix string) *moqConverterer_IsolationStruct_fnRecorder {
+func (m *moqConverterer_recorder) IsolationStruct(suffix string) *moqConverterer_IsolationStruct_fnRecorder {
 	return &moqConverterer_IsolationStruct_fnRecorder{
 		params: moqConverterer_IsolationStruct_params{
-			typeName: typeName,
-			suffix:   suffix,
+			suffix: suffix,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1584,13 +1387,8 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) any() *moqConverterer_Isolat
 	return &moqConverterer_IsolationStruct_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_IsolationStruct_anyParams) typeName() *moqConverterer_IsolationStruct_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
 func (a *moqConverterer_IsolationStruct_anyParams) suffix() *moqConverterer_IsolationStruct_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
@@ -1736,18 +1534,9 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 }
 
 func (m *moqConverterer) paramsKey_IsolationStruct(params moqConverterer_IsolationStruct_params, anyParams uint64) moqConverterer_IsolationStruct_paramsKey {
-	var typeNameUsed string
-	var typeNameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.IsolationStruct.typeName == moq.ParamIndexByValue {
-			typeNameUsed = params.typeName
-		} else {
-			typeNameUsedHash = hash.DeepHash(params.typeName)
-		}
-	}
 	var suffixUsed string
 	var suffixUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.IsolationStruct.suffix == moq.ParamIndexByValue {
 			suffixUsed = params.suffix
 		} else {
@@ -1755,22 +1544,19 @@ func (m *moqConverterer) paramsKey_IsolationStruct(params moqConverterer_Isolati
 		}
 	}
 	return moqConverterer_IsolationStruct_paramsKey{
-		params: struct{ typeName, suffix string }{
-			typeName: typeNameUsed,
-			suffix:   suffixUsed,
+		params: struct{ suffix string }{
+			suffix: suffixUsed,
 		},
-		hashes: struct{ typeName, suffix hash.Hash }{
-			typeName: typeNameUsedHash,
-			suffix:   suffixUsedHash,
+		hashes: struct{ suffix hash.Hash }{
+			suffix: suffixUsedHash,
 		},
 	}
 }
 
-func (m *moqConverterer_recorder) MethodStructs(typeSpec *dst.TypeSpec, fn generator.Func) *moqConverterer_MethodStructs_fnRecorder {
+func (m *moqConverterer_recorder) MethodStructs(fn generator.Func) *moqConverterer_MethodStructs_fnRecorder {
 	return &moqConverterer_MethodStructs_fnRecorder{
 		params: moqConverterer_MethodStructs_params{
-			typeSpec: typeSpec,
-			fn:       fn,
+			fn: fn,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1785,13 +1571,8 @@ func (r *moqConverterer_MethodStructs_fnRecorder) any() *moqConverterer_MethodSt
 	return &moqConverterer_MethodStructs_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_MethodStructs_anyParams) typeSpec() *moqConverterer_MethodStructs_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
 func (a *moqConverterer_MethodStructs_anyParams) fn() *moqConverterer_MethodStructs_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
@@ -1954,18 +1735,9 @@ func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeat
 }
 
 func (m *moqConverterer) paramsKey_MethodStructs(params moqConverterer_MethodStructs_params, anyParams uint64) moqConverterer_MethodStructs_paramsKey {
-	var typeSpecUsed *dst.TypeSpec
-	var typeSpecUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.MethodStructs.typeSpec == moq.ParamIndexByValue {
-			typeSpecUsed = params.typeSpec
-		} else {
-			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
-		}
-	}
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.MethodStructs.fn == moq.ParamIndexByValue {
 			fnUsed = params.fn
 		} else {
@@ -1973,29 +1745,18 @@ func (m *moqConverterer) paramsKey_MethodStructs(params moqConverterer_MethodStr
 		}
 	}
 	return moqConverterer_MethodStructs_paramsKey{
-		params: struct {
-			typeSpec *dst.TypeSpec
-			fn       generator.Func
-		}{
-			typeSpec: typeSpecUsed,
-			fn:       fnUsed,
+		params: struct{ fn generator.Func }{
+			fn: fnUsed,
 		},
-		hashes: struct {
-			typeSpec hash.Hash
-			fn       hash.Hash
-		}{
-			typeSpec: typeSpecUsedHash,
-			fn:       fnUsedHash,
+		hashes: struct{ fn hash.Hash }{
+			fn: fnUsedHash,
 		},
 	}
 }
 
-func (m *moqConverterer_recorder) NewFunc(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_NewFunc_fnRecorder {
+func (m *moqConverterer_recorder) NewFunc() *moqConverterer_NewFunc_fnRecorder {
 	return &moqConverterer_NewFunc_fnRecorder{
-		params: moqConverterer_NewFunc_params{
-			typeSpec: typeSpec,
-			funcs:    funcs,
-		},
+		params:   moqConverterer_NewFunc_params{},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
 	}
@@ -2007,16 +1768,6 @@ func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyPar
 		return nil
 	}
 	return &moqConverterer_NewFunc_anyParams{recorder: r}
-}
-
-func (a *moqConverterer_NewFunc_anyParams) typeSpec() *moqConverterer_NewFunc_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
-func (a *moqConverterer_NewFunc_anyParams) funcs() *moqConverterer_NewFunc_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
-	return a.recorder
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) seq() *moqConverterer_NewFunc_fnRecorder {
@@ -2161,42 +1912,17 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 }
 
 func (m *moqConverterer) paramsKey_NewFunc(params moqConverterer_NewFunc_params, anyParams uint64) moqConverterer_NewFunc_paramsKey {
-	var typeSpecUsed *dst.TypeSpec
-	var typeSpecUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.NewFunc.typeSpec == moq.ParamIndexByValue {
-			typeSpecUsed = params.typeSpec
-		} else {
-			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
-		}
-	}
-	var funcsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.NewFunc.funcs == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The funcs parameter of the NewFunc function can't be indexed by value")
-		}
-		funcsUsedHash = hash.DeepHash(params.funcs)
-	}
 	return moqConverterer_NewFunc_paramsKey{
-		params: struct{ typeSpec *dst.TypeSpec }{
-			typeSpec: typeSpecUsed,
-		},
-		hashes: struct {
-			typeSpec hash.Hash
-			funcs    hash.Hash
-		}{
-			typeSpec: typeSpecUsedHash,
-			funcs:    funcsUsedHash,
-		},
+		params: struct{}{},
+		hashes: struct{}{},
 	}
 }
 
-func (m *moqConverterer_recorder) IsolationAccessor(typeName, suffix, fnName string) *moqConverterer_IsolationAccessor_fnRecorder {
+func (m *moqConverterer_recorder) IsolationAccessor(suffix, fnName string) *moqConverterer_IsolationAccessor_fnRecorder {
 	return &moqConverterer_IsolationAccessor_fnRecorder{
 		params: moqConverterer_IsolationAccessor_params{
-			typeName: typeName,
-			suffix:   suffix,
-			fnName:   fnName,
+			suffix: suffix,
+			fnName: fnName,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2211,18 +1937,13 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) any() *moqConverterer_Isol
 	return &moqConverterer_IsolationAccessor_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_IsolationAccessor_anyParams) typeName() *moqConverterer_IsolationAccessor_fnRecorder {
+func (a *moqConverterer_IsolationAccessor_anyParams) suffix() *moqConverterer_IsolationAccessor_fnRecorder {
 	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
-func (a *moqConverterer_IsolationAccessor_anyParams) suffix() *moqConverterer_IsolationAccessor_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
-	return a.recorder
-}
-
 func (a *moqConverterer_IsolationAccessor_anyParams) fnName() *moqConverterer_IsolationAccessor_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
 
@@ -2368,18 +2089,9 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 }
 
 func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_IsolationAccessor_params, anyParams uint64) moqConverterer_IsolationAccessor_paramsKey {
-	var typeNameUsed string
-	var typeNameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.IsolationAccessor.typeName == moq.ParamIndexByValue {
-			typeNameUsed = params.typeName
-		} else {
-			typeNameUsedHash = hash.DeepHash(params.typeName)
-		}
-	}
 	var suffixUsed string
 	var suffixUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.IsolationAccessor.suffix == moq.ParamIndexByValue {
 			suffixUsed = params.suffix
 		} else {
@@ -2388,7 +2100,7 @@ func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_Isola
 	}
 	var fnNameUsed string
 	var fnNameUsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
+	if anyParams&(1<<1) == 0 {
 		if m.runtime.parameterIndexing.IsolationAccessor.fnName == moq.ParamIndexByValue {
 			fnNameUsed = params.fnName
 		} else {
@@ -2396,25 +2108,22 @@ func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_Isola
 		}
 	}
 	return moqConverterer_IsolationAccessor_paramsKey{
-		params: struct{ typeName, suffix, fnName string }{
-			typeName: typeNameUsed,
-			suffix:   suffixUsed,
-			fnName:   fnNameUsed,
+		params: struct{ suffix, fnName string }{
+			suffix: suffixUsed,
+			fnName: fnNameUsed,
 		},
-		hashes: struct{ typeName, suffix, fnName hash.Hash }{
-			typeName: typeNameUsedHash,
-			suffix:   suffixUsedHash,
-			fnName:   fnNameUsedHash,
+		hashes: struct{ suffix, fnName hash.Hash }{
+			suffix: suffixUsedHash,
+			fnName: fnNameUsedHash,
 		},
 	}
 }
 
-func (m *moqConverterer_recorder) FuncClosure(typeName, pkgPath string, fn generator.Func) *moqConverterer_FuncClosure_fnRecorder {
+func (m *moqConverterer_recorder) FuncClosure(pkgPath string, fn generator.Func) *moqConverterer_FuncClosure_fnRecorder {
 	return &moqConverterer_FuncClosure_fnRecorder{
 		params: moqConverterer_FuncClosure_params{
-			typeName: typeName,
-			pkgPath:  pkgPath,
-			fn:       fn,
+			pkgPath: pkgPath,
+			fn:      fn,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2429,18 +2138,13 @@ func (r *moqConverterer_FuncClosure_fnRecorder) any() *moqConverterer_FuncClosur
 	return &moqConverterer_FuncClosure_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_FuncClosure_anyParams) typeName() *moqConverterer_FuncClosure_fnRecorder {
+func (a *moqConverterer_FuncClosure_anyParams) pkgPath() *moqConverterer_FuncClosure_fnRecorder {
 	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
-func (a *moqConverterer_FuncClosure_anyParams) pkgPath() *moqConverterer_FuncClosure_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
-	return a.recorder
-}
-
 func (a *moqConverterer_FuncClosure_anyParams) fn() *moqConverterer_FuncClosure_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
 
@@ -2586,18 +2290,9 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 }
 
 func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure_params, anyParams uint64) moqConverterer_FuncClosure_paramsKey {
-	var typeNameUsed string
-	var typeNameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.FuncClosure.typeName == moq.ParamIndexByValue {
-			typeNameUsed = params.typeName
-		} else {
-			typeNameUsedHash = hash.DeepHash(params.typeName)
-		}
-	}
 	var pkgPathUsed string
 	var pkgPathUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.FuncClosure.pkgPath == moq.ParamIndexByValue {
 			pkgPathUsed = params.pkgPath
 		} else {
@@ -2606,7 +2301,7 @@ func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure
 	}
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
+	if anyParams&(1<<1) == 0 {
 		if m.runtime.parameterIndexing.FuncClosure.fn == moq.ParamIndexByValue {
 			fnUsed = params.fn
 		} else {
@@ -2615,29 +2310,26 @@ func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure
 	}
 	return moqConverterer_FuncClosure_paramsKey{
 		params: struct {
-			typeName, pkgPath string
-			fn                generator.Func
+			pkgPath string
+			fn      generator.Func
 		}{
-			typeName: typeNameUsed,
-			pkgPath:  pkgPathUsed,
-			fn:       fnUsed,
+			pkgPath: pkgPathUsed,
+			fn:      fnUsed,
 		},
 		hashes: struct {
-			typeName, pkgPath hash.Hash
-			fn                hash.Hash
+			pkgPath hash.Hash
+			fn      hash.Hash
 		}{
-			typeName: typeNameUsedHash,
-			pkgPath:  pkgPathUsedHash,
-			fn:       fnUsedHash,
+			pkgPath: pkgPathUsedHash,
+			fn:      fnUsedHash,
 		},
 	}
 }
 
-func (m *moqConverterer_recorder) MockMethod(typeName string, fn generator.Func) *moqConverterer_MockMethod_fnRecorder {
+func (m *moqConverterer_recorder) MockMethod(fn generator.Func) *moqConverterer_MockMethod_fnRecorder {
 	return &moqConverterer_MockMethod_fnRecorder{
 		params: moqConverterer_MockMethod_params{
-			typeName: typeName,
-			fn:       fn,
+			fn: fn,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2652,13 +2344,8 @@ func (r *moqConverterer_MockMethod_fnRecorder) any() *moqConverterer_MockMethod_
 	return &moqConverterer_MockMethod_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_MockMethod_anyParams) typeName() *moqConverterer_MockMethod_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
 func (a *moqConverterer_MockMethod_anyParams) fn() *moqConverterer_MockMethod_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
@@ -2804,18 +2491,9 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 }
 
 func (m *moqConverterer) paramsKey_MockMethod(params moqConverterer_MockMethod_params, anyParams uint64) moqConverterer_MockMethod_paramsKey {
-	var typeNameUsed string
-	var typeNameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.MockMethod.typeName == moq.ParamIndexByValue {
-			typeNameUsed = params.typeName
-		} else {
-			typeNameUsedHash = hash.DeepHash(params.typeName)
-		}
-	}
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.MockMethod.fn == moq.ParamIndexByValue {
 			fnUsed = params.fn
 		} else {
@@ -2823,28 +2501,19 @@ func (m *moqConverterer) paramsKey_MockMethod(params moqConverterer_MockMethod_p
 		}
 	}
 	return moqConverterer_MockMethod_paramsKey{
-		params: struct {
-			typeName string
-			fn       generator.Func
-		}{
-			typeName: typeNameUsed,
-			fn:       fnUsed,
+		params: struct{ fn generator.Func }{
+			fn: fnUsed,
 		},
-		hashes: struct {
-			typeName hash.Hash
-			fn       hash.Hash
-		}{
-			typeName: typeNameUsedHash,
-			fn:       fnUsedHash,
+		hashes: struct{ fn hash.Hash }{
+			fn: fnUsedHash,
 		},
 	}
 }
 
-func (m *moqConverterer_recorder) RecorderMethods(typeName string, fn generator.Func) *moqConverterer_RecorderMethods_fnRecorder {
+func (m *moqConverterer_recorder) RecorderMethods(fn generator.Func) *moqConverterer_RecorderMethods_fnRecorder {
 	return &moqConverterer_RecorderMethods_fnRecorder{
 		params: moqConverterer_RecorderMethods_params{
-			typeName: typeName,
-			fn:       fn,
+			fn: fn,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2859,13 +2528,8 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) any() *moqConverterer_Record
 	return &moqConverterer_RecorderMethods_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_RecorderMethods_anyParams) typeName() *moqConverterer_RecorderMethods_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
 func (a *moqConverterer_RecorderMethods_anyParams) fn() *moqConverterer_RecorderMethods_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
@@ -3011,18 +2675,9 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 }
 
 func (m *moqConverterer) paramsKey_RecorderMethods(params moqConverterer_RecorderMethods_params, anyParams uint64) moqConverterer_RecorderMethods_paramsKey {
-	var typeNameUsed string
-	var typeNameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.RecorderMethods.typeName == moq.ParamIndexByValue {
-			typeNameUsed = params.typeName
-		} else {
-			typeNameUsedHash = hash.DeepHash(params.typeName)
-		}
-	}
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.RecorderMethods.fn == moq.ParamIndexByValue {
 			fnUsed = params.fn
 		} else {
@@ -3030,29 +2685,18 @@ func (m *moqConverterer) paramsKey_RecorderMethods(params moqConverterer_Recorde
 		}
 	}
 	return moqConverterer_RecorderMethods_paramsKey{
-		params: struct {
-			typeName string
-			fn       generator.Func
-		}{
-			typeName: typeNameUsed,
-			fn:       fnUsed,
+		params: struct{ fn generator.Func }{
+			fn: fnUsed,
 		},
-		hashes: struct {
-			typeName hash.Hash
-			fn       hash.Hash
-		}{
-			typeName: typeNameUsedHash,
-			fn:       fnUsedHash,
+		hashes: struct{ fn hash.Hash }{
+			fn: fnUsedHash,
 		},
 	}
 }
 
-func (m *moqConverterer_recorder) ResetMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_ResetMethod_fnRecorder {
+func (m *moqConverterer_recorder) ResetMethod() *moqConverterer_ResetMethod_fnRecorder {
 	return &moqConverterer_ResetMethod_fnRecorder{
-		params: moqConverterer_ResetMethod_params{
-			typeSpec: typeSpec,
-			funcs:    funcs,
-		},
+		params:   moqConverterer_ResetMethod_params{},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
 	}
@@ -3064,16 +2708,6 @@ func (r *moqConverterer_ResetMethod_fnRecorder) any() *moqConverterer_ResetMetho
 		return nil
 	}
 	return &moqConverterer_ResetMethod_anyParams{recorder: r}
-}
-
-func (a *moqConverterer_ResetMethod_anyParams) typeSpec() *moqConverterer_ResetMethod_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
-func (a *moqConverterer_ResetMethod_anyParams) funcs() *moqConverterer_ResetMethod_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
-	return a.recorder
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) seq() *moqConverterer_ResetMethod_fnRecorder {
@@ -3218,42 +2852,15 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 }
 
 func (m *moqConverterer) paramsKey_ResetMethod(params moqConverterer_ResetMethod_params, anyParams uint64) moqConverterer_ResetMethod_paramsKey {
-	var typeSpecUsed *dst.TypeSpec
-	var typeSpecUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.ResetMethod.typeSpec == moq.ParamIndexByValue {
-			typeSpecUsed = params.typeSpec
-		} else {
-			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
-		}
-	}
-	var funcsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.ResetMethod.funcs == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The funcs parameter of the ResetMethod function can't be indexed by value")
-		}
-		funcsUsedHash = hash.DeepHash(params.funcs)
-	}
 	return moqConverterer_ResetMethod_paramsKey{
-		params: struct{ typeSpec *dst.TypeSpec }{
-			typeSpec: typeSpecUsed,
-		},
-		hashes: struct {
-			typeSpec hash.Hash
-			funcs    hash.Hash
-		}{
-			typeSpec: typeSpecUsedHash,
-			funcs:    funcsUsedHash,
-		},
+		params: struct{}{},
+		hashes: struct{}{},
 	}
 }
 
-func (m *moqConverterer_recorder) AssertMethod(typeSpec *dst.TypeSpec, funcs []generator.Func) *moqConverterer_AssertMethod_fnRecorder {
+func (m *moqConverterer_recorder) AssertMethod() *moqConverterer_AssertMethod_fnRecorder {
 	return &moqConverterer_AssertMethod_fnRecorder{
-		params: moqConverterer_AssertMethod_params{
-			typeSpec: typeSpec,
-			funcs:    funcs,
-		},
+		params:   moqConverterer_AssertMethod_params{},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
 	}
@@ -3265,16 +2872,6 @@ func (r *moqConverterer_AssertMethod_fnRecorder) any() *moqConverterer_AssertMet
 		return nil
 	}
 	return &moqConverterer_AssertMethod_anyParams{recorder: r}
-}
-
-func (a *moqConverterer_AssertMethod_anyParams) typeSpec() *moqConverterer_AssertMethod_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
-func (a *moqConverterer_AssertMethod_anyParams) funcs() *moqConverterer_AssertMethod_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
-	return a.recorder
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) seq() *moqConverterer_AssertMethod_fnRecorder {
@@ -3419,33 +3016,9 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 }
 
 func (m *moqConverterer) paramsKey_AssertMethod(params moqConverterer_AssertMethod_params, anyParams uint64) moqConverterer_AssertMethod_paramsKey {
-	var typeSpecUsed *dst.TypeSpec
-	var typeSpecUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.AssertMethod.typeSpec == moq.ParamIndexByValue {
-			typeSpecUsed = params.typeSpec
-		} else {
-			typeSpecUsedHash = hash.DeepHash(params.typeSpec)
-		}
-	}
-	var funcsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.AssertMethod.funcs == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The funcs parameter of the AssertMethod function can't be indexed by value")
-		}
-		funcsUsedHash = hash.DeepHash(params.funcs)
-	}
 	return moqConverterer_AssertMethod_paramsKey{
-		params: struct{ typeSpec *dst.TypeSpec }{
-			typeSpec: typeSpecUsed,
-		},
-		hashes: struct {
-			typeSpec hash.Hash
-			funcs    hash.Hash
-		}{
-			typeSpec: typeSpecUsedHash,
-			funcs:    funcsUsedHash,
-		},
+		params: struct{}{},
+		hashes: struct{}{},
 	}
 }
 
