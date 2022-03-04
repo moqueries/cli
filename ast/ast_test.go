@@ -144,47 +144,43 @@ func TestLoadTypes(t *testing.T) {
 			}
 		}
 		if len(iTypes) != 1 {
-			t.Errorf("got %d, wanted 1", len(iTypes))
+			t.Fatalf("got %d, wanted 1", len(iTypes))
 		}
 		expectedPkgPath := "github.com/myshkin5/moqueries/generator"
 		if pkgPath != expectedPkgPath {
 			t.Errorf("got %s, wanted %s", pkgPath, expectedPkgPath)
 		}
 
-		var baseStruct *dst.FuncType
-		if len(iTypes) > 0 {
-			iType, ok := iTypes[0].Type.(*dst.InterfaceType)
-			if !ok {
-				t.Fatalf("wanted an interface type, got %#v", iTypes[0].Type)
-			}
-			for _, field := range iType.Methods.List {
-				if field.Names[0].Name == "BaseStruct" {
-					baseStruct, ok = field.Type.(*dst.FuncType)
-					if !ok {
-						t.Fatalf("wanted a function type, got %#v", field.Type)
-					}
+		var fnType *dst.FuncType
+		iType, ok := iTypes[0].Type.(*dst.InterfaceType)
+		if !ok {
+			t.Fatalf("wanted an interface type, got %#v", iTypes[0].Type)
+		}
+		for _, field := range iType.Methods.List {
+			if field.Names[0].Name == "MockMethod" {
+				fnType, ok = field.Type.(*dst.FuncType)
+				if !ok {
+					t.Fatalf("wanted a function type, got %#v", field.Type)
 				}
 			}
 		}
-		if baseStruct == nil {
+		if fnType == nil {
 			t.Fatalf("got nil, wanted not nil")
 		}
 
-		paramIdent := baseStruct.Params.List[1].Names[0].Name
-		if paramIdent != "funcs" {
-			t.Errorf("got %s, wanted funcs", paramIdent)
+		paramIdent := fnType.Params.List[0].Names[0].Name
+		if paramIdent != "fn" {
+			t.Errorf("got %s, wanted typ", paramIdent)
 		}
-		aType, ok := baseStruct.Params.List[1].Type.(*dst.ArrayType)
+		idType, ok := fnType.Params.List[0].Type.(*dst.Ident)
 		if !ok {
-			t.Fatalf("wanted an array type, got %#v", baseStruct.Params.List[1].Type)
+			t.Fatalf("wanted an ident type, got %#v", fnType.Params.List[0].Type)
 		}
-		funcIdent, ok := aType.Elt.(*dst.Ident)
-		if !ok {
-			t.Fatalf("wanted an identifier, got %#v", aType.Elt)
+		if idType.Name != "Func" {
+			t.Errorf("got %s, wanted Type", idType.Name)
 		}
-		expectedPath := "github.com/myshkin5/moqueries/generator"
-		if funcIdent.Path != expectedPath {
-			t.Errorf("got %s, wanted %s", funcIdent, expectedPath)
+		if idType.Path != expectedPkgPath {
+			t.Errorf("got %s, wanted %s", idType.Path, expectedPkgPath)
 		}
 	})
 
@@ -206,6 +202,7 @@ func TestLoadTypes(t *testing.T) {
 
 	t.Run("loads test types", func(t *testing.T) {
 		// ASSEMBLE
+		var _ TestFn = func() {}
 
 		// ACT
 		typs, pkgPath, err := ast.LoadTypes("github.com/myshkin5/moqueries/ast", true)

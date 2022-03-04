@@ -19,30 +19,38 @@ const (
 	testPkgSuffix = "_test"
 )
 
+// Type describes the type being converted into a mock
+type Type struct {
+	TypeSpec *dst.TypeSpec
+	Funcs    []Func
+}
+
+//go:generate moqueries NewConverterFunc
+
+// NewConverterFunc creates a new converter for a specific type
+type NewConverterFunc func(typ Type, export bool) Converterer
+
 //go:generate moqueries Converterer
 
 // Converterer is the interface used by MoqGenerator to invoke a Converter
 type Converterer interface {
-	BaseStruct(typeSpec *dst.TypeSpec, funcs []Func) (structDecl *dst.GenDecl)
-	IsolationStruct(typeName, suffix string) (structDecl *dst.GenDecl)
-	MethodStructs(typeSpec *dst.TypeSpec, fn Func) (structDecls []dst.Decl, err error)
-	NewFunc(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
-	IsolationAccessor(typeName, suffix, fnName string) (funcDecl *dst.FuncDecl)
-	FuncClosure(typeName, pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
-	MockMethod(typeName string, fn Func) (funcDecl *dst.FuncDecl)
-	RecorderMethods(typeName string, fn Func) (funcDecls []dst.Decl)
-	ResetMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
-	AssertMethod(typeSpec *dst.TypeSpec, funcs []Func) (funcDecl *dst.FuncDecl)
+	BaseStruct() (structDecl *dst.GenDecl)
+	IsolationStruct(suffix string) (structDecl *dst.GenDecl)
+	MethodStructs(fn Func) (structDecls []dst.Decl, err error)
+	NewFunc() (funcDecl *dst.FuncDecl)
+	IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl)
+	FuncClosure(pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
+	MockMethod(fn Func) (funcDecl *dst.FuncDecl)
+	RecorderMethods(fn Func) (funcDecls []dst.Decl)
+	ResetMethod() (funcDecl *dst.FuncDecl)
+	AssertMethod() (funcDecl *dst.FuncDecl)
 }
 
 // MoqGenerator generates moqs
 type MoqGenerator struct {
-	export        bool
-	pkg           string
-	dest          string
-	findPackageFn FindPackageFn
-	typeCache     TypeCache
-	converter     Converterer
+	findPackageFn  FindPackageFn
+	typeCache      TypeCache
+	newConverterFn NewConverterFunc
 }
 
 //go:generate moqueries TypeCache
@@ -60,38 +68,25 @@ type TypeCache interface {
 type FindPackageFn func(pattern string) (pkg string, err error)
 
 // New returns a new MoqGenerator
-func New(
-	export bool,
-	pkg, dest string,
-	findPackageFn FindPackageFn,
-	typeCache TypeCache,
-	converter Converterer,
-) *MoqGenerator {
+func New(findPackageFn FindPackageFn, typeCache TypeCache, newConverterFn NewConverterFunc) *MoqGenerator {
 	return &MoqGenerator{
-		export:        export,
-		pkg:           pkg,
-		dest:          dest,
-		findPackageFn: findPackageFn,
-		typeCache:     typeCache,
-		converter:     converter,
+		findPackageFn:  findPackageFn,
+		typeCache:      typeCache,
+		newConverterFn: newConverterFn,
 	}
 }
 
 // Generate generates moqs for the given types in the given destination package
-func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool) (
-	*token.FileSet,
-	*dst.File,
-	error,
-) {
-	pkg, err := g.defaultPackage()
+func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File, error) {
+	pkg, err := g.defaultPackage(req)
 	if err != nil {
 		return nil, nil, err
 	}
 	fSet, file := initializeFile(pkg)
 
 	var decls []dst.Decl
-	for _, inType := range inTypes {
-		typeSpec, pkgPath, err := g.loadInType(inType, imp, loadTestTypes)
+	for _, inType := range req.Types {
+		typeSpec, pkgPath, err := g.loadInType(inType, req.Import, req.TestImport)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -101,34 +96,40 @@ func (g *MoqGenerator) Generate(inTypes []string, imp string, loadTestTypes bool
 			return nil, nil, tErr
 		}
 
-		structs, err := g.structs(typeSpec, funcs)
+		typ := Type{
+			TypeSpec: typeSpec,
+			Funcs:    funcs,
+		}
+		converter := g.newConverterFn(typ, req.Export)
+
+		structs, err := g.structs(converter, typ)
 		if err != nil {
 			return nil, nil, err
 		}
 		decls = append(decls, structs...)
 
-		decls = append(decls, g.converter.NewFunc(typeSpec, funcs))
+		decls = append(decls, converter.NewFunc())
 
-		decls = append(decls, g.methods(typeSpec, pkgPath, funcs)...)
+		decls = append(decls, g.methods(converter, typ, pkgPath, funcs)...)
 
-		decls = append(decls, g.converter.ResetMethod(typeSpec, funcs))
+		decls = append(decls, converter.ResetMethod())
 
-		decls = append(decls, g.converter.AssertMethod(typeSpec, funcs))
+		decls = append(decls, converter.AssertMethod())
 	}
 	file.Decls = decls
 
 	return fSet, file, nil
 }
 
-func (g *MoqGenerator) defaultPackage() (string, error) {
-	pkg := g.pkg
+func (g *MoqGenerator) defaultPackage(req GenerateRequest) (string, error) {
+	pkg := req.Package
 	if pkg == "" || pkg == "." {
 		var err error
-		pkg, err = g.findPackageFn(filepath.Dir(g.dest))
+		pkg, err = g.findPackageFn(filepath.Dir(req.Destination))
 		if err != nil {
 			return "", err
 		}
-		if !g.export {
+		if !req.Export {
 			pkg += testPkgSuffix
 		}
 	}
@@ -219,21 +220,20 @@ func (g *MoqGenerator) loadTypeEquivalent(funcs []Func, id *dst.Ident) ([]Func, 
 	return funcs, nil
 }
 
-func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) ([]dst.Decl, error) {
+func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, error) {
 	decls := []dst.Decl{
-		g.converter.BaseStruct(typeSpec, funcs),
-		g.converter.IsolationStruct(typeSpec.Name.Name, mockIdent),
+		converter.BaseStruct(),
+		converter.IsolationStruct(mockIdent),
 	}
 
-	_, iOk := typeSpec.Type.(*dst.InterfaceType)
-	_, aOk := typeSpec.Type.(*dst.Ident)
+	_, iOk := typ.TypeSpec.Type.(*dst.InterfaceType)
+	_, aOk := typ.TypeSpec.Type.(*dst.Ident)
 	if iOk || aOk {
-		decls = append(decls,
-			g.converter.IsolationStruct(typeSpec.Name.Name, recorderIdent))
+		decls = append(decls, converter.IsolationStruct(recorderIdent))
 	}
 
-	for _, fn := range funcs {
-		structs, err := g.converter.MethodStructs(typeSpec, fn)
+	for _, fn := range typ.Funcs {
+		structs, err := converter.MethodStructs(fn)
 		if err != nil {
 			return nil, err
 		}
@@ -244,28 +244,24 @@ func (g *MoqGenerator) structs(typeSpec *dst.TypeSpec, funcs []Func) ([]dst.Decl
 }
 
 func (g *MoqGenerator) methods(
-	typeSpec *dst.TypeSpec, pkgPath string, funcs []Func,
+	converter Converterer, typ Type, pkgPath string, funcs []Func,
 ) []dst.Decl {
 	var decls []dst.Decl
 
-	switch typeSpec.Type.(type) {
+	switch typ.TypeSpec.Type.(type) {
 	case *dst.InterfaceType, *dst.Ident:
 		decls = append(
-			decls, g.converter.IsolationAccessor(
-				typeSpec.Name.Name, mockIdent, mockFnName))
+			decls, converter.IsolationAccessor(mockIdent, mockFnName))
 
 		for _, fn := range funcs {
-			decls = append(
-				decls, g.converter.MockMethod(typeSpec.Name.Name, fn))
+			decls = append(decls, converter.MockMethod(fn))
 		}
 
 		decls = append(
-			decls, g.converter.IsolationAccessor(
-				typeSpec.Name.Name, recorderIdent, onCallFnName))
+			decls, converter.IsolationAccessor(recorderIdent, onCallFnName))
 
 		for _, fn := range funcs {
-			decls = append(
-				decls, g.converter.RecorderMethods(typeSpec.Name.Name, fn)...)
+			decls = append(decls, converter.RecorderMethods(fn)...)
 		}
 	case *dst.FuncType:
 		if len(funcs) != 1 {
@@ -274,18 +270,15 @@ func (g *MoqGenerator) methods(
 		}
 
 		decls = append(
-			decls, g.converter.FuncClosure(
-				typeSpec.Name.Name, pkgPath, funcs[0]))
+			decls, converter.FuncClosure(pkgPath, funcs[0]))
 
 		decls = append(
-			decls, g.converter.MockMethod(
-				typeSpec.Name.Name, funcs[0]))
+			decls, converter.MockMethod(funcs[0]))
 
 		decls = append(
-			decls, g.converter.RecorderMethods(
-				typeSpec.Name.Name, funcs[0])...)
+			decls, converter.RecorderMethods(funcs[0])...)
 	default:
-		logs.Panicf("Unknown type: %v", typeSpec.Type)
+		logs.Panicf("Unknown type: %v", typ.TypeSpec.Type)
 	}
 
 	return decls

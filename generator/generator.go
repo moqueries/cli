@@ -58,10 +58,12 @@ func generate(req GenerateRequest) error {
 	}
 
 	cache := ast.NewCache(ast.LoadTypes)
-	converter := NewConverter(req.Export, cache)
-	gen := New(req.Export, req.Package, req.Destination, ast.FindPackage, cache, converter)
+	newConverterFn := func(typ Type, export bool) Converterer {
+		return NewConverter(typ, export, cache)
+	}
+	gen := New(ast.FindPackage, cache, newConverterFn)
 
-	_, file, err := gen.Generate(req.Types, req.Import, req.TestImport)
+	_, file, err := gen.Generate(req)
 	if err != nil {
 		return fmt.Errorf("error generating moqs: %w", err)
 	}
