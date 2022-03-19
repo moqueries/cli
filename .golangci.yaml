@@ -12,9 +12,7 @@ linters:
   - ireturn
   - gochecknoglobals
   - gochecknoinits
-  - gocyclo
   - godot
-  - golint
   - maintidx
   - maligned
   - nlreturn
@@ -25,6 +23,8 @@ linters:
   - wsl
 
   # Consider enabling
+  - gocyclo
+  - golint
   - wrapcheck
 
 linters-settings:

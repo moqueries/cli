@@ -28,8 +28,6 @@ jobs:
           set -ux
           go build -o $GOPATH/bin/moqueries github.com/myshkin5/moqueries
           go generate ./...
-          # See https://github.com/myshkin5/moqueries/issues/7
-          git restore moq/moq_testing.go
 
     - run:
         name: Run tests
@@ -55,6 +53,7 @@ jobs:
         command: |
           set -ux
           git status
+          git diff
           [[ -z $(git status --short) ]] || (echo 'Untracked changes' && exit 1)
 
     - save_cache:
