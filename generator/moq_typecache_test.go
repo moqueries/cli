@@ -20,18 +20,22 @@ type moqTypeCache struct {
 	resultsByParams_Type                []moqTypeCache_Type_resultsByParams
 	resultsByParams_IsComparable        []moqTypeCache_IsComparable_resultsByParams
 	resultsByParams_IsDefaultComparable []moqTypeCache_IsDefaultComparable_resultsByParams
+	resultsByParams_FindPackage         []moqTypeCache_FindPackage_resultsByParams
 
 	runtime struct {
 		parameterIndexing struct {
 			Type struct {
-				id            moq.ParamIndexing
-				loadTestTypes moq.ParamIndexing
+				id           moq.ParamIndexing
+				loadTestPkgs moq.ParamIndexing
 			}
 			IsComparable struct {
 				expr moq.ParamIndexing
 			}
 			IsDefaultComparable struct {
 				expr moq.ParamIndexing
+			}
+			FindPackage struct {
+				dir moq.ParamIndexing
 			}
 		}
 	}
@@ -49,16 +53,16 @@ type moqTypeCache_recorder struct {
 
 // moqTypeCache_Type_params holds the params of the TypeCache type
 type moqTypeCache_Type_params struct {
-	id            dst.Ident
-	loadTestTypes bool
+	id           dst.Ident
+	loadTestPkgs bool
 }
 
 // moqTypeCache_Type_paramsKey holds the map key params of the TypeCache type
 type moqTypeCache_Type_paramsKey struct {
-	params struct{ loadTestTypes bool }
+	params struct{ loadTestPkgs bool }
 	hashes struct {
-		id            hash.Hash
-		loadTestTypes hash.Hash
+		id           hash.Hash
+		loadTestPkgs hash.Hash
 	}
 }
 
@@ -70,10 +74,10 @@ type moqTypeCache_Type_resultsByParams struct {
 }
 
 // moqTypeCache_Type_doFn defines the type of function needed when calling andDo for the TypeCache type
-type moqTypeCache_Type_doFn func(id dst.Ident, loadTestTypes bool)
+type moqTypeCache_Type_doFn func(id dst.Ident, loadTestPkgs bool)
 
 // moqTypeCache_Type_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
-type moqTypeCache_Type_doReturnFn func(id dst.Ident, loadTestTypes bool) (*dst.TypeSpec, string, error)
+type moqTypeCache_Type_doReturnFn func(id dst.Ident, loadTestPkgs bool) (*dst.TypeSpec, string, error)
 
 // moqTypeCache_Type_results holds the results of the TypeCache type
 type moqTypeCache_Type_results struct {
@@ -210,6 +214,58 @@ type moqTypeCache_IsDefaultComparable_anyParams struct {
 	recorder *moqTypeCache_IsDefaultComparable_fnRecorder
 }
 
+// moqTypeCache_FindPackage_params holds the params of the TypeCache type
+type moqTypeCache_FindPackage_params struct{ dir string }
+
+// moqTypeCache_FindPackage_paramsKey holds the map key params of the TypeCache type
+type moqTypeCache_FindPackage_paramsKey struct {
+	params struct{ dir string }
+	hashes struct{ dir hash.Hash }
+}
+
+// moqTypeCache_FindPackage_resultsByParams contains the results for a given set of parameters for the TypeCache type
+type moqTypeCache_FindPackage_resultsByParams struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqTypeCache_FindPackage_paramsKey]*moqTypeCache_FindPackage_results
+}
+
+// moqTypeCache_FindPackage_doFn defines the type of function needed when calling andDo for the TypeCache type
+type moqTypeCache_FindPackage_doFn func(dir string)
+
+// moqTypeCache_FindPackage_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
+type moqTypeCache_FindPackage_doReturnFn func(dir string) (string, error)
+
+// moqTypeCache_FindPackage_results holds the results of the TypeCache type
+type moqTypeCache_FindPackage_results struct {
+	params  moqTypeCache_FindPackage_params
+	results []struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqTypeCache_FindPackage_doFn
+		doReturnFn moqTypeCache_FindPackage_doReturnFn
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqTypeCache_FindPackage_fnRecorder routes recorded function calls to the moqTypeCache moq
+type moqTypeCache_FindPackage_fnRecorder struct {
+	params    moqTypeCache_FindPackage_params
+	anyParams uint64
+	sequence  bool
+	results   *moqTypeCache_FindPackage_results
+	moq       *moqTypeCache
+}
+
+// moqTypeCache_FindPackage_anyParams isolates the any params functions of the TypeCache type
+type moqTypeCache_FindPackage_anyParams struct {
+	recorder *moqTypeCache_FindPackage_fnRecorder
+}
+
 // newMoqTypeCache creates a new moq of the TypeCache type
 func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 	if config == nil {
@@ -223,8 +279,8 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 		runtime: struct {
 			parameterIndexing struct {
 				Type struct {
-					id            moq.ParamIndexing
-					loadTestTypes moq.ParamIndexing
+					id           moq.ParamIndexing
+					loadTestPkgs moq.ParamIndexing
 				}
 				IsComparable struct {
 					expr moq.ParamIndexing
@@ -232,11 +288,14 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 				IsDefaultComparable struct {
 					expr moq.ParamIndexing
 				}
+				FindPackage struct {
+					dir moq.ParamIndexing
+				}
 			}
 		}{parameterIndexing: struct {
 			Type struct {
-				id            moq.ParamIndexing
-				loadTestTypes moq.ParamIndexing
+				id           moq.ParamIndexing
+				loadTestPkgs moq.ParamIndexing
 			}
 			IsComparable struct {
 				expr moq.ParamIndexing
@@ -244,13 +303,16 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 			IsDefaultComparable struct {
 				expr moq.ParamIndexing
 			}
+			FindPackage struct {
+				dir moq.ParamIndexing
+			}
 		}{
 			Type: struct {
-				id            moq.ParamIndexing
-				loadTestTypes moq.ParamIndexing
+				id           moq.ParamIndexing
+				loadTestPkgs moq.ParamIndexing
 			}{
-				id:            moq.ParamIndexByHash,
-				loadTestTypes: moq.ParamIndexByValue,
+				id:           moq.ParamIndexByHash,
+				loadTestPkgs: moq.ParamIndexByValue,
 			},
 			IsComparable: struct {
 				expr moq.ParamIndexing
@@ -261,6 +323,11 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 				expr moq.ParamIndexing
 			}{
 				expr: moq.ParamIndexByHash,
+			},
+			FindPackage: struct {
+				dir moq.ParamIndexing
+			}{
+				dir: moq.ParamIndexByValue,
 			},
 		}},
 	}
@@ -273,10 +340,10 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 // mock returns the mock implementation of the TypeCache type
 func (m *moqTypeCache) mock() *moqTypeCache_mock { return m.moq }
 
-func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestTypes bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
+func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
 	params := moqTypeCache_Type_params{
-		id:            id,
-		loadTestTypes: loadTestTypes,
+		id:           id,
+		loadTestPkgs: loadTestPkgs,
 	}
 	var results *moqTypeCache_Type_results
 	for _, resultsByParams := range m.moq.resultsByParams_Type {
@@ -314,7 +381,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestTypes bool) (result1 *dst
 	}
 
 	if result.doFn != nil {
-		result.doFn(id, loadTestTypes)
+		result.doFn(id, loadTestPkgs)
 	}
 
 	if result.values != nil {
@@ -323,7 +390,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestTypes bool) (result1 *dst
 		result3 = result.values.result3
 	}
 	if result.doReturnFn != nil {
-		result1, result2, result3 = result.doReturnFn(id, loadTestTypes)
+		result1, result2, result3 = result.doReturnFn(id, loadTestPkgs)
 	}
 	return
 }
@@ -434,6 +501,59 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 	return
 }
 
+func (m *moqTypeCache_mock) FindPackage(dir string) (result1 string, result2 error) {
+	params := moqTypeCache_FindPackage_params{
+		dir: dir,
+	}
+	var results *moqTypeCache_FindPackage_results
+	for _, resultsByParams := range m.moq.resultsByParams_FindPackage {
+		paramsKey := m.moq.paramsKey_FindPackage(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(dir)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(dir)
+	}
+	return
+}
+
 // onCall returns the recorder implementation of the TypeCache type
 func (m *moqTypeCache) onCall() *moqTypeCache_recorder {
 	return &moqTypeCache_recorder{
@@ -441,11 +561,11 @@ func (m *moqTypeCache) onCall() *moqTypeCache_recorder {
 	}
 }
 
-func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestTypes bool) *moqTypeCache_Type_fnRecorder {
+func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestPkgs bool) *moqTypeCache_Type_fnRecorder {
 	return &moqTypeCache_Type_fnRecorder{
 		params: moqTypeCache_Type_params{
-			id:            id,
-			loadTestTypes: loadTestTypes,
+			id:           id,
+			loadTestPkgs: loadTestPkgs,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -465,7 +585,7 @@ func (a *moqTypeCache_Type_anyParams) id() *moqTypeCache_Type_fnRecorder {
 	return a.recorder
 }
 
-func (a *moqTypeCache_Type_anyParams) loadTestTypes() *moqTypeCache_Type_fnRecorder {
+func (a *moqTypeCache_Type_anyParams) loadTestPkgs() *moqTypeCache_Type_fnRecorder {
 	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
@@ -643,25 +763,25 @@ func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams
 		}
 		idUsedHash = hash.DeepHash(params.id)
 	}
-	var loadTestTypesUsed bool
-	var loadTestTypesUsedHash hash.Hash
+	var loadTestPkgsUsed bool
+	var loadTestPkgsUsedHash hash.Hash
 	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Type.loadTestTypes == moq.ParamIndexByValue {
-			loadTestTypesUsed = params.loadTestTypes
+		if m.runtime.parameterIndexing.Type.loadTestPkgs == moq.ParamIndexByValue {
+			loadTestPkgsUsed = params.loadTestPkgs
 		} else {
-			loadTestTypesUsedHash = hash.DeepHash(params.loadTestTypes)
+			loadTestPkgsUsedHash = hash.DeepHash(params.loadTestPkgs)
 		}
 	}
 	return moqTypeCache_Type_paramsKey{
-		params: struct{ loadTestTypes bool }{
-			loadTestTypes: loadTestTypesUsed,
+		params: struct{ loadTestPkgs bool }{
+			loadTestPkgs: loadTestPkgsUsed,
 		},
 		hashes: struct {
-			id            hash.Hash
-			loadTestTypes hash.Hash
+			id           hash.Hash
+			loadTestPkgs hash.Hash
 		}{
-			id:            idUsedHash,
-			loadTestTypes: loadTestTypesUsedHash,
+			id:           idUsedHash,
+			loadTestPkgs: loadTestPkgsUsedHash,
 		},
 	}
 }
@@ -1068,11 +1188,213 @@ func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefau
 	}
 }
 
+func (m *moqTypeCache_recorder) FindPackage(dir string) *moqTypeCache_FindPackage_fnRecorder {
+	return &moqTypeCache_FindPackage_fnRecorder{
+		params: moqTypeCache_FindPackage_params{
+			dir: dir,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) any() *moqTypeCache_FindPackage_anyParams {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	return &moqTypeCache_FindPackage_anyParams{recorder: r}
+}
+
+func (a *moqTypeCache_FindPackage_anyParams) dir() *moqTypeCache_FindPackage_fnRecorder {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) seq() *moqTypeCache_FindPackage_fnRecorder {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) noSeq() *moqTypeCache_FindPackage_fnRecorder {
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) returnResults(result1 string, result2 error) *moqTypeCache_FindPackage_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqTypeCache_FindPackage_doFn
+		doReturnFn moqTypeCache_FindPackage_doReturnFn
+	}{
+		values: &struct {
+			result1 string
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) andDo(fn moqTypeCache_FindPackage_doFn) *moqTypeCache_FindPackage_fnRecorder {
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) doReturnResults(fn moqTypeCache_FindPackage_doReturnFn) *moqTypeCache_FindPackage_fnRecorder {
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqTypeCache_FindPackage_doFn
+		doReturnFn moqTypeCache_FindPackage_doReturnFn
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) findResults() {
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqTypeCache_FindPackage_resultsByParams
+	for n, res := range r.moq.resultsByParams_FindPackage {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqTypeCache_FindPackage_resultsByParams{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqTypeCache_FindPackage_paramsKey]*moqTypeCache_FindPackage_results{},
+		}
+		r.moq.resultsByParams_FindPackage = append(r.moq.resultsByParams_FindPackage, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_FindPackage) {
+			copy(r.moq.resultsByParams_FindPackage[insertAt+1:], r.moq.resultsByParams_FindPackage[insertAt:0])
+			r.moq.resultsByParams_FindPackage[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_FindPackage(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqTypeCache_FindPackage_results{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqTypeCache_FindPackage_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_FindPackage_fnRecorder {
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 string
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqTypeCache_FindPackage_doFn
+				doReturnFn moqTypeCache_FindPackage_doReturnFn
+			}{
+				values: &struct {
+					result1 string
+					result2 error
+				}{
+					result1: last.values.result1,
+					result2: last.values.result2,
+				},
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqTypeCache) paramsKey_FindPackage(params moqTypeCache_FindPackage_params, anyParams uint64) moqTypeCache_FindPackage_paramsKey {
+	var dirUsed string
+	var dirUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.FindPackage.dir == moq.ParamIndexByValue {
+			dirUsed = params.dir
+		} else {
+			dirUsedHash = hash.DeepHash(params.dir)
+		}
+	}
+	return moqTypeCache_FindPackage_paramsKey{
+		params: struct{ dir string }{
+			dir: dirUsed,
+		},
+		hashes: struct{ dir hash.Hash }{
+			dir: dirUsedHash,
+		},
+	}
+}
+
 // Reset resets the state of the moq
 func (m *moqTypeCache) Reset() {
 	m.resultsByParams_Type = nil
 	m.resultsByParams_IsComparable = nil
 	m.resultsByParams_IsDefaultComparable = nil
+	m.resultsByParams_FindPackage = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
@@ -1094,6 +1416,14 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 		}
 	}
 	for _, res := range m.resultsByParams_IsDefaultComparable {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+			}
+		}
+	}
+	for _, res := range m.resultsByParams_FindPackage {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {

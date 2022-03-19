@@ -9,6 +9,7 @@ import (
 
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
+	"golang.org/x/tools/go/packages"
 
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/logs"
@@ -50,18 +51,20 @@ func generate(req GenerateRequest) error {
 				dest += "_"
 			}
 		}
-		if !req.Export {
-			dest += "_test"
+		if !req.Export || (req.Package != "" && strings.HasSuffix(req.Package, testPkgSuffix)) {
+			dest += testPkgSuffix
 		}
 		dest += ".go"
 		req.Destination = dest
 	}
 
-	cache := ast.NewCache(ast.LoadTypes)
-	converter := NewConverter(req.Export, cache)
-	gen := New(req.Export, req.Package, req.Destination, ast.FindPackage, cache, converter)
+	cache := ast.NewCache(packages.Load)
+	newConverterFn := func(typ Type, export bool) Converterer {
+		return NewConverter(typ, export, cache)
+	}
+	gen := New(cache, newConverterFn)
 
-	_, file, err := gen.Generate(req.Types, req.Import, req.TestImport)
+	_, file, err := gen.Generate(req)
 	if err != nil {
 		return fmt.Errorf("error generating moqs: %w", err)
 	}
