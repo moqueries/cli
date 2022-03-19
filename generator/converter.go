@@ -138,8 +138,8 @@ func (c *Converter) BaseStruct() *dst.GenDecl {
 	moqName := fmt.Sprintf(double, mName, mockIdent)
 
 	fields := []*dst.Field{
-		Field(Star(IdPath(sceneType, moqPkg))).Names(c.exportId(sceneIdent)).Obj,
-		Field(IdPath(configType, moqPkg)).Names(c.exportId(configIdent)).Obj,
+		Field(Star(c.idPath(sceneType, moqPkg))).Names(c.exportId(sceneIdent)).Obj,
+		Field(c.idPath(configType, moqPkg)).Names(c.exportId(configIdent)).Obj,
 		Field(Star(Id(moqName))).Names(c.exportId(moqIdent)).
 			Decs(FieldDecs(dst.None, dst.EmptyLine).Obj).Obj,
 	}
@@ -208,14 +208,14 @@ func (c *Converter) NewFunc() *dst.FuncDecl {
 	moqName := fmt.Sprintf(double, mName, mockIdent)
 	return Fn(fnName).
 		Params(
-			Field(Star(IdPath(sceneType, moqPkg))).Names(Id(sceneIdent)).Obj,
-			Field(Star(IdPath(configType, moqPkg))).Names(Id(configIdent)).Obj,
+			Field(Star(c.idPath(sceneType, moqPkg))).Names(Id(sceneIdent)).Obj,
+			Field(Star(c.idPath(configType, moqPkg))).Names(Id(configIdent)).Obj,
 		).
 		Results(Field(Star(Id(mName))).Obj).
 		Body(
 			If(Bin(Id(configIdent)).Op(token.EQL).Y(Id(nilIdent)).Obj).Body(
 				Assign(Id(configIdent)).Tok(token.ASSIGN).Rhs(Un(token.AND,
-					Comp(IdPath(configType, moqPkg)).Obj)).Obj).Obj,
+					Comp(c.idPath(configType, moqPkg)).Obj)).Obj).Obj,
 			Assign(Id(moqReceiverIdent)).Tok(token.DEFINE).
 				Rhs(Un(token.AND, Comp(Id(mName)).Elts(
 					Key(c.exportId(sceneIdent)).
@@ -268,7 +268,7 @@ func (c *Converter) IsolationAccessor(suffix, fnName string) *dst.FuncDecl {
 
 // FuncClosure generates a mock implementation of function type wrapped in a
 // closure
-func (c *Converter) FuncClosure(pkgPath string, fn Func) *dst.FuncDecl {
+func (c *Converter) FuncClosure(fn Func) *dst.FuncDecl {
 	mName := c.moqName()
 	fnLitCall := Call(Sel(Id(moqIdent)).Dot(c.exportId(fnFnName)).Obj).
 		Args(passthroughFields(paramPrefix, fn.Params)...).
@@ -281,7 +281,7 @@ func (c *Converter) FuncClosure(pkgPath string, fn Func) *dst.FuncDecl {
 
 	return Fn(c.export(mockFnName)).
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
-		Results(Field(IdPath(c.typ.TypeSpec.Name.Name, pkgPath)).Obj).
+		Results(Field(c.idPath(c.typ.TypeSpec.Name.Name, c.typ.TypeSpec.Name.Path)).Obj).
 		Body(Return(FnLit(FnType(cloneAndNameUnnamed(paramPrefix, fn.Params)).
 			Results(cloneFieldList(fn.Results, true)).Obj).
 			Body(Assign(Id(moqIdent)).
@@ -387,7 +387,7 @@ func (c *Converter) AssertMethod() *dst.FuncDecl {
 							Dot(Id(minTimesIdent)).Obj).
 							Op(token.SUB).
 							Y(Call(Id(intType)).Args(
-								Call(IdPath("LoadUint32", syncAtomicPkg)).Args(Un(
+								Call(c.idPath("LoadUint32", syncAtomicPkg)).Args(Un(
 									token.AND,
 									Sel(Id(resultsIdent)).
 										Dot(c.exportId(indexIdent)).Obj)).Obj).Obj).Obj).Obj,
@@ -462,7 +462,7 @@ func (c *Converter) paramIndexingFnStruct(fn Func) *dst.StructType {
 }
 
 func (c *Converter) paramIndexingField(name string) *dst.Field {
-	return Field(IdPath(paramIndexingType, moqPkg)).Names(c.exportId(name)).Obj
+	return Field(c.idPath(paramIndexingType, moqPkg)).Names(c.exportId(name)).Obj
 }
 
 func (c *Converter) runtimeValues() []dst.Expr {
@@ -521,7 +521,7 @@ func (c *Converter) paramIndexingValue(typ dst.Expr, name string, kvDec dst.Spac
 		val = paramIndexByHashIdent
 	}
 
-	return Key(c.exportId(name)).Value(IdPath(val, moqPkg)).Decs(kvExprDec(kvDec)).Obj
+	return Key(c.exportId(name)).Value(c.idPath(val, moqPkg)).Decs(kvExprDec(kvDec)).Obj
 }
 
 func (c *Converter) paramsStructDecl(
@@ -616,7 +616,7 @@ func (c *Converter) comparableType(label string, typ dst.Expr) (dst.Expr, error)
 	case hashesIdent:
 		// Everything is represented as a hash in the hashes section of the
 		// paramsKey
-		return IdPath(hashType, hashPkg), nil
+		return c.idPath(hashType, hashPkg), nil
 	default:
 		logs.Panicf("Unknown label: %s", label)
 	}
@@ -676,7 +676,7 @@ func (c *Converter) resultsStruct(prefix string, results *dst.FieldList) *dst.Ge
 		Field(SliceType(c.innerResultsStruct(prefix, results))).
 			Names(c.exportId(resultsIdent)).Obj,
 		Field(Id("uint32")).Names(c.exportId(indexIdent)).Obj,
-		Field(Star(IdPath(repeatValType, moqPkg))).Names(c.exportId(repeatIdent)).Obj,
+		Field(Star(c.idPath(repeatValType, moqPkg))).Names(c.exportId(repeatIdent)).Obj,
 	)).Obj).Decs(genDeclDec("// %s holds the results of the %s type",
 		structName,
 		c.typ.TypeSpec.Name.Name)).Obj
@@ -767,7 +767,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 				Dot(c.exportId(configIdent)).Obj).
 				Dot(Id(expectationIdent)).Obj).
 				Op(token.EQL).
-				Y(IdPath(strictIdent, moqPkg)).Obj).
+				Y(c.idPath(strictIdent, moqPkg)).Obj).
 				Body(
 					Expr(Call(Sel(Sel(Sel(cloneExpr(stateSelector)).
 						Dot(c.exportId(sceneIdent)).Obj).
@@ -781,7 +781,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 	stmts = append(stmts, Assign(Id(iIdent)).
 		Tok(token.DEFINE).
 		Rhs(Bin(Call(Id(intType)).
-			Args(Call(IdPath("AddUint32", syncAtomicPkg)).Args(Un(
+			Args(Call(c.idPath("AddUint32", syncAtomicPkg)).Args(Un(
 				token.AND,
 				Sel(Id(resultsIdent)).Dot(c.exportId(indexIdent)).Obj),
 				LitInt(1)).Obj).Obj).
@@ -800,7 +800,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 							Dot(c.exportId(configIdent)).Obj).
 							Dot(Id(expectationIdent)).Obj).
 							Op(token.EQL).
-							Y(IdPath(strictIdent, moqPkg)).Obj).
+							Y(c.idPath(strictIdent, moqPkg)).Obj).
 							Body(Expr(Call(Sel(Sel(Sel(cloneExpr(stateSelector)).
 								Dot(c.exportId(sceneIdent)).Obj).
 								Dot(Id(tType)).Obj).
@@ -911,7 +911,7 @@ func (c *Converter) recorderFnInterfaceBody(
 						Dot(c.exportId(configIdent)).Obj).
 						Dot(Id(strings.Title(sequenceIdent))).Obj).
 						Op(token.EQL).
-						Y(IdPath("SeqDefaultOn", moqPkg)).Obj).
+						Y(c.idPath("SeqDefaultOn", moqPkg)).Obj).
 					Decs(kvExprDec(dst.None)).Obj,
 				Key(c.exportId(moqIdent)).
 					Value(cloneExpr(moqVal)).Decs(kvExprDec(dst.None)).Obj,
@@ -1156,7 +1156,7 @@ func (c *Converter) findRecorderResults(fn Func) []dst.Stmt {
 	return []dst.Stmt{
 		Assign(Id(anyCountIdent)).
 			Tok(token.DEFINE).
-			Rhs(Call(IdPath("OnesCount64", "math/bits")).Args(
+			Rhs(Call(c.idPath("OnesCount64", "math/bits")).Args(
 				Sel(Id(recorderReceiverIdent)).
 					Dot(c.exportId(anyParamsIdent)).Obj).Obj).Obj,
 		Assign(Id(insertAtIdent)).Tok(token.DEFINE).Rhs(LitInt(-1)).Obj,
@@ -1248,7 +1248,7 @@ func (c *Converter) findRecorderResults(fn Func) []dst.Stmt {
 								Key(c.exportId(indexIdent)).Value(
 									LitInt(0)).Decs(kvExprDec(dst.None)).Obj,
 								Key(c.exportId(repeatIdent)).Value(
-									Un(token.AND, Comp(IdPath(repeatValType, moqPkg)).Obj)).
+									Un(token.AND, Comp(c.idPath(repeatValType, moqPkg)).Obj)).
 									Decs(kvExprDec(dst.None)).Obj,
 							).Obj,
 					)).Obj,
@@ -1289,7 +1289,7 @@ func (c *Converter) recorderRepeatFn(fn Func) *dst.FuncDecl {
 
 	return Fn(c.export(repeatFnName)).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
-		Params(Field(Ellipsis(IdPath(repeaterType, moqPkg))).Names(Id(repeatersIdent)).Obj).
+		Params(Field(Ellipsis(c.idPath(repeaterType, moqPkg))).Names(Id(repeatersIdent)).Obj).
 		Results(Field(Star(Id(fnRecName))).Obj).
 		Body(
 			If(Bin(Sel(Id(recorderReceiverIdent)).
@@ -1410,7 +1410,7 @@ func (c *Converter) mockFuncFindResultsParam(
 		stmts = append(stmts, Var(Value(cloneExpr(typ)).Names(Id(pUsed)).Obj))
 	}
 	hashUsed := fmt.Sprintf("%s%s", vName, usedHashSuffix)
-	stmts = append(stmts, Var(Value(IdPath(hashType, hashPkg)).Names(Id(hashUsed)).Obj))
+	stmts = append(stmts, Var(Value(c.idPath(hashType, hashPkg)).Names(Id(hashUsed)).Obj))
 
 	ifSel := Sel(Sel(Sel(Sel(Id(moqReceiverIdent)).
 		Dot(c.exportId(runtimeIdent)).Obj).
@@ -1429,7 +1429,7 @@ func (c *Converter) mockFuncFindResultsParam(
 
 	ifCond := If(Bin(ifSel).
 		Op(token.EQL).
-		Y(IdPath(paramIndexByValueIdent, moqPkg)).Obj)
+		Y(c.idPath(paramIndexByValueIdent, moqPkg)).Obj)
 	pKeySel := Sel(Id(paramsIdent)).Obj
 	hashAssign := Assign(Id(hashUsed)).
 		Tok(token.ASSIGN).
@@ -1575,7 +1575,7 @@ func (c *Converter) passthroughValue(
 		val = cloneSelect(sel, c.export(src.Name))
 	}
 	if needComparable {
-		val = Call(IdPath("DeepHash", hashPkg)).Args(val).Obj
+		val = Call(c.idPath("DeepHash", hashPkg)).Args(val).Obj
 	}
 	return val
 }
@@ -1663,6 +1663,17 @@ func (c *Converter) export(name string) string {
 
 func (c *Converter) exportId(name string) *dst.Ident {
 	return Id(c.export(name))
+}
+
+func (c *Converter) idPath(name, path string) *dst.Ident {
+	switch path {
+	case "":
+		return IdPath(name, c.typ.InPkgPath)
+	case c.typ.OutPkgPath:
+		return Id(name)
+	default:
+		return IdPath(name, path)
+	}
 }
 
 func stdFuncDec() dst.FuncDeclDecorations {

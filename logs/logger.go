@@ -31,7 +31,7 @@ func Debugf(format string, args ...interface{}) {
 
 // Warn logs a warning message
 func Warn(msg string) {
-	warnLogger.Printf(msg + ": %v")
+	warnLogger.Print(msg)
 }
 
 // Error logs a error message with an error

@@ -492,8 +492,7 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.FuncClosure(
-						"github.com/myshkin5/moqueries/generator", fnSpecFuncs[0])
+					decl := converter.FuncClosure(fnSpecFuncs[0])
 
 					// ASSERT
 					if len(decl.Decs.Start) < 1 {

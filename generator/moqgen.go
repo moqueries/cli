@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"go/token"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -21,8 +22,10 @@ const (
 
 // Type describes the type being converted into a mock
 type Type struct {
-	TypeSpec *dst.TypeSpec
-	Funcs    []Func
+	TypeSpec   *dst.TypeSpec
+	Funcs      []Func
+	InPkgPath  string
+	OutPkgPath string
 }
 
 //go:generate moqueries NewConverterFunc
@@ -39,7 +42,7 @@ type Converterer interface {
 	MethodStructs(fn Func) (structDecls []dst.Decl, err error)
 	NewFunc() (funcDecl *dst.FuncDecl)
 	IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl)
-	FuncClosure(pkgPath string, fn Func) (funcDecl *dst.FuncDecl)
+	FuncClosure(fn Func) (funcDecl *dst.FuncDecl)
 	MockMethod(fn Func) (funcDecl *dst.FuncDecl)
 	RecorderMethods(fn Func) (funcDecls []dst.Decl)
 	ResetMethod() (funcDecl *dst.FuncDecl)
@@ -48,7 +51,6 @@ type Converterer interface {
 
 // MoqGenerator generates moqs
 type MoqGenerator struct {
-	findPackageFn  FindPackageFn
 	typeCache      TypeCache
 	newConverterFn NewConverterFunc
 }
@@ -57,20 +59,15 @@ type MoqGenerator struct {
 
 // TypeCache defines the interface to the Cache type
 type TypeCache interface {
-	Type(id dst.Ident, loadTestTypes bool) (*dst.TypeSpec, string, error)
+	Type(id dst.Ident, loadTestPkgs bool) (*dst.TypeSpec, string, error)
 	IsComparable(expr dst.Expr) (bool, error)
 	IsDefaultComparable(expr dst.Expr) (bool, error)
+	FindPackage(dir string) (string, error)
 }
 
-//go:generate moqueries FindPackageFn
-
-// FindPackageFn is the function type of FindPackage
-type FindPackageFn func(pattern string) (pkg string, err error)
-
 // New returns a new MoqGenerator
-func New(findPackageFn FindPackageFn, typeCache TypeCache, newConverterFn NewConverterFunc) *MoqGenerator {
+func New(typeCache TypeCache, newConverterFn NewConverterFunc) *MoqGenerator {
 	return &MoqGenerator{
-		findPackageFn:  findPackageFn,
 		typeCache:      typeCache,
 		newConverterFn: newConverterFn,
 	}
@@ -78,15 +75,15 @@ func New(findPackageFn FindPackageFn, typeCache TypeCache, newConverterFn NewCon
 
 // Generate generates moqs for the given types in the given destination package
 func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File, error) {
-	pkg, err := g.defaultPackage(req)
+	outPkgPath, err := g.outPackagePath(req)
 	if err != nil {
 		return nil, nil, err
 	}
-	fSet, file := initializeFile(pkg)
+	fSet, file := initializeFile(outPkgPath)
 
 	var decls []dst.Decl
 	for _, inType := range req.Types {
-		typeSpec, pkgPath, err := g.loadInType(inType, req.Import, req.TestImport)
+		typeSpec, inPkgPath, err := g.loadInType(inType, req.Import, req.TestImport)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -97,8 +94,10 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 		}
 
 		typ := Type{
-			TypeSpec: typeSpec,
-			Funcs:    funcs,
+			TypeSpec:   typeSpec,
+			Funcs:      funcs,
+			InPkgPath:  inPkgPath,
+			OutPkgPath: outPkgPath,
 		}
 		converter := g.newConverterFn(typ, req.Export)
 
@@ -110,7 +109,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 
 		decls = append(decls, converter.NewFunc())
 
-		decls = append(decls, g.methods(converter, typ, pkgPath, funcs)...)
+		decls = append(decls, g.methods(converter, typ, funcs)...)
 
 		decls = append(decls, converter.ResetMethod())
 
@@ -121,20 +120,20 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 	return fSet, file, nil
 }
 
-func (g *MoqGenerator) defaultPackage(req GenerateRequest) (string, error) {
-	pkg := req.Package
-	if pkg == "" || pkg == "." {
-		var err error
-		pkg, err = g.findPackageFn(filepath.Dir(req.Destination))
-		if err != nil {
-			return "", err
-		}
-		if !req.Export {
-			pkg += testPkgSuffix
-		}
+func (g *MoqGenerator) outPackagePath(req GenerateRequest) (string, error) {
+	outPkgPath, err := g.typeCache.FindPackage(filepath.Dir(req.Destination))
+	if err != nil {
+		return "", err
 	}
-	logs.Debugf("Output package: %s", pkg)
-	return pkg, nil
+	if req.Package == "" || req.Package == "." {
+		if !req.Export {
+			outPkgPath += testPkgSuffix
+		}
+	} else {
+		outPkgPath = path.Dir(outPkgPath) + req.Package
+	}
+	logs.Debugf("Output package: %s", outPkgPath)
+	return outPkgPath, nil
 }
 
 func initializeFile(pkg string) (*token.FileSet, *dst.File) {
@@ -150,14 +149,14 @@ func initializeFile(pkg string) (*token.FileSet, *dst.File) {
 	return fSet, file
 }
 
-func (g *MoqGenerator) loadInType(inType, imp string, loadTestTypes bool) (
+func (g *MoqGenerator) loadInType(inType, imp string, loadTestPkgs bool) (
 	*dst.TypeSpec, string, error,
 ) {
 	if strings.HasSuffix(imp, testPkgSuffix) {
 		imp = strings.TrimSuffix(imp, testPkgSuffix)
-		loadTestTypes = true
+		loadTestPkgs = true
 	}
-	return g.typeCache.Type(*ast.IdPath(inType, imp), loadTestTypes)
+	return g.typeCache.Type(*ast.IdPath(inType, imp), loadTestPkgs)
 }
 
 func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
@@ -244,7 +243,7 @@ func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, err
 }
 
 func (g *MoqGenerator) methods(
-	converter Converterer, typ Type, pkgPath string, funcs []Func,
+	converter Converterer, typ Type, funcs []Func,
 ) []dst.Decl {
 	var decls []dst.Decl
 
@@ -270,7 +269,7 @@ func (g *MoqGenerator) methods(
 		}
 
 		decls = append(
-			decls, converter.FuncClosure(pkgPath, funcs[0]))
+			decls, converter.FuncClosure(funcs[0]))
 
 		decls = append(
 			decls, converter.MockMethod(funcs[0]))

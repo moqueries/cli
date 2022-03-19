@@ -9,6 +9,7 @@ import (
 
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
+	"golang.org/x/tools/go/packages"
 
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/logs"
@@ -57,11 +58,11 @@ func generate(req GenerateRequest) error {
 		req.Destination = dest
 	}
 
-	cache := ast.NewCache(ast.LoadTypes)
+	cache := ast.NewCache(packages.Load)
 	newConverterFn := func(typ Type, export bool) Converterer {
 		return NewConverter(typ, export, cache)
 	}
-	gen := New(ast.FindPackage, cache, newConverterFn)
+	gen := New(cache, newConverterFn)
 
 	_, file, err := gen.Generate(req)
 	if err != nil {

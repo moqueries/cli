@@ -44,8 +44,7 @@ type moqConverterer struct {
 				fnName moq.ParamIndexing
 			}
 			FuncClosure struct {
-				pkgPath moq.ParamIndexing
-				fn      moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
 			MockMethod struct {
 				fn moq.ParamIndexing
@@ -318,21 +317,12 @@ type moqConverterer_IsolationAccessor_anyParams struct {
 }
 
 // moqConverterer_FuncClosure_params holds the params of the Converterer type
-type moqConverterer_FuncClosure_params struct {
-	pkgPath string
-	fn      generator.Func
-}
+type moqConverterer_FuncClosure_params struct{ fn generator.Func }
 
 // moqConverterer_FuncClosure_paramsKey holds the map key params of the Converterer type
 type moqConverterer_FuncClosure_paramsKey struct {
-	params struct {
-		pkgPath string
-		fn      generator.Func
-	}
-	hashes struct {
-		pkgPath hash.Hash
-		fn      hash.Hash
-	}
+	params struct{ fn generator.Func }
+	hashes struct{ fn hash.Hash }
 }
 
 // moqConverterer_FuncClosure_resultsByParams contains the results for a given set of parameters for the Converterer type
@@ -343,10 +333,10 @@ type moqConverterer_FuncClosure_resultsByParams struct {
 }
 
 // moqConverterer_FuncClosure_doFn defines the type of function needed when calling andDo for the Converterer type
-type moqConverterer_FuncClosure_doFn func(pkgPath string, fn generator.Func)
+type moqConverterer_FuncClosure_doFn func(fn generator.Func)
 
 // moqConverterer_FuncClosure_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
-type moqConverterer_FuncClosure_doReturnFn func(pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_FuncClosure_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_FuncClosure_results holds the results of the Converterer type
 type moqConverterer_FuncClosure_results struct {
@@ -596,8 +586,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 					fnName moq.ParamIndexing
 				}
 				FuncClosure struct {
-					pkgPath moq.ParamIndexing
-					fn      moq.ParamIndexing
+					fn moq.ParamIndexing
 				}
 				MockMethod struct {
 					fn moq.ParamIndexing
@@ -622,8 +611,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 				fnName moq.ParamIndexing
 			}
 			FuncClosure struct {
-				pkgPath moq.ParamIndexing
-				fn      moq.ParamIndexing
+				fn moq.ParamIndexing
 			}
 			MockMethod struct {
 				fn moq.ParamIndexing
@@ -654,11 +642,9 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 				fnName: moq.ParamIndexByValue,
 			},
 			FuncClosure: struct {
-				pkgPath moq.ParamIndexing
-				fn      moq.ParamIndexing
+				fn moq.ParamIndexing
 			}{
-				pkgPath: moq.ParamIndexByValue,
-				fn:      moq.ParamIndexByHash,
+				fn: moq.ParamIndexByHash,
 			},
 			MockMethod: struct {
 				fn moq.ParamIndexing
@@ -941,10 +927,9 @@ func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl
 	return
 }
 
-func (m *moqConverterer_mock) FuncClosure(pkgPath string, fn generator.Func) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.FuncDecl) {
 	params := moqConverterer_FuncClosure_params{
-		pkgPath: pkgPath,
-		fn:      fn,
+		fn: fn,
 	}
 	var results *moqConverterer_FuncClosure_results
 	for _, resultsByParams := range m.moq.resultsByParams_FuncClosure {
@@ -982,14 +967,14 @@ func (m *moqConverterer_mock) FuncClosure(pkgPath string, fn generator.Func) (fu
 	}
 
 	if result.doFn != nil {
-		result.doFn(pkgPath, fn)
+		result.doFn(fn)
 	}
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(pkgPath, fn)
+		funcDecl = result.doReturnFn(fn)
 	}
 	return
 }
@@ -2119,11 +2104,10 @@ func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_Isola
 	}
 }
 
-func (m *moqConverterer_recorder) FuncClosure(pkgPath string, fn generator.Func) *moqConverterer_FuncClosure_fnRecorder {
+func (m *moqConverterer_recorder) FuncClosure(fn generator.Func) *moqConverterer_FuncClosure_fnRecorder {
 	return &moqConverterer_FuncClosure_fnRecorder{
 		params: moqConverterer_FuncClosure_params{
-			pkgPath: pkgPath,
-			fn:      fn,
+			fn: fn,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -2138,13 +2122,8 @@ func (r *moqConverterer_FuncClosure_fnRecorder) any() *moqConverterer_FuncClosur
 	return &moqConverterer_FuncClosure_anyParams{recorder: r}
 }
 
-func (a *moqConverterer_FuncClosure_anyParams) pkgPath() *moqConverterer_FuncClosure_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
-	return a.recorder
-}
-
 func (a *moqConverterer_FuncClosure_anyParams) fn() *moqConverterer_FuncClosure_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+	a.recorder.anyParams |= 1 << 0
 	return a.recorder
 }
 
@@ -2290,18 +2269,9 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 }
 
 func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure_params, anyParams uint64) moqConverterer_FuncClosure_paramsKey {
-	var pkgPathUsed string
-	var pkgPathUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.FuncClosure.pkgPath == moq.ParamIndexByValue {
-			pkgPathUsed = params.pkgPath
-		} else {
-			pkgPathUsedHash = hash.DeepHash(params.pkgPath)
-		}
-	}
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.FuncClosure.fn == moq.ParamIndexByValue {
 			fnUsed = params.fn
 		} else {
@@ -2309,19 +2279,11 @@ func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure
 		}
 	}
 	return moqConverterer_FuncClosure_paramsKey{
-		params: struct {
-			pkgPath string
-			fn      generator.Func
-		}{
-			pkgPath: pkgPathUsed,
-			fn:      fnUsed,
+		params: struct{ fn generator.Func }{
+			fn: fnUsed,
 		},
-		hashes: struct {
-			pkgPath hash.Hash
-			fn      hash.Hash
-		}{
-			pkgPath: pkgPathUsedHash,
-			fn:      fnUsedHash,
+		hashes: struct{ fn hash.Hash }{
+			fn: fnUsedHash,
 		},
 	}
 }

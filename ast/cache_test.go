@@ -3,372 +3,522 @@ package ast_test
 import (
 	"errors"
 	"fmt"
+	goAst "go/ast"
+	"go/token"
+	"go/types"
 	"os"
+	"path"
 	"strings"
 	"testing"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
+	"golang.org/x/tools/go/packages"
 
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/moq"
 )
 
-var (
-	scene     *moq.Scene
-	loadFnMoq *moqLoadTypesFn
-
-	cache *ast.Cache
-
-	type1 *dst.TypeSpec
-	type2 *dst.TypeSpec
-
-	ioTypes []*dst.TypeSpec
-)
+var ioTypes []*packages.Package
 
 func TestMain(m *testing.M) {
 	var err error
-	ioTypes, _, err = ast.LoadTypes("io", false)
+	ioTypes, err = packages.Load(&packages.Config{
+		Mode: packages.NeedName |
+			packages.NeedFiles |
+			packages.NeedCompiledGoFiles |
+			packages.NeedImports |
+			packages.NeedTypes |
+			packages.NeedSyntax |
+			packages.NeedTypesInfo |
+			packages.NeedTypesSizes,
+		Tests: false,
+	}, "io")
 	if err != nil {
 		panic(fmt.Sprintf("Could not load io types: %#v", err))
 	}
 	os.Exit(m.Run())
 }
 
-func beforeEach(t *testing.T) {
-	t.Helper()
-	if scene != nil {
-		t.Fatal("afterEach not called")
-	}
-	scene = moq.NewScene(t)
-	loadFnMoq = newMoqLoadTypesFn(scene, &moq.Config{Sequence: moq.SeqDefaultOn})
+func TestCache(t *testing.T) {
+	var (
+		scene     *moq.Scene
+		loadFnMoq *moqLoadFn
 
-	cache = ast.NewCache(loadFnMoq.mock())
+		cache *ast.Cache
 
-	type1 = &dst.TypeSpec{Name: ast.Id("type1")}
-	type2 = &dst.TypeSpec{Name: ast.Id("type2")}
-}
+		loadCfg *packages.Config
 
-func afterEach() {
-	scene.AssertExpectationsMet()
-	scene = nil
-}
+		pkgs []*packages.Package
+	)
 
-func TestTypeSimpleLoad(t *testing.T) {
-	// ASSEMBLE
-	beforeEach(t)
+	beforeEach := func(t *testing.T, loadTestPkgs bool) {
+		t.Helper()
+		if scene != nil {
+			t.Fatal("afterEach not called")
+		}
+		scene = moq.NewScene(t)
+		loadFnMoq = newMoqLoadFn(scene, &moq.Config{Sequence: moq.SeqDefaultOn})
 
-	loadFnMoq.onCall(".", true).
-		returnResults([]*dst.TypeSpec{type1, type2}, "the-pkg", nil)
+		cache = ast.NewCache(loadFnMoq.mock())
 
-	// ACT
-	actualType, actualPkg, actualErr := cache.Type(*ast.IdPath("type1", "."), true)
+		loadCfg = &packages.Config{
+			Mode: packages.NeedName |
+				packages.NeedFiles |
+				packages.NeedCompiledGoFiles |
+				packages.NeedImports |
+				packages.NeedTypes |
+				packages.NeedSyntax |
+				packages.NeedTypesInfo |
+				packages.NeedTypesSizes,
+			Tests: loadTestPkgs,
+		}
 
-	// ASSERT
-	if actualErr != nil {
-		t.Errorf("Expected no error, was %#v", actualErr)
-	}
-
-	if actualType != type1 {
-		t.Errorf("Expected type to be %#v, was %#v", type1, actualType)
-	}
-
-	if actualPkg != "the-pkg" {
-		t.Errorf("Expected pkg to be the-pkg, was %s", actualPkg)
-	}
-
-	afterEach()
-}
-
-func TestTypeLoadError(t *testing.T) {
-	// ASSEMBLE
-	beforeEach(t)
-
-	err := errors.New("load error")
-	loadFnMoq.onCall(".", true).
-		returnResults(nil, "", err)
-
-	// ACT
-	actualType, actualPkg, actualErr := cache.Type(*ast.IdPath("type1", "."), true)
-
-	// ASSERT
-	if actualErr != err {
-		t.Errorf("Expected error %#v, was %#v", err, actualErr)
-	}
-
-	if actualType != nil {
-		t.Errorf("Expected nil type, was %#v", actualType)
-	}
-
-	if actualPkg != "" {
-		t.Errorf("Expected empty pkg, was %s", actualPkg)
-	}
-
-	afterEach()
-}
-
-func TestTypeNotFound(t *testing.T) {
-	// ASSEMBLE
-	beforeEach(t)
-
-	loadFnMoq.onCall("the-pkg", false).
-		returnResults([]*dst.TypeSpec{type1, type2}, "the-pkg", nil)
-
-	// ACT
-	actualType, actualPkg, actualErr := cache.Type(*ast.IdPath("type3", "the-pkg"), false)
-
-	// ASSERT
-	if actualErr == nil || !strings.Contains(actualErr.Error(), "not found") {
-		t.Errorf("Expected error to contain 'not found', was %#v", actualErr)
+		fs := token.NewFileSet()
+		fs.AddFile("file1", 1, 0)
+		fs.AddFile("file2", 2, 0)
+		pkgs = []*packages.Package{
+			{
+				Syntax: []*goAst.File{
+					{
+						Package: 1,
+						Decls: []goAst.Decl{
+							&goAst.GenDecl{
+								Specs: []goAst.Spec{
+									&goAst.TypeSpec{
+										Name: goAst.NewIdent("type1"),
+										Type: &goAst.StructType{
+											Fields: &goAst.FieldList{},
+										},
+									},
+								},
+							},
+						},
+					},
+					{
+						Package: 2,
+						Decls: []goAst.Decl{
+							&goAst.GenDecl{
+								Specs: []goAst.Spec{
+									&goAst.TypeSpec{
+										Name: goAst.NewIdent("type2"),
+										Type: &goAst.StructType{
+											Fields: &goAst.FieldList{},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				TypesInfo: &types.Info{},
+				Fset:      fs,
+				GoFiles:   []string{"file1", "file2"},
+				PkgPath:   "the-pkg",
+			},
+		}
 	}
 
-	if actualType != nil {
-		t.Errorf("Expected nil type, was %#v", actualType)
+	afterEach := func() {
+		scene.AssertExpectationsMet()
+		scene = nil
 	}
 
-	if actualPkg != "" {
-		t.Errorf("Expected empty pkg, was %s", actualPkg)
-	}
+	t.Run("Type", func(t *testing.T) {
+		t.Run("simple load", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, true)
+			defer afterEach()
 
-	afterEach()
-}
+			loadFnMoq.onCall(loadCfg, ".").returnResults(pkgs, nil)
 
-func TestTypeOnlyLoadPackageOnce(t *testing.T) {
-	// ASSEMBLE
-	beforeEach(t)
+			id := ast.IdPath("type1", ".")
 
-	loadFnMoq.onCall("the-pkg", true).
-		returnResults([]*dst.TypeSpec{type1, type2}, "the-pkg", nil)
-	_, _, _ = cache.Type(*ast.IdPath("type1", "the-pkg"), true)
+			// ACT
+			actualType, actualPkg, actualErr := cache.Type(*id, true)
 
-	// ACT
-	actualType, actualPkg, actualErr := cache.Type(*ast.IdPath("type2", "the-pkg"), false)
+			// ASSERT
+			if actualErr != nil {
+				t.Fatalf("got %#v, want no error", actualErr)
+			}
 
-	// ASSERT
-	if actualErr != nil {
-		t.Errorf("Expected no error, was %#v", actualErr)
-	}
+			if actualType.Name.Name != "type1" {
+				t.Errorf("got %#v, want type1", actualType.Name.Name)
+			}
 
-	if actualType != type2 {
-		t.Errorf("Expected type to be %#v, was %#v", type2, actualType)
-	}
+			if actualPkg != "the-pkg" {
+				t.Errorf("got %s, want the-pkg", actualPkg)
+			}
+		})
 
-	if actualPkg != "the-pkg" {
-		t.Errorf("Expected pkg to be the-pkg, was %s", actualPkg)
-	}
+		t.Run("load error", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, true)
+			defer afterEach()
 
-	afterEach()
-}
+			err := errors.New("load error")
+			loadFnMoq.onCall(loadCfg, ".").returnResults(nil, err)
 
-func TestTypeReloadTestPackage(t *testing.T) {
-	// ASSEMBLE
-	beforeEach(t)
+			id := ast.IdPath("type1", ".")
 
-	loadFnMoq.onCall("the-pkg", false).
-		returnResults([]*dst.TypeSpec{type1}, "the-pkg", nil)
-	_, _, _ = cache.Type(*ast.IdPath("type1", "the-pkg"), false)
-	loadFnMoq.onCall("the-pkg", true).
-		returnResults([]*dst.TypeSpec{type1, type2}, "the-pkg", nil)
+			// ACT
+			actualType, actualPkg, actualErr := cache.Type(*id, true)
 
-	// ACT
-	actualType, actualPkg, actualErr := cache.Type(*ast.IdPath("type2", "the-pkg"), true)
+			// ASSERT
+			if actualErr != err {
+				t.Errorf("got %#v, want %#v", actualErr, err)
+			}
 
-	// ASSERT
-	if actualErr != nil {
-		t.Errorf("Expected no error, was %#v", actualErr)
-	}
+			if actualType != nil {
+				t.Errorf("got %#v, want nil type", actualType)
+			}
 
-	if actualType != type2 {
-		t.Errorf("Expected type to be %#v, was %#v", type2, actualType)
-	}
+			if actualPkg != "" {
+				t.Errorf("got %s, want empty pkg", actualPkg)
+			}
+		})
 
-	if actualPkg != "the-pkg" {
-		t.Errorf("Expected pkg to be the-pkg, was %s", actualPkg)
-	}
+		t.Run("not found", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach()
 
-	afterEach()
-}
+			loadFnMoq.onCall(loadCfg, "the-pkg").
+				returnResults(pkgs, nil)
 
-func TestTypeOnlyLoadDefaultPackageOnce(t *testing.T) {
-	// ASSEMBLE
-	beforeEach(t)
+			id := ast.IdPath("type3", "the-pkg")
 
-	loadFnMoq.onCall(".", true).
-		returnResults([]*dst.TypeSpec{type1, type2}, "the-pkg", nil)
-	_, _, _ = cache.Type(*ast.IdPath("type1", "."), true)
+			// ACT
+			actualType, actualPkg, actualErr := cache.Type(*id, false)
 
-	// ACT
-	actualType, actualPkg, actualErr := cache.Type(*ast.IdPath("type2", "the-pkg"), false)
+			// ASSERT
+			if actualErr == nil || !strings.Contains(actualErr.Error(), "not found") {
+				t.Errorf("got %#v, want to contain 'not found'", actualErr)
+			}
 
-	// ASSERT
-	if actualErr != nil {
-		t.Errorf("Expected no error, was %#v", actualErr)
-	}
+			if actualType != nil {
+				t.Errorf("got %#v, want nil type", actualType)
+			}
 
-	if actualType != type2 {
-		t.Errorf("Expected type to be %#v, was %#v", type2, actualType)
-	}
+			if actualPkg != "" {
+				t.Errorf("got %s, want empty pkg", actualPkg)
+			}
+		})
 
-	if actualPkg != "the-pkg" {
-		t.Errorf("Expected pkg to be the-pkg, was %s", actualPkg)
-	}
+		t.Run("only load package once", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, true)
+			defer afterEach()
 
-	afterEach()
-}
+			loadFnMoq.onCall(loadCfg, "the-pkg").
+				returnResults(pkgs, nil)
+			_, _, _ = cache.Type(*ast.IdPath("type1", "the-pkg"), true)
 
-type tableEntry struct {
-	paramType         string
-	comparable        bool
-	defaultComparable bool
-	structable        bool
-}
+			id := ast.IdPath("type2", "the-pkg")
 
-var entries = []tableEntry{
-	{
-		paramType:         "string",
-		comparable:        true,
-		defaultComparable: true,
-		structable:        true,
-	},
-	{
-		paramType:         "[]string",
-		comparable:        false,
-		defaultComparable: false,
-		structable:        true,
-	},
-	{
-		paramType:         "[3]string",
-		comparable:        true,
-		defaultComparable: true,
-		structable:        true,
-	},
-	{
-		paramType:         "map[string]string",
-		comparable:        false,
-		defaultComparable: false,
-		structable:        true,
-	},
-	{
-		paramType:         "...string",
-		comparable:        false,
-		defaultComparable: false,
-		structable:        false,
-	},
-	{
-		paramType:         "*string",
-		comparable:        true,
-		defaultComparable: false,
-		structable:        true,
-	},
-	{
-		paramType:         "error",
-		comparable:        true,
-		defaultComparable: false,
-		structable:        true,
-	},
-	{
-		paramType:         "[3]error",
-		comparable:        true,
-		defaultComparable: false,
-		structable:        true,
-	},
-	{
-		paramType:         "io.Reader",
-		comparable:        true,
-		defaultComparable: false,
-		structable:        true,
-	},
-	{
-		paramType:         "[3]io.Reader",
-		comparable:        true,
-		defaultComparable: false,
-		structable:        true,
-	},
-}
+			// ACT
+			actualType, actualPkg, actualErr := cache.Type(*id, false)
 
-func simpleExpr(t *testing.T, paramType string) dst.Expr {
-	t.Helper()
-	code := `package a
+			// ASSERT
+			if actualErr != nil {
+				t.Errorf("got %#v, want no error", actualErr)
+			}
+
+			if actualType.Name.Name != "type2" {
+				t.Errorf("got %#v, want type2", actualType.Name.Name)
+			}
+
+			if actualPkg != "the-pkg" {
+				t.Errorf("got %s, want 'the-pkg'", actualPkg)
+			}
+		})
+
+		t.Run("reload test package", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach()
+
+			fs := token.NewFileSet()
+			fs.AddFile("file1", 1, 0)
+			nonTestPkgs := []*packages.Package{
+				{
+					Syntax: []*goAst.File{
+						{
+							Package: 1,
+							Decls: []goAst.Decl{
+								&goAst.GenDecl{
+									Specs: []goAst.Spec{
+										&goAst.TypeSpec{
+											Name: goAst.NewIdent("type1"),
+											Type: &goAst.StructType{
+												Fields: &goAst.FieldList{},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					TypesInfo: &types.Info{},
+					Fset:      fs,
+					GoFiles:   []string{"file1"},
+					PkgPath:   "the-pkg",
+				},
+			}
+
+			loadFnMoq.onCall(loadCfg, "the-pkg").returnResults(nonTestPkgs, nil)
+			_, _, _ = cache.Type(*ast.IdPath("type1", "the-pkg"), false)
+			loadCfg.Tests = true
+			loadFnMoq.onCall(loadCfg, "the-pkg").returnResults(pkgs, nil)
+
+			id := ast.IdPath("type2", "the-pkg")
+
+			// ACT
+			actualType, actualPkg, actualErr := cache.Type(*id, true)
+
+			// ASSERT
+			if actualErr != nil {
+				t.Fatalf("got %#v, want no error", actualErr)
+			}
+
+			if actualType.Name.Name != "type2" {
+				t.Errorf("got %#v, want type2", actualType.Name.Name)
+			}
+
+			if actualPkg != "the-pkg" {
+				t.Errorf("got %s, want 'the-pkg'", actualPkg)
+			}
+		})
+
+		t.Run("only load default package once", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, true)
+			defer afterEach()
+
+			loadFnMoq.onCall(loadCfg, ".").returnResults(pkgs, nil)
+			_, _, _ = cache.Type(*ast.IdPath("type1", "."), true)
+
+			id := ast.IdPath("type2", "the-pkg")
+
+			// ACT
+			actualType, actualPkg, actualErr := cache.Type(*id, false)
+
+			// ASSERT
+			if actualErr != nil {
+				t.Errorf("got %#v, want no error", actualErr)
+			}
+
+			if actualType.Name.Name != "type2" {
+				t.Errorf("got %#v, want type2", actualType.Name.Name)
+			}
+
+			if actualPkg != "the-pkg" {
+				t.Errorf("got %s, want 'the-pkg'", actualPkg)
+			}
+		})
+	})
+
+	t.Run("IsComparable/IsDefaultComparable", func(t *testing.T) {
+		type tableEntry struct {
+			paramType         string
+			comparable        bool
+			defaultComparable bool
+			structable        bool
+		}
+
+		entries := []tableEntry{
+			{
+				paramType:         "string",
+				comparable:        true,
+				defaultComparable: true,
+				structable:        true,
+			},
+			{
+				paramType:         "[]string",
+				comparable:        false,
+				defaultComparable: false,
+				structable:        true,
+			},
+			{
+				paramType:         "[3]string",
+				comparable:        true,
+				defaultComparable: true,
+				structable:        true,
+			},
+			{
+				paramType:         "map[string]string",
+				comparable:        false,
+				defaultComparable: false,
+				structable:        true,
+			},
+			{
+				paramType:         "...string",
+				comparable:        false,
+				defaultComparable: false,
+				structable:        false,
+			},
+			{
+				paramType:         "*string",
+				comparable:        true,
+				defaultComparable: false,
+				structable:        true,
+			},
+			{
+				paramType:         "error",
+				comparable:        true,
+				defaultComparable: false,
+				structable:        true,
+			},
+			{
+				paramType:         "[3]error",
+				comparable:        true,
+				defaultComparable: false,
+				structable:        true,
+			},
+			{
+				paramType:         "io.Reader",
+				comparable:        true,
+				defaultComparable: false,
+				structable:        true,
+			},
+			{
+				paramType:         "[3]io.Reader",
+				comparable:        true,
+				defaultComparable: false,
+				structable:        true,
+			},
+		}
+
+		parse := func(t *testing.T, code string) *dst.File {
+			t.Helper()
+			f, err := decorator.Parse(code)
+			if err != nil {
+				t.Errorf("got err: %#v, want no error", err)
+			}
+			return f
+		}
+
+		simpleExpr := func(t *testing.T, paramType string) dst.Expr {
+			t.Helper()
+			code := `package a
 
 import _ "io"
 
 func b(c %s) {}
 `
-	f := parse(t, fmt.Sprintf(code, paramType))
-	fn, ok := f.Decls[1].(*dst.FuncDecl)
-	if !ok {
-		t.Fatalf("wanted a function declaration, got %#v", f.Decls[1])
-	}
-	return fn.Type.Params.List[0].Type
-}
+			f := parse(t, fmt.Sprintf(code, paramType))
+			fn, ok := f.Decls[1].(*dst.FuncDecl)
+			if !ok {
+				t.Fatalf("got %#v, want a function declaration", f.Decls[1])
+			}
+			return fn.Type.Params.List[0].Type
+		}
 
-func TestIsComparableSimpleExprs(t *testing.T) {
-	for _, entry := range entries {
-		t.Run(entry.paramType, func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t)
+		parseASTPackage := func(t *testing.T, code, pkgPath string) []*packages.Package {
+			t.Helper()
 
-			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
-
-			// ACT
-			comparable, err := cache.IsComparable(simpleExpr(t, entry.paramType))
-			// ASSERT
+			dir, err := os.MkdirTemp("", "moq-ast-cache-*")
 			if err != nil {
-				t.Errorf("Unexpected error checking comparable: %s, err: %#v", entry.paramType, err)
+				t.Fatalf("got %#v, want no error", err)
 			}
-			if comparable != entry.comparable {
-				t.Errorf("IsComparable(%s) = %t; want %t",
-					entry.paramType, comparable, entry.comparable)
-			}
-
-			afterEach()
-		})
-	}
-}
-
-func TestIsDefaultComparableSimpleExprs(t *testing.T) {
-	for _, entry := range entries {
-		t.Run(entry.paramType, func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t)
-
-			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
-
-			// ACT
-			comparable, err := cache.IsDefaultComparable(simpleExpr(t, entry.paramType))
-			// ASSERT
+			defer func() {
+				err = os.RemoveAll(dir)
+				if err != nil {
+					t.Fatalf("got %#v, want no error", err)
+				}
+			}()
+			file := path.Join(dir, "code.go")
+			err = os.WriteFile(file, []byte(code), 0o600)
 			if err != nil {
-				t.Errorf("Unexpected error checking comparable: %s, err: %#v", entry.paramType, err)
-			}
-			if comparable != entry.defaultComparable {
-				t.Errorf("IsComparable(%s) = %t; want %t",
-					entry.paramType, comparable, entry.defaultComparable)
+				t.Fatalf("got %#v, want no error", err)
 			}
 
-			afterEach()
+			pkgs, err := packages.Load(&packages.Config{
+				Mode: packages.NeedName |
+					packages.NeedFiles |
+					packages.NeedCompiledGoFiles |
+					packages.NeedImports |
+					packages.NeedTypes |
+					packages.NeedSyntax |
+					packages.NeedTypesInfo |
+					packages.NeedTypesSizes,
+				Tests: false,
+			}, file)
+			if err != nil {
+				t.Fatalf("got %#v, want no error", err)
+			}
+			pkgs[0].PkgPath = pkgPath
+
+			return pkgs
+		}
+
+		t.Run("IsComparable - simple exprs", func(t *testing.T) {
+			for _, entry := range entries {
+				t.Run(entry.paramType, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t, false)
+					defer afterEach()
+
+					loadFnMoq.onCall(loadCfg, "io").
+						returnResults(ioTypes, nil).repeat(moq.AnyTimes())
+
+					expr := simpleExpr(t, entry.paramType)
+
+					// ACT
+					comparable, err := cache.IsComparable(expr)
+					// ASSERT
+					if err != nil {
+						t.Errorf("got %#v, want no error", err)
+					}
+					if comparable != entry.comparable {
+						t.Errorf("got %t, want %t", entry.comparable, comparable)
+					}
+				})
+			}
 		})
-	}
-}
 
-type comparableStructEntry struct {
-	code    string
-	declIdx int
-}
+		t.Run("IsDefaultComparable - simple exprs", func(t *testing.T) {
+			for _, entry := range entries {
+				t.Run(entry.paramType, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t, false)
+					defer afterEach()
 
-var comparableStructEntries = map[string]comparableStructEntry{
-	"inline": {
-		code: `package a
+					loadFnMoq.onCall(loadCfg, "io").
+						returnResults(ioTypes, nil).repeat(moq.AnyTimes())
+
+					expr := simpleExpr(t, entry.paramType)
+
+					// ACT
+					comparable, err := cache.IsDefaultComparable(expr)
+					// ASSERT
+					if err != nil {
+						t.Errorf("got %#v, want no error", err)
+					}
+					if comparable != entry.defaultComparable {
+						t.Errorf("got %t, want %t", entry.comparable, comparable)
+					}
+				})
+			}
+		})
+
+		type comparableStructEntry struct {
+			code    string
+			declIdx int
+		}
+
+		comparableStructEntries := map[string]comparableStructEntry{
+			"inline": {
+				code: `package a
 
 import _ "io"
 
 func a(b struct{ c %s }) {}
 `,
-		declIdx: 1,
-	},
-	"standard": {
-		code: `package a
+				declIdx: 1,
+			},
+			"standard": {
+				code: `package a
 
 import _ "io"
 
@@ -378,13 +528,49 @@ type b struct {
 
 func d(e b) {}
 `,
-		declIdx: 2,
-	},
-}
+				declIdx: 2,
+			},
+		}
 
-func TestIsComparableStructExprs(t *testing.T) {
-	for name, sEntry := range comparableStructEntries {
-		t.Run(name, func(t *testing.T) {
+		t.Run("IsComparable - struct exprs", func(t *testing.T) {
+			for name, sEntry := range comparableStructEntries {
+				t.Run(name, func(t *testing.T) {
+					for _, entry := range entries {
+						t.Run(entry.paramType, func(t *testing.T) {
+							// ASSEMBLE
+							if !entry.structable {
+								t.Skipf("%s can't be put into a struct, skipping", entry.paramType)
+							}
+
+							beforeEach(t, false)
+							defer afterEach()
+
+							f := parse(t, fmt.Sprintf(sEntry.code, entry.paramType))
+							fn, ok := f.Decls[sEntry.declIdx].(*dst.FuncDecl)
+							if !ok {
+								t.Fatalf("got %#v, want a function declaration", f.Decls[sEntry.declIdx])
+							}
+							expr := fn.Type.Params.List[0].Type
+
+							loadFnMoq.onCall(loadCfg, "io").
+								returnResults(ioTypes, nil).repeat(moq.AnyTimes())
+
+							// ACT
+							comparable, err := cache.IsComparable(expr)
+							// ASSERT
+							if err != nil {
+								t.Errorf("got %#v, want no error", err)
+							}
+							if comparable != entry.comparable {
+								t.Errorf("got %t, want %t", entry.comparable, comparable)
+							}
+						})
+					}
+				})
+			}
+		})
+
+		t.Run("IsComparable - imported", func(t *testing.T) {
 			for _, entry := range entries {
 				t.Run(entry.paramType, func(t *testing.T) {
 					// ASSEMBLE
@@ -392,60 +578,23 @@ func TestIsComparableStructExprs(t *testing.T) {
 						t.Skipf("%s can't be put into a struct, skipping", entry.paramType)
 					}
 
-					beforeEach(t)
+					beforeEach(t, false)
+					defer afterEach()
 
-					f := parse(t, fmt.Sprintf(sEntry.code, entry.paramType))
-					fn, ok := f.Decls[sEntry.declIdx].(*dst.FuncDecl)
-					if !ok {
-						t.Fatalf("wanted a function declaration, got %#v", f.Decls[sEntry.declIdx])
-					}
-					expr := fn.Type.Params.List[0].Type
-
-					loadFnMoq.onCall("io", false).
-						returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
-
-					// ACT
-					comparable, err := cache.IsComparable(expr)
-					// ASSERT
-					if err != nil {
-						t.Errorf("Unexpected error checking comparable: %s, err: %#v", sEntry.code, err)
-					}
-					if comparable != entry.comparable {
-						t.Errorf("IsComparable(%s) = %t; want %t",
-							entry.paramType, comparable, entry.comparable)
-					}
-
-					afterEach()
-				})
-			}
-		})
-	}
-}
-
-func TestIsComparableImported(t *testing.T) {
-	for _, entry := range entries {
-		t.Run(entry.paramType, func(t *testing.T) {
-			// ASSEMBLE
-			if !entry.structable {
-				t.Skipf("%s can't be put into a struct, skipping", entry.paramType)
-			}
-
-			beforeEach(t)
-
-			code1 := `package a
+					code1 := `package a
 
 import "b"
 
 func c(d b.e) {}
 `
-			f1 := parse(t, code1)
-			fn, ok := f1.Decls[1].(*dst.FuncDecl)
-			if !ok {
-				t.Fatalf("wanted a function declaration, got %#v", f1.Decls[1])
-			}
-			expr := fn.Type.Params.List[0].Type
+					f1 := parse(t, code1)
+					fn, ok := f1.Decls[1].(*dst.FuncDecl)
+					if !ok {
+						t.Fatalf("got %#v, want a function declaration", f1.Decls[1])
+					}
+					expr := fn.Type.Params.List[0].Type
 
-			code2 := `package b
+					code2 := `package b
 
 import _ "io"
 
@@ -453,74 +602,111 @@ type e struct {
 	f %s
 }
 `
-			f2 := parse(t, fmt.Sprintf(code2, entry.paramType))
-			gen, ok := f2.Decls[1].(*dst.GenDecl)
-			if !ok {
-				t.Fatalf("wanted a generic declaration, got %#v", f2.Decls[1])
-			}
-			typ, ok := gen.Specs[0].(*dst.TypeSpec)
-			if !ok {
-				t.Fatalf("wanted a type, got %#v", gen.Specs[0])
-			}
-			loadFnMoq.onCall("b", false).
-				returnResults(
-					[]*dst.TypeSpec{typ},
-					"b",
-					nil)
+					bPkg := parseASTPackage(t, fmt.Sprintf(code2, entry.paramType), "b")
+					loadFnMoq.onCall(loadCfg, "b").returnResults(bPkg, nil)
 
-			loadFnMoq.onCall("io", false).
-				returnResults(ioTypes, "io", nil).repeat(moq.AnyTimes())
+					loadFnMoq.onCall(loadCfg, "io").
+						returnResults(ioTypes, nil).repeat(moq.AnyTimes())
+
+					// ACT
+					comparable, err := cache.IsComparable(expr)
+					// ASSERT
+					if err != nil {
+						t.Errorf("got %#v, want no error", err)
+					}
+					if comparable != entry.comparable {
+						t.Errorf("got %t, want %t", comparable, entry.comparable)
+					}
+				})
+			}
+		})
+	})
+
+	t.Run("DST ident not comparable", func(t *testing.T) {
+		// ASSEMBLE
+		cache := ast.NewCache(packages.Load)
+		typ, _, err := cache.Type(
+			*ast.IdPath("TypeCache", "github.com/myshkin5/moqueries/generator"), true)
+		if err != nil {
+			t.Fatalf("got %#v, want no error", err)
+		}
+		iface, ok := typ.Type.(*dst.InterfaceType)
+		if !ok {
+			t.Fatalf("got %#v, want an interface", typ.Type)
+		}
+		fType, ok := iface.Methods.List[0].Type.(*dst.FuncType)
+		if !ok {
+			t.Fatalf("got %#v, want a function type", iface.Methods.List[0].Type)
+		}
+		expr := fType.Params.List[0].Type
+
+		// ACT
+		comparable, err := cache.IsComparable(expr)
+		// ASSERT
+		if err != nil {
+			t.Errorf("got %#v, want no error", err)
+		}
+		if comparable {
+			t.Errorf("got %t, want false", comparable)
+		}
+	})
+
+	t.Run("FindPackage", func(t *testing.T) {
+		t.Run("relative dir", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach()
+
+			loadFnMoq.onCall(loadCfg, "./the-pkg").returnResults(pkgs, nil)
 
 			// ACT
-			comparable, err := cache.IsComparable(expr)
+			pkgPath, err := cache.FindPackage("the-pkg")
 			// ASSERT
 			if err != nil {
-				t.Errorf("Unexpected error checking comparable: %s, err: %#v", code2, err)
-			}
-			if comparable != entry.comparable {
-				t.Errorf("IsComparable(%s) = %t; want %t",
-					entry.paramType, comparable, entry.comparable)
+				t.Fatalf("got %#v, want no error", err)
 			}
 
-			afterEach()
+			if pkgPath != "the-pkg" {
+				t.Errorf("got %s, want the-pkg", pkgPath)
+			}
 		})
-	}
-}
 
-func TestDSTIdentNotComparable(t *testing.T) {
-	// ASSEMBLE
-	cache := ast.NewCache(ast.LoadTypes)
-	typ, _, err := cache.Type(
-		*ast.IdPath("TypeCache", "github.com/myshkin5/moqueries/generator"), false)
-	if err != nil {
-		t.Errorf("Unexpected error loading type, err: %#v", err)
-	}
-	iface, ok := typ.Type.(*dst.InterfaceType)
-	if !ok {
-		t.Fatalf("wanted an interface, got %#v", typ.Type)
-	}
-	fType, ok := iface.Methods.List[0].Type.(*dst.FuncType)
-	if !ok {
-		t.Fatalf("wanted a function type, got %#v", iface.Methods.List[0].Type)
-	}
-	expr := fType.Params.List[0].Type
+		t.Run("abs dir", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach()
 
-	// ACT
-	comparable, err := cache.IsComparable(expr)
-	// ASSERT
-	if err != nil {
-		t.Errorf("Unexpected error checking comparable, err: %#v", err)
-	}
-	if comparable {
-		t.Errorf("IsComparable = %t; want false", comparable)
-	}
-}
+			loadFnMoq.onCall(loadCfg, "/this-dir").returnResults(pkgs, nil)
 
-func parse(t *testing.T, code string) *dst.File {
-	t.Helper()
-	f, err := decorator.Parse(code)
-	if err != nil {
-		t.Errorf("Unexpected error parsing code: %s, err: %#v", code, err)
-	}
-	return f
+			// ACT
+			pkgPath, err := cache.FindPackage("/this-dir")
+			// ASSERT
+			if err != nil {
+				t.Fatalf("got %#v, want no error", err)
+			}
+
+			if pkgPath != "the-pkg" {
+				t.Errorf("got %s, want the-pkg", pkgPath)
+			}
+		})
+
+		t.Run("current dir", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach()
+
+			loadFnMoq.onCall(loadCfg, ".").returnResults(pkgs, nil)
+
+			// ACT
+			pkgPath, err := cache.FindPackage(".")
+			// ASSERT
+			if err != nil {
+				t.Fatalf("got %#v, want no error", err)
+			}
+
+			if pkgPath != "the-pkg" {
+				t.Errorf("got %s, want the-pkg", pkgPath)
+			}
+		})
+	})
 }

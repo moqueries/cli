@@ -15,7 +15,6 @@ import (
 func TestMoqGenerator(t *testing.T) {
 	var (
 		scene             *moq.Scene
-		findPackageFnMoq  *moqFindPackageFn
 		typeCacheMoq      *moqTypeCache
 		newConverterFnMoq *moqNewConverterFunc
 		converter1Moq     *moqConverterer
@@ -44,14 +43,12 @@ func TestMoqGenerator(t *testing.T) {
 			t.Fatal("afterEach not called")
 		}
 		scene = moq.NewScene(t)
-		findPackageFnMoq = newMoqFindPackageFn(scene, nil)
 		typeCacheMoq = newMoqTypeCache(scene, nil)
 		newConverterFnMoq = newMoqNewConverterFunc(scene, nil)
 		converter1Moq = newMoqConverterer(scene, nil)
 		converter2Moq = newMoqConverterer(scene, nil)
 
 		gen = generator.New(
-			findPackageFnMoq.mock(),
 			typeCacheMoq.mock(),
 			newConverterFnMoq.mock())
 
@@ -136,7 +133,7 @@ func TestMoqGenerator(t *testing.T) {
 			TestImport:  false,
 		}
 
-		findPackageFnMoq.onCall("dir").returnResults("dir", nil)
+		typeCacheMoq.onCall().FindPackage("dir").returnResults("dir", nil)
 
 		// ACT
 		_, file, err := gen.Generate(req)
@@ -169,7 +166,7 @@ func TestMoqGenerator(t *testing.T) {
 			TestImport:  false,
 		}
 
-		findPackageFnMoq.onCall("dir").returnResults("dir", nil)
+		typeCacheMoq.onCall().FindPackage("dir").returnResults("dir", nil)
 
 		// ACT
 		_, file, err := gen.Generate(req)
@@ -195,7 +192,7 @@ func TestMoqGenerator(t *testing.T) {
 			TestImport:  false,
 		}
 
-		findPackageFnMoq.onCall("dir").returnResults("dir", nil)
+		typeCacheMoq.onCall().FindPackage("dir").returnResults("dir", nil)
 
 		// ACT
 		_, file, err := gen.Generate(req)
@@ -221,7 +218,7 @@ func TestMoqGenerator(t *testing.T) {
 			TestImport:  false,
 		}
 
-		findPackageFnMoq.onCall("..").returnResults("otherpkg", nil)
+		typeCacheMoq.onCall().FindPackage("..").returnResults("otherpkg", nil)
 
 		// ACT
 		_, file, err := gen.Generate(req)
@@ -248,7 +245,7 @@ func TestMoqGenerator(t *testing.T) {
 			TestImport:  false,
 		}
 
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 
 		// ACT
 		_, file, err := gen.Generate(req)
@@ -275,7 +272,7 @@ func TestMoqGenerator(t *testing.T) {
 			TestImport:  false,
 		}
 
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 
 		// ACT
 		_, file, err := gen.Generate(req)
@@ -292,7 +289,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		// PublicInterface embeds privateInterface which embeds io.Reader
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -325,8 +322,10 @@ func TestMoqGenerator(t *testing.T) {
 			},
 		}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec1,
-			Funcs:    ifaceFuncs,
+			TypeSpec:   ifaceSpec1,
+			Funcs:      ifaceFuncs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
 			Name: dst.NewIdent("pub-decl"),
@@ -363,8 +362,10 @@ func TestMoqGenerator(t *testing.T) {
 			Results: readFnType.Results,
 		}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec2,
-			Funcs:    iface2Funcs,
+			TypeSpec:   ifaceSpec2,
+			Funcs:      iface2Funcs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter2Moq.mock())
 		converter2Moq.onCall().BaseStruct().returnResults(nil)
 		converter2Moq.onCall().IsolationStruct("mock").
@@ -410,7 +411,7 @@ func TestMoqGenerator(t *testing.T) {
 		beforeEach(t)
 		defer afterEach()
 
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 
 		ifaceSpec := &dst.TypeSpec{
 			Name: dst.NewIdent("AliasType"),
@@ -430,8 +431,10 @@ func TestMoqGenerator(t *testing.T) {
 			},
 		}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec,
-			Funcs:    ifaceFuncs,
+			TypeSpec:   ifaceSpec,
+			Funcs:      ifaceFuncs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("mock").
@@ -476,13 +479,15 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec1,
-			Funcs:    ifaceFuncs,
+			TypeSpec:   ifaceSpec1,
+			Funcs:      ifaceFuncs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
 			Name: dst.NewIdent("pub-decl"),
@@ -523,7 +528,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), true).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), true).
@@ -531,8 +536,10 @@ func TestMoqGenerator(t *testing.T) {
 
 		iface1Funcs := []generator.Func{{Name: "Func1", Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec1,
-			Funcs:    iface1Funcs,
+			TypeSpec:   ifaceSpec1,
+			Funcs:      iface1Funcs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("mock").
@@ -558,8 +565,10 @@ func TestMoqGenerator(t *testing.T) {
 
 		var iface2Funcs []generator.Func
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec2,
-			Funcs:    iface2Funcs,
+			TypeSpec:   ifaceSpec2,
+			Funcs:      iface2Funcs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter2Moq.mock())
 		converter2Moq.onCall().BaseStruct().returnResults(nil)
 		converter2Moq.onCall().IsolationStruct("mock").
@@ -598,7 +607,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		pubId := ast.IdPath("PublicInterface", "github.com/myshkin5/moqueries/generator")
 		typeCacheMoq.onCall().Type(*pubId, true).
 			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
@@ -608,8 +617,10 @@ func TestMoqGenerator(t *testing.T) {
 
 		iface1Funcs := []generator.Func{{Name: "Func1", Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec1,
-			Funcs:    iface1Funcs,
+			TypeSpec:   ifaceSpec1,
+			Funcs:      iface1Funcs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("mock").
@@ -635,8 +646,10 @@ func TestMoqGenerator(t *testing.T) {
 
 		var iface2Funcs []generator.Func
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: ifaceSpec2,
-			Funcs:    iface2Funcs,
+			TypeSpec:   ifaceSpec2,
+			Funcs:      iface2Funcs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("mock").
@@ -675,7 +688,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		expectedErr := errors.New("bad cache")
 		typeCacheMoq.onCall().Type(*ast.IdPath("BadInterface", "."), false).
 			returnResults(nil, "", expectedErr)
@@ -708,7 +721,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		// PublicInterface embeds privateInterface
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -750,7 +763,7 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		// PublicInterface embeds privateInterface which embeds io.Reader
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
@@ -800,13 +813,15 @@ func TestMoqGenerator(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
 		defer afterEach()
-		findPackageFnMoq.onCall(".").returnResults("thispkg", nil)
+		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), false).
 			returnResults(fnSpec, "github.com/myshkin5/moqueries/generator", nil)
 		fnFuncs := []generator.Func{{Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec: fnSpec,
-			Funcs:    fnFuncs,
+			TypeSpec:   fnSpec,
+			Funcs:      fnFuncs,
+			InPkgPath:  "github.com/myshkin5/moqueries/generator",
+			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseStruct().returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
 			Name: dst.NewIdent("pub-decl"),
@@ -817,7 +832,7 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(nil, nil)
 		converter1Moq.onCall().NewFunc().
 			returnResults(nil)
-		converter1Moq.onCall().FuncClosure("github.com/myshkin5/moqueries/generator", fnFuncs[0]).
+		converter1Moq.onCall().FuncClosure(fnFuncs[0]).
 			returnResults(nil)
 		converter1Moq.onCall().MockMethod(fnFuncs[0]).
 			returnResults(nil)
