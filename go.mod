@@ -7,7 +7,7 @@ require (
 	github.com/davegardnerisme/deephash v0.0.0-20210406090112-6d072427d830
 	github.com/golangci/golangci-lint v1.44.2
 	github.com/spf13/cobra v1.3.0
-	golang.org/x/tools v0.1.9
+	golang.org/x/tools v0.1.10
 )
 
 require (
@@ -145,7 +145,7 @@ require (
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.1.1-0.20210918184747-d757024714a1 // indirect
 	gitlab.com/bosi/decorder v0.2.1 // indirect
-	golang.org/x/mod v0.5.1 // indirect
+	golang.org/x/mod v0.6.0-dev.0.20220106191415-9b9b3d81d5e3 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220111092808-5a964db01320 // indirect
 	golang.org/x/text v0.3.7 // indirect
