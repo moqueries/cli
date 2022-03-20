@@ -84,7 +84,8 @@ func (r *usualFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, ex
 }
 
 func (r *usualFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -182,7 +183,8 @@ func (r *exportedUsualFnRecorder) andDo(t moq.T, fn func(), expectedSParams []st
 }
 
 func (r *exportedUsualFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -278,7 +280,8 @@ func (r *noNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, 
 }
 
 func (r *noNamesFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -376,7 +379,8 @@ func (r *exportedNoNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []
 }
 
 func (r *exportedNoNamesFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -466,7 +470,8 @@ func (r *noResultsFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string
 }
 
 func (r *noResultsFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error,
+) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -557,7 +562,8 @@ func (r *exportedNoResultsFnRecorder) andDo(t moq.T, fn func(), expectedSParams 
 }
 
 func (r *exportedNoResultsFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error,
+) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -636,7 +642,8 @@ func (r *noParamsFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 }
 
 func (r *noParamsFnRecorder) doReturnResults(
-	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func() (string, error) {
 		fn()
 		return sResults[0], err
@@ -710,7 +717,8 @@ func (r *exportedNoParamsFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ boo
 }
 
 func (r *exportedNoParamsFnRecorder) doReturnResults(
-	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func() (string, error) {
 		fn()
 		return sResults[0], err
@@ -778,7 +786,8 @@ func (r *nothingFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
 }
 
 func (r *nothingFnRecorder) doReturnResults(
-	_ moq.T, fn func(), _ []string, _ bool, _ []string, _ error) {
+	_ moq.T, fn func(), _ []string, _ bool, _ []string, _ error,
+) {
 	r.r = r.r.doReturnResults(func() {
 		fn()
 	})
@@ -845,7 +854,8 @@ func (r *exportedNothingFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool
 }
 
 func (r *exportedNothingFnRecorder) doReturnResults(
-	_ moq.T, fn func(), _ []string, _ bool, _ []string, _ error) {
+	_ moq.T, fn func(), _ []string, _ bool, _ []string, _ error,
+) {
 	r.r = r.r.DoReturnResults(func() {
 		fn()
 	})
@@ -934,7 +944,8 @@ func (r *variadicFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string,
 }
 
 func (r *variadicFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(other bool, args ...string) (string, error) {
 		fn()
 		if !reflect.DeepEqual(args, expectedSParams) {
@@ -970,7 +981,8 @@ func (a *exportedVariadicFnAdaptor) newRecorder(sParams []string, bParam bool) r
 }
 
 func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(
-	t moq.T, sParams []string, bParam bool, res results) {
+	t moq.T, sParams []string, bParam bool, res results,
+) {
 	sResult, err := a.m.Mock()(bParam, sParams...)
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
@@ -1033,7 +1045,8 @@ func (r *exportedVariadicFnRecorder) andDo(t moq.T, fn func(), expectedSParams [
 }
 
 func (r *exportedVariadicFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(other bool, args ...string) (string, error) {
 		fn()
 		if !reflect.DeepEqual(args, expectedSParams) {
@@ -1135,7 +1148,8 @@ func (r *repeatedIdsFnRecorder) andDo(t moq.T, fn func(), expectedSParams []stri
 }
 
 func (r *repeatedIdsFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
 		fn()
 		if sParam1 != expectedSParams[0] {
@@ -1242,7 +1256,8 @@ func (r *exportedRepeatedIdsFnRecorder) andDo(t moq.T, fn func(), expectedSParam
 }
 
 func (r *exportedRepeatedIdsFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(sParam1, sParam2 string, bParam bool) (string, string, error) {
 		fn()
 		if sParam1 != expectedSParams[0] {
@@ -1341,7 +1356,8 @@ func (r *timesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, ex
 }
 
 func (r *timesFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -1439,7 +1455,8 @@ func (r *exportedTimesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []st
 }
 
 func (r *exportedTimesFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -1529,7 +1546,8 @@ func (r *difficultParamNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParam
 }
 
 func (r *difficultParamNamesFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error,
+) {
 	r.r = r.r.doReturnResults(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
@@ -1566,7 +1584,8 @@ func (a *exportedDifficultParamNamesFnAdaptor) newRecorder(sParams []string, bPa
 }
 
 func (a *exportedDifficultParamNamesFnAdaptor) invokeMockAndExpectResults(
-	_ moq.T, sParams []string, bParam bool, _ results) {
+	_ moq.T, sParams []string, bParam bool, _ results,
+) {
 	a.m.Mock()(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
 }
 
@@ -1611,7 +1630,8 @@ func (r *exportedDifficultParamNamesFnRecorder) returnResults([]string, error) {
 }
 
 func (r *exportedDifficultParamNamesFnRecorder) andDo(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
+) {
 	r.r = r.r.AndDo(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
@@ -1624,7 +1644,8 @@ func (r *exportedDifficultParamNamesFnRecorder) andDo(
 }
 
 func (r *exportedDifficultParamNamesFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error,
+) {
 	r.r = r.r.DoReturnResults(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
@@ -1706,7 +1727,8 @@ func (r *difficultResultNamesFnRecorder) andDo(_ moq.T, fn func(), _ []string, _
 }
 
 func (r *difficultResultNamesFnRecorder) doReturnResults(
-	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
+) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
 	r.r = r.r.doReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
 		fn()
@@ -1784,7 +1806,8 @@ func (r *exportedDifficultResultNamesFnRecorder) andDo(_ moq.T, fn func(), _ []s
 }
 
 func (r *exportedDifficultResultNamesFnRecorder) doReturnResults(
-	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error) {
+	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
+) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
 	r.r = r.r.DoReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
 		fn()
@@ -1888,7 +1911,8 @@ func (r *passByReferenceFnRecorder) andDo(t moq.T, fn func(), expectedSParams []
 }
 
 func (r *passByReferenceFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(p *testmoqs.PassByReferenceParams) (string, error) {
 		fn()
 		if p.SParam != expectedSParams[0] {
@@ -1930,7 +1954,8 @@ func (a *exportedPassByReferenceFnAdaptor) newRecorder(sParams []string, bParam 
 }
 
 func (a *exportedPassByReferenceFnAdaptor) invokeMockAndExpectResults(
-	t moq.T, sParams []string, bParam bool, res results) {
+	t moq.T, sParams []string, bParam bool, res results,
+) {
 	sResult, err := a.m.Mock()(&testmoqs.PassByReferenceParams{
 		SParam: sParams[0],
 		BParam: bParam,
@@ -1999,7 +2024,8 @@ func (r *exportedPassByReferenceFnRecorder) andDo(t moq.T, fn func(), expectedSP
 }
 
 func (r *exportedPassByReferenceFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(p *testmoqs.PassByReferenceParams) (string, error) {
 		fn()
 		if p.SParam != expectedSParams[0] {
@@ -2112,7 +2138,8 @@ func (r *interfaceParamFnRecorder) andDo(t moq.T, fn func(), expectedSParams []s
 }
 
 func (r *interfaceParamFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(w io.Writer) (string, error) {
 		fn()
 		ipw, ok := w.(*testmoqs.InterfaceParamWriter)
@@ -2158,7 +2185,8 @@ func (a *exportedInterfaceParamFnAdaptor) newRecorder(sParams []string, bParam b
 }
 
 func (a *exportedInterfaceParamFnAdaptor) invokeMockAndExpectResults(
-	t moq.T, sParams []string, bParam bool, res results) {
+	t moq.T, sParams []string, bParam bool, res results,
+) {
 	sResult, err := a.m.Mock()(&testmoqs.InterfaceParamWriter{
 		SParam: sParams[0],
 		BParam: bParam,
@@ -2231,7 +2259,8 @@ func (r *exportedInterfaceParamFnRecorder) andDo(t moq.T, fn func(), expectedSPa
 }
 
 func (r *exportedInterfaceParamFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(w io.Writer) (string, error) {
 		fn()
 		ipw, ok := w.(*testmoqs.InterfaceParamWriter)
@@ -2351,7 +2380,8 @@ func (r *interfaceResultFnRecorder) andDo(t moq.T, fn func(), expectedSParams []
 }
 
 func (r *interfaceResultFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.doReturnResults(func(sParam string, bParam bool) io.Reader {
 		fn()
 		if sParam != expectedSParams[0] {
@@ -2393,7 +2423,8 @@ func (a *exportedInterfaceResultFnAdaptor) newRecorder(sParams []string, bParam 
 }
 
 func (a *exportedInterfaceResultFnAdaptor) invokeMockAndExpectResults(
-	t moq.T, sParams []string, bParam bool, res results) {
+	t moq.T, sParams []string, bParam bool, res results,
+) {
 	r := a.m.Mock()(sParams[0], bParam)
 	irr, ok := r.(*testmoqs.InterfaceResultReader)
 	if !ok {
@@ -2472,7 +2503,8 @@ func (r *exportedInterfaceResultFnRecorder) andDo(t moq.T, fn func(), expectedSP
 }
 
 func (r *exportedInterfaceResultFnRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error) {
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
 	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) io.Reader {
 		fn()
 		if sParam != expectedSParams[0] {
