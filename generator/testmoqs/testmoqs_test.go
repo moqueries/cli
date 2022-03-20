@@ -1369,12 +1369,14 @@ func (a *passByReferenceFnParamIndexingAdaptor) setParamIndexing(pi moq.ParamInd
 }
 
 func (a *passByReferenceFnParamIndexingAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	a.m.onCall(params).returnResults(sResult, err)
 }
 
 func (a *passByReferenceFnParamIndexingAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	actualSResult, actualErr := a.m.mock()(params)
 	if sResult != actualSResult {
 		t.Errorf("got %s, wanted %s", actualSResult, sResult)
@@ -1397,12 +1399,14 @@ func (a *exportedPassByReferenceParamIndexingFnAdaptor) setParamIndexing(pi moq.
 }
 
 func (a *exportedPassByReferenceParamIndexingFnAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	a.m.OnCall(params).ReturnResults(sResult, err)
 }
 
 func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	actualSResult, actualErr := a.m.Mock()(params)
 	if sResult != actualSResult {
 		t.Errorf("got %s, wanted %s", actualSResult, sResult)
@@ -1413,7 +1417,8 @@ func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResul
 }
 
 func (a *exportedPassByReferenceParamIndexingFnAdaptor) bundleParams(
-	params *testmoqs.PassByReferenceParams) interface{} {
+	params *testmoqs.PassByReferenceParams,
+) interface{} {
 	return exported.MoqPassByReferenceFn_params{P: params}
 }
 
@@ -1426,12 +1431,14 @@ func (a *passByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndex
 }
 
 func (a *passByReferenceParamIndexingAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	a.m.onCall().PassByReference(params).returnResults(sResult, err)
 }
 
 func (a *passByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	actualSResult, actualErr := a.m.mock().PassByReference(params)
 	if sResult != actualSResult {
 		t.Errorf("got %s, wanted %s", actualSResult, sResult)
@@ -1454,12 +1461,14 @@ func (a *exportedPassByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.Pa
 }
 
 func (a *exportedPassByReferenceParamIndexingAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	a.m.OnCall().PassByReference(params).ReturnResults(sResult, err)
 }
 
 func (a *exportedPassByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error) {
+	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+) {
 	actualSResult, actualErr := a.m.Mock().PassByReference(params)
 	if sResult != actualSResult {
 		t.Errorf("got %s, wanted %s", actualSResult, sResult)

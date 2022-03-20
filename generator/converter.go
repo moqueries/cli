@@ -1015,7 +1015,8 @@ func (c *Converter) returnFn(
 	fnName string,
 	fn Func,
 	params *dst.FieldList,
-	resultExprs []dst.Expr) *dst.FuncDecl {
+	resultExprs []dst.Expr,
+) *dst.FuncDecl {
 	mName := c.moqName()
 
 	fnRecName := fmt.Sprintf(triple, mName, fn.Name, fnRecorderSuffix)

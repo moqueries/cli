@@ -289,7 +289,7 @@ Interfaces and function types are separated by whitespace. Multiple types may be
 
 | Option                 | Type     | Default value                                                                                                                        | Usage                                                                                                                              |
 |------------------------|----------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| `--debug`              | `bool`   | `false`                                                                                                                              | If true, debugging output will be logged                                                                                           |
+| `--debug`              | `bool`   | `false`                                                                                                                              | If true, debugging output will be logged (also see `MOQ_DEBUG` in [Environment Variables](#environment-variables) below)           |
 | `--destination <file>` | `string` | `./moq_<type>.go` when exported or `./moq_<type>_test.go` when not exported                                                          | The file path where mocks are generated relative to directory containing generate directive (or relative to the current directory) |
 | `--export`             | `bool`   | `false`                                                                                                                              | If true, generated mocks will be exported and accessible from other packages                                                       |
 | `--import <name>`      | `string` | `.` (the directory containing generate directive)                                                                                    | The package containing the type (interface or function type) to be mocked                                                          |
@@ -300,3 +300,10 @@ Values specified after an option are separated from the option by whitespace (`-
 If a non-repeating option is specified more than one time, the last value is used.
 
 Options with a value type of `bool` are set (turned on) by specifying the option directly (`--debug`) or by specifying a boolean value after the option (`--debug=true` or `--debug true`). To turn a boolean option off, a value must be specified (`--debug=false`).
+
+### Environment Variables
+The Moqueries command line can also be controlled by the following environment variables:
+
+| Name        | Usage                                                                                                                                                                                                       |
+|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MOQ_DEBUG` | If set to a "true" value (see [`strconv.ParseBool`](https://pkg.go.dev/strconv#ParseBool)), debugging output will be logged (also see `--debug` in [Command line reference](#command-line-reference) above) |

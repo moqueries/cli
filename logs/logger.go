@@ -6,12 +6,14 @@ import (
 )
 
 var (
-	debug      = true
-	warnLogger *log.Logger
-	errLogger  *log.Logger
+	debug       = true
+	debugLogger *log.Logger
+	warnLogger  *log.Logger
+	errLogger   *log.Logger
 )
 
 func init() {
+	debugLogger = log.New(os.Stdout, "DEBUG: ", log.LstdFlags)
 	errLogger = log.New(os.Stderr, "ERROR: ", log.LstdFlags)
 	warnLogger = log.New(os.Stderr, "WARNING: ", log.LstdFlags)
 	log.SetPrefix("DEBUG: ")
@@ -25,7 +27,7 @@ func Init(dbg bool) {
 // Debugf will output a debugging log if debug logs are configured
 func Debugf(format string, args ...interface{}) {
 	if debug {
-		log.Printf(format, args...)
+		debugLogger.Printf(format, args...)
 	}
 }
 

@@ -18,6 +18,7 @@ linters:
   - nlreturn
   - paralleltest
   - prealloc
+  - predeclared
   - varnamelen
   - scopelint
   - wsl

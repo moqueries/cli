@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -36,10 +37,19 @@ func generate(cmd *cobra.Command, typs []string) {
 		logs.Panic("Error getting test-import flag", err)
 	}
 
+	debugStr, ok := os.LookupEnv("MOQ_DEBUG")
+	if ok {
+		debugEnvVar, err := strconv.ParseBool(debugStr)
+		if err != nil {
+			logs.Panic("Error parsing MOQ_DEBUG environment variable", err)
+		}
+		debug = debug || debugEnvVar
+	}
+
 	logs.Init(debug)
 	if debug {
 		cwd, _ := os.Getwd()
-		logs.Debugf("moqueries invoked, debug: %t, export: %t, destination: %s,"+
+		logs.Debugf("Moqueries invoked, debug: %t, export: %t, destination: %s,"+
 			" package: %s, import: %s, types: %s, current working directory: %s",
 			debug, export, dest, pkg, imp, typs, cwd)
 	}
