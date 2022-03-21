@@ -341,6 +341,7 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 func (m *moqTypeCache) mock() *moqTypeCache_mock { return m.moq }
 
 func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
+	m.moq.scene.T.Helper()
 	params := moqTypeCache_Type_params{
 		id:           id,
 		loadTestPkgs: loadTestPkgs,
@@ -396,6 +397,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.
 }
 
 func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 error) {
+	m.moq.scene.T.Helper()
 	params := moqTypeCache_IsComparable_params{
 		expr: expr,
 	}
@@ -449,6 +451,7 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 }
 
 func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, result2 error) {
+	m.moq.scene.T.Helper()
 	params := moqTypeCache_IsDefaultComparable_params{
 		expr: expr,
 	}
@@ -502,6 +505,7 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 }
 
 func (m *moqTypeCache_mock) FindPackage(dir string) (result1 string, result2 error) {
+	m.moq.scene.T.Helper()
 	params := moqTypeCache_FindPackage_params{
 		dir: dir,
 	}
@@ -573,6 +577,7 @@ func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestPkgs bool) *moqTypeCa
 }
 
 func (r *moqTypeCache_Type_fnRecorder) any() *moqTypeCache_Type_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -591,6 +596,7 @@ func (a *moqTypeCache_Type_anyParams) loadTestPkgs() *moqTypeCache_Type_fnRecord
 }
 
 func (r *moqTypeCache_Type_fnRecorder) seq() *moqTypeCache_Type_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -600,6 +606,7 @@ func (r *moqTypeCache_Type_fnRecorder) seq() *moqTypeCache_Type_fnRecorder {
 }
 
 func (r *moqTypeCache_Type_fnRecorder) noSeq() *moqTypeCache_Type_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -609,6 +616,7 @@ func (r *moqTypeCache_Type_fnRecorder) noSeq() *moqTypeCache_Type_fnRecorder {
 }
 
 func (r *moqTypeCache_Type_fnRecorder) returnResults(result1 *dst.TypeSpec, result2 string, result3 error) *moqTypeCache_Type_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -641,6 +649,7 @@ func (r *moqTypeCache_Type_fnRecorder) returnResults(result1 *dst.TypeSpec, resu
 }
 
 func (r *moqTypeCache_Type_fnRecorder) andDo(fn moqTypeCache_Type_doFn) *moqTypeCache_Type_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -651,6 +660,7 @@ func (r *moqTypeCache_Type_fnRecorder) andDo(fn moqTypeCache_Type_doFn) *moqType
 }
 
 func (r *moqTypeCache_Type_fnRecorder) doReturnResults(fn moqTypeCache_Type_doReturnFn) *moqTypeCache_Type_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -720,6 +730,7 @@ func (r *moqTypeCache_Type_fnRecorder) findResults() {
 }
 
 func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_Type_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -797,6 +808,7 @@ func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr) *moqTypeCache_IsComp
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) any() *moqTypeCache_IsComparable_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -810,6 +822,7 @@ func (a *moqTypeCache_IsComparable_anyParams) expr() *moqTypeCache_IsComparable_
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) seq() *moqTypeCache_IsComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -819,6 +832,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) seq() *moqTypeCache_IsComparable_
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) noSeq() *moqTypeCache_IsComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -828,6 +842,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) noSeq() *moqTypeCache_IsComparabl
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) returnResults(result1 bool, result2 error) *moqTypeCache_IsComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -857,6 +872,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) returnResults(result1 bool, resul
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) andDo(fn moqTypeCache_IsComparable_doFn) *moqTypeCache_IsComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -867,6 +883,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) andDo(fn moqTypeCache_IsComparabl
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) doReturnResults(fn moqTypeCache_IsComparable_doReturnFn) *moqTypeCache_IsComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -935,6 +952,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) findResults() {
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_IsComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -998,6 +1016,7 @@ func (m *moqTypeCache_recorder) IsDefaultComparable(expr dst.Expr) *moqTypeCache
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) any() *moqTypeCache_IsDefaultComparable_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1011,6 +1030,7 @@ func (a *moqTypeCache_IsDefaultComparable_anyParams) expr() *moqTypeCache_IsDefa
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) seq() *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1020,6 +1040,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) seq() *moqTypeCache_IsDefa
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) noSeq() *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1029,6 +1050,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) noSeq() *moqTypeCache_IsDe
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) returnResults(result1 bool, result2 error) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1058,6 +1080,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) returnResults(result1 bool
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) andDo(fn moqTypeCache_IsDefaultComparable_doFn) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1068,6 +1091,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) andDo(fn moqTypeCache_IsDe
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) doReturnResults(fn moqTypeCache_IsDefaultComparable_doReturnFn) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1136,6 +1160,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) findResults() {
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_IsDefaultComparable_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1199,6 +1224,7 @@ func (m *moqTypeCache_recorder) FindPackage(dir string) *moqTypeCache_FindPackag
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) any() *moqTypeCache_FindPackage_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1212,6 +1238,7 @@ func (a *moqTypeCache_FindPackage_anyParams) dir() *moqTypeCache_FindPackage_fnR
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) seq() *moqTypeCache_FindPackage_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1221,6 +1248,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) seq() *moqTypeCache_FindPackage_fn
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) noSeq() *moqTypeCache_FindPackage_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1230,6 +1258,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) noSeq() *moqTypeCache_FindPackage_
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) returnResults(result1 string, result2 error) *moqTypeCache_FindPackage_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1259,6 +1288,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) returnResults(result1 string, resu
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) andDo(fn moqTypeCache_FindPackage_doFn) *moqTypeCache_FindPackage_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1269,6 +1299,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) andDo(fn moqTypeCache_FindPackage_
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) doReturnResults(fn moqTypeCache_FindPackage_doReturnFn) *moqTypeCache_FindPackage_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1337,6 +1368,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) findResults() {
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTypeCache_FindPackage_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1399,6 +1431,7 @@ func (m *moqTypeCache) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqTypeCache) AssertExpectationsMet() {
+	m.scene.T.Helper()
 	for _, res := range m.resultsByParams_Type {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
