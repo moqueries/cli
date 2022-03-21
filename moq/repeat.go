@@ -30,6 +30,7 @@ type RepeatVal struct {
 // Increment must be called by a moq each time results are expected and must be
 // called prior to the optional call to Repeat
 func (v *RepeatVal) Increment(t T) {
+	t.Helper()
 	v.repeat(t, []Repeater{Times(1)})
 	v.Incremented = true
 }
@@ -38,6 +39,7 @@ func (v *RepeatVal) Increment(t T) {
 // If Repeat detects any rule violations (e.g.: conflicting repeaters),
 // t.Fatalf is called to stop the test.
 func (v *RepeatVal) Repeat(t T, repeaters []Repeater) {
+	t.Helper()
 	if !v.Incremented {
 		t.Fatalf("fn Increment not called before fn Repeat")
 		return
