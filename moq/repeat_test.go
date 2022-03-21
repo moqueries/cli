@@ -402,6 +402,7 @@ func TestRepeat(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// ASSEMBLE
 			if test.increment {
+				tMoq.OnCall().Helper().ReturnResults()
 				test.prev.Increment(tMoqMock)
 			}
 			if test.fatalfFormat != "" {
@@ -410,6 +411,7 @@ func TestRepeat(t *testing.T) {
 
 			// ACT
 			if test.repeaters != nil {
+				tMoq.OnCall().Helper().ReturnResults()
 				test.prev.Repeat(tMoqMock, test.repeaters)
 			}
 

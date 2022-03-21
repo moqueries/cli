@@ -74,6 +74,7 @@ const (
 	fatalfFnName          = "Fatalf"
 	findResultsFnName     = "findResults"
 	fnFnName              = "fn"
+	helperFnName          = "Helper"
 	incrementFnName       = "Increment"
 	lenFnName             = "len"
 	mockFnName            = "mock"
@@ -367,7 +368,9 @@ func (c *Converter) ResetMethod() *dst.FuncDecl {
 func (c *Converter) AssertMethod() *dst.FuncDecl {
 	mName := c.moqName()
 
-	var stmts []dst.Stmt
+	stmts := []dst.Stmt{
+		c.helperCallExpr(Id(moqReceiverIdent)),
+	}
 	for _, fn := range c.typ.Funcs {
 		fieldSuffix := ""
 		if _, ok := c.typ.TypeSpec.Type.(*dst.InterfaceType); ok {
@@ -732,6 +735,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 	}
 
 	stmts := []dst.Stmt{
+		c.helperCallExpr(Sel(Id(moqReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 		Assign(Id(paramsIdent)).
 			Tok(token.DEFINE).
 			Rhs(Comp(Idf(double, typePrefix, paramsIdent)).
@@ -955,6 +959,7 @@ func (c *Converter) anyParamAnyFn(anyParamsName, fnRecName string) *dst.FuncDecl
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
 		Results(Field(Star(Id(anyParamsName))).Obj).
 		Body(
+			c.helperCallExpr(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 			If(Bin(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(resultsIdent)).Obj).
 				Op(token.NEQ).
 				Y(Id(nilIdent)).Obj).
@@ -1031,6 +1036,7 @@ func (c *Converter) returnFn(
 		ParamList(params).
 		Results(Field(Star(Id(fnRecName))).Obj).
 		Body(
+			c.helperCallExpr(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 			Expr(Call(Sel(Id(recorderReceiverIdent)).
 				Dot(c.exportId(findResultsFnName)).Obj).Obj).
 				Decs(ExprDecs(dst.EmptyLine).Obj).Obj,
@@ -1071,6 +1077,7 @@ func (c *Converter) andDoFn(fn Func) *dst.FuncDecl {
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
 		Params(Field(Id(fnName)).Names(Id(fnFnName)).Obj).
 		Results(Field(Star(Id(fnRecName))).Obj).Body(
+		c.helperCallExpr(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 		If(Bin(Sel(Id(recorderReceiverIdent)).
 			Dot(c.exportId(resultsIdent)).Obj).
 			Op(token.EQL).
@@ -1293,6 +1300,7 @@ func (c *Converter) recorderRepeatFn(fn Func) *dst.FuncDecl {
 		Params(Field(Ellipsis(c.idPath(repeaterType, moqPkg))).Names(Id(repeatersIdent)).Obj).
 		Results(Field(Star(Id(fnRecName))).Obj).
 		Body(
+			c.helperCallExpr(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 			If(Bin(Sel(Id(recorderReceiverIdent)).
 				Dot(c.exportId(resultsIdent)).Obj).
 				Op(token.EQL).
@@ -1499,6 +1507,7 @@ func (c *Converter) recorderSeqFn(fnName, assign string, fn Func) *dst.FuncDecl 
 		Results(Field(Star(Id(fnRecName))).Obj).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
 		Body(
+			c.helperCallExpr(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 			If(Bin(Sel(Id(recorderReceiverIdent)).
 				Dot(c.exportId(resultsIdent)).Obj).
 				Op(token.NEQ).
@@ -1675,6 +1684,13 @@ func (c *Converter) idPath(name, path string) *dst.Ident {
 	default:
 		return IdPath(name, path)
 	}
+}
+
+func (c *Converter) helperCallExpr(selector dst.Expr) dst.Stmt {
+	return Expr(Call(Sel(Sel(Sel(selector).
+		Dot(c.exportId(sceneIdent)).Obj).
+		Dot(Id(tType)).Obj).
+		Dot(Id(helperFnName)).Obj).Obj).Obj
 }
 
 func stdFuncDec() dst.FuncDeclDecorations {

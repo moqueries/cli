@@ -25,6 +25,7 @@ type Moq interface {
 type T interface {
 	Errorf(format string, args ...interface{})
 	Fatalf(format string, args ...interface{})
+	Helper()
 }
 
 // NewScene creates a new empty scene with no moqs
