@@ -1042,6 +1042,7 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 func (m *moqUsual) mock() *moqUsual_mock { return m.moq }
 
 func (m *moqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_Usual_params{
 		sParam: sParam,
 		bParam: bParam,
@@ -1096,6 +1097,7 @@ func (m *moqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err e
 }
 
 func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, result2 error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_NoNames_params{
 		param1: param1,
 		param2: param2,
@@ -1150,6 +1152,7 @@ func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, res
 }
 
 func (m *moqUsual_mock) NoResults(sParam string, bParam bool) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_NoResults_params{
 		sParam: sParam,
 		bParam: bParam,
@@ -1200,6 +1203,7 @@ func (m *moqUsual_mock) NoResults(sParam string, bParam bool) {
 }
 
 func (m *moqUsual_mock) NoParams() (sResult string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_NoParams_params{}
 	var results *moqUsual_NoParams_results
 	for _, resultsByParams := range m.moq.resultsByParams_NoParams {
@@ -1251,6 +1255,7 @@ func (m *moqUsual_mock) NoParams() (sResult string, err error) {
 }
 
 func (m *moqUsual_mock) Nothing() {
+	m.moq.scene.T.Helper()
 	params := moqUsual_Nothing_params{}
 	var results *moqUsual_Nothing_results
 	for _, resultsByParams := range m.moq.resultsByParams_Nothing {
@@ -1298,6 +1303,7 @@ func (m *moqUsual_mock) Nothing() {
 }
 
 func (m *moqUsual_mock) Variadic(other bool, args ...string) (sResult string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_Variadic_params{
 		other: other,
 		args:  args,
@@ -1352,6 +1358,7 @@ func (m *moqUsual_mock) Variadic(other bool, args ...string) (sResult string, er
 }
 
 func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_RepeatedIds_params{
 		sParam1: sParam1,
 		sParam2: sParam2,
@@ -1408,6 +1415,7 @@ func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 }
 
 func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_Times_params{
 		sParam: sParam,
 		times:  times,
@@ -1462,6 +1470,7 @@ func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 }
 
 func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_DifficultParamNames_params{
 		param1: param1,
 		param2: param2,
@@ -1517,6 +1526,7 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 }
 
 func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3 error, param, result5 int, result6, result7 float32) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_DifficultResultNames_params{}
 	var results *moqUsual_DifficultResultNames_results
 	for _, resultsByParams := range m.moq.resultsByParams_DifficultResultNames {
@@ -1573,6 +1583,7 @@ func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 }
 
 func (m *moqUsual_mock) PassByReference(p *testmoqs.PassByReferenceParams) (sResult string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_PassByReference_params{
 		p: p,
 	}
@@ -1626,6 +1637,7 @@ func (m *moqUsual_mock) PassByReference(p *testmoqs.PassByReferenceParams) (sRes
 }
 
 func (m *moqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_InterfaceParam_params{
 		w: w,
 	}
@@ -1679,6 +1691,7 @@ func (m *moqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) 
 }
 
 func (m *moqUsual_mock) InterfaceResult(sParam string, bParam bool) (result1 io.Reader) {
+	m.moq.scene.T.Helper()
 	params := moqUsual_InterfaceResult_params{
 		sParam: sParam,
 		bParam: bParam,
@@ -1750,6 +1763,7 @@ func (m *moqUsual_recorder) Usual(sParam string, bParam bool) *moqUsual_Usual_fn
 }
 
 func (r *moqUsual_Usual_fnRecorder) any() *moqUsual_Usual_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1768,6 +1782,7 @@ func (a *moqUsual_Usual_anyParams) bParam() *moqUsual_Usual_fnRecorder {
 }
 
 func (r *moqUsual_Usual_fnRecorder) seq() *moqUsual_Usual_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1777,6 +1792,7 @@ func (r *moqUsual_Usual_fnRecorder) seq() *moqUsual_Usual_fnRecorder {
 }
 
 func (r *moqUsual_Usual_fnRecorder) noSeq() *moqUsual_Usual_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1786,6 +1802,7 @@ func (r *moqUsual_Usual_fnRecorder) noSeq() *moqUsual_Usual_fnRecorder {
 }
 
 func (r *moqUsual_Usual_fnRecorder) returnResults(sResult string, err error) *moqUsual_Usual_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1815,6 +1832,7 @@ func (r *moqUsual_Usual_fnRecorder) returnResults(sResult string, err error) *mo
 }
 
 func (r *moqUsual_Usual_fnRecorder) andDo(fn moqUsual_Usual_doFn) *moqUsual_Usual_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1825,6 +1843,7 @@ func (r *moqUsual_Usual_fnRecorder) andDo(fn moqUsual_Usual_doFn) *moqUsual_Usua
 }
 
 func (r *moqUsual_Usual_fnRecorder) doReturnResults(fn moqUsual_Usual_doReturnFn) *moqUsual_Usual_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1893,6 +1912,7 @@ func (r *moqUsual_Usual_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_Usual_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Usual_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1974,6 +1994,7 @@ func (m *moqUsual_recorder) NoNames(param1 string, param2 bool) *moqUsual_NoName
 }
 
 func (r *moqUsual_NoNames_fnRecorder) any() *moqUsual_NoNames_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1992,6 +2013,7 @@ func (a *moqUsual_NoNames_anyParams) param2() *moqUsual_NoNames_fnRecorder {
 }
 
 func (r *moqUsual_NoNames_fnRecorder) seq() *moqUsual_NoNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2001,6 +2023,7 @@ func (r *moqUsual_NoNames_fnRecorder) seq() *moqUsual_NoNames_fnRecorder {
 }
 
 func (r *moqUsual_NoNames_fnRecorder) noSeq() *moqUsual_NoNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2010,6 +2033,7 @@ func (r *moqUsual_NoNames_fnRecorder) noSeq() *moqUsual_NoNames_fnRecorder {
 }
 
 func (r *moqUsual_NoNames_fnRecorder) returnResults(result1 string, result2 error) *moqUsual_NoNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2039,6 +2063,7 @@ func (r *moqUsual_NoNames_fnRecorder) returnResults(result1 string, result2 erro
 }
 
 func (r *moqUsual_NoNames_fnRecorder) andDo(fn moqUsual_NoNames_doFn) *moqUsual_NoNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2049,6 +2074,7 @@ func (r *moqUsual_NoNames_fnRecorder) andDo(fn moqUsual_NoNames_doFn) *moqUsual_
 }
 
 func (r *moqUsual_NoNames_fnRecorder) doReturnResults(fn moqUsual_NoNames_doReturnFn) *moqUsual_NoNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2117,6 +2143,7 @@ func (r *moqUsual_NoNames_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_NoNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2198,6 +2225,7 @@ func (m *moqUsual_recorder) NoResults(sParam string, bParam bool) *moqUsual_NoRe
 }
 
 func (r *moqUsual_NoResults_fnRecorder) any() *moqUsual_NoResults_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2216,6 +2244,7 @@ func (a *moqUsual_NoResults_anyParams) bParam() *moqUsual_NoResults_fnRecorder {
 }
 
 func (r *moqUsual_NoResults_fnRecorder) seq() *moqUsual_NoResults_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2225,6 +2254,7 @@ func (r *moqUsual_NoResults_fnRecorder) seq() *moqUsual_NoResults_fnRecorder {
 }
 
 func (r *moqUsual_NoResults_fnRecorder) noSeq() *moqUsual_NoResults_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2234,6 +2264,7 @@ func (r *moqUsual_NoResults_fnRecorder) noSeq() *moqUsual_NoResults_fnRecorder {
 }
 
 func (r *moqUsual_NoResults_fnRecorder) returnResults() *moqUsual_NoResults_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2254,6 +2285,7 @@ func (r *moqUsual_NoResults_fnRecorder) returnResults() *moqUsual_NoResults_fnRe
 }
 
 func (r *moqUsual_NoResults_fnRecorder) andDo(fn moqUsual_NoResults_doFn) *moqUsual_NoResults_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2264,6 +2296,7 @@ func (r *moqUsual_NoResults_fnRecorder) andDo(fn moqUsual_NoResults_doFn) *moqUs
 }
 
 func (r *moqUsual_NoResults_fnRecorder) doReturnResults(fn moqUsual_NoResults_doReturnFn) *moqUsual_NoResults_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2329,6 +2362,7 @@ func (r *moqUsual_NoResults_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_NoResults_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoResults_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2398,6 +2432,7 @@ func (m *moqUsual_recorder) NoParams() *moqUsual_NoParams_fnRecorder {
 }
 
 func (r *moqUsual_NoParams_fnRecorder) any() *moqUsual_NoParams_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2406,6 +2441,7 @@ func (r *moqUsual_NoParams_fnRecorder) any() *moqUsual_NoParams_anyParams {
 }
 
 func (r *moqUsual_NoParams_fnRecorder) seq() *moqUsual_NoParams_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2415,6 +2451,7 @@ func (r *moqUsual_NoParams_fnRecorder) seq() *moqUsual_NoParams_fnRecorder {
 }
 
 func (r *moqUsual_NoParams_fnRecorder) noSeq() *moqUsual_NoParams_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2424,6 +2461,7 @@ func (r *moqUsual_NoParams_fnRecorder) noSeq() *moqUsual_NoParams_fnRecorder {
 }
 
 func (r *moqUsual_NoParams_fnRecorder) returnResults(sResult string, err error) *moqUsual_NoParams_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2453,6 +2491,7 @@ func (r *moqUsual_NoParams_fnRecorder) returnResults(sResult string, err error) 
 }
 
 func (r *moqUsual_NoParams_fnRecorder) andDo(fn moqUsual_NoParams_doFn) *moqUsual_NoParams_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2463,6 +2502,7 @@ func (r *moqUsual_NoParams_fnRecorder) andDo(fn moqUsual_NoParams_doFn) *moqUsua
 }
 
 func (r *moqUsual_NoParams_fnRecorder) doReturnResults(fn moqUsual_NoParams_doReturnFn) *moqUsual_NoParams_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2531,6 +2571,7 @@ func (r *moqUsual_NoParams_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_NoParams_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoParams_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2579,6 +2620,7 @@ func (m *moqUsual_recorder) Nothing() *moqUsual_Nothing_fnRecorder {
 }
 
 func (r *moqUsual_Nothing_fnRecorder) any() *moqUsual_Nothing_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2587,6 +2629,7 @@ func (r *moqUsual_Nothing_fnRecorder) any() *moqUsual_Nothing_anyParams {
 }
 
 func (r *moqUsual_Nothing_fnRecorder) seq() *moqUsual_Nothing_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2596,6 +2639,7 @@ func (r *moqUsual_Nothing_fnRecorder) seq() *moqUsual_Nothing_fnRecorder {
 }
 
 func (r *moqUsual_Nothing_fnRecorder) noSeq() *moqUsual_Nothing_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2605,6 +2649,7 @@ func (r *moqUsual_Nothing_fnRecorder) noSeq() *moqUsual_Nothing_fnRecorder {
 }
 
 func (r *moqUsual_Nothing_fnRecorder) returnResults() *moqUsual_Nothing_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2625,6 +2670,7 @@ func (r *moqUsual_Nothing_fnRecorder) returnResults() *moqUsual_Nothing_fnRecord
 }
 
 func (r *moqUsual_Nothing_fnRecorder) andDo(fn moqUsual_Nothing_doFn) *moqUsual_Nothing_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2635,6 +2681,7 @@ func (r *moqUsual_Nothing_fnRecorder) andDo(fn moqUsual_Nothing_doFn) *moqUsual_
 }
 
 func (r *moqUsual_Nothing_fnRecorder) doReturnResults(fn moqUsual_Nothing_doReturnFn) *moqUsual_Nothing_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2700,6 +2747,7 @@ func (r *moqUsual_Nothing_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_Nothing_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Nothing_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2742,6 +2790,7 @@ func (m *moqUsual_recorder) Variadic(other bool, args ...string) *moqUsual_Varia
 }
 
 func (r *moqUsual_Variadic_fnRecorder) any() *moqUsual_Variadic_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2760,6 +2809,7 @@ func (a *moqUsual_Variadic_anyParams) args() *moqUsual_Variadic_fnRecorder {
 }
 
 func (r *moqUsual_Variadic_fnRecorder) seq() *moqUsual_Variadic_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2769,6 +2819,7 @@ func (r *moqUsual_Variadic_fnRecorder) seq() *moqUsual_Variadic_fnRecorder {
 }
 
 func (r *moqUsual_Variadic_fnRecorder) noSeq() *moqUsual_Variadic_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2778,6 +2829,7 @@ func (r *moqUsual_Variadic_fnRecorder) noSeq() *moqUsual_Variadic_fnRecorder {
 }
 
 func (r *moqUsual_Variadic_fnRecorder) returnResults(sResult string, err error) *moqUsual_Variadic_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2807,6 +2859,7 @@ func (r *moqUsual_Variadic_fnRecorder) returnResults(sResult string, err error) 
 }
 
 func (r *moqUsual_Variadic_fnRecorder) andDo(fn moqUsual_Variadic_doFn) *moqUsual_Variadic_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2817,6 +2870,7 @@ func (r *moqUsual_Variadic_fnRecorder) andDo(fn moqUsual_Variadic_doFn) *moqUsua
 }
 
 func (r *moqUsual_Variadic_fnRecorder) doReturnResults(fn moqUsual_Variadic_doReturnFn) *moqUsual_Variadic_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2885,6 +2939,7 @@ func (r *moqUsual_Variadic_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_Variadic_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Variadic_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2961,6 +3016,7 @@ func (m *moqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *m
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) any() *moqUsual_RepeatedIds_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2984,6 +3040,7 @@ func (a *moqUsual_RepeatedIds_anyParams) bParam() *moqUsual_RepeatedIds_fnRecord
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) seq() *moqUsual_RepeatedIds_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2993,6 +3050,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) seq() *moqUsual_RepeatedIds_fnRecorder
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) noSeq() *moqUsual_RepeatedIds_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3002,6 +3060,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) noSeq() *moqUsual_RepeatedIds_fnRecord
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) returnResults(sResult1, sResult2 string, err error) *moqUsual_RepeatedIds_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3032,6 +3091,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) returnResults(sResult1, sResult2 strin
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) andDo(fn moqUsual_RepeatedIds_doFn) *moqUsual_RepeatedIds_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -3042,6 +3102,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) andDo(fn moqUsual_RepeatedIds_doFn) *m
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) doReturnResults(fn moqUsual_RepeatedIds_doReturnFn) *moqUsual_RepeatedIds_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3110,6 +3171,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_RepeatedIds_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -3203,6 +3265,7 @@ func (m *moqUsual_recorder) Times(sParam string, times bool) *moqUsual_Times_fnR
 }
 
 func (r *moqUsual_Times_fnRecorder) any() *moqUsual_Times_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3221,6 +3284,7 @@ func (a *moqUsual_Times_anyParams) times() *moqUsual_Times_fnRecorder {
 }
 
 func (r *moqUsual_Times_fnRecorder) seq() *moqUsual_Times_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3230,6 +3294,7 @@ func (r *moqUsual_Times_fnRecorder) seq() *moqUsual_Times_fnRecorder {
 }
 
 func (r *moqUsual_Times_fnRecorder) noSeq() *moqUsual_Times_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3239,6 +3304,7 @@ func (r *moqUsual_Times_fnRecorder) noSeq() *moqUsual_Times_fnRecorder {
 }
 
 func (r *moqUsual_Times_fnRecorder) returnResults(sResult string, err error) *moqUsual_Times_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3268,6 +3334,7 @@ func (r *moqUsual_Times_fnRecorder) returnResults(sResult string, err error) *mo
 }
 
 func (r *moqUsual_Times_fnRecorder) andDo(fn moqUsual_Times_doFn) *moqUsual_Times_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -3278,6 +3345,7 @@ func (r *moqUsual_Times_fnRecorder) andDo(fn moqUsual_Times_doFn) *moqUsual_Time
 }
 
 func (r *moqUsual_Times_fnRecorder) doReturnResults(fn moqUsual_Times_doReturnFn) *moqUsual_Times_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3346,6 +3414,7 @@ func (r *moqUsual_Times_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_Times_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Times_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -3432,6 +3501,7 @@ func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 stri
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) any() *moqUsual_DifficultParamNames_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3475,6 +3545,7 @@ func (a *moqUsual_DifficultParamNames_anyParams) param7() *moqUsual_DifficultPar
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) seq() *moqUsual_DifficultParamNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3484,6 +3555,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) seq() *moqUsual_DifficultParam
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) noSeq() *moqUsual_DifficultParamNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3493,6 +3565,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) noSeq() *moqUsual_DifficultPar
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) returnResults() *moqUsual_DifficultParamNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3513,6 +3586,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) returnResults() *moqUsual_Diff
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) andDo(fn moqUsual_DifficultParamNames_doFn) *moqUsual_DifficultParamNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -3523,6 +3597,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) andDo(fn moqUsual_DifficultPar
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) doReturnResults(fn moqUsual_DifficultParamNames_doReturnFn) *moqUsual_DifficultParamNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3588,6 +3663,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_DifficultParamNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -3716,6 +3792,7 @@ func (m *moqUsual_recorder) DifficultResultNames() *moqUsual_DifficultResultName
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) any() *moqUsual_DifficultResultNames_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3724,6 +3801,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) any() *moqUsual_DifficultResu
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) seq() *moqUsual_DifficultResultNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3733,6 +3811,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) seq() *moqUsual_DifficultResu
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) noSeq() *moqUsual_DifficultResultNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3742,6 +3821,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) noSeq() *moqUsual_DifficultRe
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5 int, result6, result7 float32) *moqUsual_DifficultResultNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3780,6 +3860,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) andDo(fn moqUsual_DifficultResultNames_doFn) *moqUsual_DifficultResultNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -3790,6 +3871,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) andDo(fn moqUsual_DifficultRe
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) doReturnResults(fn moqUsual_DifficultResultNames_doReturnFn) *moqUsual_DifficultResultNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3860,6 +3942,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_DifficultResultNames_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -3919,6 +4002,7 @@ func (m *moqUsual_recorder) PassByReference(p *testmoqs.PassByReferenceParams) *
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) any() *moqUsual_PassByReference_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3932,6 +4016,7 @@ func (a *moqUsual_PassByReference_anyParams) p() *moqUsual_PassByReference_fnRec
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) seq() *moqUsual_PassByReference_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3941,6 +4026,7 @@ func (r *moqUsual_PassByReference_fnRecorder) seq() *moqUsual_PassByReference_fn
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) noSeq() *moqUsual_PassByReference_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -3950,6 +4036,7 @@ func (r *moqUsual_PassByReference_fnRecorder) noSeq() *moqUsual_PassByReference_
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) returnResults(sResult string, err error) *moqUsual_PassByReference_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -3979,6 +4066,7 @@ func (r *moqUsual_PassByReference_fnRecorder) returnResults(sResult string, err 
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) andDo(fn moqUsual_PassByReference_doFn) *moqUsual_PassByReference_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -3989,6 +4077,7 @@ func (r *moqUsual_PassByReference_fnRecorder) andDo(fn moqUsual_PassByReference_
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) doReturnResults(fn moqUsual_PassByReference_doReturnFn) *moqUsual_PassByReference_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -4057,6 +4146,7 @@ func (r *moqUsual_PassByReference_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByReference_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -4122,6 +4212,7 @@ func (m *moqUsual_recorder) InterfaceParam(w io.Writer) *moqUsual_InterfaceParam
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) any() *moqUsual_InterfaceParam_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -4135,6 +4226,7 @@ func (a *moqUsual_InterfaceParam_anyParams) w() *moqUsual_InterfaceParam_fnRecor
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) seq() *moqUsual_InterfaceParam_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -4144,6 +4236,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) seq() *moqUsual_InterfaceParam_fnRe
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) noSeq() *moqUsual_InterfaceParam_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -4153,6 +4246,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) noSeq() *moqUsual_InterfaceParam_fn
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) returnResults(sResult string, err error) *moqUsual_InterfaceParam_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -4182,6 +4276,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) returnResults(sResult string, err e
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) andDo(fn moqUsual_InterfaceParam_doFn) *moqUsual_InterfaceParam_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -4192,6 +4287,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) andDo(fn moqUsual_InterfaceParam_do
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) doReturnResults(fn moqUsual_InterfaceParam_doReturnFn) *moqUsual_InterfaceParam_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -4260,6 +4356,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_InterfaceParam_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -4324,6 +4421,7 @@ func (m *moqUsual_recorder) InterfaceResult(sParam string, bParam bool) *moqUsua
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) any() *moqUsual_InterfaceResult_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -4342,6 +4440,7 @@ func (a *moqUsual_InterfaceResult_anyParams) bParam() *moqUsual_InterfaceResult_
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) seq() *moqUsual_InterfaceResult_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -4351,6 +4450,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) seq() *moqUsual_InterfaceResult_fn
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) noSeq() *moqUsual_InterfaceResult_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -4360,6 +4460,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) noSeq() *moqUsual_InterfaceResult_
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) returnResults(result1 io.Reader) *moqUsual_InterfaceResult_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -4382,6 +4483,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) returnResults(result1 io.Reader) *
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) andDo(fn moqUsual_InterfaceResult_doFn) *moqUsual_InterfaceResult_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -4392,6 +4494,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) andDo(fn moqUsual_InterfaceResult_
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) doReturnResults(fn moqUsual_InterfaceResult_doReturnFn) *moqUsual_InterfaceResult_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -4457,6 +4560,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) findResults() {
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_InterfaceResult_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -4538,6 +4642,7 @@ func (m *moqUsual) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqUsual) AssertExpectationsMet() {
+	m.scene.T.Helper()
 	for _, res := range m.resultsByParams_Usual {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))

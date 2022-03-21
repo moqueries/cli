@@ -670,6 +670,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 func (m *moqConverterer) mock() *moqConverterer_mock { return m.moq }
 
 func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_BaseStruct_params{}
 	var results *moqConverterer_BaseStruct_results
 	for _, resultsByParams := range m.moq.resultsByParams_BaseStruct {
@@ -720,6 +721,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 }
 
 func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.GenDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_IsolationStruct_params{
 		suffix: suffix,
 	}
@@ -772,6 +774,7 @@ func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.Ge
 }
 
 func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []dst.Decl, err error) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_MethodStructs_params{
 		fn: fn,
 	}
@@ -825,6 +828,7 @@ func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []ds
 }
 
 func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_NewFunc_params{}
 	var results *moqConverterer_NewFunc_results
 	for _, resultsByParams := range m.moq.resultsByParams_NewFunc {
@@ -875,6 +879,7 @@ func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
 }
 
 func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_IsolationAccessor_params{
 		suffix: suffix,
 		fnName: fnName,
@@ -928,6 +933,7 @@ func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl
 }
 
 func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.FuncDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_FuncClosure_params{
 		fn: fn,
 	}
@@ -980,6 +986,7 @@ func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.Func
 }
 
 func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_MockMethod_params{
 		fn: fn,
 	}
@@ -1032,6 +1039,7 @@ func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncD
 }
 
 func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []dst.Decl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_RecorderMethods_params{
 		fn: fn,
 	}
@@ -1084,6 +1092,7 @@ func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []ds
 }
 
 func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_ResetMethod_params{}
 	var results *moqConverterer_ResetMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_ResetMethod {
@@ -1134,6 +1143,7 @@ func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
 }
 
 func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
+	m.moq.scene.T.Helper()
 	params := moqConverterer_AssertMethod_params{}
 	var results *moqConverterer_AssertMethod_results
 	for _, resultsByParams := range m.moq.resultsByParams_AssertMethod {
@@ -1199,6 +1209,7 @@ func (m *moqConverterer_recorder) BaseStruct() *moqConverterer_BaseStruct_fnReco
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1207,6 +1218,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1216,6 +1228,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) noSeq() *moqConverterer_BaseStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1225,6 +1238,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) noSeq() *moqConverterer_BaseStruc
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *moqConverterer_BaseStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1247,6 +1261,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.Gen
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) andDo(fn moqConverterer_BaseStruct_doFn) *moqConverterer_BaseStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1257,6 +1272,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) andDo(fn moqConverterer_BaseStruc
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) doReturnResults(fn moqConverterer_BaseStruct_doReturnFn) *moqConverterer_BaseStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1322,6 +1338,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_BaseStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1365,6 +1382,7 @@ func (m *moqConverterer_recorder) IsolationStruct(suffix string) *moqConverterer
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) any() *moqConverterer_IsolationStruct_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1378,6 +1396,7 @@ func (a *moqConverterer_IsolationStruct_anyParams) suffix() *moqConverterer_Isol
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) seq() *moqConverterer_IsolationStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1387,6 +1406,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) seq() *moqConverterer_Isolat
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) noSeq() *moqConverterer_IsolationStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1396,6 +1416,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) noSeq() *moqConverterer_Isol
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *moqConverterer_IsolationStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1418,6 +1439,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *ds
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) andDo(fn moqConverterer_IsolationStruct_doFn) *moqConverterer_IsolationStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1428,6 +1450,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) andDo(fn moqConverterer_Isol
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) doReturnResults(fn moqConverterer_IsolationStruct_doReturnFn) *moqConverterer_IsolationStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1493,6 +1516,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_IsolationStruct_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1549,6 +1573,7 @@ func (m *moqConverterer_recorder) MethodStructs(fn generator.Func) *moqConverter
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) any() *moqConverterer_MethodStructs_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1562,6 +1587,7 @@ func (a *moqConverterer_MethodStructs_anyParams) fn() *moqConverterer_MethodStru
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) seq() *moqConverterer_MethodStructs_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1571,6 +1597,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) seq() *moqConverterer_MethodSt
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) noSeq() *moqConverterer_MethodStructs_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1580,6 +1607,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) noSeq() *moqConverterer_Method
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) returnResults(structDecls []dst.Decl, err error) *moqConverterer_MethodStructs_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1609,6 +1637,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) returnResults(structDecls []ds
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) andDo(fn moqConverterer_MethodStructs_doFn) *moqConverterer_MethodStructs_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1619,6 +1648,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) andDo(fn moqConverterer_Method
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) doReturnResults(fn moqConverterer_MethodStructs_doReturnFn) *moqConverterer_MethodStructs_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1687,6 +1717,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_MethodStructs_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1748,6 +1779,7 @@ func (m *moqConverterer_recorder) NewFunc() *moqConverterer_NewFunc_fnRecorder {
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1756,6 +1788,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyPar
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) seq() *moqConverterer_NewFunc_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1765,6 +1798,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) seq() *moqConverterer_NewFunc_fnReco
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) noSeq() *moqConverterer_NewFunc_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1774,6 +1808,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) noSeq() *moqConverterer_NewFunc_fnRe
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_NewFunc_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1796,6 +1831,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) andDo(fn moqConverterer_NewFunc_doFn) *moqConverterer_NewFunc_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1806,6 +1842,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) andDo(fn moqConverterer_NewFunc_doFn
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) doReturnResults(fn moqConverterer_NewFunc_doReturnFn) *moqConverterer_NewFunc_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1871,6 +1908,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_NewFunc_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -1915,6 +1953,7 @@ func (m *moqConverterer_recorder) IsolationAccessor(suffix, fnName string) *moqC
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) any() *moqConverterer_IsolationAccessor_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1933,6 +1972,7 @@ func (a *moqConverterer_IsolationAccessor_anyParams) fnName() *moqConverterer_Is
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) seq() *moqConverterer_IsolationAccessor_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1942,6 +1982,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) seq() *moqConverterer_Isol
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) noSeq() *moqConverterer_IsolationAccessor_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -1951,6 +1992,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) noSeq() *moqConverterer_Is
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_IsolationAccessor_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -1973,6 +2015,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *ds
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) andDo(fn moqConverterer_IsolationAccessor_doFn) *moqConverterer_IsolationAccessor_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -1983,6 +2026,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) andDo(fn moqConverterer_Is
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) doReturnResults(fn moqConverterer_IsolationAccessor_doReturnFn) *moqConverterer_IsolationAccessor_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2048,6 +2092,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_IsolationAccessor_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2115,6 +2160,7 @@ func (m *moqConverterer_recorder) FuncClosure(fn generator.Func) *moqConverterer
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) any() *moqConverterer_FuncClosure_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2128,6 +2174,7 @@ func (a *moqConverterer_FuncClosure_anyParams) fn() *moqConverterer_FuncClosure_
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) seq() *moqConverterer_FuncClosure_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2137,6 +2184,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) seq() *moqConverterer_FuncClosur
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) noSeq() *moqConverterer_FuncClosure_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2146,6 +2194,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) noSeq() *moqConverterer_FuncClos
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_FuncClosure_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2168,6 +2217,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.Func
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) andDo(fn moqConverterer_FuncClosure_doFn) *moqConverterer_FuncClosure_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2178,6 +2228,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) andDo(fn moqConverterer_FuncClos
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) doReturnResults(fn moqConverterer_FuncClosure_doReturnFn) *moqConverterer_FuncClosure_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2243,6 +2294,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_FuncClosure_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2299,6 +2351,7 @@ func (m *moqConverterer_recorder) MockMethod(fn generator.Func) *moqConverterer_
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) any() *moqConverterer_MockMethod_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2312,6 +2365,7 @@ func (a *moqConverterer_MockMethod_anyParams) fn() *moqConverterer_MockMethod_fn
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) seq() *moqConverterer_MockMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2321,6 +2375,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) seq() *moqConverterer_MockMethod_
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) noSeq() *moqConverterer_MockMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2330,6 +2385,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) noSeq() *moqConverterer_MockMetho
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_MockMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2352,6 +2408,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncD
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) andDo(fn moqConverterer_MockMethod_doFn) *moqConverterer_MockMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2362,6 +2419,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) andDo(fn moqConverterer_MockMetho
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) doReturnResults(fn moqConverterer_MockMethod_doReturnFn) *moqConverterer_MockMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2427,6 +2485,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_MockMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2483,6 +2542,7 @@ func (m *moqConverterer_recorder) RecorderMethods(fn generator.Func) *moqConvert
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) any() *moqConverterer_RecorderMethods_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2496,6 +2556,7 @@ func (a *moqConverterer_RecorderMethods_anyParams) fn() *moqConverterer_Recorder
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) seq() *moqConverterer_RecorderMethods_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2505,6 +2566,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) seq() *moqConverterer_Record
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) noSeq() *moqConverterer_RecorderMethods_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2514,6 +2576,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) noSeq() *moqConverterer_Reco
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []dst.Decl) *moqConverterer_RecorderMethods_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2536,6 +2599,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []ds
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) andDo(fn moqConverterer_RecorderMethods_doFn) *moqConverterer_RecorderMethods_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2546,6 +2610,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) andDo(fn moqConverterer_Reco
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) doReturnResults(fn moqConverterer_RecorderMethods_doReturnFn) *moqConverterer_RecorderMethods_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2611,6 +2676,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_RecorderMethods_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2665,6 +2731,7 @@ func (m *moqConverterer_recorder) ResetMethod() *moqConverterer_ResetMethod_fnRe
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) any() *moqConverterer_ResetMethod_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2673,6 +2740,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) any() *moqConverterer_ResetMetho
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) seq() *moqConverterer_ResetMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2682,6 +2750,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) seq() *moqConverterer_ResetMetho
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) noSeq() *moqConverterer_ResetMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2691,6 +2760,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) noSeq() *moqConverterer_ResetMet
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_ResetMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2713,6 +2783,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.Func
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) andDo(fn moqConverterer_ResetMethod_doFn) *moqConverterer_ResetMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2723,6 +2794,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) andDo(fn moqConverterer_ResetMet
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) doReturnResults(fn moqConverterer_ResetMethod_doReturnFn) *moqConverterer_ResetMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2788,6 +2860,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_ResetMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -2829,6 +2902,7 @@ func (m *moqConverterer_recorder) AssertMethod() *moqConverterer_AssertMethod_fn
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) any() *moqConverterer_AssertMethod_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2837,6 +2911,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) any() *moqConverterer_AssertMet
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) seq() *moqConverterer_AssertMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2846,6 +2921,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) seq() *moqConverterer_AssertMet
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) noSeq() *moqConverterer_AssertMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -2855,6 +2931,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) noSeq() *moqConverterer_AssertM
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_AssertMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2877,6 +2954,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.Fun
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) andDo(fn moqConverterer_AssertMethod_doFn) *moqConverterer_AssertMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -2887,6 +2965,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) andDo(fn moqConverterer_AssertM
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) doReturnResults(fn moqConverterer_AssertMethod_doReturnFn) *moqConverterer_AssertMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -2952,6 +3031,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) findResults() {
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_AssertMethod_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -3000,6 +3080,7 @@ func (m *moqConverterer) Reset() {
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqConverterer) AssertExpectationsMet() {
+	m.scene.T.Helper()
 	for _, res := range m.resultsByParams_BaseStruct {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))

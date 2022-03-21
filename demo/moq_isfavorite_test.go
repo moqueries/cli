@@ -114,6 +114,7 @@ func (m *moqIsFavorite) mock() demo.IsFavorite {
 }
 
 func (m *moqIsFavorite_mock) fn(n int) (result1 bool) {
+	m.moq.scene.T.Helper()
 	params := moqIsFavorite_params{
 		n: n,
 	}
@@ -176,6 +177,7 @@ func (m *moqIsFavorite) onCall(n int) *moqIsFavorite_fnRecorder {
 }
 
 func (r *moqIsFavorite_fnRecorder) any() *moqIsFavorite_anyParams {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -189,6 +191,7 @@ func (a *moqIsFavorite_anyParams) n() *moqIsFavorite_fnRecorder {
 }
 
 func (r *moqIsFavorite_fnRecorder) seq() *moqIsFavorite_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -198,6 +201,7 @@ func (r *moqIsFavorite_fnRecorder) seq() *moqIsFavorite_fnRecorder {
 }
 
 func (r *moqIsFavorite_fnRecorder) noSeq() *moqIsFavorite_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
 		return nil
@@ -207,6 +211,7 @@ func (r *moqIsFavorite_fnRecorder) noSeq() *moqIsFavorite_fnRecorder {
 }
 
 func (r *moqIsFavorite_fnRecorder) returnResults(result1 bool) *moqIsFavorite_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -233,6 +238,7 @@ func (r *moqIsFavorite_fnRecorder) returnResults(result1 bool) *moqIsFavorite_fn
 }
 
 func (r *moqIsFavorite_fnRecorder) andDo(fn moqIsFavorite_doFn) *moqIsFavorite_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
 		return nil
@@ -243,6 +249,7 @@ func (r *moqIsFavorite_fnRecorder) andDo(fn moqIsFavorite_doFn) *moqIsFavorite_f
 }
 
 func (r *moqIsFavorite_fnRecorder) doReturnResults(fn moqIsFavorite_doReturnFn) *moqIsFavorite_fnRecorder {
+	r.moq.scene.T.Helper()
 	r.findResults()
 
 	var sequence uint32
@@ -310,6 +317,7 @@ func (r *moqIsFavorite_fnRecorder) findResults() {
 }
 
 func (r *moqIsFavorite_fnRecorder) repeat(repeaters ...moq.Repeater) *moqIsFavorite_fnRecorder {
+	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
 		return nil
@@ -364,6 +372,7 @@ func (m *moqIsFavorite) Reset() { m.resultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqIsFavorite) AssertExpectationsMet() {
+	m.scene.T.Helper()
 	for _, res := range m.resultsByParams {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))

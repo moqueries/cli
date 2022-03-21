@@ -131,6 +131,7 @@ func (m *MoqTimesFn) Mock() testmoqs.TimesFn {
 }
 
 func (m *MoqTimesFn_mock) Fn(times string, bParam bool) (sResult string, err error) {
+	m.Moq.Scene.T.Helper()
 	params := MoqTimesFn_params{
 		Times:  times,
 		BParam: bParam,
@@ -196,6 +197,7 @@ func (m *MoqTimesFn) OnCall(times string, bParam bool) *MoqTimesFn_fnRecorder {
 }
 
 func (r *MoqTimesFn_fnRecorder) Any() *MoqTimesFn_anyParams {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -214,6 +216,7 @@ func (a *MoqTimesFn_anyParams) BParam() *MoqTimesFn_fnRecorder {
 }
 
 func (r *MoqTimesFn_fnRecorder) Seq() *MoqTimesFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -223,6 +226,7 @@ func (r *MoqTimesFn_fnRecorder) Seq() *MoqTimesFn_fnRecorder {
 }
 
 func (r *MoqTimesFn_fnRecorder) NoSeq() *MoqTimesFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -232,6 +236,7 @@ func (r *MoqTimesFn_fnRecorder) NoSeq() *MoqTimesFn_fnRecorder {
 }
 
 func (r *MoqTimesFn_fnRecorder) ReturnResults(sResult string, err error) *MoqTimesFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	r.FindResults()
 
 	var sequence uint32
@@ -261,6 +266,7 @@ func (r *MoqTimesFn_fnRecorder) ReturnResults(sResult string, err error) *MoqTim
 }
 
 func (r *MoqTimesFn_fnRecorder) AndDo(fn MoqTimesFn_doFn) *MoqTimesFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
 		return nil
@@ -271,6 +277,7 @@ func (r *MoqTimesFn_fnRecorder) AndDo(fn MoqTimesFn_doFn) *MoqTimesFn_fnRecorder
 }
 
 func (r *MoqTimesFn_fnRecorder) DoReturnResults(fn MoqTimesFn_doReturnFn) *MoqTimesFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	r.FindResults()
 
 	var sequence uint32
@@ -339,6 +346,7 @@ func (r *MoqTimesFn_fnRecorder) FindResults() {
 }
 
 func (r *MoqTimesFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqTimesFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
@@ -413,6 +421,7 @@ func (m *MoqTimesFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MoqTimesFn) AssertExpectationsMet() {
+	m.Scene.T.Helper()
 	for _, res := range m.ResultsByParams {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))

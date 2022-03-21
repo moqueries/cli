@@ -128,6 +128,7 @@ func (m *MoqVariadicFn) Mock() testmoqs.VariadicFn {
 }
 
 func (m *MoqVariadicFn_mock) Fn(other bool, args ...string) (sResult string, err error) {
+	m.Moq.Scene.T.Helper()
 	params := MoqVariadicFn_params{
 		Other: other,
 		Args:  args,
@@ -193,6 +194,7 @@ func (m *MoqVariadicFn) OnCall(other bool, args ...string) *MoqVariadicFn_fnReco
 }
 
 func (r *MoqVariadicFn_fnRecorder) Any() *MoqVariadicFn_anyParams {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -211,6 +213,7 @@ func (a *MoqVariadicFn_anyParams) Args() *MoqVariadicFn_fnRecorder {
 }
 
 func (r *MoqVariadicFn_fnRecorder) Seq() *MoqVariadicFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -220,6 +223,7 @@ func (r *MoqVariadicFn_fnRecorder) Seq() *MoqVariadicFn_fnRecorder {
 }
 
 func (r *MoqVariadicFn_fnRecorder) NoSeq() *MoqVariadicFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
 		return nil
@@ -229,6 +233,7 @@ func (r *MoqVariadicFn_fnRecorder) NoSeq() *MoqVariadicFn_fnRecorder {
 }
 
 func (r *MoqVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *MoqVariadicFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	r.FindResults()
 
 	var sequence uint32
@@ -258,6 +263,7 @@ func (r *MoqVariadicFn_fnRecorder) ReturnResults(sResult string, err error) *Moq
 }
 
 func (r *MoqVariadicFn_fnRecorder) AndDo(fn MoqVariadicFn_doFn) *MoqVariadicFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
 		return nil
@@ -268,6 +274,7 @@ func (r *MoqVariadicFn_fnRecorder) AndDo(fn MoqVariadicFn_doFn) *MoqVariadicFn_f
 }
 
 func (r *MoqVariadicFn_fnRecorder) DoReturnResults(fn MoqVariadicFn_doReturnFn) *MoqVariadicFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	r.FindResults()
 
 	var sequence uint32
@@ -336,6 +343,7 @@ func (r *MoqVariadicFn_fnRecorder) FindResults() {
 }
 
 func (r *MoqVariadicFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqVariadicFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
 	if r.Results == nil {
 		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
 		return nil
@@ -404,6 +412,7 @@ func (m *MoqVariadicFn) Reset() { m.ResultsByParams = nil }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MoqVariadicFn) AssertExpectationsMet() {
+	m.Scene.T.Helper()
 	for _, res := range m.ResultsByParams {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
