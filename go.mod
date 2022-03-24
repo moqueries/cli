@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/dave/dst v0.26.2
 	github.com/davegardnerisme/deephash v0.0.0-20210406090112-6d072427d830
-	github.com/golangci/golangci-lint v1.45.0
+	github.com/golangci/golangci-lint v1.45.2
 	github.com/spf13/cobra v1.4.0
 	golang.org/x/tools v0.1.10
 )
@@ -69,7 +69,7 @@ require (
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-version v1.2.1 // indirect
+	github.com/hashicorp/go-version v1.4.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
