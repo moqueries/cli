@@ -1,9 +1,11 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -15,14 +17,19 @@ import (
 	"github.com/myshkin5/moqueries/logs"
 )
 
+// ErrInvalidConfig is returned when configuration values are invalid or
+// conflict with each other
+var ErrInvalidConfig = errors.New("invalid configuration")
+
 // GenerateRequest contains all the parameters needed to call Generate
 type GenerateRequest struct {
-	Types       []string
-	Export      bool
-	Destination string
-	Package     string
-	Import      string
-	TestImport  bool
+	Types          []string
+	Export         bool
+	Destination    string
+	DestinationDir string
+	Package        string
+	Import         string
+	TestImport     bool
 }
 
 // Generate generates a moq
@@ -41,6 +48,11 @@ func generate(req GenerateRequest) error {
 		logs.Warn("Exported moq in a test file will not be accessible in" +
 			" other packages. Remove --export option or set the --destination" +
 			" to a non-test file.")
+	}
+
+	if req.Destination != "" && req.DestinationDir != "" {
+		return fmt.Errorf("both destination and destination dir flags"+
+			"must not be present together: %w", ErrInvalidConfig)
 	}
 
 	if req.Destination == "" {
@@ -73,7 +85,6 @@ func generate(req GenerateRequest) error {
 	if err != nil {
 		return fmt.Errorf("error creating temp file: %w", err)
 	}
-	logs.Debugf("Temp file created: %s", tempFile.Name())
 
 	defer func() {
 		err = tempFile.Close()
@@ -82,7 +93,10 @@ func generate(req GenerateRequest) error {
 		}
 	}()
 
-	destDir := filepath.Dir(req.Destination)
+	destDir := req.DestinationDir
+	if destDir == "" {
+		destDir = filepath.Dir(req.Destination)
+	}
 	if _, err = os.Stat(destDir); os.IsNotExist(err) {
 		err = os.MkdirAll(destDir, os.ModePerm)
 		if err != nil {
@@ -99,10 +113,12 @@ func generate(req GenerateRequest) error {
 		return fmt.Errorf("invalid moq: %w", err)
 	}
 
-	err = os.Rename(tempFile.Name(), req.Destination)
+	out := path.Join(destDir, req.Destination)
+	err = os.Rename(tempFile.Name(), out)
 	if err != nil {
 		logs.Debugf("Error removing destination file: %v", err)
 	}
+	logs.Debugf("Wrote file: %s", out)
 
 	return nil
 }

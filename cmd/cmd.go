@@ -10,7 +10,8 @@ const (
 	debugFlag  = "debug"
 	exportFlag = "export"
 
-	destinationFlag = "destination"
+	destinationFlag    = "destination"
+	destinationDirFlag = "destination-dir"
 
 	packageFlag    = "package"
 	importFlag     = "import"
@@ -37,6 +38,10 @@ func init() {
 			"containing the generate directive (or relative to the current directory) "+
 			"(defaults to ./moq_<type>.go when exported or ./moq_<type>_test.go "+
 			"when not exported)")
+	rootCmd.PersistentFlags().String(destinationDirFlag, "",
+		"The file directory where mocks are generated relative to the directory "+
+			"containing the generate directive (or relative to the current directory) "+
+			"(defaults to .)")
 
 	rootCmd.PersistentFlags().String(packageFlag, "",
 		"The package to generate code into (defaults to the test package of the "+

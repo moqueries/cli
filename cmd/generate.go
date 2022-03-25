@@ -24,6 +24,10 @@ func generate(cmd *cobra.Command, typs []string) {
 	if err != nil {
 		logs.Panic("Error getting destination flag", err)
 	}
+	destDir, err := cmd.PersistentFlags().GetString(destinationDirFlag)
+	if err != nil {
+		logs.Panic("Error getting destination dir flag", err)
+	}
 	pkg, err := cmd.PersistentFlags().GetString(packageFlag)
 	if err != nil {
 		logs.Panic("Error getting package flag", err)
@@ -49,18 +53,26 @@ func generate(cmd *cobra.Command, typs []string) {
 	logs.Init(debug)
 	if debug {
 		cwd, _ := os.Getwd()
-		logs.Debugf("Moqueries invoked, debug: %t, export: %t, destination: %s,"+
-			" package: %s, import: %s, types: %s, current working directory: %s",
-			debug, export, dest, pkg, imp, typs, cwd)
+		logs.Debugf("Moqueries invoked,"+
+			" debug: %t,"+
+			" export: %t,"+
+			" destination: %s,"+
+			" destination-dir: %s,"+
+			" package: %s,"+
+			" import: %s,"+
+			" types: %s,"+
+			" current working directory: %s",
+			debug, export, dest, destDir, pkg, imp, typs, cwd)
 	}
 
 	err = generator.Generate(generator.GenerateRequest{
-		Types:       typs,
-		Export:      export,
-		Destination: dest,
-		Package:     pkg,
-		Import:      imp,
-		TestImport:  testImp,
+		Types:          typs,
+		Export:         export,
+		Destination:    dest,
+		DestinationDir: destDir,
+		Package:        pkg,
+		Import:         imp,
+		TestImport:     testImp,
 	})
 	if err != nil {
 		logs.Panicf("Error generating mock for %s in %s: %#v", typs, imp, err)
