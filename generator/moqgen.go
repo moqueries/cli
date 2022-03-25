@@ -121,7 +121,8 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 }
 
 func (g *MoqGenerator) outPackagePath(req GenerateRequest) (string, error) {
-	outPkgPath, err := g.typeCache.FindPackage(filepath.Dir(req.Destination))
+	dest := path.Join(req.DestinationDir, req.Destination)
+	outPkgPath, err := g.typeCache.FindPackage(filepath.Dir(dest))
 	if err != nil {
 		return "", err
 	}
