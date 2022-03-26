@@ -2,64 +2,39 @@ package testmoqs
 
 import "io"
 
-// NB: Keep in sync with testmoq_test.go TestGenerating
+// NB: Keep in sync with ../generator_test.go TestGenerating
 
-//go:generate moqueries UsualFn
-//go:generate moqueries --destination-dir exported --export UsualFn
+//nolint:lll // no easy way to break up go:generate lines
+//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByReferenceFn InterfaceParamFn InterfaceResultFn Usual
+//nolint:lll // no easy way to break up go:generate lines
+//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByReferenceFn InterfaceParamFn InterfaceResultFn Usual
 
 // UsualFn is a typical function type
 type UsualFn func(sParam string, bParam bool) (sResult string, err error)
 
-//go:generate moqueries NoNamesFn
-//go:generate moqueries --destination-dir exported --export NoNamesFn
-
 // NoNamesFn is a typical function type
 type NoNamesFn func(string, bool) (string, error)
-
-//go:generate moqueries NoResultsFn
-//go:generate moqueries --destination-dir exported --export NoResultsFn
 
 // NoResultsFn is a function with no return values
 type NoResultsFn func(sParam string, bParam bool)
 
-//go:generate moqueries NoParamsFn
-//go:generate moqueries --destination-dir exported --export NoParamsFn
-
 // NoParamsFn is a function with no parameters
 type NoParamsFn func() (sResult string, err error)
-
-//go:generate moqueries NothingFn
-//go:generate moqueries --destination-dir exported --export NothingFn
 
 // NothingFn is a function with no parameters and no return values
 type NothingFn func()
 
-//go:generate moqueries VariadicFn
-//go:generate moqueries --destination-dir exported --export VariadicFn
-
 // VariadicFn is a function with a variable number of arguments
 type VariadicFn func(other bool, args ...string) (sResult string, err error)
-
-//go:generate moqueries RepeatedIdsFn
-//go:generate moqueries --destination-dir exported --export RepeatedIdsFn
 
 // RepeatedIdsFn is a function with multiple arguments of the same type
 type RepeatedIdsFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 
-//go:generate moqueries TimesFn
-//go:generate moqueries --destination-dir exported --export TimesFn
-
 // TimesFn takes a parameter called times which should generate a valid moq
 type TimesFn func(times string, bParam bool) (sResult string, err error)
 
-//go:generate moqueries DifficultParamNamesFn
-//go:generate moqueries --destination-dir exported --export DifficultParamNamesFn
-
 // DifficultParamNamesFn has parameters with names that have been problematic
 type DifficultParamNamesFn func(m, r bool, sequence string, param, params int, result, results float32)
-
-//go:generate moqueries DifficultResultNamesFn
-//go:generate moqueries --destination-dir exported --export DifficultResultNamesFn
 
 // DifficultResultNamesFn has parameters with names that have been problematic
 type DifficultResultNamesFn func() (m, r string, sequence error, param, params int, result, results float32)
@@ -71,14 +46,8 @@ type PassByReferenceParams struct {
 	BParam bool
 }
 
-//go:generate moqueries PassByReferenceFn
-//go:generate moqueries --destination-dir exported --export PassByReferenceFn
-
 // PassByReferenceFn tests passing parameters by reference
 type PassByReferenceFn func(p *PassByReferenceParams) (sResult string, err error)
-
-//go:generate moqueries InterfaceParamFn
-//go:generate moqueries --destination-dir exported --export InterfaceParamFn
 
 // InterfaceParamWriter is used for testing functions that take an interface as
 // a parameter
@@ -94,9 +63,6 @@ func (w *InterfaceParamWriter) Write([]byte) (int, error) {
 // InterfaceParamFn tests passing interface parameters
 type InterfaceParamFn func(w io.Writer) (sResult string, err error)
 
-//go:generate moqueries InterfaceResultFn
-//go:generate moqueries --destination-dir exported --export InterfaceResultFn
-
 // InterfaceResultReader is used for testing functions that return an interface
 type InterfaceResultReader struct {
 	SResult string
@@ -109,9 +75,6 @@ func (r *InterfaceResultReader) Read(p []byte) (n int, err error) {
 
 // InterfaceResultFn tests returning interface results
 type InterfaceResultFn func(sParam string, bParam bool) (r io.Reader)
-
-//go:generate moqueries Usual
-//go:generate moqueries --destination-dir exported --export Usual
 
 // Usual combines all the above function types into an interface
 type Usual interface {
