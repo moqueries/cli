@@ -12,6 +12,9 @@
 *.out
 
 *.coverprofile
+/codecov
+/codecov.SHA256SUM
+/codecov.SHA256SUM.sig
 
 # AST and DST files used while writing code generation code
 moq_*_ast.txt

@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@3.2.2
+
 executors:
   go:
     docker:
@@ -34,14 +37,7 @@ jobs:
           gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- \
             -race -covermode=atomic -coverprofile=coverage.out $PACKAGE_NAMES
 
-    - run:
-        name: Upload coverage to Codecov
-        command: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-
-          chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
-          rm codecov
+    - codecov/upload
 
     - run:
         name: Run code linters
