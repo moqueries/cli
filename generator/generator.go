@@ -113,7 +113,7 @@ func generate(req GenerateRequest) error {
 		return fmt.Errorf("invalid moq: %w", err)
 	}
 
-	out := path.Join(destDir, req.Destination)
+	out := path.Join(destDir, filepath.Base(req.Destination))
 	err = os.Rename(tempFile.Name(), out)
 	if err != nil {
 		logs.Debugf("Error removing destination file: %v", err)
