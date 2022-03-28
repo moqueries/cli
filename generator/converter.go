@@ -650,7 +650,7 @@ func (c *Converter) resultByParamsStruct(prefix string) *dst.GenDecl {
 func (c *Converter) doFuncType(prefix string, params *dst.FieldList) *dst.GenDecl {
 	fnName := fmt.Sprintf(double, prefix, doFnIdent)
 	return TypeDecl(TypeSpec(fnName).
-		Type(FuncType(cloneFieldList(params, false)).Obj).Obj).
+		Type(FnType(cloneFieldList(params, false)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -661,8 +661,8 @@ func (c *Converter) doFuncType(prefix string, params *dst.FieldList) *dst.GenDec
 func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
 	fnName := fmt.Sprintf(double, prefix, doReturnFnIdent)
 	return TypeDecl(TypeSpec(fnName).
-		Type(FuncType(cloneFieldList(fn.Params, false)).
-			ResultList(cloneFieldList(fn.Results, false)).Obj).Obj).
+		Type(FnType(cloneFieldList(fn.Params, false)).
+			Results(cloneFieldList(fn.Results, false)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -825,8 +825,8 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 
 	stmts = append(stmts, Assign(Id(resultIdent)).
 		Tok(token.DEFINE).
-		Rhs(Index(Sel(Id(resultsIdent)).
-			Dot(c.exportId(resultsIdent)).Obj).Sub(Id(iIdent)).Obj).Obj)
+		Rhs(Index(Sel(Id(resultsIdent)).Dot(c.exportId(resultsIdent)).Obj).
+			Sub(Id(iIdent)).Obj).Obj)
 	stmts = append(stmts, If(Bin(
 		Sel(Id(resultIdent)).Dot(c.exportId(sequenceIdent)).Obj).
 		Op(token.NEQ).

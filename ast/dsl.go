@@ -166,6 +166,12 @@ func Field(typ dst.Expr) FieldDSL {
 	return FieldDSL{Obj: &dst.Field{Type: typ}}
 }
 
+// Names sets the names of a field
+func (d FieldDSL) Names(names ...*dst.Ident) FieldDSL {
+	d.Obj.Names = names
+	return d
+}
+
 // Decs adds decorations to a FieldDSL
 func (d FieldDSL) Decs(decs dst.FieldDecorations) FieldDSL {
 	d.Obj.Decs = decs
@@ -178,17 +184,8 @@ type FieldDecsDSL struct{ Obj dst.FieldDecorations }
 // FieldDecs creates a new FieldDecsDSL
 func FieldDecs(before, after dst.SpaceType) FieldDecsDSL {
 	return FieldDecsDSL{Obj: dst.FieldDecorations{
-		NodeDecs: dst.NodeDecs{
-			Before: before,
-			After:  after,
-		},
+		NodeDecs: dst.NodeDecs{Before: before, After: after},
 	}}
-}
-
-// Names sets the names of a field
-func (d FieldDSL) Names(names ...*dst.Ident) FieldDSL {
-	d.Obj.Names = names
-	return d
 }
 
 // FieldList translates to a dst.FieldList
@@ -196,69 +193,53 @@ func FieldList(fields ...*dst.Field) *dst.FieldList {
 	return &dst.FieldList{List: fields}
 }
 
-// FuncDSL translates to a dst.GenDecl containing a function type
-type FuncDSL struct{ Obj *dst.FuncDecl }
+// FnDSL translates to a dst.GenDecl containing a function type
+type FnDSL struct{ Obj *dst.FuncDecl }
 
-// Fn creates a new FuncDSL
-func Fn(name string) FuncDSL {
-	return FuncDSL{Obj: &dst.FuncDecl{Name: Id(name), Type: &dst.FuncType{}}}
+// Fn creates a new FnDSL
+func Fn(name string) FnDSL {
+	return FnDSL{Obj: &dst.FuncDecl{Name: Id(name), Type: &dst.FuncType{}}}
 }
 
 // Recv specifies the receiver for a function
-func (d FuncDSL) Recv(fields ...*dst.Field) FuncDSL {
+func (d FnDSL) Recv(fields ...*dst.Field) FnDSL {
 	d.Obj.Recv = FieldList(fields...)
 	return d
 }
 
 // ParamList specifies a parameter FieldList for a function
-func (d FuncDSL) ParamList(fieldList *dst.FieldList) FuncDSL {
+func (d FnDSL) ParamList(fieldList *dst.FieldList) FnDSL {
 	d.Obj.Type.Params = fieldList
 	return d
 }
 
 // Params specifies parameters for a function
-func (d FuncDSL) Params(fields ...*dst.Field) FuncDSL {
+func (d FnDSL) Params(fields ...*dst.Field) FnDSL {
 	d.Obj.Type.Params = FieldList(fields...)
 	return d
 }
 
 // ResultList specifies a result FieldList for a function
-func (d FuncDSL) ResultList(fieldList *dst.FieldList) FuncDSL {
+func (d FnDSL) ResultList(fieldList *dst.FieldList) FnDSL {
 	d.Obj.Type.Results = fieldList
 	return d
 }
 
 // Results specifies results for a function
-func (d FuncDSL) Results(fields ...*dst.Field) FuncDSL {
+func (d FnDSL) Results(fields ...*dst.Field) FnDSL {
 	d.Obj.Type.Results = FieldList(fields...)
 	return d
 }
 
 // Body specifies the body for a function
-func (d FuncDSL) Body(list ...dst.Stmt) FuncDSL {
+func (d FnDSL) Body(list ...dst.Stmt) FnDSL {
 	d.Obj.Body = Block(list...).Obj
 	return d
 }
 
-// Decs adds decorations to a FuncDSL
-func (d FuncDSL) Decs(decs dst.FuncDeclDecorations) FuncDSL {
+// Decs adds decorations to a FnDSL
+func (d FnDSL) Decs(decs dst.FuncDeclDecorations) FnDSL {
 	d.Obj.Decs = decs
-	return d
-}
-
-// FuncTypeDSL translates to a dst.FuncType
-type FuncTypeDSL struct {
-	Obj *dst.FuncType
-}
-
-// FuncType creates a new FuncTypeDSL
-func FuncType(fieldList *dst.FieldList) FuncTypeDSL {
-	return FuncTypeDSL{Obj: &dst.FuncType{Params: fieldList}}
-}
-
-// ResultList specifies a dst.FieldList for a func type's results
-func (d FuncTypeDSL) ResultList(fieldList *dst.FieldList) FuncTypeDSL {
-	d.Obj.Results = fieldList
 	return d
 }
 
@@ -352,11 +333,6 @@ func (d IndexDSL) Sub(index dst.Expr) IndexDSL {
 
 // IfDSL translates to a dst.IfStmt
 type IfDSL struct{ Obj *dst.IfStmt }
-
-// IfInit creates a new If with an initialization statement
-func IfInit(init dst.Stmt) IfDSL {
-	return IfDSL{Obj: &dst.IfStmt{Init: init}}
-}
 
 // If creates a new If
 func If(cond dst.Expr) IfDSL {
@@ -549,11 +525,6 @@ func Star(x dst.Expr) *dst.StarExpr {
 	return &dst.StarExpr{X: x}
 }
 
-// StructDSL translates to a dst.StructType
-type StructDSL struct {
-	Obj *dst.StructType
-}
-
 // Struct returns a dst.StructType
 func Struct(fields ...*dst.Field) *dst.StructType {
 	return StructFromList(FieldList(fields...))
@@ -577,6 +548,7 @@ func TypeSpec(name string) TypeSpecDSL {
 	return TypeSpecDSL{Obj: &dst.TypeSpec{Name: Id(name)}}
 }
 
+// Type creates a new TypeSpecDSL
 func (d TypeSpecDSL) Type(typ dst.Expr) TypeSpecDSL {
 	d.Obj.Type = typ
 	return d
@@ -590,10 +562,7 @@ type TypeDeclDSL struct {
 // TypeDecl creates a new TypeDeclDSL
 func TypeDecl(typeSpec *dst.TypeSpec) TypeDeclDSL {
 	return TypeDeclDSL{
-		Obj: &dst.GenDecl{
-			Tok:   token.TYPE,
-			Specs: []dst.Spec{typeSpec},
-		},
+		Obj: &dst.GenDecl{Tok: token.TYPE, Specs: []dst.Spec{typeSpec}},
 	}
 }
 
@@ -624,17 +593,11 @@ func (d ValueDSL) Names(names ...*dst.Ident) ValueDSL {
 
 // Var returns a var dst.DeclStmt
 func Var(specs ...dst.Spec) *dst.DeclStmt {
-	return &dst.DeclStmt{Decl: &dst.GenDecl{
-		Tok:   token.VAR,
-		Specs: specs,
-	}}
+	return &dst.DeclStmt{Decl: &dst.GenDecl{Tok: token.VAR, Specs: specs}}
 }
 
 // emptyFieldList returns an empty field list (renders as `struct {}` with no
 // new lines)
 func emptyFieldList() *dst.FieldList {
-	return &dst.FieldList{
-		Opening: true,
-		Closing: true,
-	}
+	return &dst.FieldList{Opening: true, Closing: true}
 }
