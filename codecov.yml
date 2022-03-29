@@ -4,6 +4,12 @@ coverage:
       default:
         target: 90%
         threshold: 1%
+
 ignore:
 # ignore generated moqs
 - "**/moq_*.go"
+
+comment:
+  layout: "reach, diff, files"
+  behavior: new
+  require_changes: false
