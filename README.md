@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/myshkin5/moqueries/branch/main/graph/badge.svg?token=akA6OdarTX)](https://codecov.io/gh/myshkin5/moqueries)
+
 # Moqueries - Lock-free interface and function mocks for Go
 Moqueries makes mocks, but not just interface mocks &mdash; `moqueries` builds mocks for functions too. And these aren't your typical mocks!
 
