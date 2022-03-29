@@ -44,9 +44,10 @@ jobs:
 
         command: |
           set -ux
-          GOLANGCI_LINT_VER=$(go list -m -f '{{.Version}}' github.com/golangci/golangci-lint)
+          # Installs the latest version each time. This may impact build
+          # repeatability but only mildly.
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
-            sh -s -- -b $(go env GOPATH)/bin "$GOLANGCI_LINT_VER"
+            sh -s -- -b $(go env GOPATH)/bin
           golangci-lint run
 
     - run:
