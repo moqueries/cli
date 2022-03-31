@@ -1,4 +1,8 @@
+[![CircleCI](https://circleci.com/gh/myshkin5/moqueries/tree/main.svg?style=shield)](https://circleci.com/gh/myshkin5/moqueries/tree/main)
+[![Documentation](https://img.shields.io/badge/godoc-documentation-brightgreen.svg)](https://pkg.go.dev/github.com/myshkin5/moqueries/moq)
 [![codecov](https://codecov.io/gh/myshkin5/moqueries/branch/main/graph/badge.svg?token=akA6OdarTX)](https://codecov.io/gh/myshkin5/moqueries)
+[![Go Report Card](https://goreportcard.com/badge/myshkin5/moqueries)](https://goreportcard.com/report/myshkin5/moqueries)
+[![License](https://img.shields.io/badge/License-BSD-3-Clause-blue.svg)](https://github.com/myshkin5/moqueries/blob/main/LICENSE)
 
 # Moqueries - Lock-free interface and function mocks for Go
 Moqueries makes mocks, but not just interface mocks &mdash; `moqueries` builds mocks for functions too. And these aren't your typical mocks!
