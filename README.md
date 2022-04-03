@@ -36,51 +36,51 @@ type IsFavorite func(n int) bool
 ## Using mocks
 
 ### Creating a mock instance
-Code generation creates a `newMoqXXX` factory function for each mock you generate. Simply [invoke the function and hold on to the new mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L17-L18) for further testing:
+Code generation creates a `newMoqXXX` factory function for each mock you generate. Simply [invoke the function and hold on to the new mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L19-L20) for further testing:
 ```go
 isFavMoq := newMoqIsFavorite(scene, nil)
 writerMoq := newMoqWriter(scene, nil)
 ```
 
-You might be curious what that `scene` parameter is. A scene provides an abstraction on a collection of mocks. It allows your tests to control all of its mocks at once. There are more details on the use of scenes [below](#working-with-multiple-mocks) but for now, you can create a scene like [this](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L16):
+You might be curious what that `scene` parameter is. A scene provides an abstraction on a collection of mocks. It allows your tests to control all of its mocks at once. There are more details on the use of scenes [below](#working-with-multiple-mocks) but for now, you can create a scene like [this](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L18):
 ```go
 scene := moq.NewScene(t)
 ```
 
 ### Expectations
-To get a mock to perform specific behaviors, you have to tell it what to expect and how to behave. For function mocks, the `onCall` function (generated for you) has the same parameter signature as the function itself. The return value of the `onCall` function is a type that (via its `returnResults` method) informs the mock what to return when invoked with the given set of parameters. For our `IsFavorite` function mock, we tell it to expect to be called with parameters `1`, `2` and then `3` but only `3` is our favorite number [like so](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L20-L22):
+To get a mock to perform specific behaviors, you have to tell it what to expect and how to behave. For function mocks, the `onCall` function (generated for you) has the same parameter signature as the function itself. The return value of the `onCall` function is a type that (via its `returnResults` method) informs the mock what to return when invoked with the given set of parameters. For our `IsFavorite` function mock, we tell it to expect to be called with parameters `1`, `2` and then `3` but only `3` is our favorite number [like so](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L22-L24):
 ```go
 isFavMoq.onCall(1).returnResults(false)
 isFavMoq.onCall(2).returnResults(false)
 isFavMoq.onCall(3).returnResults(true)
 ```
 
-Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L24-L25):
+Working with interface mocks is very similar to working with function mocks. For interface mocks, the generated `onCall` method returns the expectation recorder of the mocked interface (a full implementation of the interface for recording expectations). For our `Writer` mock example, we tell it to expect a call to `Write` with the [following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L26-L27):
 ```go
 writerMoq.onCall().Write([]byte("3")).
     returnResults(1, nil)
 ```
 
-Note in the above code, we told the mock to return `1` and `nil` with a call to the generated `returnResults` method. Per the interface definition of a writer, we wrote one byte successfully with no errors. Alternatively, we could indicate an error with [a small change](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L48-L49):
+Note in the above code, we told the mock to return `1` and `nil` with a call to the generated `returnResults` method. Per the interface definition of a writer, we wrote one byte successfully with no errors. Alternatively, we could indicate an error with [a small change](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L50-L51):
 ```go
 writerMoq.onCall().Write([]byte("3")).
     returnResults(0, fmt.Errorf("couldn't write"))
 ```
 
 ### Arbitrary (any) parameters
-Sometimes it's hard to know what exactly the parameter values will be when setting expectations. You want to say "ignore this parameter" when setting some expectations. The generated `any` function does exactly that &mdash; the specified parameter will be ignored (in the recorded expectation and again later when the mock is invoked). The [following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L163-L164) sets the expectation for a function called `GadgetsByWidgetId` that takes a single `int` parameter called `widgetId`. With this expectation, the mock will return the same result regardless of the value of `widgetId`:
+Sometimes it's hard to know what exactly the parameter values will be when setting expectations. You want to say "ignore this parameter" when setting some expectations. The generated `any` function does exactly that &mdash; the specified parameter will be ignored (in the recorded expectation and again later when the mock is invoked). The [following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L165-L166) sets the expectation for a function called `GadgetsByWidgetId` that takes a single `int` parameter called `widgetId`. With this expectation, the mock will return the same result regardless of the value of `widgetId`:
 ```go
 storeMoq.onCall().GadgetsByWidgetId(0).any().widgetId().
     returnResults(nil, nil).repeat(moq.Times(2))
 ```
 
-Expectations with more matching parameters are given precedence over expectations with fewer matching parameters. In another test, we work with another mocked method called `LightGadgetsByWidgetId` that presumably returns gadgets associated with a specified widget that are less than a specified weight. The [following snippet](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L208-L209) returns the `g1` and `g2` gadgets when `LightGadgetsByWidgetId` is called with a `widgetId` of `42` regardless of the value specified for `maxWeight`:
+Expectations with more matching parameters are given precedence over expectations with fewer matching parameters. In another test, we work with another mocked method called `LightGadgetsByWidgetId` that presumably returns gadgets associated with a specified widget that are less than a specified weight. The [following snippet](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L210-L211) returns the `g1` and `g2` gadgets when `LightGadgetsByWidgetId` is called with a `widgetId` of `42` regardless of the value specified for `maxWeight`:
 ```go
 storeMoq.onCall().LightGadgetsByWidgetId(42, 0).any().maxWeight().
     returnResults([]demo.Gadget{g1, g2}, nil)
 ```
 
-In the same test, [these lines](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L222-L224) return `g3` and `g4` regardless of either parameter specified to `LightGadgetsByWidgetId`:
+In the same test, [these lines](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L224-L226) return `g3` and `g4` regardless of either parameter specified to `LightGadgetsByWidgetId`:
 ```go
 storeMoq.onCall().LightGadgetsByWidgetId(0, 0).
 	any().widgetId().any().maxWeight().
@@ -108,7 +108,7 @@ storeMoq.runtime.parameterIndexing.LightGadgetsByWidgetId.widgetId = moq.ParamIn
 ```
 
 ### Repeated results
-When expectations need to be returned repeatedly, the `repeat` function can be called with a list of repeaters. Some examples of repeaters are `Times` and `AnyTimes` can be used to control how often a particular result is returned. For instance, [the following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L74-L76) instructs the mock function to return `false` five times and then `true` one time (one time is the default):
+When expectations need to be returned repeatedly, the `repeat` function can be called with a list of repeaters. Some examples of repeaters are `Times` and `AnyTimes` can be used to control how often a particular result is returned. For instance, [the following code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L76-L78) instructs the mock function to return `false` five times and then `true` one time (one time is the default):
 ```go
 isFavMoq.onCall(7).
     returnResults(false).repeat(moq.Times(5)).
@@ -117,14 +117,14 @@ isFavMoq.onCall(7).
 
 `AnyTimes` instructs the mock to repeatedly return the same values regardless of how many times the function is called with the given parameters. Note that `AnyTimes` can only be used once for a given set of parameters.
 
-`Times` and `AnyTimes` can be used together as well. [This code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L133-L135) returns `true` twice and then always returns `false` regardless of how many times the function is called with the parameter `7`:
+`Times` and `AnyTimes` can be used together as well. [This code](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L135-L137) returns `true` twice and then always returns `false` regardless of how many times the function is called with the parameter `7`:
 ```go
 isFavMoq.onCall(7).
     returnResults(true).repeat(moq.Times(2)).
     returnResults(false).repeat(moq.AnyTimes())
 ```
 
-Using `MinTimes` and/or `MaxTimes`, you can assert a [minimum number](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L403), [maximum number](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L400) or [range (min and max)](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L406) of calls were made:
+Using `MinTimes` and/or `MaxTimes`, you can assert a [minimum number](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L403-L405), [maximum number](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L400-L402) or [range (min and max)](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L406-L408) of calls were made:
 ```go
 isFavMoq.onCall(1).
     returnResults(false).
@@ -137,7 +137,7 @@ isFavMoq.onCall(3).
     repeat(moq.MinTimes(1), moq.MaxTimes(3))
 ```
 
-`Optional` can be used to indicate that none of the calls are required (the equivalent of `MinTimes(0)`). `Optional` can be [called by itself](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L431) (with `MaxTimes(1)` assumed), or [with an explicit call to `MaxTimes`](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L434) or [with an explicit call to `Times`](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L442):
+`Optional` can be used to indicate that none of the calls are required (the equivalent of `MinTimes(0)`). `Optional` can be [called by itself](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L431-L433) (with `MaxTimes(1)` assumed), or [with an explicit call to `MaxTimes`](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L434-L436) or [with an explicit call to `Times`](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L442-L444):
 ```go
 isFavMoq.onCall(0).
     returnResults(false).
@@ -148,8 +148,6 @@ isFavMoq.onCall(1).
 isFavMoq.onCall(2).
     returnResults(false).
     repeat(moq.MinTimes(2))
-isFavMoq.onCall(3).
-    returnResults(true)
 isFavMoq.onCall(4).
     returnResults(false).
     repeat(moq.Optional(), moq.Times(3))
@@ -159,28 +157,28 @@ Note that some repeated result combinations are not supported and will cause a t
 specifying that a call should be made `MinTimes(3)` and `Optional` is not allowed.
 
 ### Asserting call sequences
-Some test writers want to make sure not only were certain calls made but also that the calls were made in an exact order. If you want to assert that all calls for a test are to be in order, just set the mock's [default to use sequences](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L98) on all calls via the `Config` value:
+Some test writers want to make sure not only were certain calls made but also that the calls were made in an exact order. If you want to assert that all calls for a test are to be in order, just set the mock's [default to use sequences](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L100) on all calls via the `Config` value:
 ```go
 config := moq.Config{Sequence: moq.SeqDefaultOn}
 ```
 
 Now the calls to all mocks using the above config must be in the exact sequence. The sequence of expectations must match the sequence of calls to the mock.
 
-If there are just a few calls that must be in a specific order relative to each other, [call the `seq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L265-L267) when recording expectations:
+If there are just a few calls that must be in a specific order relative to each other, [call the `seq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L267-L269) when recording expectations:
 ```go
 isFavMoq.onCall(1).seq().returnResults(false)
 isFavMoq.onCall(2).seq().returnResults(false)
 isFavMoq.onCall(3).seq().returnResults(true)
 ```
 
-This is basically overriding the default so that just the calls specified use a sequence. You can also turn off sequences on a per-call basis when the default is to use sequences on all calls [using the `noSeq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L295-L296):
+This is basically overriding the default so that just the calls specified use a sequence. You can also turn off sequences on a per-call basis when the default is to use sequences on all calls [using the `noSeq` method](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L297-L298):
 ```go
 writerMoq.onCall().Write([]byte("3")).noSeq().
     returnResults(1, nil)
 ```
 
 ### Do functions
-Sometimes you need to tap into what your mock is doing. You may need to capture a value that was passed to a mock, or you may need to have some logic calculate what a mock's response should be. Do functions do just that. If you just need to listen in to a `returnResults` expectation, you provide a [function that matches the mocked functions parameters](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L316-L319) (in this case the mocked function takes a single `int` parameter):
+Sometimes you need to tap into what your mock is doing. You may need to capture a value that was passed to a mock, or you may need to have some logic calculate what a mock's response should be. Do functions do just that. If you just need to listen in to a `returnResults` expectation, you provide a [function that matches the mocked functions parameters](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L318-L321) (in this case the mocked function takes a single `int` parameter):
 ```go
 sum := 0
 sumFn := func(n int) {
@@ -188,21 +186,21 @@ sumFn := func(n int) {
 }
 ```
 
-Then [chain](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L321-L323) an `andDo` call after the `returnResults` call:
+Then [chain](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L323-L325) an `andDo` call after the `returnResults` call:
 ```go
 isFavMoq.onCall(1).returnResults(false).andDo(sumFn)
 isFavMoq.onCall(2).returnResults(false).andDo(sumFn)
 isFavMoq.onCall(3).returnResults(true).andDo(sumFn)
 ```
 
-If on the other hand you need to calculate a mock's return values, start with [a function that has the same signature as the mocked function](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L350-L352) (both parameters and result values):
+If on the other hand you need to calculate a mock's return values, start with [a function that has the same signature as the mocked function](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L352-L354) (both parameters and result values):
 ```go
 isFavFn := func(n int) bool {
     return n%2 == 0
 }
 ```
 
-Now you can replace both the `returnResults` and `andDo` calls with [a single call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L354-L355) to `doReturnResults`:
+Now you can replace both the `returnResults` and `andDo` calls with [a single call](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L356-L357) to `doReturnResults`:
 ```go
 isFavMoq.onCall(0).any().n().
     doReturnResults(isFavFn).repeat(moq.AnyTimes())
@@ -211,7 +209,7 @@ isFavMoq.onCall(0).any().n().
 Note this expectation will return the calculated value (`n%2 == 0`) regardless of the input parameters and regardless of how may times it is invoked.
 
 ### Passing the mock to production code
-Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L27-L30), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
+Each mock gets a generated `mock` method. This function accesses the implementation of the interface or function invoked by production code. In [our example](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L29-L32), we have a type called `FavWriter` that needs an `IsFavorite` function and a `Writer`:
 ```go
 d := demo.FavWriter{
     IsFav: isFavMoq.mock(),
@@ -220,13 +218,13 @@ d := demo.FavWriter{
 ```
 
 ### Nice vs. Strict
-Sometimes your mocks will get lots of function calls with lots of different parameters &mdash; maybe more calls than you can (or want) to configure. Nice mocks trigger special logic that allow them to return zero values for any unexpected calls. [Creating a nice mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L42-L43) is as simple as supplying a little configuration to the `new` method (the value was `nil` above which defaults to creating strict mocks):
+Sometimes your mocks will get lots of function calls with lots of different parameters &mdash; maybe more calls than you can (or want) to configure. Nice mocks trigger special logic that allow them to return zero values for any unexpected calls. [Creating a nice mock](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L44-L45) is as simple as supplying a little configuration to the `new` method (the value was `nil` above which defaults to creating strict mocks):
 ```go
 isFavMoq := newMoqIsFavorite(
     scene, &moq.Config{Expectation: moq.Nice})
 ```
 
-Now we only need to [set expectations](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L46) when returning non-zero values (`returnResults(false)` is now the default):
+Now we only need to [set expectations](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L48) when returning non-zero values (`returnResults(false)` is now the default):
 ```go
 isFavMoq.onCall(3).returnResults(true)
 ```
@@ -234,7 +232,7 @@ isFavMoq.onCall(3).returnResults(true)
 Calling this mock with any value besides `3` will now return `false` (without having to register any other expectations).
 
 ### Asserting all expectations are met
-After your test runs, you may want to verify that all of your expectations were actually met. Each mock implements `AssertExpectationsMet` to [do just that](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L37):
+After your test runs, you may want to verify that all of your expectations were actually met. Each mock implements `AssertExpectationsMet` to [do just that](https://github.com/myshkin5/moqueries/blob/master/demo/demo_test.go#L39):
 ```go
 writerMoq.AssertExpectationsMet()
 ```
