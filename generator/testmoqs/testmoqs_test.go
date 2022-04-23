@@ -32,7 +32,7 @@ type adaptor interface {
 	mock() interface{}
 	newRecorder(sParams []string, bParam bool) recorder
 	invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results)
-	bundleParams(sParams []string, bParam bool) interface{}
+	prettyParams(sParams []string, bParam bool) string
 	sceneMoq() moq.Moq
 }
 
@@ -213,8 +213,8 @@ func TestExpectations(t *testing.T) {
 
 				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
 
-				msg := "Unexpected call with parameters %#v"
-				params := entry.bundleParams([]string{"Hi", "you"}, true)
+				msg := "Unexpected call to %s"
+				params := entry.prettyParams([]string{"Hi", "you"}, true)
 				tMoq.OnCall().Fatalf(msg, params).
 					ReturnResults()
 				fmtMsg := fmt.Sprintf(msg, params)
@@ -405,8 +405,8 @@ func TestRepeaters(t *testing.T) {
 					results{sResults: []string{"green", "purple"}, err: io.EOF})
 
 				tMoq.OnCall().Fatalf(
-					"Too many calls to mock with parameters %#v",
-					entry.bundleParams([]string{"Hi", "you"}, true)).ReturnResults()
+					"Too many calls to %s",
+					entry.prettyParams([]string{"Hi", "you"}, true)).ReturnResults()
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
@@ -551,9 +551,9 @@ func TestAnyValues(t *testing.T) {
 				}
 
 				msg := fmt.Sprintf(
-					"Any functions must be called before %s or %s calls, parameters: %%#v",
+					"Any functions must be called before %s or %s calls, recording %%s",
 					rrFn, drrFn)
-				bParams := entry.bundleParams([]string{"Hi", "you"}, true)
+				bParams := entry.prettyParams([]string{"Hi", "you"}, true)
 				tMoq.OnCall().Fatalf(msg, bParams).
 					ReturnResults()
 				fmtMsg := fmt.Sprintf(msg, bParams)
@@ -670,8 +670,8 @@ func TestAssertExpectationsMet(t *testing.T) {
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
 
-				msg := "Expected %d additional call(s) with parameters %#v"
-				params := entry.bundleParams([]string{"Hi", "you"}, true)
+				msg := "Expected %d additional call(s) to %s"
+				params := entry.prettyParams([]string{"Hi", "you"}, true)
 				tMoq.OnCall().Errorf(msg, 1, params).
 					ReturnResults()
 				fmtMsg := fmt.Sprintf(msg, 1, params)
@@ -836,13 +836,13 @@ func TestSequences(t *testing.T) {
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
 
-				msg := "Call sequence does not match %#v"
-				params1 := entry.bundleParams([]string{"Hi", "you"}, true)
+				msg := "Call sequence does not match call to %s"
+				params1 := entry.prettyParams([]string{"Hi", "you"}, true)
 				tMoq.OnCall().Fatalf(msg, params1).
 					ReturnResults()
 				fmtMsg := fmt.Sprintf(msg, params1)
-				params2 := entry.bundleParams([]string{"Hello", "there"}, false)
-				tMoq.OnCall().Errorf("Expected %d additional call(s) with parameters %#v", 1, params2).
+				params2 := entry.prettyParams([]string{"Hello", "there"}, false)
+				tMoq.OnCall().Errorf("Expected %d additional call(s) to %s", 1, params2).
 					ReturnResults()
 
 				// ACT
@@ -924,11 +924,11 @@ func TestSequences(t *testing.T) {
 						rec := entry.newRecorder([]string{"Hello", "there"}, false)
 						rec.returnResults(result.sResults, result.err)
 
-						msg := fmt.Sprintf("%s must be called before %s or %s calls, parameters: %%#v",
+						msg := fmt.Sprintf("%s must be called before %s or %s calls, recording %%s",
 							export(seqNoSeq, entry),
 							export("returnResults", entry),
 							export("doReturnResults", entry))
-						bParams := entry.bundleParams([]string{"Hello", "there"}, false)
+						bParams := entry.prettyParams([]string{"Hello", "there"}, false)
 						tMoq.OnCall().Fatalf(msg, bParams).
 							ReturnResults()
 						fmtMsg := fmt.Sprintf(msg, bParams)
@@ -1202,13 +1202,13 @@ func TestDoFuncs(t *testing.T) {
 				rec.doReturnResults(
 					t, func() {}, []string{"Hi", "you"}, true, []string{"blue", "orange"}, nil)
 
-				msg := "Call sequence does not match %#v"
-				params1 := entry.bundleParams([]string{"Hi", "you"}, true)
+				msg := "Call sequence does not match call to %s"
+				params1 := entry.prettyParams([]string{"Hi", "you"}, true)
 				tMoq.OnCall().Fatalf(msg, params1).
 					ReturnResults()
 				fmtMsg := fmt.Sprintf(msg, params1)
-				params2 := entry.bundleParams([]string{"Hello", "there"}, false)
-				tMoq.OnCall().Errorf("Expected %d additional call(s) with parameters %#v", 1, params2).
+				params2 := entry.prettyParams([]string{"Hello", "there"}, false)
+				tMoq.OnCall().Errorf("Expected %d additional call(s) to %s", 1, params2).
 					ReturnResults()
 
 				// ACT
@@ -1285,8 +1285,8 @@ func TestOptionalInvocations(t *testing.T) {
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil})
 
-				msg := "Expected %d additional call(s) with parameters %#v"
-				params := entry.bundleParams([]string{"Hi", "you"}, true)
+				msg := "Expected %d additional call(s) to %s"
+				params := entry.prettyParams([]string{"Hi", "you"}, true)
 				tMoq.OnCall().Errorf(msg, 1, params).
 					ReturnResults()
 				fmtMsg := fmt.Sprintf(msg, 1, params)
@@ -1360,8 +1360,8 @@ func TestOptionalInvocations(t *testing.T) {
 							results{sResults: []string{"blue", "orange"}, err: nil})
 					}
 
-					msg := "Expected %d additional call(s) with parameters %#v"
-					params := entry.bundleParams([]string{"Hi", "you"}, true)
+					msg := "Expected %d additional call(s) to %s"
+					params := entry.prettyParams([]string{"Hi", "you"}, true)
 					tMoq.OnCall().Errorf(msg, 1, params).
 						ReturnResults()
 					fmtMsg := fmt.Sprintf(msg, 1, params)
@@ -1405,7 +1405,7 @@ type paramIndexingAdaptor interface {
 	setParamIndexing(pi moq.ParamIndexing)
 	onCall(params *testmoqs.PassByReferenceParams, sResult string, err error)
 	invokeMockAndExpectResults(t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error)
-	bundleParams(params *testmoqs.PassByReferenceParams) interface{}
+	prettyParams(params *testmoqs.PassByReferenceParams) string
 }
 
 type passByReferenceFnParamIndexingAdaptor struct {
@@ -1434,8 +1434,8 @@ func (a *passByReferenceFnParamIndexingAdaptor) invokeMockAndExpectResults(
 	}
 }
 
-func (a *passByReferenceFnParamIndexingAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
-	return moqPassByReferenceFn_params{p: params}
+func (a *passByReferenceFnParamIndexingAdaptor) prettyParams(params *testmoqs.PassByReferenceParams) string {
+	return fmt.Sprintf("PassByReferenceFn(%#v)", params)
 }
 
 type exportedPassByReferenceParamIndexingFnAdaptor struct {
@@ -1464,10 +1464,10 @@ func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResul
 	}
 }
 
-func (a *exportedPassByReferenceParamIndexingFnAdaptor) bundleParams(
+func (a *exportedPassByReferenceParamIndexingFnAdaptor) prettyParams(
 	params *testmoqs.PassByReferenceParams,
-) interface{} {
-	return exported.MoqPassByReferenceFn_params{P: params}
+) string {
+	return fmt.Sprintf("PassByReferenceFn(%#v)", params)
 }
 
 type passByReferenceParamIndexingAdaptor struct {
@@ -1496,8 +1496,8 @@ func (a *passByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
 	}
 }
 
-func (a *passByReferenceParamIndexingAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
-	return moqUsual_PassByReference_params{p: params}
+func (a *passByReferenceParamIndexingAdaptor) prettyParams(params *testmoqs.PassByReferenceParams) string {
+	return fmt.Sprintf("PassByReference(%#v)", params)
 }
 
 type exportedPassByReferenceParamIndexingAdaptor struct {
@@ -1526,8 +1526,8 @@ func (a *exportedPassByReferenceParamIndexingAdaptor) invokeMockAndExpectResults
 	}
 }
 
-func (a *exportedPassByReferenceParamIndexingAdaptor) bundleParams(params *testmoqs.PassByReferenceParams) interface{} {
-	return exported.MoqUsual_PassByReference_params{P: params}
+func (a *exportedPassByReferenceParamIndexingAdaptor) prettyParams(params *testmoqs.PassByReferenceParams) string {
+	return fmt.Sprintf("PassByReference(%#v)", params)
 }
 
 func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexingAdaptor {
@@ -1612,8 +1612,8 @@ func TestParamIndexing(t *testing.T) {
 				entry.setParamIndexing(moq.ParamIndexByValue)
 				entry.onCall(&p1, "Hello", nil)
 
-				params := entry.bundleParams(&p1)
-				tMoq.OnCall().Fatalf("Unexpected call with parameters %#v", params).ReturnResults()
+				params := entry.prettyParams(&p1)
+				tMoq.OnCall().Fatalf("Unexpected call to %s", params).ReturnResults()
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, &p2, "", nil)
