@@ -1,6 +1,7 @@
 package testmoqs_test
 
 import (
+	"fmt"
 	"io"
 	"reflect"
 
@@ -31,8 +32,8 @@ func (a *usualAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bPa
 	}
 }
 
-func (a *usualAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_Usual_params{sParam: sParams[0], bParam: bParam}
+func (a *usualAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *usualAdaptor) sceneMoq() moq.Moq {
@@ -130,8 +131,8 @@ func (a *exportedUsualAdaptor) invokeMockAndExpectResults(t moq.T, sParams []str
 	}
 }
 
-func (a *exportedUsualAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqUsual_Usual_params{SParam: sParams[0], BParam: bParam}
+func (a *exportedUsualAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *exportedUsualAdaptor) sceneMoq() moq.Moq {
@@ -227,8 +228,8 @@ func (a *noNamesAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, b
 	}
 }
 
-func (a *noNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_NoNames_params{param1: sParams[0], param2: bParam}
+func (a *noNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("NoNames(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *noNamesAdaptor) sceneMoq() moq.Moq {
@@ -326,8 +327,8 @@ func (a *exportedNoNamesAdaptor) invokeMockAndExpectResults(t moq.T, sParams []s
 	}
 }
 
-func (a *exportedNoNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqUsual_NoNames_params{Param1: sParams[0], Param2: bParam}
+func (a *exportedNoNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("NoNames(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *exportedNoNamesAdaptor) sceneMoq() moq.Moq {
@@ -417,8 +418,8 @@ func (a *noResultsAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string,
 	a.m.mock().NoResults(sParams[0], bParam)
 }
 
-func (a *noResultsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_NoResults_params{sParam: sParams[0], bParam: bParam}
+func (a *noResultsAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("NoResults(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *noResultsAdaptor) sceneMoq() moq.Moq {
@@ -509,8 +510,8 @@ func (a *exportedNoResultsAdaptor) invokeMockAndExpectResults(_ moq.T, sParams [
 	a.m.Mock().NoResults(sParams[0], bParam)
 }
 
-func (a *exportedNoResultsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqUsual_NoResults_params{SParam: sParams[0], BParam: bParam}
+func (a *exportedNoResultsAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("NoResults(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *exportedNoResultsAdaptor) sceneMoq() moq.Moq {
@@ -607,8 +608,8 @@ func (a *noParamsAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool
 	}
 }
 
-func (a *noParamsAdaptor) bundleParams([]string, bool) interface{} {
-	return moqUsual_NoParams_params{}
+func (a *noParamsAdaptor) prettyParams([]string, bool) string {
+	return "NoParams()"
 }
 
 func (a *noParamsAdaptor) sceneMoq() moq.Moq {
@@ -682,8 +683,8 @@ func (a *exportedNoParamsAdaptor) invokeMockAndExpectResults(t moq.T, _ []string
 	}
 }
 
-func (a *exportedNoParamsAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MoqUsual_NoParams_params{}
+func (a *exportedNoParamsAdaptor) prettyParams([]string, bool) string {
+	return "NoParams()"
 }
 
 func (a *exportedNoParamsAdaptor) sceneMoq() moq.Moq {
@@ -751,8 +752,8 @@ func (a *nothingAdaptor) invokeMockAndExpectResults(moq.T, []string, bool, resul
 	a.m.mock().Nothing()
 }
 
-func (a *nothingAdaptor) bundleParams([]string, bool) interface{} {
-	return moqUsual_Nothing_params{}
+func (a *nothingAdaptor) prettyParams([]string, bool) string {
+	return "Nothing()"
 }
 
 func (a *nothingAdaptor) sceneMoq() moq.Moq {
@@ -819,8 +820,8 @@ func (a *exportedNothingAdaptor) invokeMockAndExpectResults(moq.T, []string, boo
 	a.m.Mock().Nothing()
 }
 
-func (a *exportedNothingAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MoqUsual_Nothing_params{}
+func (a *exportedNothingAdaptor) prettyParams([]string, bool) string {
+	return "Nothing()"
 }
 
 func (a *exportedNothingAdaptor) sceneMoq() moq.Moq {
@@ -891,8 +892,8 @@ func (a *variadicAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, 
 	}
 }
 
-func (a *variadicAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_Variadic_params{args: sParams, other: bParam}
+func (a *variadicAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Variadic(%#v, %#v)", bParam, sParams)
 }
 
 func (a *variadicAdaptor) sceneMoq() moq.Moq {
@@ -992,8 +993,8 @@ func (a *exportedVariadicAdaptor) invokeMockAndExpectResults(
 	}
 }
 
-func (a *exportedVariadicAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqUsual_Variadic_params{Args: sParams, Other: bParam}
+func (a *exportedVariadicAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Variadic(%#v, %#v)", bParam, sParams)
 }
 
 func (a *exportedVariadicAdaptor) sceneMoq() moq.Moq {
@@ -1092,8 +1093,8 @@ func (a *repeatedIdsAdaptor) invokeMockAndExpectResults(t moq.T, sParams []strin
 	}
 }
 
-func (a *repeatedIdsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_RepeatedIds_params{sParam1: sParams[0], sParam2: sParams[1], bParam: bParam}
+func (a *repeatedIdsAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("RepeatedIds(%#v, %#v, %#v)", sParams[0], sParams[1], bParam)
 }
 
 func (a *repeatedIdsAdaptor) sceneMoq() moq.Moq {
@@ -1200,8 +1201,8 @@ func (a *exportedRepeatedIdsAdaptor) invokeMockAndExpectResults(t moq.T, sParams
 	}
 }
 
-func (a *exportedRepeatedIdsAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqUsual_RepeatedIds_params{SParam1: sParams[0], SParam2: sParams[1], BParam: bParam}
+func (a *exportedRepeatedIdsAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("RepeatedIds(%#v, %#v, %#v)", sParams[0], sParams[1], bParam)
 }
 
 func (a *exportedRepeatedIdsAdaptor) sceneMoq() moq.Moq {
@@ -1303,8 +1304,8 @@ func (a *timesAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bPa
 	}
 }
 
-func (a *timesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_Times_params{sParam: sParams[0], times: bParam}
+func (a *timesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Times(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *timesAdaptor) sceneMoq() moq.Moq {
@@ -1402,8 +1403,8 @@ func (a *exportedTimesAdaptor) invokeMockAndExpectResults(t moq.T, sParams []str
 	}
 }
 
-func (a *exportedTimesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqUsual_Times_params{SParam: sParams[0], Times: bParam}
+func (a *exportedTimesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Times(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *exportedTimesAdaptor) sceneMoq() moq.Moq {
@@ -1493,8 +1494,8 @@ func (a *difficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams
 	a.m.mock().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
 }
 
-func (a *difficultParamNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqDifficultParamNamesFn_params{param1: bParam, param2: false, param3: sParams[0]}
+func (a *difficultParamNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("DifficultParamNames(%#v, false, %#v, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
 func (a *difficultParamNamesAdaptor) sceneMoq() moq.Moq {
@@ -1588,8 +1589,8 @@ func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(
 	a.m.Mock().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
 }
 
-func (a *exportedDifficultParamNamesAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return exported.MoqDifficultParamNamesFn_params{Param1: bParam, Param2: false, Param3: sParams[0]}
+func (a *exportedDifficultParamNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("DifficultParamNames(%#v, false, %#v, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
 func (a *exportedDifficultParamNamesAdaptor) sceneMoq() moq.Moq {
@@ -1689,8 +1690,8 @@ func (a *difficultResultNamesAdaptor) invokeMockAndExpectResults(t moq.T, _ []st
 	}
 }
 
-func (a *difficultResultNamesAdaptor) bundleParams([]string, bool) interface{} {
-	return moqDifficultResultNamesFn_params{}
+func (a *difficultResultNamesAdaptor) prettyParams([]string, bool) string {
+	return "DifficultResultNames()"
 }
 
 func (a *difficultResultNamesAdaptor) sceneMoq() moq.Moq {
@@ -1768,8 +1769,8 @@ func (a *exportedDifficultResultNamesAdaptor) invokeMockAndExpectResults(t moq.T
 	}
 }
 
-func (a *exportedDifficultResultNamesAdaptor) bundleParams([]string, bool) interface{} {
-	return exported.MoqDifficultResultNamesFn_params{}
+func (a *exportedDifficultResultNamesAdaptor) prettyParams([]string, bool) string {
+	return "DifficultResultNames()"
 }
 
 func (a *exportedDifficultResultNamesAdaptor) sceneMoq() moq.Moq {
@@ -1852,11 +1853,11 @@ func (a *passByReferenceAdaptor) invokeMockAndExpectResults(t moq.T, sParams []s
 	}
 }
 
-func (a *passByReferenceAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_PassByReference_params{p: &testmoqs.PassByReferenceParams{
+func (a *passByReferenceAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("PassByReference(%#v)", &testmoqs.PassByReferenceParams{
 		SParam: sParams[0],
 		BParam: bParam,
-	}}
+	})
 }
 
 func (a *passByReferenceAdaptor) sceneMoq() moq.Moq {
@@ -1965,11 +1966,11 @@ func (a *exportedPassByReferenceAdaptor) invokeMockAndExpectResults(
 	}
 }
 
-func (a *exportedPassByReferenceAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_PassByReference_params{p: &testmoqs.PassByReferenceParams{
+func (a *exportedPassByReferenceAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("PassByReference(%#v)", &testmoqs.PassByReferenceParams{
 		SParam: sParams[0],
 		BParam: bParam,
-	}}
+	})
 }
 
 func (a *exportedPassByReferenceAdaptor) sceneMoq() moq.Moq {
@@ -2075,11 +2076,11 @@ func (a *interfaceParamAdaptor) invokeMockAndExpectResults(t moq.T, sParams []st
 	}
 }
 
-func (a *interfaceParamAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_InterfaceParam_params{w: &testmoqs.InterfaceParamWriter{
+func (a *interfaceParamAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("InterfaceParam(%#v)", &testmoqs.InterfaceParamWriter{
 		SParam: sParams[0],
 		BParam: bParam,
-	}}
+	})
 }
 
 func (a *interfaceParamAdaptor) sceneMoq() moq.Moq {
@@ -2196,11 +2197,11 @@ func (a *exportedInterfaceParamAdaptor) invokeMockAndExpectResults(
 	}
 }
 
-func (a *exportedInterfaceParamAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_InterfaceParam_params{w: &testmoqs.InterfaceParamWriter{
+func (a *exportedInterfaceParamAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("InterfaceParam(%#v)", &testmoqs.InterfaceParamWriter{
 		SParam: sParams[0],
 		BParam: bParam,
-	}}
+	})
 }
 
 func (a *exportedInterfaceParamAdaptor) sceneMoq() moq.Moq {
@@ -2318,11 +2319,8 @@ func (a *interfaceResultAdaptor) invokeMockAndExpectResults(t moq.T, sParams []s
 	}
 }
 
-func (a *interfaceResultAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_InterfaceResult_params{
-		sParam: sParams[0],
-		bParam: bParam,
-	}
+func (a *interfaceResultAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("InterfaceResult(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *interfaceResultAdaptor) sceneMoq() moq.Moq {
@@ -2441,11 +2439,8 @@ func (a *exportedInterfaceResultAdaptor) invokeMockAndExpectResults(
 	}
 }
 
-func (a *exportedInterfaceResultAdaptor) bundleParams(sParams []string, bParam bool) interface{} {
-	return moqUsual_InterfaceResult_params{
-		sParam: sParams[0],
-		bParam: bParam,
-	}
+func (a *exportedInterfaceResultAdaptor) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("InterfaceResult(%#v, %#v)", sParams[0], bParam)
 }
 
 func (a *exportedInterfaceResultAdaptor) sceneMoq() moq.Moq {
