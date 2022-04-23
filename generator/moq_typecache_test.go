@@ -3,6 +3,7 @@
 package generator_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -357,7 +358,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Type(params))
 		}
 		return
 	}
@@ -366,7 +367,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Type(params))
 			}
 			return
 		}
@@ -377,7 +378,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Type(params))
 		}
 	}
 
@@ -412,7 +413,7 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_IsComparable(params))
 		}
 		return
 	}
@@ -421,7 +422,7 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_IsComparable(params))
 			}
 			return
 		}
@@ -432,7 +433,7 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_IsComparable(params))
 		}
 	}
 
@@ -466,7 +467,7 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_IsDefaultComparable(params))
 		}
 		return
 	}
@@ -475,7 +476,7 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_IsDefaultComparable(params))
 			}
 			return
 		}
@@ -486,7 +487,7 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_IsDefaultComparable(params))
 		}
 	}
 
@@ -520,7 +521,7 @@ func (m *moqTypeCache_mock) FindPackage(dir string) (result1 string, result2 err
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_FindPackage(params))
 		}
 		return
 	}
@@ -529,7 +530,7 @@ func (m *moqTypeCache_mock) FindPackage(dir string) (result1 string, result2 err
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_FindPackage(params))
 			}
 			return
 		}
@@ -540,7 +541,7 @@ func (m *moqTypeCache_mock) FindPackage(dir string) (result1 string, result2 err
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_FindPackage(params))
 		}
 	}
 
@@ -579,7 +580,7 @@ func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestPkgs bool) *moqTypeCa
 func (r *moqTypeCache_Type_fnRecorder) any() *moqTypeCache_Type_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Type(r.params))
 		return nil
 	}
 	return &moqTypeCache_Type_anyParams{recorder: r}
@@ -598,7 +599,7 @@ func (a *moqTypeCache_Type_anyParams) loadTestPkgs() *moqTypeCache_Type_fnRecord
 func (r *moqTypeCache_Type_fnRecorder) seq() *moqTypeCache_Type_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Type(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -608,7 +609,7 @@ func (r *moqTypeCache_Type_fnRecorder) seq() *moqTypeCache_Type_fnRecorder {
 func (r *moqTypeCache_Type_fnRecorder) noSeq() *moqTypeCache_Type_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Type(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -766,6 +767,10 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 	return r
 }
 
+func (m *moqTypeCache) prettyParams_Type(params moqTypeCache_Type_params) string {
+	return fmt.Sprintf("Type(%#v, %#v)", params.id, params.loadTestPkgs)
+}
+
 func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams uint64) moqTypeCache_Type_paramsKey {
 	var idUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -810,7 +815,7 @@ func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr) *moqTypeCache_IsComp
 func (r *moqTypeCache_IsComparable_fnRecorder) any() *moqTypeCache_IsComparable_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsComparable(r.params))
 		return nil
 	}
 	return &moqTypeCache_IsComparable_anyParams{recorder: r}
@@ -824,7 +829,7 @@ func (a *moqTypeCache_IsComparable_anyParams) expr() *moqTypeCache_IsComparable_
 func (r *moqTypeCache_IsComparable_fnRecorder) seq() *moqTypeCache_IsComparable_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsComparable(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -834,7 +839,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) seq() *moqTypeCache_IsComparable_
 func (r *moqTypeCache_IsComparable_fnRecorder) noSeq() *moqTypeCache_IsComparable_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsComparable(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -985,6 +990,10 @@ func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqTypeCache) prettyParams_IsComparable(params moqTypeCache_IsComparable_params) string {
+	return fmt.Sprintf("IsComparable(%#v)", params.expr)
+}
+
 func (m *moqTypeCache) paramsKey_IsComparable(params moqTypeCache_IsComparable_params, anyParams uint64) moqTypeCache_IsComparable_paramsKey {
 	var exprUsed dst.Expr
 	var exprUsedHash hash.Hash
@@ -1018,7 +1027,7 @@ func (m *moqTypeCache_recorder) IsDefaultComparable(expr dst.Expr) *moqTypeCache
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) any() *moqTypeCache_IsDefaultComparable_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsDefaultComparable(r.params))
 		return nil
 	}
 	return &moqTypeCache_IsDefaultComparable_anyParams{recorder: r}
@@ -1032,7 +1041,7 @@ func (a *moqTypeCache_IsDefaultComparable_anyParams) expr() *moqTypeCache_IsDefa
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) seq() *moqTypeCache_IsDefaultComparable_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsDefaultComparable(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1042,7 +1051,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) seq() *moqTypeCache_IsDefa
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) noSeq() *moqTypeCache_IsDefaultComparable_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsDefaultComparable(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1193,6 +1202,10 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) repeat(repeaters ...moq.Re
 	return r
 }
 
+func (m *moqTypeCache) prettyParams_IsDefaultComparable(params moqTypeCache_IsDefaultComparable_params) string {
+	return fmt.Sprintf("IsDefaultComparable(%#v)", params.expr)
+}
+
 func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefaultComparable_params, anyParams uint64) moqTypeCache_IsDefaultComparable_paramsKey {
 	var exprUsed dst.Expr
 	var exprUsedHash hash.Hash
@@ -1226,7 +1239,7 @@ func (m *moqTypeCache_recorder) FindPackage(dir string) *moqTypeCache_FindPackag
 func (r *moqTypeCache_FindPackage_fnRecorder) any() *moqTypeCache_FindPackage_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FindPackage(r.params))
 		return nil
 	}
 	return &moqTypeCache_FindPackage_anyParams{recorder: r}
@@ -1240,7 +1253,7 @@ func (a *moqTypeCache_FindPackage_anyParams) dir() *moqTypeCache_FindPackage_fnR
 func (r *moqTypeCache_FindPackage_fnRecorder) seq() *moqTypeCache_FindPackage_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FindPackage(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1250,7 +1263,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) seq() *moqTypeCache_FindPackage_fn
 func (r *moqTypeCache_FindPackage_fnRecorder) noSeq() *moqTypeCache_FindPackage_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FindPackage(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1401,6 +1414,10 @@ func (r *moqTypeCache_FindPackage_fnRecorder) repeat(repeaters ...moq.Repeater) 
 	return r
 }
 
+func (m *moqTypeCache) prettyParams_FindPackage(params moqTypeCache_FindPackage_params) string {
+	return fmt.Sprintf("FindPackage(%#v)", params.dir)
+}
+
 func (m *moqTypeCache) paramsKey_FindPackage(params moqTypeCache_FindPackage_params, anyParams uint64) moqTypeCache_FindPackage_paramsKey {
 	var dirUsed string
 	var dirUsedHash hash.Hash
@@ -1436,7 +1453,7 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Type(results.params))
 			}
 		}
 	}
@@ -1444,7 +1461,7 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_IsComparable(results.params))
 			}
 		}
 	}
@@ -1452,7 +1469,7 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_IsDefaultComparable(results.params))
 			}
 		}
 	}
@@ -1460,7 +1477,7 @@ func (m *moqTypeCache) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_FindPackage(results.params))
 			}
 		}
 	}

@@ -3,6 +3,7 @@
 package ast_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -145,7 +146,7 @@ func (m *moqLoadFn_mock) fn(cfg *packages.Config, patterns ...string) (result1 [
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -154,7 +155,7 @@ func (m *moqLoadFn_mock) fn(cfg *packages.Config, patterns ...string) (result1 [
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -165,7 +166,7 @@ func (m *moqLoadFn_mock) fn(cfg *packages.Config, patterns ...string) (result1 [
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -197,7 +198,7 @@ func (m *moqLoadFn) onCall(cfg *packages.Config, patterns ...string) *moqLoadFn_
 func (r *moqLoadFn_fnRecorder) any() *moqLoadFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqLoadFn_anyParams{recorder: r}
@@ -216,7 +217,7 @@ func (a *moqLoadFn_anyParams) patterns() *moqLoadFn_fnRecorder {
 func (r *moqLoadFn_fnRecorder) seq() *moqLoadFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -226,7 +227,7 @@ func (r *moqLoadFn_fnRecorder) seq() *moqLoadFn_fnRecorder {
 func (r *moqLoadFn_fnRecorder) noSeq() *moqLoadFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -377,6 +378,10 @@ func (r *moqLoadFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqLoadFn_fnRe
 	return r
 }
 
+func (m *moqLoadFn) prettyParams(params moqLoadFn_params) string {
+	return fmt.Sprintf("LoadFn(%#v, %#v)", params.cfg, params.patterns)
+}
+
 func (m *moqLoadFn) paramsKey(params moqLoadFn_params, anyParams uint64) moqLoadFn_paramsKey {
 	var cfgUsed *packages.Config
 	var cfgUsedHash hash.Hash
@@ -418,7 +423,7 @@ func (m *moqLoadFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}

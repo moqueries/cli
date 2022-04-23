@@ -3,6 +3,7 @@
 package generator_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -683,7 +684,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_BaseStruct(params))
 		}
 		return
 	}
@@ -692,7 +693,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_BaseStruct(params))
 			}
 			return
 		}
@@ -703,7 +704,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_BaseStruct(params))
 		}
 	}
 
@@ -736,7 +737,7 @@ func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.Ge
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_IsolationStruct(params))
 		}
 		return
 	}
@@ -745,7 +746,7 @@ func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.Ge
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_IsolationStruct(params))
 			}
 			return
 		}
@@ -756,7 +757,7 @@ func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.Ge
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_IsolationStruct(params))
 		}
 	}
 
@@ -789,7 +790,7 @@ func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []ds
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_MethodStructs(params))
 		}
 		return
 	}
@@ -798,7 +799,7 @@ func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []ds
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_MethodStructs(params))
 			}
 			return
 		}
@@ -809,7 +810,7 @@ func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []ds
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_MethodStructs(params))
 		}
 	}
 
@@ -841,7 +842,7 @@ func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NewFunc(params))
 		}
 		return
 	}
@@ -850,7 +851,7 @@ func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NewFunc(params))
 			}
 			return
 		}
@@ -861,7 +862,7 @@ func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NewFunc(params))
 		}
 	}
 
@@ -895,7 +896,7 @@ func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_IsolationAccessor(params))
 		}
 		return
 	}
@@ -904,7 +905,7 @@ func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_IsolationAccessor(params))
 			}
 			return
 		}
@@ -915,7 +916,7 @@ func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_IsolationAccessor(params))
 		}
 	}
 
@@ -948,7 +949,7 @@ func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.Func
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_FuncClosure(params))
 		}
 		return
 	}
@@ -957,7 +958,7 @@ func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.Func
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_FuncClosure(params))
 			}
 			return
 		}
@@ -968,7 +969,7 @@ func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.Func
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_FuncClosure(params))
 		}
 	}
 
@@ -1001,7 +1002,7 @@ func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncD
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_MockMethod(params))
 		}
 		return
 	}
@@ -1010,7 +1011,7 @@ func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncD
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_MockMethod(params))
 			}
 			return
 		}
@@ -1021,7 +1022,7 @@ func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncD
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_MockMethod(params))
 		}
 	}
 
@@ -1054,7 +1055,7 @@ func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []ds
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_RecorderMethods(params))
 		}
 		return
 	}
@@ -1063,7 +1064,7 @@ func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []ds
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_RecorderMethods(params))
 			}
 			return
 		}
@@ -1074,7 +1075,7 @@ func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []ds
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_RecorderMethods(params))
 		}
 	}
 
@@ -1105,7 +1106,7 @@ func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_ResetMethod(params))
 		}
 		return
 	}
@@ -1114,7 +1115,7 @@ func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_ResetMethod(params))
 			}
 			return
 		}
@@ -1125,7 +1126,7 @@ func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_ResetMethod(params))
 		}
 	}
 
@@ -1156,7 +1157,7 @@ func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_AssertMethod(params))
 		}
 		return
 	}
@@ -1165,7 +1166,7 @@ func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_AssertMethod(params))
 			}
 			return
 		}
@@ -1176,7 +1177,7 @@ func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_AssertMethod(params))
 		}
 	}
 
@@ -1211,7 +1212,7 @@ func (m *moqConverterer_recorder) BaseStruct() *moqConverterer_BaseStruct_fnReco
 func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseStruct(r.params))
 		return nil
 	}
 	return &moqConverterer_BaseStruct_anyParams{recorder: r}
@@ -1220,7 +1221,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_
 func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseStruct(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1230,7 +1231,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_
 func (r *moqConverterer_BaseStruct_fnRecorder) noSeq() *moqConverterer_BaseStruct_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseStruct(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1364,6 +1365,10 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqConverterer) prettyParams_BaseStruct(params moqConverterer_BaseStruct_params) string {
+	return fmt.Sprintf("BaseStruct()")
+}
+
 func (m *moqConverterer) paramsKey_BaseStruct(params moqConverterer_BaseStruct_params, anyParams uint64) moqConverterer_BaseStruct_paramsKey {
 	return moqConverterer_BaseStruct_paramsKey{
 		params: struct{}{},
@@ -1384,7 +1389,7 @@ func (m *moqConverterer_recorder) IsolationStruct(suffix string) *moqConverterer
 func (r *moqConverterer_IsolationStruct_fnRecorder) any() *moqConverterer_IsolationStruct_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsolationStruct(r.params))
 		return nil
 	}
 	return &moqConverterer_IsolationStruct_anyParams{recorder: r}
@@ -1398,7 +1403,7 @@ func (a *moqConverterer_IsolationStruct_anyParams) suffix() *moqConverterer_Isol
 func (r *moqConverterer_IsolationStruct_fnRecorder) seq() *moqConverterer_IsolationStruct_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsolationStruct(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1408,7 +1413,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) seq() *moqConverterer_Isolat
 func (r *moqConverterer_IsolationStruct_fnRecorder) noSeq() *moqConverterer_IsolationStruct_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsolationStruct(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1542,6 +1547,10 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 	return r
 }
 
+func (m *moqConverterer) prettyParams_IsolationStruct(params moqConverterer_IsolationStruct_params) string {
+	return fmt.Sprintf("IsolationStruct(%#v)", params.suffix)
+}
+
 func (m *moqConverterer) paramsKey_IsolationStruct(params moqConverterer_IsolationStruct_params, anyParams uint64) moqConverterer_IsolationStruct_paramsKey {
 	var suffixUsed string
 	var suffixUsedHash hash.Hash
@@ -1575,7 +1584,7 @@ func (m *moqConverterer_recorder) MethodStructs(fn generator.Func) *moqConverter
 func (r *moqConverterer_MethodStructs_fnRecorder) any() *moqConverterer_MethodStructs_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_MethodStructs(r.params))
 		return nil
 	}
 	return &moqConverterer_MethodStructs_anyParams{recorder: r}
@@ -1589,7 +1598,7 @@ func (a *moqConverterer_MethodStructs_anyParams) fn() *moqConverterer_MethodStru
 func (r *moqConverterer_MethodStructs_fnRecorder) seq() *moqConverterer_MethodStructs_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_MethodStructs(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1599,7 +1608,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) seq() *moqConverterer_MethodSt
 func (r *moqConverterer_MethodStructs_fnRecorder) noSeq() *moqConverterer_MethodStructs_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_MethodStructs(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1750,6 +1759,10 @@ func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeat
 	return r
 }
 
+func (m *moqConverterer) prettyParams_MethodStructs(params moqConverterer_MethodStructs_params) string {
+	return fmt.Sprintf("MethodStructs(%#v)", params.fn)
+}
+
 func (m *moqConverterer) paramsKey_MethodStructs(params moqConverterer_MethodStructs_params, anyParams uint64) moqConverterer_MethodStructs_paramsKey {
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
@@ -1781,7 +1794,7 @@ func (m *moqConverterer_recorder) NewFunc() *moqConverterer_NewFunc_fnRecorder {
 func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NewFunc(r.params))
 		return nil
 	}
 	return &moqConverterer_NewFunc_anyParams{recorder: r}
@@ -1790,7 +1803,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) any() *moqConverterer_NewFunc_anyPar
 func (r *moqConverterer_NewFunc_fnRecorder) seq() *moqConverterer_NewFunc_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NewFunc(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1800,7 +1813,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) seq() *moqConverterer_NewFunc_fnReco
 func (r *moqConverterer_NewFunc_fnRecorder) noSeq() *moqConverterer_NewFunc_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NewFunc(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1934,6 +1947,10 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 	return r
 }
 
+func (m *moqConverterer) prettyParams_NewFunc(params moqConverterer_NewFunc_params) string {
+	return fmt.Sprintf("NewFunc()")
+}
+
 func (m *moqConverterer) paramsKey_NewFunc(params moqConverterer_NewFunc_params, anyParams uint64) moqConverterer_NewFunc_paramsKey {
 	return moqConverterer_NewFunc_paramsKey{
 		params: struct{}{},
@@ -1955,7 +1972,7 @@ func (m *moqConverterer_recorder) IsolationAccessor(suffix, fnName string) *moqC
 func (r *moqConverterer_IsolationAccessor_fnRecorder) any() *moqConverterer_IsolationAccessor_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsolationAccessor(r.params))
 		return nil
 	}
 	return &moqConverterer_IsolationAccessor_anyParams{recorder: r}
@@ -1974,7 +1991,7 @@ func (a *moqConverterer_IsolationAccessor_anyParams) fnName() *moqConverterer_Is
 func (r *moqConverterer_IsolationAccessor_fnRecorder) seq() *moqConverterer_IsolationAccessor_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsolationAccessor(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1984,7 +2001,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) seq() *moqConverterer_Isol
 func (r *moqConverterer_IsolationAccessor_fnRecorder) noSeq() *moqConverterer_IsolationAccessor_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_IsolationAccessor(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2118,6 +2135,10 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 	return r
 }
 
+func (m *moqConverterer) prettyParams_IsolationAccessor(params moqConverterer_IsolationAccessor_params) string {
+	return fmt.Sprintf("IsolationAccessor(%#v, %#v)", params.suffix, params.fnName)
+}
+
 func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_IsolationAccessor_params, anyParams uint64) moqConverterer_IsolationAccessor_paramsKey {
 	var suffixUsed string
 	var suffixUsedHash hash.Hash
@@ -2162,7 +2183,7 @@ func (m *moqConverterer_recorder) FuncClosure(fn generator.Func) *moqConverterer
 func (r *moqConverterer_FuncClosure_fnRecorder) any() *moqConverterer_FuncClosure_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FuncClosure(r.params))
 		return nil
 	}
 	return &moqConverterer_FuncClosure_anyParams{recorder: r}
@@ -2176,7 +2197,7 @@ func (a *moqConverterer_FuncClosure_anyParams) fn() *moqConverterer_FuncClosure_
 func (r *moqConverterer_FuncClosure_fnRecorder) seq() *moqConverterer_FuncClosure_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FuncClosure(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2186,7 +2207,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) seq() *moqConverterer_FuncClosur
 func (r *moqConverterer_FuncClosure_fnRecorder) noSeq() *moqConverterer_FuncClosure_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FuncClosure(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2320,6 +2341,10 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 	return r
 }
 
+func (m *moqConverterer) prettyParams_FuncClosure(params moqConverterer_FuncClosure_params) string {
+	return fmt.Sprintf("FuncClosure(%#v)", params.fn)
+}
+
 func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure_params, anyParams uint64) moqConverterer_FuncClosure_paramsKey {
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
@@ -2353,7 +2378,7 @@ func (m *moqConverterer_recorder) MockMethod(fn generator.Func) *moqConverterer_
 func (r *moqConverterer_MockMethod_fnRecorder) any() *moqConverterer_MockMethod_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_MockMethod(r.params))
 		return nil
 	}
 	return &moqConverterer_MockMethod_anyParams{recorder: r}
@@ -2367,7 +2392,7 @@ func (a *moqConverterer_MockMethod_anyParams) fn() *moqConverterer_MockMethod_fn
 func (r *moqConverterer_MockMethod_fnRecorder) seq() *moqConverterer_MockMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_MockMethod(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2377,7 +2402,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) seq() *moqConverterer_MockMethod_
 func (r *moqConverterer_MockMethod_fnRecorder) noSeq() *moqConverterer_MockMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_MockMethod(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2511,6 +2536,10 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqConverterer) prettyParams_MockMethod(params moqConverterer_MockMethod_params) string {
+	return fmt.Sprintf("MockMethod(%#v)", params.fn)
+}
+
 func (m *moqConverterer) paramsKey_MockMethod(params moqConverterer_MockMethod_params, anyParams uint64) moqConverterer_MockMethod_paramsKey {
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
@@ -2544,7 +2573,7 @@ func (m *moqConverterer_recorder) RecorderMethods(fn generator.Func) *moqConvert
 func (r *moqConverterer_RecorderMethods_fnRecorder) any() *moqConverterer_RecorderMethods_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RecorderMethods(r.params))
 		return nil
 	}
 	return &moqConverterer_RecorderMethods_anyParams{recorder: r}
@@ -2558,7 +2587,7 @@ func (a *moqConverterer_RecorderMethods_anyParams) fn() *moqConverterer_Recorder
 func (r *moqConverterer_RecorderMethods_fnRecorder) seq() *moqConverterer_RecorderMethods_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RecorderMethods(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2568,7 +2597,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) seq() *moqConverterer_Record
 func (r *moqConverterer_RecorderMethods_fnRecorder) noSeq() *moqConverterer_RecorderMethods_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RecorderMethods(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2702,6 +2731,10 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 	return r
 }
 
+func (m *moqConverterer) prettyParams_RecorderMethods(params moqConverterer_RecorderMethods_params) string {
+	return fmt.Sprintf("RecorderMethods(%#v)", params.fn)
+}
+
 func (m *moqConverterer) paramsKey_RecorderMethods(params moqConverterer_RecorderMethods_params, anyParams uint64) moqConverterer_RecorderMethods_paramsKey {
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
@@ -2733,7 +2766,7 @@ func (m *moqConverterer_recorder) ResetMethod() *moqConverterer_ResetMethod_fnRe
 func (r *moqConverterer_ResetMethod_fnRecorder) any() *moqConverterer_ResetMethod_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_ResetMethod(r.params))
 		return nil
 	}
 	return &moqConverterer_ResetMethod_anyParams{recorder: r}
@@ -2742,7 +2775,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) any() *moqConverterer_ResetMetho
 func (r *moqConverterer_ResetMethod_fnRecorder) seq() *moqConverterer_ResetMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_ResetMethod(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2752,7 +2785,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) seq() *moqConverterer_ResetMetho
 func (r *moqConverterer_ResetMethod_fnRecorder) noSeq() *moqConverterer_ResetMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_ResetMethod(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2886,6 +2919,10 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 	return r
 }
 
+func (m *moqConverterer) prettyParams_ResetMethod(params moqConverterer_ResetMethod_params) string {
+	return fmt.Sprintf("ResetMethod()")
+}
+
 func (m *moqConverterer) paramsKey_ResetMethod(params moqConverterer_ResetMethod_params, anyParams uint64) moqConverterer_ResetMethod_paramsKey {
 	return moqConverterer_ResetMethod_paramsKey{
 		params: struct{}{},
@@ -2904,7 +2941,7 @@ func (m *moqConverterer_recorder) AssertMethod() *moqConverterer_AssertMethod_fn
 func (r *moqConverterer_AssertMethod_fnRecorder) any() *moqConverterer_AssertMethod_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AssertMethod(r.params))
 		return nil
 	}
 	return &moqConverterer_AssertMethod_anyParams{recorder: r}
@@ -2913,7 +2950,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) any() *moqConverterer_AssertMet
 func (r *moqConverterer_AssertMethod_fnRecorder) seq() *moqConverterer_AssertMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AssertMethod(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2923,7 +2960,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) seq() *moqConverterer_AssertMet
 func (r *moqConverterer_AssertMethod_fnRecorder) noSeq() *moqConverterer_AssertMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AssertMethod(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -3057,6 +3094,10 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 	return r
 }
 
+func (m *moqConverterer) prettyParams_AssertMethod(params moqConverterer_AssertMethod_params) string {
+	return fmt.Sprintf("AssertMethod()")
+}
+
 func (m *moqConverterer) paramsKey_AssertMethod(params moqConverterer_AssertMethod_params, anyParams uint64) moqConverterer_AssertMethod_paramsKey {
 	return moqConverterer_AssertMethod_paramsKey{
 		params: struct{}{},
@@ -3085,7 +3126,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_BaseStruct(results.params))
 			}
 		}
 	}
@@ -3093,7 +3134,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_IsolationStruct(results.params))
 			}
 		}
 	}
@@ -3101,7 +3142,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_MethodStructs(results.params))
 			}
 		}
 	}
@@ -3109,7 +3150,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NewFunc(results.params))
 			}
 		}
 	}
@@ -3117,7 +3158,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_IsolationAccessor(results.params))
 			}
 		}
 	}
@@ -3125,7 +3166,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_FuncClosure(results.params))
 			}
 		}
 	}
@@ -3133,7 +3174,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_MockMethod(results.params))
 			}
 		}
 	}
@@ -3141,7 +3182,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_RecorderMethods(results.params))
 			}
 		}
 	}
@@ -3149,7 +3190,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_ResetMethod(results.params))
 			}
 		}
 	}
@@ -3157,7 +3198,7 @@ func (m *moqConverterer) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_AssertMethod(results.params))
 			}
 		}
 	}

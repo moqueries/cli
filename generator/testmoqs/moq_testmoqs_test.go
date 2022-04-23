@@ -3,6 +3,7 @@
 package testmoqs_test
 
 import (
+	"fmt"
 	"io"
 	"math/bits"
 	"sync/atomic"
@@ -148,7 +149,7 @@ func (m *moqUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err er
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -157,7 +158,7 @@ func (m *moqUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err er
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -168,7 +169,7 @@ func (m *moqUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err er
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -200,7 +201,7 @@ func (m *moqUsualFn) onCall(sParam string, bParam bool) *moqUsualFn_fnRecorder {
 func (r *moqUsualFn_fnRecorder) any() *moqUsualFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqUsualFn_anyParams{recorder: r}
@@ -219,7 +220,7 @@ func (a *moqUsualFn_anyParams) bParam() *moqUsualFn_fnRecorder {
 func (r *moqUsualFn_fnRecorder) seq() *moqUsualFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -229,7 +230,7 @@ func (r *moqUsualFn_fnRecorder) seq() *moqUsualFn_fnRecorder {
 func (r *moqUsualFn_fnRecorder) noSeq() *moqUsualFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -380,6 +381,10 @@ func (r *moqUsualFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsualFn_fn
 	return r
 }
 
+func (m *moqUsualFn) prettyParams(params moqUsualFn_params) string {
+	return fmt.Sprintf("UsualFn(%#v, %#v)", params.sParam, params.bParam)
+}
+
 func (m *moqUsualFn) paramsKey(params moqUsualFn_params, anyParams uint64) moqUsualFn_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -427,7 +432,7 @@ func (m *moqUsualFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -569,7 +574,7 @@ func (m *moqNoNamesFn_mock) fn(param1 string, param2 bool) (result1 string, resu
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -578,7 +583,7 @@ func (m *moqNoNamesFn_mock) fn(param1 string, param2 bool) (result1 string, resu
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -589,7 +594,7 @@ func (m *moqNoNamesFn_mock) fn(param1 string, param2 bool) (result1 string, resu
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -621,7 +626,7 @@ func (m *moqNoNamesFn) onCall(param1 string, param2 bool) *moqNoNamesFn_fnRecord
 func (r *moqNoNamesFn_fnRecorder) any() *moqNoNamesFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqNoNamesFn_anyParams{recorder: r}
@@ -640,7 +645,7 @@ func (a *moqNoNamesFn_anyParams) param2() *moqNoNamesFn_fnRecorder {
 func (r *moqNoNamesFn_fnRecorder) seq() *moqNoNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -650,7 +655,7 @@ func (r *moqNoNamesFn_fnRecorder) seq() *moqNoNamesFn_fnRecorder {
 func (r *moqNoNamesFn_fnRecorder) noSeq() *moqNoNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -801,6 +806,10 @@ func (r *moqNoNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoNamesF
 	return r
 }
 
+func (m *moqNoNamesFn) prettyParams(params moqNoNamesFn_params) string {
+	return fmt.Sprintf("NoNamesFn(%#v, %#v)", params.param1, params.param2)
+}
+
 func (m *moqNoNamesFn) paramsKey(params moqNoNamesFn_params, anyParams uint64) moqNoNamesFn_paramsKey {
 	var param1Used string
 	var param1UsedHash hash.Hash
@@ -848,7 +857,7 @@ func (m *moqNoNamesFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -984,7 +993,7 @@ func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -993,7 +1002,7 @@ func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -1004,7 +1013,7 @@ func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -1032,7 +1041,7 @@ func (m *moqNoResultsFn) onCall(sParam string, bParam bool) *moqNoResultsFn_fnRe
 func (r *moqNoResultsFn_fnRecorder) any() *moqNoResultsFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqNoResultsFn_anyParams{recorder: r}
@@ -1051,7 +1060,7 @@ func (a *moqNoResultsFn_anyParams) bParam() *moqNoResultsFn_fnRecorder {
 func (r *moqNoResultsFn_fnRecorder) seq() *moqNoResultsFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1061,7 +1070,7 @@ func (r *moqNoResultsFn_fnRecorder) seq() *moqNoResultsFn_fnRecorder {
 func (r *moqNoResultsFn_fnRecorder) noSeq() *moqNoResultsFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1191,6 +1200,10 @@ func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResu
 	return r
 }
 
+func (m *moqNoResultsFn) prettyParams(params moqNoResultsFn_params) string {
+	return fmt.Sprintf("NoResultsFn(%#v, %#v)", params.sParam, params.bParam)
+}
+
 func (m *moqNoResultsFn) paramsKey(params moqNoResultsFn_params, anyParams uint64) moqNoResultsFn_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -1238,7 +1251,7 @@ func (m *moqNoResultsFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -1353,7 +1366,7 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -1362,7 +1375,7 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -1373,7 +1386,7 @@ func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -1402,7 +1415,7 @@ func (m *moqNoParamsFn) onCall() *moqNoParamsFn_fnRecorder {
 func (r *moqNoParamsFn_fnRecorder) any() *moqNoParamsFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqNoParamsFn_anyParams{recorder: r}
@@ -1411,7 +1424,7 @@ func (r *moqNoParamsFn_fnRecorder) any() *moqNoParamsFn_anyParams {
 func (r *moqNoParamsFn_fnRecorder) seq() *moqNoParamsFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1421,7 +1434,7 @@ func (r *moqNoParamsFn_fnRecorder) seq() *moqNoParamsFn_fnRecorder {
 func (r *moqNoParamsFn_fnRecorder) noSeq() *moqNoParamsFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1572,6 +1585,10 @@ func (r *moqNoParamsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoParam
 	return r
 }
 
+func (m *moqNoParamsFn) prettyParams(params moqNoParamsFn_params) string {
+	return fmt.Sprintf("NoParamsFn()")
+}
+
 func (m *moqNoParamsFn) paramsKey(params moqNoParamsFn_params, anyParams uint64) moqNoParamsFn_paramsKey {
 	return moqNoParamsFn_paramsKey{
 		params: struct{}{},
@@ -1589,7 +1606,7 @@ func (m *moqNoParamsFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -1701,7 +1718,7 @@ func (m *moqNothingFn_mock) fn() {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -1710,7 +1727,7 @@ func (m *moqNothingFn_mock) fn() {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -1721,7 +1738,7 @@ func (m *moqNothingFn_mock) fn() {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -1746,7 +1763,7 @@ func (m *moqNothingFn) onCall() *moqNothingFn_fnRecorder {
 func (r *moqNothingFn_fnRecorder) any() *moqNothingFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqNothingFn_anyParams{recorder: r}
@@ -1755,7 +1772,7 @@ func (r *moqNothingFn_fnRecorder) any() *moqNothingFn_anyParams {
 func (r *moqNothingFn_fnRecorder) seq() *moqNothingFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -1765,7 +1782,7 @@ func (r *moqNothingFn_fnRecorder) seq() *moqNothingFn_fnRecorder {
 func (r *moqNothingFn_fnRecorder) noSeq() *moqNothingFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1895,6 +1912,10 @@ func (r *moqNothingFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNothingF
 	return r
 }
 
+func (m *moqNothingFn) prettyParams(params moqNothingFn_params) string {
+	return fmt.Sprintf("NothingFn()")
+}
+
 func (m *moqNothingFn) paramsKey(params moqNothingFn_params, anyParams uint64) moqNothingFn_paramsKey {
 	return moqNothingFn_paramsKey{
 		params: struct{}{},
@@ -1912,7 +1933,7 @@ func (m *moqNothingFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -2051,7 +2072,7 @@ func (m *moqVariadicFn_mock) fn(other bool, args ...string) (sResult string, err
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -2060,7 +2081,7 @@ func (m *moqVariadicFn_mock) fn(other bool, args ...string) (sResult string, err
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -2071,7 +2092,7 @@ func (m *moqVariadicFn_mock) fn(other bool, args ...string) (sResult string, err
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -2103,7 +2124,7 @@ func (m *moqVariadicFn) onCall(other bool, args ...string) *moqVariadicFn_fnReco
 func (r *moqVariadicFn_fnRecorder) any() *moqVariadicFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqVariadicFn_anyParams{recorder: r}
@@ -2122,7 +2143,7 @@ func (a *moqVariadicFn_anyParams) args() *moqVariadicFn_fnRecorder {
 func (r *moqVariadicFn_fnRecorder) seq() *moqVariadicFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2132,7 +2153,7 @@ func (r *moqVariadicFn_fnRecorder) seq() *moqVariadicFn_fnRecorder {
 func (r *moqVariadicFn_fnRecorder) noSeq() *moqVariadicFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2283,6 +2304,10 @@ func (r *moqVariadicFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqVariadi
 	return r
 }
 
+func (m *moqVariadicFn) prettyParams(params moqVariadicFn_params) string {
+	return fmt.Sprintf("VariadicFn(%#v, %#v)", params.other, params.args)
+}
+
 func (m *moqVariadicFn) paramsKey(params moqVariadicFn_params, anyParams uint64) moqVariadicFn_paramsKey {
 	var otherUsed bool
 	var otherUsedHash hash.Hash
@@ -2324,7 +2349,7 @@ func (m *moqVariadicFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -2471,7 +2496,7 @@ func (m *moqRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResul
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -2480,7 +2505,7 @@ func (m *moqRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResul
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -2491,7 +2516,7 @@ func (m *moqRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResul
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -2525,7 +2550,7 @@ func (m *moqRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *moqRepe
 func (r *moqRepeatedIdsFn_fnRecorder) any() *moqRepeatedIdsFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqRepeatedIdsFn_anyParams{recorder: r}
@@ -2549,7 +2574,7 @@ func (a *moqRepeatedIdsFn_anyParams) bParam() *moqRepeatedIdsFn_fnRecorder {
 func (r *moqRepeatedIdsFn_fnRecorder) seq() *moqRepeatedIdsFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2559,7 +2584,7 @@ func (r *moqRepeatedIdsFn_fnRecorder) seq() *moqRepeatedIdsFn_fnRecorder {
 func (r *moqRepeatedIdsFn_fnRecorder) noSeq() *moqRepeatedIdsFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -2712,6 +2737,10 @@ func (r *moqRepeatedIdsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqRepe
 	return r
 }
 
+func (m *moqRepeatedIdsFn) prettyParams(params moqRepeatedIdsFn_params) string {
+	return fmt.Sprintf("RepeatedIdsFn(%#v, %#v, %#v)", params.sParam1, params.sParam2, params.bParam)
+}
+
 func (m *moqRepeatedIdsFn) paramsKey(params moqRepeatedIdsFn_params, anyParams uint64) moqRepeatedIdsFn_paramsKey {
 	var sParam1Used string
 	var sParam1UsedHash hash.Hash
@@ -2770,7 +2799,7 @@ func (m *moqRepeatedIdsFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -2912,7 +2941,7 @@ func (m *moqTimesFn_mock) fn(times string, bParam bool) (sResult string, err err
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -2921,7 +2950,7 @@ func (m *moqTimesFn_mock) fn(times string, bParam bool) (sResult string, err err
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -2932,7 +2961,7 @@ func (m *moqTimesFn_mock) fn(times string, bParam bool) (sResult string, err err
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -2964,7 +2993,7 @@ func (m *moqTimesFn) onCall(times string, bParam bool) *moqTimesFn_fnRecorder {
 func (r *moqTimesFn_fnRecorder) any() *moqTimesFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqTimesFn_anyParams{recorder: r}
@@ -2983,7 +3012,7 @@ func (a *moqTimesFn_anyParams) bParam() *moqTimesFn_fnRecorder {
 func (r *moqTimesFn_fnRecorder) seq() *moqTimesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -2993,7 +3022,7 @@ func (r *moqTimesFn_fnRecorder) seq() *moqTimesFn_fnRecorder {
 func (r *moqTimesFn_fnRecorder) noSeq() *moqTimesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -3144,6 +3173,10 @@ func (r *moqTimesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTimesFn_fn
 	return r
 }
 
+func (m *moqTimesFn) prettyParams(params moqTimesFn_params) string {
+	return fmt.Sprintf("TimesFn(%#v, %#v)", params.times, params.bParam)
+}
+
 func (m *moqTimesFn) paramsKey(params moqTimesFn_params, anyParams uint64) moqTimesFn_paramsKey {
 	var timesUsed string
 	var timesUsedHash hash.Hash
@@ -3191,7 +3224,7 @@ func (m *moqTimesFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -3361,7 +3394,7 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -3370,7 +3403,7 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -3381,7 +3414,7 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -3414,7 +3447,7 @@ func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, pa
 func (r *moqDifficultParamNamesFn_fnRecorder) any() *moqDifficultParamNamesFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqDifficultParamNamesFn_anyParams{recorder: r}
@@ -3458,7 +3491,7 @@ func (a *moqDifficultParamNamesFn_anyParams) param7() *moqDifficultParamNamesFn_
 func (r *moqDifficultParamNamesFn_fnRecorder) seq() *moqDifficultParamNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -3468,7 +3501,7 @@ func (r *moqDifficultParamNamesFn_fnRecorder) seq() *moqDifficultParamNamesFn_fn
 func (r *moqDifficultParamNamesFn_fnRecorder) noSeq() *moqDifficultParamNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -3598,6 +3631,10 @@ func (r *moqDifficultParamNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) 
 	return r
 }
 
+func (m *moqDifficultParamNamesFn) prettyParams(params moqDifficultParamNamesFn_params) string {
+	return fmt.Sprintf("DifficultParamNamesFn(%#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7)
+}
+
 func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_params, anyParams uint64) moqDifficultParamNamesFn_paramsKey {
 	var param1Used bool
 	var param1UsedHash hash.Hash
@@ -3704,7 +3741,7 @@ func (m *moqDifficultParamNamesFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -3824,7 +3861,7 @@ func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -3833,7 +3870,7 @@ func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -3844,7 +3881,7 @@ func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -3878,7 +3915,7 @@ func (m *moqDifficultResultNamesFn) onCall() *moqDifficultResultNamesFn_fnRecord
 func (r *moqDifficultResultNamesFn_fnRecorder) any() *moqDifficultResultNamesFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqDifficultResultNamesFn_anyParams{recorder: r}
@@ -3887,7 +3924,7 @@ func (r *moqDifficultResultNamesFn_fnRecorder) any() *moqDifficultResultNamesFn_
 func (r *moqDifficultResultNamesFn_fnRecorder) seq() *moqDifficultResultNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -3897,7 +3934,7 @@ func (r *moqDifficultResultNamesFn_fnRecorder) seq() *moqDifficultResultNamesFn_
 func (r *moqDifficultResultNamesFn_fnRecorder) noSeq() *moqDifficultResultNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -4068,6 +4105,10 @@ func (r *moqDifficultResultNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
+func (m *moqDifficultResultNamesFn) prettyParams(params moqDifficultResultNamesFn_params) string {
+	return fmt.Sprintf("DifficultResultNamesFn()")
+}
+
 func (m *moqDifficultResultNamesFn) paramsKey(params moqDifficultResultNamesFn_params, anyParams uint64) moqDifficultResultNamesFn_paramsKey {
 	return moqDifficultResultNamesFn_paramsKey{
 		params: struct{}{},
@@ -4085,7 +4126,7 @@ func (m *moqDifficultResultNamesFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -4217,7 +4258,7 @@ func (m *moqPassByReferenceFn_mock) fn(p *testmoqs.PassByReferenceParams) (sResu
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -4226,7 +4267,7 @@ func (m *moqPassByReferenceFn_mock) fn(p *testmoqs.PassByReferenceParams) (sResu
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -4237,7 +4278,7 @@ func (m *moqPassByReferenceFn_mock) fn(p *testmoqs.PassByReferenceParams) (sResu
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -4268,7 +4309,7 @@ func (m *moqPassByReferenceFn) onCall(p *testmoqs.PassByReferenceParams) *moqPas
 func (r *moqPassByReferenceFn_fnRecorder) any() *moqPassByReferenceFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqPassByReferenceFn_anyParams{recorder: r}
@@ -4282,7 +4323,7 @@ func (a *moqPassByReferenceFn_anyParams) p() *moqPassByReferenceFn_fnRecorder {
 func (r *moqPassByReferenceFn_fnRecorder) seq() *moqPassByReferenceFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -4292,7 +4333,7 @@ func (r *moqPassByReferenceFn_fnRecorder) seq() *moqPassByReferenceFn_fnRecorder
 func (r *moqPassByReferenceFn_fnRecorder) noSeq() *moqPassByReferenceFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -4443,6 +4484,10 @@ func (r *moqPassByReferenceFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moq
 	return r
 }
 
+func (m *moqPassByReferenceFn) prettyParams(params moqPassByReferenceFn_params) string {
+	return fmt.Sprintf("PassByReferenceFn(%#v)", params.p)
+}
+
 func (m *moqPassByReferenceFn) paramsKey(params moqPassByReferenceFn_params, anyParams uint64) moqPassByReferenceFn_paramsKey {
 	var pUsed *testmoqs.PassByReferenceParams
 	var pUsedHash hash.Hash
@@ -4475,7 +4520,7 @@ func (m *moqPassByReferenceFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -4600,7 +4645,7 @@ func (m *moqInterfaceParamFn_mock) fn(w io.Writer) (sResult string, err error) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -4609,7 +4654,7 @@ func (m *moqInterfaceParamFn_mock) fn(w io.Writer) (sResult string, err error) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -4620,7 +4665,7 @@ func (m *moqInterfaceParamFn_mock) fn(w io.Writer) (sResult string, err error) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -4651,7 +4696,7 @@ func (m *moqInterfaceParamFn) onCall(w io.Writer) *moqInterfaceParamFn_fnRecorde
 func (r *moqInterfaceParamFn_fnRecorder) any() *moqInterfaceParamFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqInterfaceParamFn_anyParams{recorder: r}
@@ -4665,7 +4710,7 @@ func (a *moqInterfaceParamFn_anyParams) w() *moqInterfaceParamFn_fnRecorder {
 func (r *moqInterfaceParamFn_fnRecorder) seq() *moqInterfaceParamFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -4675,7 +4720,7 @@ func (r *moqInterfaceParamFn_fnRecorder) seq() *moqInterfaceParamFn_fnRecorder {
 func (r *moqInterfaceParamFn_fnRecorder) noSeq() *moqInterfaceParamFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -4826,6 +4871,10 @@ func (r *moqInterfaceParamFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqI
 	return r
 }
 
+func (m *moqInterfaceParamFn) prettyParams(params moqInterfaceParamFn_params) string {
+	return fmt.Sprintf("InterfaceParamFn(%#v)", params.w)
+}
+
 func (m *moqInterfaceParamFn) paramsKey(params moqInterfaceParamFn_params, anyParams uint64) moqInterfaceParamFn_paramsKey {
 	var wUsed io.Writer
 	var wUsedHash hash.Hash
@@ -4856,7 +4905,7 @@ func (m *moqInterfaceParamFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -4995,7 +5044,7 @@ func (m *moqInterfaceResultFn_mock) fn(sParam string, bParam bool) (result1 io.R
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -5004,7 +5053,7 @@ func (m *moqInterfaceResultFn_mock) fn(sParam string, bParam bool) (result1 io.R
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -5015,7 +5064,7 @@ func (m *moqInterfaceResultFn_mock) fn(sParam string, bParam bool) (result1 io.R
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -5046,7 +5095,7 @@ func (m *moqInterfaceResultFn) onCall(sParam string, bParam bool) *moqInterfaceR
 func (r *moqInterfaceResultFn_fnRecorder) any() *moqInterfaceResultFn_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqInterfaceResultFn_anyParams{recorder: r}
@@ -5065,7 +5114,7 @@ func (a *moqInterfaceResultFn_anyParams) bParam() *moqInterfaceResultFn_fnRecord
 func (r *moqInterfaceResultFn_fnRecorder) seq() *moqInterfaceResultFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -5075,7 +5124,7 @@ func (r *moqInterfaceResultFn_fnRecorder) seq() *moqInterfaceResultFn_fnRecorder
 func (r *moqInterfaceResultFn_fnRecorder) noSeq() *moqInterfaceResultFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -5209,6 +5258,10 @@ func (r *moqInterfaceResultFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moq
 	return r
 }
 
+func (m *moqInterfaceResultFn) prettyParams(params moqInterfaceResultFn_params) string {
+	return fmt.Sprintf("InterfaceResultFn(%#v, %#v)", params.sParam, params.bParam)
+}
+
 func (m *moqInterfaceResultFn) paramsKey(params moqInterfaceResultFn_params, anyParams uint64) moqInterfaceResultFn_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -5256,7 +5309,7 @@ func (m *moqInterfaceResultFn) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
@@ -6308,7 +6361,7 @@ func (m *moqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err e
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
 		}
 		return
 	}
@@ -6317,7 +6370,7 @@ func (m *moqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err e
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
 			}
 			return
 		}
@@ -6328,7 +6381,7 @@ func (m *moqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err e
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
 		}
 	}
 
@@ -6363,7 +6416,7 @@ func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, res
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NoNames(params))
 		}
 		return
 	}
@@ -6372,7 +6425,7 @@ func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, res
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NoNames(params))
 			}
 			return
 		}
@@ -6383,7 +6436,7 @@ func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, res
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NoNames(params))
 		}
 	}
 
@@ -6418,7 +6471,7 @@ func (m *moqUsual_mock) NoResults(sParam string, bParam bool) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NoResults(params))
 		}
 		return
 	}
@@ -6427,7 +6480,7 @@ func (m *moqUsual_mock) NoResults(sParam string, bParam bool) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NoResults(params))
 			}
 			return
 		}
@@ -6438,7 +6491,7 @@ func (m *moqUsual_mock) NoResults(sParam string, bParam bool) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NoResults(params))
 		}
 	}
 
@@ -6466,7 +6519,7 @@ func (m *moqUsual_mock) NoParams() (sResult string, err error) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NoParams(params))
 		}
 		return
 	}
@@ -6475,7 +6528,7 @@ func (m *moqUsual_mock) NoParams() (sResult string, err error) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NoParams(params))
 			}
 			return
 		}
@@ -6486,7 +6539,7 @@ func (m *moqUsual_mock) NoParams() (sResult string, err error) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NoParams(params))
 		}
 	}
 
@@ -6518,7 +6571,7 @@ func (m *moqUsual_mock) Nothing() {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Nothing(params))
 		}
 		return
 	}
@@ -6527,7 +6580,7 @@ func (m *moqUsual_mock) Nothing() {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Nothing(params))
 			}
 			return
 		}
@@ -6538,7 +6591,7 @@ func (m *moqUsual_mock) Nothing() {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Nothing(params))
 		}
 	}
 
@@ -6569,7 +6622,7 @@ func (m *moqUsual_mock) Variadic(other bool, args ...string) (sResult string, er
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Variadic(params))
 		}
 		return
 	}
@@ -6578,7 +6631,7 @@ func (m *moqUsual_mock) Variadic(other bool, args ...string) (sResult string, er
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Variadic(params))
 			}
 			return
 		}
@@ -6589,7 +6642,7 @@ func (m *moqUsual_mock) Variadic(other bool, args ...string) (sResult string, er
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Variadic(params))
 		}
 	}
 
@@ -6625,7 +6678,7 @@ func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_RepeatedIds(params))
 		}
 		return
 	}
@@ -6634,7 +6687,7 @@ func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_RepeatedIds(params))
 			}
 			return
 		}
@@ -6645,7 +6698,7 @@ func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResu
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_RepeatedIds(params))
 		}
 	}
 
@@ -6681,7 +6734,7 @@ func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Times(params))
 		}
 		return
 	}
@@ -6690,7 +6743,7 @@ func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Times(params))
 			}
 			return
 		}
@@ -6701,7 +6754,7 @@ func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Times(params))
 		}
 	}
 
@@ -6741,7 +6794,7 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_DifficultParamNames(params))
 		}
 		return
 	}
@@ -6750,7 +6803,7 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_DifficultParamNames(params))
 			}
 			return
 		}
@@ -6761,7 +6814,7 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_DifficultParamNames(params))
 		}
 	}
 
@@ -6789,7 +6842,7 @@ func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_DifficultResultNames(params))
 		}
 		return
 	}
@@ -6798,7 +6851,7 @@ func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_DifficultResultNames(params))
 			}
 			return
 		}
@@ -6809,7 +6862,7 @@ func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_DifficultResultNames(params))
 		}
 	}
 
@@ -6848,7 +6901,7 @@ func (m *moqUsual_mock) PassByReference(p *testmoqs.PassByReferenceParams) (sRes
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByReference(params))
 		}
 		return
 	}
@@ -6857,7 +6910,7 @@ func (m *moqUsual_mock) PassByReference(p *testmoqs.PassByReferenceParams) (sRes
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByReference(params))
 			}
 			return
 		}
@@ -6868,7 +6921,7 @@ func (m *moqUsual_mock) PassByReference(p *testmoqs.PassByReferenceParams) (sRes
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByReference(params))
 		}
 	}
 
@@ -6902,7 +6955,7 @@ func (m *moqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) 
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_InterfaceParam(params))
 		}
 		return
 	}
@@ -6911,7 +6964,7 @@ func (m *moqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) 
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_InterfaceParam(params))
 			}
 			return
 		}
@@ -6922,7 +6975,7 @@ func (m *moqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) 
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_InterfaceParam(params))
 		}
 	}
 
@@ -6957,7 +7010,7 @@ func (m *moqUsual_mock) InterfaceResult(sParam string, bParam bool) (result1 io.
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_InterfaceResult(params))
 		}
 		return
 	}
@@ -6966,7 +7019,7 @@ func (m *moqUsual_mock) InterfaceResult(sParam string, bParam bool) (result1 io.
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_InterfaceResult(params))
 			}
 			return
 		}
@@ -6977,7 +7030,7 @@ func (m *moqUsual_mock) InterfaceResult(sParam string, bParam bool) (result1 io.
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_InterfaceResult(params))
 		}
 	}
 
@@ -7015,7 +7068,7 @@ func (m *moqUsual_recorder) Usual(sParam string, bParam bool) *moqUsual_Usual_fn
 func (r *moqUsual_Usual_fnRecorder) any() *moqUsual_Usual_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
 		return nil
 	}
 	return &moqUsual_Usual_anyParams{recorder: r}
@@ -7034,7 +7087,7 @@ func (a *moqUsual_Usual_anyParams) bParam() *moqUsual_Usual_fnRecorder {
 func (r *moqUsual_Usual_fnRecorder) seq() *moqUsual_Usual_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -7044,7 +7097,7 @@ func (r *moqUsual_Usual_fnRecorder) seq() *moqUsual_Usual_fnRecorder {
 func (r *moqUsual_Usual_fnRecorder) noSeq() *moqUsual_Usual_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -7195,6 +7248,10 @@ func (r *moqUsual_Usual_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_
 	return r
 }
 
+func (m *moqUsual) prettyParams_Usual(params moqUsual_Usual_params) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", params.sParam, params.bParam)
+}
+
 func (m *moqUsual) paramsKey_Usual(params moqUsual_Usual_params, anyParams uint64) moqUsual_Usual_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -7246,7 +7303,7 @@ func (m *moqUsual_recorder) NoNames(param1 string, param2 bool) *moqUsual_NoName
 func (r *moqUsual_NoNames_fnRecorder) any() *moqUsual_NoNames_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoNames(r.params))
 		return nil
 	}
 	return &moqUsual_NoNames_anyParams{recorder: r}
@@ -7265,7 +7322,7 @@ func (a *moqUsual_NoNames_anyParams) param2() *moqUsual_NoNames_fnRecorder {
 func (r *moqUsual_NoNames_fnRecorder) seq() *moqUsual_NoNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoNames(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -7275,7 +7332,7 @@ func (r *moqUsual_NoNames_fnRecorder) seq() *moqUsual_NoNames_fnRecorder {
 func (r *moqUsual_NoNames_fnRecorder) noSeq() *moqUsual_NoNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoNames(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -7426,6 +7483,10 @@ func (r *moqUsual_NoNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsua
 	return r
 }
 
+func (m *moqUsual) prettyParams_NoNames(params moqUsual_NoNames_params) string {
+	return fmt.Sprintf("NoNames(%#v, %#v)", params.param1, params.param2)
+}
+
 func (m *moqUsual) paramsKey_NoNames(params moqUsual_NoNames_params, anyParams uint64) moqUsual_NoNames_paramsKey {
 	var param1Used string
 	var param1UsedHash hash.Hash
@@ -7477,7 +7538,7 @@ func (m *moqUsual_recorder) NoResults(sParam string, bParam bool) *moqUsual_NoRe
 func (r *moqUsual_NoResults_fnRecorder) any() *moqUsual_NoResults_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoResults(r.params))
 		return nil
 	}
 	return &moqUsual_NoResults_anyParams{recorder: r}
@@ -7496,7 +7557,7 @@ func (a *moqUsual_NoResults_anyParams) bParam() *moqUsual_NoResults_fnRecorder {
 func (r *moqUsual_NoResults_fnRecorder) seq() *moqUsual_NoResults_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoResults(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -7506,7 +7567,7 @@ func (r *moqUsual_NoResults_fnRecorder) seq() *moqUsual_NoResults_fnRecorder {
 func (r *moqUsual_NoResults_fnRecorder) noSeq() *moqUsual_NoResults_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoResults(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -7636,6 +7697,10 @@ func (r *moqUsual_NoResults_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUs
 	return r
 }
 
+func (m *moqUsual) prettyParams_NoResults(params moqUsual_NoResults_params) string {
+	return fmt.Sprintf("NoResults(%#v, %#v)", params.sParam, params.bParam)
+}
+
 func (m *moqUsual) paramsKey_NoResults(params moqUsual_NoResults_params, anyParams uint64) moqUsual_NoResults_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -7684,7 +7749,7 @@ func (m *moqUsual_recorder) NoParams() *moqUsual_NoParams_fnRecorder {
 func (r *moqUsual_NoParams_fnRecorder) any() *moqUsual_NoParams_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoParams(r.params))
 		return nil
 	}
 	return &moqUsual_NoParams_anyParams{recorder: r}
@@ -7693,7 +7758,7 @@ func (r *moqUsual_NoParams_fnRecorder) any() *moqUsual_NoParams_anyParams {
 func (r *moqUsual_NoParams_fnRecorder) seq() *moqUsual_NoParams_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -7703,7 +7768,7 @@ func (r *moqUsual_NoParams_fnRecorder) seq() *moqUsual_NoParams_fnRecorder {
 func (r *moqUsual_NoParams_fnRecorder) noSeq() *moqUsual_NoParams_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -7854,6 +7919,10 @@ func (r *moqUsual_NoParams_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsu
 	return r
 }
 
+func (m *moqUsual) prettyParams_NoParams(params moqUsual_NoParams_params) string {
+	return fmt.Sprintf("NoParams()")
+}
+
 func (m *moqUsual) paramsKey_NoParams(params moqUsual_NoParams_params, anyParams uint64) moqUsual_NoParams_paramsKey {
 	return moqUsual_NoParams_paramsKey{
 		params: struct{}{},
@@ -7872,7 +7941,7 @@ func (m *moqUsual_recorder) Nothing() *moqUsual_Nothing_fnRecorder {
 func (r *moqUsual_Nothing_fnRecorder) any() *moqUsual_Nothing_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Nothing(r.params))
 		return nil
 	}
 	return &moqUsual_Nothing_anyParams{recorder: r}
@@ -7881,7 +7950,7 @@ func (r *moqUsual_Nothing_fnRecorder) any() *moqUsual_Nothing_anyParams {
 func (r *moqUsual_Nothing_fnRecorder) seq() *moqUsual_Nothing_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Nothing(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -7891,7 +7960,7 @@ func (r *moqUsual_Nothing_fnRecorder) seq() *moqUsual_Nothing_fnRecorder {
 func (r *moqUsual_Nothing_fnRecorder) noSeq() *moqUsual_Nothing_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Nothing(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -8021,6 +8090,10 @@ func (r *moqUsual_Nothing_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsua
 	return r
 }
 
+func (m *moqUsual) prettyParams_Nothing(params moqUsual_Nothing_params) string {
+	return fmt.Sprintf("Nothing()")
+}
+
 func (m *moqUsual) paramsKey_Nothing(params moqUsual_Nothing_params, anyParams uint64) moqUsual_Nothing_paramsKey {
 	return moqUsual_Nothing_paramsKey{
 		params: struct{}{},
@@ -8042,7 +8115,7 @@ func (m *moqUsual_recorder) Variadic(other bool, args ...string) *moqUsual_Varia
 func (r *moqUsual_Variadic_fnRecorder) any() *moqUsual_Variadic_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Variadic(r.params))
 		return nil
 	}
 	return &moqUsual_Variadic_anyParams{recorder: r}
@@ -8061,7 +8134,7 @@ func (a *moqUsual_Variadic_anyParams) args() *moqUsual_Variadic_fnRecorder {
 func (r *moqUsual_Variadic_fnRecorder) seq() *moqUsual_Variadic_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Variadic(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -8071,7 +8144,7 @@ func (r *moqUsual_Variadic_fnRecorder) seq() *moqUsual_Variadic_fnRecorder {
 func (r *moqUsual_Variadic_fnRecorder) noSeq() *moqUsual_Variadic_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Variadic(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -8222,6 +8295,10 @@ func (r *moqUsual_Variadic_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsu
 	return r
 }
 
+func (m *moqUsual) prettyParams_Variadic(params moqUsual_Variadic_params) string {
+	return fmt.Sprintf("Variadic(%#v, %#v)", params.other, params.args)
+}
+
 func (m *moqUsual) paramsKey_Variadic(params moqUsual_Variadic_params, anyParams uint64) moqUsual_Variadic_paramsKey {
 	var otherUsed bool
 	var otherUsedHash hash.Hash
@@ -8268,7 +8345,7 @@ func (m *moqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *m
 func (r *moqUsual_RepeatedIds_fnRecorder) any() *moqUsual_RepeatedIds_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RepeatedIds(r.params))
 		return nil
 	}
 	return &moqUsual_RepeatedIds_anyParams{recorder: r}
@@ -8292,7 +8369,7 @@ func (a *moqUsual_RepeatedIds_anyParams) bParam() *moqUsual_RepeatedIds_fnRecord
 func (r *moqUsual_RepeatedIds_fnRecorder) seq() *moqUsual_RepeatedIds_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RepeatedIds(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -8302,7 +8379,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) seq() *moqUsual_RepeatedIds_fnRecorder
 func (r *moqUsual_RepeatedIds_fnRecorder) noSeq() *moqUsual_RepeatedIds_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RepeatedIds(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -8455,6 +8532,10 @@ func (r *moqUsual_RepeatedIds_fnRecorder) repeat(repeaters ...moq.Repeater) *moq
 	return r
 }
 
+func (m *moqUsual) prettyParams_RepeatedIds(params moqUsual_RepeatedIds_params) string {
+	return fmt.Sprintf("RepeatedIds(%#v, %#v, %#v)", params.sParam1, params.sParam2, params.bParam)
+}
+
 func (m *moqUsual) paramsKey_RepeatedIds(params moqUsual_RepeatedIds_params, anyParams uint64) moqUsual_RepeatedIds_paramsKey {
 	var sParam1Used string
 	var sParam1UsedHash hash.Hash
@@ -8517,7 +8598,7 @@ func (m *moqUsual_recorder) Times(sParam string, times bool) *moqUsual_Times_fnR
 func (r *moqUsual_Times_fnRecorder) any() *moqUsual_Times_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Times(r.params))
 		return nil
 	}
 	return &moqUsual_Times_anyParams{recorder: r}
@@ -8536,7 +8617,7 @@ func (a *moqUsual_Times_anyParams) times() *moqUsual_Times_fnRecorder {
 func (r *moqUsual_Times_fnRecorder) seq() *moqUsual_Times_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Times(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -8546,7 +8627,7 @@ func (r *moqUsual_Times_fnRecorder) seq() *moqUsual_Times_fnRecorder {
 func (r *moqUsual_Times_fnRecorder) noSeq() *moqUsual_Times_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Times(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -8697,6 +8778,10 @@ func (r *moqUsual_Times_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_
 	return r
 }
 
+func (m *moqUsual) prettyParams_Times(params moqUsual_Times_params) string {
+	return fmt.Sprintf("Times(%#v, %#v)", params.sParam, params.times)
+}
+
 func (m *moqUsual) paramsKey_Times(params moqUsual_Times_params, anyParams uint64) moqUsual_Times_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -8753,7 +8838,7 @@ func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 stri
 func (r *moqUsual_DifficultParamNames_fnRecorder) any() *moqUsual_DifficultParamNames_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultParamNames(r.params))
 		return nil
 	}
 	return &moqUsual_DifficultParamNames_anyParams{recorder: r}
@@ -8797,7 +8882,7 @@ func (a *moqUsual_DifficultParamNames_anyParams) param7() *moqUsual_DifficultPar
 func (r *moqUsual_DifficultParamNames_fnRecorder) seq() *moqUsual_DifficultParamNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultParamNames(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -8807,7 +8892,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) seq() *moqUsual_DifficultParam
 func (r *moqUsual_DifficultParamNames_fnRecorder) noSeq() *moqUsual_DifficultParamNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultParamNames(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -8937,6 +9022,10 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) repeat(repeaters ...moq.Repeat
 	return r
 }
 
+func (m *moqUsual) prettyParams_DifficultParamNames(params moqUsual_DifficultParamNames_params) string {
+	return fmt.Sprintf("DifficultParamNames(%#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7)
+}
+
 func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamNames_params, anyParams uint64) moqUsual_DifficultParamNames_paramsKey {
 	var param1Used bool
 	var param1UsedHash hash.Hash
@@ -9044,7 +9133,7 @@ func (m *moqUsual_recorder) DifficultResultNames() *moqUsual_DifficultResultName
 func (r *moqUsual_DifficultResultNames_fnRecorder) any() *moqUsual_DifficultResultNames_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultResultNames(r.params))
 		return nil
 	}
 	return &moqUsual_DifficultResultNames_anyParams{recorder: r}
@@ -9053,7 +9142,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) any() *moqUsual_DifficultResu
 func (r *moqUsual_DifficultResultNames_fnRecorder) seq() *moqUsual_DifficultResultNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultResultNames(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -9063,7 +9152,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) seq() *moqUsual_DifficultResu
 func (r *moqUsual_DifficultResultNames_fnRecorder) noSeq() *moqUsual_DifficultResultNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultResultNames(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -9234,6 +9323,10 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) repeat(repeaters ...moq.Repea
 	return r
 }
 
+func (m *moqUsual) prettyParams_DifficultResultNames(params moqUsual_DifficultResultNames_params) string {
+	return fmt.Sprintf("DifficultResultNames()")
+}
+
 func (m *moqUsual) paramsKey_DifficultResultNames(params moqUsual_DifficultResultNames_params, anyParams uint64) moqUsual_DifficultResultNames_paramsKey {
 	return moqUsual_DifficultResultNames_paramsKey{
 		params: struct{}{},
@@ -9254,7 +9347,7 @@ func (m *moqUsual_recorder) PassByReference(p *testmoqs.PassByReferenceParams) *
 func (r *moqUsual_PassByReference_fnRecorder) any() *moqUsual_PassByReference_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByReference(r.params))
 		return nil
 	}
 	return &moqUsual_PassByReference_anyParams{recorder: r}
@@ -9268,7 +9361,7 @@ func (a *moqUsual_PassByReference_anyParams) p() *moqUsual_PassByReference_fnRec
 func (r *moqUsual_PassByReference_fnRecorder) seq() *moqUsual_PassByReference_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByReference(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -9278,7 +9371,7 @@ func (r *moqUsual_PassByReference_fnRecorder) seq() *moqUsual_PassByReference_fn
 func (r *moqUsual_PassByReference_fnRecorder) noSeq() *moqUsual_PassByReference_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByReference(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -9429,6 +9522,10 @@ func (r *moqUsual_PassByReference_fnRecorder) repeat(repeaters ...moq.Repeater) 
 	return r
 }
 
+func (m *moqUsual) prettyParams_PassByReference(params moqUsual_PassByReference_params) string {
+	return fmt.Sprintf("PassByReference(%#v)", params.p)
+}
+
 func (m *moqUsual) paramsKey_PassByReference(params moqUsual_PassByReference_params, anyParams uint64) moqUsual_PassByReference_paramsKey {
 	var pUsed *testmoqs.PassByReferenceParams
 	var pUsedHash hash.Hash
@@ -9464,7 +9561,7 @@ func (m *moqUsual_recorder) InterfaceParam(w io.Writer) *moqUsual_InterfaceParam
 func (r *moqUsual_InterfaceParam_fnRecorder) any() *moqUsual_InterfaceParam_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceParam(r.params))
 		return nil
 	}
 	return &moqUsual_InterfaceParam_anyParams{recorder: r}
@@ -9478,7 +9575,7 @@ func (a *moqUsual_InterfaceParam_anyParams) w() *moqUsual_InterfaceParam_fnRecor
 func (r *moqUsual_InterfaceParam_fnRecorder) seq() *moqUsual_InterfaceParam_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceParam(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -9488,7 +9585,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) seq() *moqUsual_InterfaceParam_fnRe
 func (r *moqUsual_InterfaceParam_fnRecorder) noSeq() *moqUsual_InterfaceParam_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceParam(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -9639,6 +9736,10 @@ func (r *moqUsual_InterfaceParam_fnRecorder) repeat(repeaters ...moq.Repeater) *
 	return r
 }
 
+func (m *moqUsual) prettyParams_InterfaceParam(params moqUsual_InterfaceParam_params) string {
+	return fmt.Sprintf("InterfaceParam(%#v)", params.w)
+}
+
 func (m *moqUsual) paramsKey_InterfaceParam(params moqUsual_InterfaceParam_params, anyParams uint64) moqUsual_InterfaceParam_paramsKey {
 	var wUsed io.Writer
 	var wUsedHash hash.Hash
@@ -9673,7 +9774,7 @@ func (m *moqUsual_recorder) InterfaceResult(sParam string, bParam bool) *moqUsua
 func (r *moqUsual_InterfaceResult_fnRecorder) any() *moqUsual_InterfaceResult_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceResult(r.params))
 		return nil
 	}
 	return &moqUsual_InterfaceResult_anyParams{recorder: r}
@@ -9692,7 +9793,7 @@ func (a *moqUsual_InterfaceResult_anyParams) bParam() *moqUsual_InterfaceResult_
 func (r *moqUsual_InterfaceResult_fnRecorder) seq() *moqUsual_InterfaceResult_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceResult(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -9702,7 +9803,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) seq() *moqUsual_InterfaceResult_fn
 func (r *moqUsual_InterfaceResult_fnRecorder) noSeq() *moqUsual_InterfaceResult_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceResult(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -9836,6 +9937,10 @@ func (r *moqUsual_InterfaceResult_fnRecorder) repeat(repeaters ...moq.Repeater) 
 	return r
 }
 
+func (m *moqUsual) prettyParams_InterfaceResult(params moqUsual_InterfaceResult_params) string {
+	return fmt.Sprintf("InterfaceResult(%#v, %#v)", params.sParam, params.bParam)
+}
+
 func (m *moqUsual) paramsKey_InterfaceResult(params moqUsual_InterfaceResult_params, anyParams uint64) moqUsual_InterfaceResult_paramsKey {
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
@@ -9897,7 +10002,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
 			}
 		}
 	}
@@ -9905,7 +10010,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NoNames(results.params))
 			}
 		}
 	}
@@ -9913,7 +10018,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NoResults(results.params))
 			}
 		}
 	}
@@ -9921,7 +10026,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NoParams(results.params))
 			}
 		}
 	}
@@ -9929,7 +10034,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Nothing(results.params))
 			}
 		}
 	}
@@ -9937,7 +10042,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Variadic(results.params))
 			}
 		}
 	}
@@ -9945,7 +10050,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_RepeatedIds(results.params))
 			}
 		}
 	}
@@ -9953,7 +10058,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Times(results.params))
 			}
 		}
 	}
@@ -9961,7 +10066,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_DifficultParamNames(results.params))
 			}
 		}
 	}
@@ -9969,7 +10074,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_DifficultResultNames(results.params))
 			}
 		}
 	}
@@ -9977,7 +10082,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByReference(results.params))
 			}
 		}
 	}
@@ -9985,7 +10090,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_InterfaceParam(results.params))
 			}
 		}
 	}
@@ -9993,7 +10098,7 @@ func (m *moqUsual) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_InterfaceResult(results.params))
 			}
 		}
 	}
