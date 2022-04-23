@@ -3,6 +3,7 @@
 package moq
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -279,7 +280,7 @@ func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
 	}
 	if results == nil {
 		if m.Moq.Config.Expectation == Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_Errorf(params))
 		}
 		return
 	}
@@ -288,7 +289,7 @@ func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
 	if i >= results.Repeat.ResultCount {
 		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_Errorf(params))
 			}
 			return
 		}
@@ -299,7 +300,7 @@ func (m *MoqT_mock) Errorf(format string, args ...interface{}) {
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
 		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_Errorf(params))
 		}
 	}
 
@@ -330,7 +331,7 @@ func (m *MoqT_mock) Fatalf(format string, args ...interface{}) {
 	}
 	if results == nil {
 		if m.Moq.Config.Expectation == Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_Fatalf(params))
 		}
 		return
 	}
@@ -339,7 +340,7 @@ func (m *MoqT_mock) Fatalf(format string, args ...interface{}) {
 	if i >= results.Repeat.ResultCount {
 		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_Fatalf(params))
 			}
 			return
 		}
@@ -350,7 +351,7 @@ func (m *MoqT_mock) Fatalf(format string, args ...interface{}) {
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
 		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_Fatalf(params))
 		}
 	}
 
@@ -378,7 +379,7 @@ func (m *MoqT_mock) Helper() {
 	}
 	if results == nil {
 		if m.Moq.Config.Expectation == Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_Helper(params))
 		}
 		return
 	}
@@ -387,7 +388,7 @@ func (m *MoqT_mock) Helper() {
 	if i >= results.Repeat.ResultCount {
 		if !results.Repeat.AnyTimes {
 			if m.Moq.Config.Expectation == Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_Helper(params))
 			}
 			return
 		}
@@ -398,7 +399,7 @@ func (m *MoqT_mock) Helper() {
 	if result.Sequence != 0 {
 		sequence := m.Moq.Scene.NextMockSequence()
 		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_Helper(params))
 		}
 	}
 
@@ -433,7 +434,7 @@ func (m *MoqT_recorder) Errorf(format string, args ...interface{}) *MoqT_Errorf_
 func (r *MoqT_Errorf_fnRecorder) Any() *MoqT_Errorf_anyParams {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Errorf(r.Params))
 		return nil
 	}
 	return &MoqT_Errorf_anyParams{Recorder: r}
@@ -452,7 +453,7 @@ func (a *MoqT_Errorf_anyParams) Args() *MoqT_Errorf_fnRecorder {
 func (r *MoqT_Errorf_fnRecorder) Seq() *MoqT_Errorf_fnRecorder {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Errorf(r.Params))
 		return nil
 	}
 	r.Sequence = true
@@ -462,7 +463,7 @@ func (r *MoqT_Errorf_fnRecorder) Seq() *MoqT_Errorf_fnRecorder {
 func (r *MoqT_Errorf_fnRecorder) NoSeq() *MoqT_Errorf_fnRecorder {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Errorf(r.Params))
 		return nil
 	}
 	r.Sequence = false
@@ -592,6 +593,10 @@ func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRe
 	return r
 }
 
+func (m *MoqT) PrettyParams_Errorf(params MoqT_Errorf_params) string {
+	return fmt.Sprintf("Errorf(%#v, %#v)", params.Format, params.Args)
+}
+
 func (m *MoqT) ParamsKey_Errorf(params MoqT_Errorf_params, anyParams uint64) MoqT_Errorf_paramsKey {
 	var formatUsed string
 	var formatUsedHash hash.Hash
@@ -637,7 +642,7 @@ func (m *MoqT_recorder) Fatalf(format string, args ...interface{}) *MoqT_Fatalf_
 func (r *MoqT_Fatalf_fnRecorder) Any() *MoqT_Fatalf_anyParams {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Fatalf(r.Params))
 		return nil
 	}
 	return &MoqT_Fatalf_anyParams{Recorder: r}
@@ -656,7 +661,7 @@ func (a *MoqT_Fatalf_anyParams) Args() *MoqT_Fatalf_fnRecorder {
 func (r *MoqT_Fatalf_fnRecorder) Seq() *MoqT_Fatalf_fnRecorder {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Fatalf(r.Params))
 		return nil
 	}
 	r.Sequence = true
@@ -666,7 +671,7 @@ func (r *MoqT_Fatalf_fnRecorder) Seq() *MoqT_Fatalf_fnRecorder {
 func (r *MoqT_Fatalf_fnRecorder) NoSeq() *MoqT_Fatalf_fnRecorder {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Fatalf(r.Params))
 		return nil
 	}
 	r.Sequence = false
@@ -796,6 +801,10 @@ func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRe
 	return r
 }
 
+func (m *MoqT) PrettyParams_Fatalf(params MoqT_Fatalf_params) string {
+	return fmt.Sprintf("Fatalf(%#v, %#v)", params.Format, params.Args)
+}
+
 func (m *MoqT) ParamsKey_Fatalf(params MoqT_Fatalf_params, anyParams uint64) MoqT_Fatalf_paramsKey {
 	var formatUsed string
 	var formatUsedHash hash.Hash
@@ -838,7 +847,7 @@ func (m *MoqT_recorder) Helper() *MoqT_Helper_fnRecorder {
 func (r *MoqT_Helper_fnRecorder) Any() *MoqT_Helper_anyParams {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Helper(r.Params))
 		return nil
 	}
 	return &MoqT_Helper_anyParams{Recorder: r}
@@ -847,7 +856,7 @@ func (r *MoqT_Helper_fnRecorder) Any() *MoqT_Helper_anyParams {
 func (r *MoqT_Helper_fnRecorder) Seq() *MoqT_Helper_fnRecorder {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Helper(r.Params))
 		return nil
 	}
 	r.Sequence = true
@@ -857,7 +866,7 @@ func (r *MoqT_Helper_fnRecorder) Seq() *MoqT_Helper_fnRecorder {
 func (r *MoqT_Helper_fnRecorder) NoSeq() *MoqT_Helper_fnRecorder {
 	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, parameters: %#v", r.Params)
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Helper(r.Params))
 		return nil
 	}
 	r.Sequence = false
@@ -987,6 +996,8 @@ func (r *MoqT_Helper_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Helper_fnRe
 	return r
 }
 
+func (m *MoqT) PrettyParams_Helper(params MoqT_Helper_params) string { return fmt.Sprintf("Helper()") }
+
 func (m *MoqT) ParamsKey_Helper(params MoqT_Helper_params, anyParams uint64) MoqT_Helper_paramsKey {
 	return MoqT_Helper_paramsKey{
 		Params: struct{}{},
@@ -1008,7 +1019,7 @@ func (m *MoqT) AssertExpectationsMet() {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Errorf(results.Params))
 			}
 		}
 	}
@@ -1016,7 +1027,7 @@ func (m *MoqT) AssertExpectationsMet() {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Fatalf(results.Params))
 			}
 		}
 	}
@@ -1024,7 +1035,7 @@ func (m *MoqT) AssertExpectationsMet() {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.Params)
+				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Helper(results.Params))
 			}
 		}
 	}

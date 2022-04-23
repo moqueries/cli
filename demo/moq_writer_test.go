@@ -3,6 +3,7 @@
 package demo_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -142,7 +143,7 @@ func (m *moqWriter_mock) Write(p []byte) (n int, err error) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Write(params))
 		}
 		return
 	}
@@ -151,7 +152,7 @@ func (m *moqWriter_mock) Write(p []byte) (n int, err error) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Write(params))
 			}
 			return
 		}
@@ -162,7 +163,7 @@ func (m *moqWriter_mock) Write(p []byte) (n int, err error) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Write(params))
 		}
 	}
 
@@ -200,7 +201,7 @@ func (m *moqWriter_recorder) Write(p []byte) *moqWriter_Write_fnRecorder {
 func (r *moqWriter_Write_fnRecorder) any() *moqWriter_Write_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Write(r.params))
 		return nil
 	}
 	return &moqWriter_Write_anyParams{recorder: r}
@@ -214,7 +215,7 @@ func (a *moqWriter_Write_anyParams) p() *moqWriter_Write_fnRecorder {
 func (r *moqWriter_Write_fnRecorder) seq() *moqWriter_Write_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Write(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -224,7 +225,7 @@ func (r *moqWriter_Write_fnRecorder) seq() *moqWriter_Write_fnRecorder {
 func (r *moqWriter_Write_fnRecorder) noSeq() *moqWriter_Write_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Write(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -375,6 +376,10 @@ func (r *moqWriter_Write_fnRecorder) repeat(repeaters ...moq.Repeater) *moqWrite
 	return r
 }
 
+func (m *moqWriter) prettyParams_Write(params moqWriter_Write_params) string {
+	return fmt.Sprintf("Write(%#v)", params.p)
+}
+
 func (m *moqWriter) paramsKey_Write(params moqWriter_Write_params, anyParams uint64) moqWriter_Write_paramsKey {
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -401,7 +406,7 @@ func (m *moqWriter) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Write(results.params))
 			}
 		}
 	}

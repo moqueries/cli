@@ -3,6 +3,7 @@
 package generator_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -143,7 +144,7 @@ func (m *moqNewConverterFunc_mock) fn(typ generator.Type, export bool) (result1 
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -152,7 +153,7 @@ func (m *moqNewConverterFunc_mock) fn(typ generator.Type, export bool) (result1 
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -163,7 +164,7 @@ func (m *moqNewConverterFunc_mock) fn(typ generator.Type, export bool) (result1 
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -194,7 +195,7 @@ func (m *moqNewConverterFunc) onCall(typ generator.Type, export bool) *moqNewCon
 func (r *moqNewConverterFunc_fnRecorder) any() *moqNewConverterFunc_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqNewConverterFunc_anyParams{recorder: r}
@@ -213,7 +214,7 @@ func (a *moqNewConverterFunc_anyParams) export() *moqNewConverterFunc_fnRecorder
 func (r *moqNewConverterFunc_fnRecorder) seq() *moqNewConverterFunc_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -223,7 +224,7 @@ func (r *moqNewConverterFunc_fnRecorder) seq() *moqNewConverterFunc_fnRecorder {
 func (r *moqNewConverterFunc_fnRecorder) noSeq() *moqNewConverterFunc_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -367,6 +368,10 @@ func (r *moqNewConverterFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *moqN
 	return r
 }
 
+func (m *moqNewConverterFunc) prettyParams(params moqNewConverterFunc_params) string {
+	return fmt.Sprintf("NewConverterFunc(%#v, %#v)", params.typ, params.export)
+}
+
 func (m *moqNewConverterFunc) paramsKey(params moqNewConverterFunc_params, anyParams uint64) moqNewConverterFunc_paramsKey {
 	var typUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -408,7 +413,7 @@ func (m *moqNewConverterFunc) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}

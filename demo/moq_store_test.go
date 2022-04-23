@@ -3,6 +3,7 @@
 package demo_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -279,7 +280,7 @@ func (m *moqStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_AllWidgetsIds(params))
 		}
 		return
 	}
@@ -288,7 +289,7 @@ func (m *moqStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_AllWidgetsIds(params))
 			}
 			return
 		}
@@ -299,7 +300,7 @@ func (m *moqStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_AllWidgetsIds(params))
 		}
 	}
 
@@ -333,7 +334,7 @@ func (m *moqStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget, 
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_GadgetsByWidgetId(params))
 		}
 		return
 	}
@@ -342,7 +343,7 @@ func (m *moqStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget, 
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_GadgetsByWidgetId(params))
 			}
 			return
 		}
@@ -353,7 +354,7 @@ func (m *moqStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget, 
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_GadgetsByWidgetId(params))
 		}
 	}
 
@@ -388,7 +389,7 @@ func (m *moqStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) (
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_LightGadgetsByWidgetId(params))
 		}
 		return
 	}
@@ -397,7 +398,7 @@ func (m *moqStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) (
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_LightGadgetsByWidgetId(params))
 			}
 			return
 		}
@@ -408,7 +409,7 @@ func (m *moqStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) (
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_LightGadgetsByWidgetId(params))
 		}
 	}
 
@@ -444,7 +445,7 @@ func (m *moqStore_recorder) AllWidgetsIds() *moqStore_AllWidgetsIds_fnRecorder {
 func (r *moqStore_AllWidgetsIds_fnRecorder) any() *moqStore_AllWidgetsIds_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AllWidgetsIds(r.params))
 		return nil
 	}
 	return &moqStore_AllWidgetsIds_anyParams{recorder: r}
@@ -453,7 +454,7 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) any() *moqStore_AllWidgetsIds_anyPar
 func (r *moqStore_AllWidgetsIds_fnRecorder) seq() *moqStore_AllWidgetsIds_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AllWidgetsIds(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -463,7 +464,7 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) seq() *moqStore_AllWidgetsIds_fnReco
 func (r *moqStore_AllWidgetsIds_fnRecorder) noSeq() *moqStore_AllWidgetsIds_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AllWidgetsIds(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -614,6 +615,10 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 	return r
 }
 
+func (m *moqStore) prettyParams_AllWidgetsIds(params moqStore_AllWidgetsIds_params) string {
+	return fmt.Sprintf("AllWidgetsIds()")
+}
+
 func (m *moqStore) paramsKey_AllWidgetsIds(params moqStore_AllWidgetsIds_params, anyParams uint64) moqStore_AllWidgetsIds_paramsKey {
 	return moqStore_AllWidgetsIds_paramsKey{
 		params: struct{}{},
@@ -634,7 +639,7 @@ func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByW
 func (r *moqStore_GadgetsByWidgetId_fnRecorder) any() *moqStore_GadgetsByWidgetId_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_GadgetsByWidgetId(r.params))
 		return nil
 	}
 	return &moqStore_GadgetsByWidgetId_anyParams{recorder: r}
@@ -648,7 +653,7 @@ func (a *moqStore_GadgetsByWidgetId_anyParams) widgetId() *moqStore_GadgetsByWid
 func (r *moqStore_GadgetsByWidgetId_fnRecorder) seq() *moqStore_GadgetsByWidgetId_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_GadgetsByWidgetId(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -658,7 +663,7 @@ func (r *moqStore_GadgetsByWidgetId_fnRecorder) seq() *moqStore_GadgetsByWidgetI
 func (r *moqStore_GadgetsByWidgetId_fnRecorder) noSeq() *moqStore_GadgetsByWidgetId_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_GadgetsByWidgetId(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -809,6 +814,10 @@ func (r *moqStore_GadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Repeater
 	return r
 }
 
+func (m *moqStore) prettyParams_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId_params) string {
+	return fmt.Sprintf("GadgetsByWidgetId(%#v)", params.widgetId)
+}
+
 func (m *moqStore) paramsKey_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId_params, anyParams uint64) moqStore_GadgetsByWidgetId_paramsKey {
 	var widgetIdUsed int
 	var widgetIdUsedHash hash.Hash
@@ -843,7 +852,7 @@ func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint3
 func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) any() *moqStore_LightGadgetsByWidgetId_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_LightGadgetsByWidgetId(r.params))
 		return nil
 	}
 	return &moqStore_LightGadgetsByWidgetId_anyParams{recorder: r}
@@ -862,7 +871,7 @@ func (a *moqStore_LightGadgetsByWidgetId_anyParams) maxWeight() *moqStore_LightG
 func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) seq() *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_LightGadgetsByWidgetId(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -872,7 +881,7 @@ func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) seq() *moqStore_LightGadget
 func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) noSeq() *moqStore_LightGadgetsByWidgetId_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_LightGadgetsByWidgetId(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -1023,6 +1032,10 @@ func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Rep
 	return r
 }
 
+func (m *moqStore) prettyParams_LightGadgetsByWidgetId(params moqStore_LightGadgetsByWidgetId_params) string {
+	return fmt.Sprintf("LightGadgetsByWidgetId(%#v, %#v)", params.widgetId, params.maxWeight)
+}
+
 func (m *moqStore) paramsKey_LightGadgetsByWidgetId(params moqStore_LightGadgetsByWidgetId_params, anyParams uint64) moqStore_LightGadgetsByWidgetId_paramsKey {
 	var widgetIdUsed int
 	var widgetIdUsedHash hash.Hash
@@ -1074,7 +1087,7 @@ func (m *moqStore) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_AllWidgetsIds(results.params))
 			}
 		}
 	}
@@ -1082,7 +1095,7 @@ func (m *moqStore) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_GadgetsByWidgetId(results.params))
 			}
 		}
 	}
@@ -1090,7 +1103,7 @@ func (m *moqStore) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_LightGadgetsByWidgetId(results.params))
 			}
 		}
 	}

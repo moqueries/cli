@@ -3,6 +3,7 @@
 package demo_test
 
 import (
+	"fmt"
 	"math/bits"
 	"sync/atomic"
 
@@ -129,7 +130,7 @@ func (m *moqIsFavorite_mock) fn(n int) (result1 bool) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call with parameters %#v", params)
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
 		}
 		return
 	}
@@ -138,7 +139,7 @@ func (m *moqIsFavorite_mock) fn(n int) (result1 bool) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to mock with parameters %#v", params)
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
 			}
 			return
 		}
@@ -149,7 +150,7 @@ func (m *moqIsFavorite_mock) fn(n int) (result1 bool) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match %#v", params)
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
 		}
 	}
 
@@ -179,7 +180,7 @@ func (m *moqIsFavorite) onCall(n int) *moqIsFavorite_fnRecorder {
 func (r *moqIsFavorite_fnRecorder) any() *moqIsFavorite_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	return &moqIsFavorite_anyParams{recorder: r}
@@ -193,7 +194,7 @@ func (a *moqIsFavorite_anyParams) n() *moqIsFavorite_fnRecorder {
 func (r *moqIsFavorite_fnRecorder) seq() *moqIsFavorite_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = true
@@ -203,7 +204,7 @@ func (r *moqIsFavorite_fnRecorder) seq() *moqIsFavorite_fnRecorder {
 func (r *moqIsFavorite_fnRecorder) noSeq() *moqIsFavorite_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, parameters: %#v", r.params)
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
 		return nil
 	}
 	r.sequence = false
@@ -347,6 +348,10 @@ func (r *moqIsFavorite_fnRecorder) repeat(repeaters ...moq.Repeater) *moqIsFavor
 	return r
 }
 
+func (m *moqIsFavorite) prettyParams(params moqIsFavorite_params) string {
+	return fmt.Sprintf("IsFavorite(%#v)", params.n)
+}
+
 func (m *moqIsFavorite) paramsKey(params moqIsFavorite_params, anyParams uint64) moqIsFavorite_paramsKey {
 	var nUsed int
 	var nUsedHash hash.Hash
@@ -377,7 +382,7 @@ func (m *moqIsFavorite) AssertExpectationsMet() {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) with parameters %#v", missing, results.params)
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
 			}
 		}
 	}
