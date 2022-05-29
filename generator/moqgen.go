@@ -131,7 +131,7 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest) (string, error) {
 			outPkgPath += testPkgSuffix
 		}
 	} else {
-		outPkgPath = path.Dir(outPkgPath) + req.Package
+		outPkgPath = path.Join(path.Dir(outPkgPath), req.Package)
 	}
 	logs.Debugf("Output package: %s", outPkgPath)
 	return outPkgPath, nil
