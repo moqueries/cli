@@ -20,7 +20,7 @@ const (
 
 var rootCmd = &cobra.Command{
 	Use:   "moqueries [interfaces and/or function types to mock]",
-	Short: "Moqueries generates simple but thread-safe mocks",
+	Short: "Moqueries generates lock-free mocks",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   generate,
 }

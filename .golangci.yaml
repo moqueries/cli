@@ -6,6 +6,7 @@ linters:
   - dogsled
   - errorlint
   - exhaustivestruct
+  - exhaustruct
   - funlen
   - importas
   - interfacer
@@ -30,7 +31,10 @@ linters:
 
 linters-settings:
   gci:
-    local-prefixes: github.com/myshkin5/moqueries
+    sections:
+    - standard
+    - default
+    - prefix(github.com/myshkin5/moqueries)
   revive:
     rules:
     - name: var-naming
@@ -48,3 +52,13 @@ issues:
     linters:
     - goconst
     - goerr113
+  # No easy way to break up go:generate lines
+  - linters:
+    - lll
+    source: "^//go:generate "
+  # Inline nolint directive isn't working (CI/CD fails on nolintlint)
+  - linters:
+    - thelper
+    # This is the actual test so not a helper
+    path: 'generator/testmoqs/testmoqs_test.go'
+    source: "testOptionalSuccess := func"
