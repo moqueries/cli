@@ -1731,7 +1731,7 @@ func (r *difficultResultNamesFnRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
-	r.r = r.r.doReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
+	r.r = r.r.doReturnResults(func() (string, string, error, int, int, float32, float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
 	})
@@ -1810,7 +1810,7 @@ func (r *exportedDifficultResultNamesFnRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
-	r.r = r.r.DoReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
+	r.r = r.r.DoReturnResults(func() (string, string, error, int, int, float32, float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
 	})

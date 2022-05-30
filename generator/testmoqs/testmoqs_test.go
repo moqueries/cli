@@ -1235,7 +1235,6 @@ func TestDoFuncs(t *testing.T) {
 }
 
 func TestOptionalInvocations(t *testing.T) {
-	//nolint:thelper // this is the actual test so not a helper
 	testOptionalSuccess := func(t *testing.T, entry adaptor, invocations int) {
 		// ASSEMBLE
 		scene.Reset()
@@ -1560,8 +1559,8 @@ func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexing
 
 type sliceWriter []int
 
-func (w sliceWriter) Write([]byte) (n int, err error) {
-	return 0, err
+func (w sliceWriter) Write([]byte) (int, error) {
+	return 0, nil
 }
 
 func TestParamIndexing(t *testing.T) {

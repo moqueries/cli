@@ -1579,8 +1579,9 @@ func (a *exportedDifficultParamNamesAdaptor) config() adaptorConfig {
 func (a *exportedDifficultParamNamesAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedDifficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
-	return &exportedDifficultParamNamesRecorder{r: a.m.OnCall().DifficultParamNames(
-		bParam, false, sParams[0], 0, 0, 0.0, 0.0)}
+	return &exportedDifficultParamNamesRecorder{
+		r: a.m.OnCall().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0.0, 0.0),
+	}
 }
 
 func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(
@@ -1629,7 +1630,9 @@ func (r *exportedDifficultParamNamesRecorder) returnResults([]string, error) {
 	r.r = r.r.ReturnResults()
 }
 
-func (r *exportedDifficultParamNamesRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+func (r *exportedDifficultParamNamesRecorder) andDo(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
+) {
 	r.r = r.r.AndDo(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
@@ -1728,7 +1731,7 @@ func (r *difficultResultNamesRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
-	r.r = r.r.doReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
+	r.r = r.r.doReturnResults(func() (string, string, error, int, int, float32, float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
 	})
@@ -1807,7 +1810,7 @@ func (r *exportedDifficultResultNamesRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
-	r.r = r.r.DoReturnResults(func() (m, r string, sequence error, _, _ int, _, _ float32) {
+	r.r = r.r.DoReturnResults(func() (string, string, error, int, int, float32, float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
 	})

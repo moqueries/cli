@@ -358,7 +358,7 @@ func TestOnlyWriteFavoriteNumbersWithDoReturn(t *testing.T) {
 
 	bytesWritten := 0
 	var capturedFavs []int
-	writeFn := func(p []byte) (n int, err error) {
+	writeFn := func(p []byte) (int, error) {
 		bytesWritten += len(p)
 		fav, err := strconv.Atoi(string(p))
 		if err != nil {

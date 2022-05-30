@@ -4,9 +4,7 @@ import "io"
 
 // NB: Keep in sync with ../generator_test.go TestGenerating
 
-//nolint:lll // no easy way to break up go:generate lines
 //go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByReferenceFn InterfaceParamFn InterfaceResultFn Usual
-//nolint:lll // no easy way to break up go:generate lines
 //go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByReferenceFn InterfaceParamFn InterfaceResultFn Usual
 
 // UsualFn is a typical function type
@@ -69,7 +67,7 @@ type InterfaceResultReader struct {
 	Err     error
 }
 
-func (r *InterfaceResultReader) Read(p []byte) (n int, err error) {
+func (r *InterfaceResultReader) Read(p []byte) (int, error) {
 	return 0, nil
 }
 

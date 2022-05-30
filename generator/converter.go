@@ -1776,7 +1776,9 @@ func stdFuncDec() dst.FuncDeclDecorations {
 	}
 }
 
-func labelDirection(label string) (unnamedPrefix string, dropNonComparable bool) {
+func labelDirection(label string) (string, bool) {
+	var unnamedPrefix string
+	var dropNonComparable bool
 	switch label {
 	case paramsIdent:
 		unnamedPrefix = paramPrefix
