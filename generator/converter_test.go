@@ -3,10 +3,11 @@ package generator_test
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/dave/dst"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/myshkin5/moqueries/generator"
 	"github.com/myshkin5/moqueries/moq"
@@ -29,6 +30,8 @@ func TestConverter(t *testing.T) {
 
 		fnSpec      *dst.TypeSpec
 		fnSpecFuncs []generator.Func
+
+		titler = cases.Title(language.Und, cases.NoLower)
 	)
 
 	beforeEach := func(t *testing.T) {
@@ -124,7 +127,7 @@ func TestConverter(t *testing.T) {
 	for name, isExported := range entries {
 		exported := func(name string) string {
 			if isExported {
-				name = strings.Title(name)
+				name = titler.String(name)
 			}
 			return name
 		}

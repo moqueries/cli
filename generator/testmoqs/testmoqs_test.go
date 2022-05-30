@@ -6,6 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/myshkin5/moqueries/generator/testmoqs"
 	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
 	"github.com/myshkin5/moqueries/moq"
@@ -59,6 +62,8 @@ var (
 	scene    *moq.Scene
 	tMoq     *moq.MoqT
 	moqScene *moq.Scene
+
+	titler = cases.Title(language.Und, cases.NoLower)
 )
 
 func testCases(t *testing.T, c moq.Config) map[string]adaptor {
@@ -546,8 +551,8 @@ func TestAnyValues(t *testing.T) {
 				rrFn := "returnResults"
 				drrFn := "doReturnResults"
 				if config.exported {
-					rrFn = strings.Title(rrFn)
-					drrFn = strings.Title(drrFn)
+					rrFn = titler.String(rrFn)
+					drrFn = titler.String(drrFn)
 				}
 
 				msg := fmt.Sprintf(
@@ -1660,7 +1665,7 @@ func TestParamIndexing(t *testing.T) {
 
 func export(id string, a adaptor) string {
 	if a.config().exported {
-		id = strings.Title(id)
+		id = titler.String(id)
 	}
 	return id
 }

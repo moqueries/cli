@@ -3,9 +3,10 @@ package generator
 import (
 	"fmt"
 	"go/token"
-	"strings"
 
 	"github.com/dave/dst"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	. "github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/logs"
@@ -109,6 +110,8 @@ var invalidNames = map[string]struct{}{
 	resultsIdent:          {},
 	resultIdent:           {},
 }
+
+var titler = cases.Title(language.Und, cases.NoLower)
 
 // Converter converts various interface and function types to AST structs to
 // build a moq
@@ -919,7 +922,7 @@ func (c *Converter) recorderFnInterfaceBody(
 				Key(c.exportId(sequenceIdent)).
 					Value(Bin(Sel(Sel(moqVal).
 						Dot(c.exportId(configIdent)).Obj).
-						Dot(Id(strings.Title(sequenceIdent))).Obj).
+						Dot(Id(titler.String(sequenceIdent))).Obj).
 						Op(token.EQL).
 						Y(c.idPath("SeqDefaultOn", moqPkg)).Obj).
 					Decs(kvExprDec(dst.None)).Obj,
@@ -1322,7 +1325,7 @@ func (c *Converter) recorderRepeatFn(fn Func) *dst.FuncDecl {
 			Expr(Call(Sel(Sel(Sel(Id(recorderReceiverIdent)).
 				Dot(c.exportId(resultsIdent)).Obj).
 				Dot(c.exportId(repeatIdent)).Obj).
-				Dot(Id(strings.Title(repeatFnName))).Obj).
+				Dot(Id(titler.String(repeatFnName))).Obj).
 				Args(Sel(Sel(Sel(Id(recorderReceiverIdent)).
 					Dot(c.exportId(moqIdent)).Obj).
 					Dot(c.exportId(sceneIdent)).Obj).
@@ -1719,12 +1722,12 @@ func validName(name, prefix string, count int) string {
 }
 
 func (c *Converter) moqName() string {
-	return c.export(moqIdent + strings.Title(c.typ.TypeSpec.Name.Name))
+	return c.export(moqIdent + titler.String(c.typ.TypeSpec.Name.Name))
 }
 
 func (c *Converter) export(name string) string {
 	if c.isExported {
-		name = strings.Title(name)
+		name = titler.String(name)
 	}
 	return name
 }
