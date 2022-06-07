@@ -355,11 +355,7 @@ func (r *moqNewConverterFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *moqN
 				doFn       moqNewConverterFunc_doFn
 				doReturnFn moqNewConverterFunc_doReturnFn
 			}{
-				values: &struct {
-					result1 generator.Converterer
-				}{
-					result1: last.values.result1,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

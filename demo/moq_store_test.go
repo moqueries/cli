@@ -600,13 +600,7 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 				doFn       moqStore_AllWidgetsIds_doFn
 				doReturnFn moqStore_AllWidgetsIds_doReturnFn
 			}{
-				values: &struct {
-					result1 []int
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -799,13 +793,7 @@ func (r *moqStore_GadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Repeater
 				doFn       moqStore_GadgetsByWidgetId_doFn
 				doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
 			}{
-				values: &struct {
-					result1 []demo.Gadget
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1017,13 +1005,7 @@ func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Rep
 				doFn       moqStore_LightGadgetsByWidgetId_doFn
 				doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
 			}{
-				values: &struct {
-					result1 []demo.Gadget
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

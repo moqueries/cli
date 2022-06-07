@@ -421,7 +421,7 @@ func (r *moqMoq_Reset_fnRecorder) repeat(repeaters ...moq.Repeater) *moqMoq_Rese
 				doFn       moqMoq_Reset_doFn
 				doReturnFn moqMoq_Reset_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -590,7 +590,7 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) repeat(repeaters ...moq.Repeat
 				doFn       moqMoq_AssertExpectationsMet_doFn
 				doReturnFn moqMoq_AssertExpectationsMet_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

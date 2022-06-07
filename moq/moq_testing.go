@@ -584,7 +584,7 @@ func (r *MoqT_Errorf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Errorf_fnRe
 				DoFn       MoqT_Errorf_doFn
 				DoReturnFn MoqT_Errorf_doReturnFn
 			}{
-				Values:   &struct{}{},
+				Values:   last.Values,
 				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
@@ -792,7 +792,7 @@ func (r *MoqT_Fatalf_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Fatalf_fnRe
 				DoFn       MoqT_Fatalf_doFn
 				DoReturnFn MoqT_Fatalf_doReturnFn
 			}{
-				Values:   &struct{}{},
+				Values:   last.Values,
 				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}
@@ -987,7 +987,7 @@ func (r *MoqT_Helper_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Helper_fnRe
 				DoFn       MoqT_Helper_doFn
 				DoReturnFn MoqT_Helper_doReturnFn
 			}{
-				Values:   &struct{}{},
+				Values:   last.Values,
 				Sequence: r.Moq.Scene.NextRecorderSequence(),
 			}
 		}

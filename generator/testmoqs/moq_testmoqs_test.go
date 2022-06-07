@@ -366,13 +366,7 @@ func (r *moqUsualFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsualFn_fn
 				doFn       moqUsualFn_doFn
 				doReturnFn moqUsualFn_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -791,13 +785,7 @@ func (r *moqNoNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoNamesF
 				doFn       moqNoNamesFn_doFn
 				doReturnFn moqNoNamesFn_doReturnFn
 			}{
-				values: &struct {
-					result1 string
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1191,7 +1179,7 @@ func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResu
 				doFn       moqNoResultsFn_doFn
 				doReturnFn moqNoResultsFn_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1570,13 +1558,7 @@ func (r *moqNoParamsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoParam
 				doFn       moqNoParamsFn_doFn
 				doReturnFn moqNoParamsFn_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1903,7 +1885,7 @@ func (r *moqNothingFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNothingF
 				doFn       moqNothingFn_doFn
 				doReturnFn moqNothingFn_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2289,13 +2271,7 @@ func (r *moqVariadicFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqVariadi
 				doFn       moqVariadicFn_doFn
 				doReturnFn moqVariadicFn_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2721,14 +2697,7 @@ func (r *moqRepeatedIdsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqRepe
 				doFn       moqRepeatedIdsFn_doFn
 				doReturnFn moqRepeatedIdsFn_doReturnFn
 			}{
-				values: &struct {
-					sResult1, sResult2 string
-					err                error
-				}{
-					sResult1: last.values.sResult1,
-					sResult2: last.values.sResult2,
-					err:      last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -3158,13 +3127,7 @@ func (r *moqTimesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTimesFn_fn
 				doFn       moqTimesFn_doFn
 				doReturnFn moqTimesFn_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -3622,7 +3585,7 @@ func (r *moqDifficultParamNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) 
 				doFn       moqDifficultParamNamesFn_doFn
 				doReturnFn moqDifficultParamNamesFn_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -4083,20 +4046,7 @@ func (r *moqDifficultResultNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater)
 				doFn       moqDifficultResultNamesFn_doFn
 				doReturnFn moqDifficultResultNamesFn_doReturnFn
 			}{
-				values: &struct {
-					result1, result2 string
-					result3          error
-					param, result5   int
-					result6, result7 float32
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-					result3: last.values.result3,
-					param:   last.values.param,
-					result5: last.values.result5,
-					result6: last.values.result6,
-					result7: last.values.result7,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -4469,13 +4419,7 @@ func (r *moqPassByReferenceFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moq
 				doFn       moqPassByReferenceFn_doFn
 				doReturnFn moqPassByReferenceFn_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -4856,13 +4800,7 @@ func (r *moqInterfaceParamFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqI
 				doFn       moqInterfaceParamFn_doFn
 				doReturnFn moqInterfaceParamFn_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -5247,9 +5185,7 @@ func (r *moqInterfaceResultFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moq
 				doFn       moqInterfaceResultFn_doFn
 				doReturnFn moqInterfaceResultFn_doReturnFn
 			}{
-				values: &struct{ result1 io.Reader }{
-					result1: last.values.result1,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -7233,13 +7169,7 @@ func (r *moqUsual_Usual_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_
 				doFn       moqUsual_Usual_doFn
 				doReturnFn moqUsual_Usual_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -7468,13 +7398,7 @@ func (r *moqUsual_NoNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsua
 				doFn       moqUsual_NoNames_doFn
 				doReturnFn moqUsual_NoNames_doReturnFn
 			}{
-				values: &struct {
-					result1 string
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -7688,7 +7612,7 @@ func (r *moqUsual_NoResults_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUs
 				doFn       moqUsual_NoResults_doFn
 				doReturnFn moqUsual_NoResults_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -7904,13 +7828,7 @@ func (r *moqUsual_NoParams_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsu
 				doFn       moqUsual_NoParams_doFn
 				doReturnFn moqUsual_NoParams_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -8081,7 +7999,7 @@ func (r *moqUsual_Nothing_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsua
 				doFn       moqUsual_Nothing_doFn
 				doReturnFn moqUsual_Nothing_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -8280,13 +8198,7 @@ func (r *moqUsual_Variadic_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsu
 				doFn       moqUsual_Variadic_doFn
 				doReturnFn moqUsual_Variadic_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -8516,14 +8428,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) repeat(repeaters ...moq.Repeater) *moq
 				doFn       moqUsual_RepeatedIds_doFn
 				doReturnFn moqUsual_RepeatedIds_doReturnFn
 			}{
-				values: &struct {
-					sResult1, sResult2 string
-					err                error
-				}{
-					sResult1: last.values.sResult1,
-					sResult2: last.values.sResult2,
-					err:      last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -8763,13 +8668,7 @@ func (r *moqUsual_Times_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_
 				doFn       moqUsual_Times_doFn
 				doReturnFn moqUsual_Times_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -9013,7 +8912,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) repeat(repeaters ...moq.Repeat
 				doFn       moqUsual_DifficultParamNames_doFn
 				doReturnFn moqUsual_DifficultParamNames_doReturnFn
 			}{
-				values:   &struct{}{},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -9301,20 +9200,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) repeat(repeaters ...moq.Repea
 				doFn       moqUsual_DifficultResultNames_doFn
 				doReturnFn moqUsual_DifficultResultNames_doReturnFn
 			}{
-				values: &struct {
-					result1, result2 string
-					result3          error
-					param, result5   int
-					result6, result7 float32
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-					result3: last.values.result3,
-					param:   last.values.param,
-					result5: last.values.result5,
-					result6: last.values.result6,
-					result7: last.values.result7,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -9507,13 +9393,7 @@ func (r *moqUsual_PassByReference_fnRecorder) repeat(repeaters ...moq.Repeater) 
 				doFn       moqUsual_PassByReference_doFn
 				doReturnFn moqUsual_PassByReference_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -9721,13 +9601,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) repeat(repeaters ...moq.Repeater) *
 				doFn       moqUsual_InterfaceParam_doFn
 				doReturnFn moqUsual_InterfaceParam_doReturnFn
 			}{
-				values: &struct {
-					sResult string
-					err     error
-				}{
-					sResult: last.values.sResult,
-					err:     last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -9926,9 +9800,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) repeat(repeaters ...moq.Repeater) 
 				doFn       moqUsual_InterfaceResult_doFn
 				doReturnFn moqUsual_InterfaceResult_doReturnFn
 			}{
-				values: &struct{ result1 io.Reader }{
-					result1: last.values.result1,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

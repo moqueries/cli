@@ -361,13 +361,7 @@ func (r *moqWriter_Write_fnRecorder) repeat(repeaters ...moq.Repeater) *moqWrite
 				doFn       moqWriter_Write_doFn
 				doReturnFn moqWriter_Write_doReturnFn
 			}{
-				values: &struct {
-					n   int
-					err error
-				}{
-					n:   last.values.n,
-					err: last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

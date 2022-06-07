@@ -335,11 +335,7 @@ func (r *moqIsFavorite_fnRecorder) repeat(repeaters ...moq.Repeater) *moqIsFavor
 				doFn       moqIsFavorite_doFn
 				doReturnFn moqIsFavorite_doReturnFn
 			}{
-				values: &struct {
-					result1 bool
-				}{
-					result1: last.values.result1,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
