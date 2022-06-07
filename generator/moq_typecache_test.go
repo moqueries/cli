@@ -750,15 +750,7 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 				doFn       moqTypeCache_Type_doFn
 				doReturnFn moqTypeCache_Type_doReturnFn
 			}{
-				values: &struct {
-					result1 *dst.TypeSpec
-					result2 string
-					result3 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-					result3: last.values.result3,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -975,13 +967,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater)
 				doFn       moqTypeCache_IsComparable_doFn
 				doReturnFn moqTypeCache_IsComparable_doReturnFn
 			}{
-				values: &struct {
-					result1 bool
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1187,13 +1173,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) repeat(repeaters ...moq.Re
 				doFn       moqTypeCache_IsDefaultComparable_doFn
 				doReturnFn moqTypeCache_IsDefaultComparable_doReturnFn
 			}{
-				values: &struct {
-					result1 bool
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1399,13 +1379,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) repeat(repeaters ...moq.Repeater) 
 				doFn       moqTypeCache_FindPackage_doFn
 				doReturnFn moqTypeCache_FindPackage_doReturnFn
 			}{
-				values: &struct {
-					result1 string
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

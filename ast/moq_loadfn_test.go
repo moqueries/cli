@@ -363,13 +363,7 @@ func (r *moqLoadFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqLoadFn_fnRe
 				doFn       moqLoadFn_doFn
 				doReturnFn moqLoadFn_doReturnFn
 			}{
-				values: &struct {
-					result1 []*packages.Package
-					result2 error
-				}{
-					result1: last.values.result1,
-					result2: last.values.result2,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}

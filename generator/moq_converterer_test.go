@@ -1354,9 +1354,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 				doFn       moqConverterer_BaseStruct_doFn
 				doReturnFn moqConverterer_BaseStruct_doReturnFn
 			}{
-				values: &struct{ structDecl *dst.GenDecl }{
-					structDecl: last.values.structDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1536,9 +1534,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 				doFn       moqConverterer_IsolationStruct_doFn
 				doReturnFn moqConverterer_IsolationStruct_doReturnFn
 			}{
-				values: &struct{ structDecl *dst.GenDecl }{
-					structDecl: last.values.structDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1744,13 +1740,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) repeat(repeaters ...moq.Repeat
 				doFn       moqConverterer_MethodStructs_doFn
 				doReturnFn moqConverterer_MethodStructs_doReturnFn
 			}{
-				values: &struct {
-					structDecls []dst.Decl
-					err         error
-				}{
-					structDecls: last.values.structDecls,
-					err:         last.values.err,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -1936,9 +1926,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 				doFn       moqConverterer_NewFunc_doFn
 				doReturnFn moqConverterer_NewFunc_doReturnFn
 			}{
-				values: &struct{ funcDecl *dst.FuncDecl }{
-					funcDecl: last.values.funcDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2124,9 +2112,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 				doFn       moqConverterer_IsolationAccessor_doFn
 				doReturnFn moqConverterer_IsolationAccessor_doReturnFn
 			}{
-				values: &struct{ funcDecl *dst.FuncDecl }{
-					funcDecl: last.values.funcDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2330,9 +2316,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 				doFn       moqConverterer_FuncClosure_doFn
 				doReturnFn moqConverterer_FuncClosure_doReturnFn
 			}{
-				values: &struct{ funcDecl *dst.FuncDecl }{
-					funcDecl: last.values.funcDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2525,9 +2509,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 				doFn       moqConverterer_MockMethod_doFn
 				doReturnFn moqConverterer_MockMethod_doReturnFn
 			}{
-				values: &struct{ funcDecl *dst.FuncDecl }{
-					funcDecl: last.values.funcDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2720,9 +2702,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 				doFn       moqConverterer_RecorderMethods_doFn
 				doReturnFn moqConverterer_RecorderMethods_doReturnFn
 			}{
-				values: &struct{ funcDecls []dst.Decl }{
-					funcDecls: last.values.funcDecls,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -2908,9 +2888,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 				doFn       moqConverterer_ResetMethod_doFn
 				doReturnFn moqConverterer_ResetMethod_doReturnFn
 			}{
-				values: &struct{ funcDecl *dst.FuncDecl }{
-					funcDecl: last.values.funcDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
@@ -3083,9 +3061,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 				doFn       moqConverterer_AssertMethod_doFn
 				doReturnFn moqConverterer_AssertMethod_doReturnFn
 			}{
-				values: &struct{ funcDecl *dst.FuncDecl }{
-					funcDecl: last.values.funcDecl,
-				},
+				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
 			}
 		}
