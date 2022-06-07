@@ -453,6 +453,31 @@ func TestRepeaters(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("seq/doReturnResults compatible", func(t *testing.T) {
+		for name, entry := range testCases(t, moq.Config{Expectation: moq.Nice}) {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				scene.Reset()
+				moqScene.Reset()
+
+				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+
+				rec := entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.doReturnResults(t, func() {}, nil, false, nil, nil)
+				rec = entry.newRecorder([]string{"Hi", "you"}, true)
+				rec.seq()
+				rec.doReturnResults(t, func() {}, nil, false, nil, nil)
+
+				// ACT
+				rec.repeat(moq.AnyTimes())
+
+				// ASSERT
+				// no panic from ACT call (was panicking when copying result
+				// values)
+			})
+		}
+	})
 }
 
 func TestReset(t *testing.T) {

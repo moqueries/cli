@@ -747,7 +747,7 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 		Assign(Id(paramsIdent)).
 			Tok(token.DEFINE).
 			Rhs(Comp(Idf(double, typePrefix, paramsIdent)).
-				Elts(c.passthroughElements(fn.Params, paramsIdent, "", nil)...).Obj).Obj,
+				Elts(c.passthroughElements(fn.Params, paramsIdent, "")...).Obj).Obj,
 		Var(Value(Star(Idf(double, typePrefix, resultsIdent))).
 			Names(Id(resultsIdent)).Obj),
 		Range(Sel(cloneExpr(stateSelector)).
@@ -917,7 +917,7 @@ func (c *Converter) recorderFnInterfaceBody(
 			Elts(
 				Key(c.exportId(paramsIdent)).
 					Value(Comp(Idf(double, typePrefix, paramsIdent)).
-						Elts(c.passthroughElements(fn.Params, paramsIdent, "", nil)...).Obj,
+						Elts(c.passthroughElements(fn.Params, paramsIdent, "")...).Obj,
 					).Decs(kvExprDec(dst.None)).Obj,
 				Key(c.exportId(sequenceIdent)).
 					Value(Bin(Sel(Sel(moqVal).
@@ -1014,7 +1014,7 @@ func (c *Converter) returnResultsFn(fn Func) *dst.FuncDecl {
 	resExprs := []dst.Expr{
 		Key(c.exportId(valuesIdent)).
 			Value(Un(token.AND, Comp(mStruct).
-				Elts(c.passthroughElements(fn.Results, resultsIdent, "", nil)...).Obj)).
+				Elts(c.passthroughElements(fn.Results, resultsIdent, "")...).Obj)).
 			Decs(kvExprDec(dst.NewLine)).Obj,
 		Key(c.exportId(sequenceIdent)).
 			Value(Id(sequenceIdent)).Decs(kvExprDec(dst.None)).Obj,
@@ -1282,16 +1282,9 @@ func (c *Converter) recorderRepeatFn(fn Func) *dst.FuncDecl {
 		fnRecName = fmt.Sprintf(double, mName, fnRecorderSuffix)
 	}
 
-	mStruct, err := c.methodStruct(resultsIdent, fn.Results)
-	if err != nil {
-		logs.Panic("Creating results struct should never generate errors", err)
-	}
-
-	lastSel := Sel(Id(lastIdent)).Dot(c.exportId(valuesIdent)).Obj
 	lastVal := Comp(c.innerResultsStruct(c.typePrefix(fn), fn.Results)).Elts(
 		Key(c.exportId(valuesIdent)).
-			Value(Un(token.AND, Comp(mStruct).
-				Elts(c.passthroughElements(fn.Results, resultsIdent, "", lastSel)...).Obj)).
+			Value(Sel(Id(lastIdent)).Dot(c.exportId(valuesIdent)).Obj).
 			Decs(kvExprDec(dst.NewLine)).Obj,
 		Key(c.exportId(sequenceIdent)).
 			Value(Call(Sel(Sel(Sel(Id(recorderReceiverIdent)).
@@ -1435,12 +1428,10 @@ func (c *Converter) paramsKeyFn(fn Func) *dst.FuncDecl {
 	}
 	stmts = append(stmts, Return(Comp(Id(paramsKey)).Elts(
 		Key(c.exportId(paramsIdent)).Value(Comp(pStruct).
-			Elts(c.passthroughElements(
-				fn.Params, paramsKeyIdent, usedSuffix, nil)...).Obj).
+			Elts(c.passthroughElements(fn.Params, paramsKeyIdent, usedSuffix)...).Obj).
 			Decs(kvExprDec(dst.NewLine)).Obj,
 		Key(c.exportId(hashesIdent)).Value(Comp(pkStruct).
-			Elts(c.passthroughElements(
-				fn.Params, hashesIdent, usedHashSuffix, nil)...).Obj).
+			Elts(c.passthroughElements(fn.Params, hashesIdent, usedHashSuffix)...).Obj).
 			Decs(kvExprDec(dst.NewLine)).Obj).Obj))
 
 	return Fn(c.export(fnName)).
@@ -1595,9 +1586,7 @@ func (c *Converter) callPrettyParams(fn Func, moqExpr, paramsExpr dst.Expr) *dst
 		Args(c.selExport(paramsExpr, paramsIdent)).Obj
 }
 
-func (c *Converter) passthroughElements(
-	fl *dst.FieldList, label, valSuffix string, sel dst.Expr,
-) []dst.Expr {
+func (c *Converter) passthroughElements(fl *dst.FieldList, label, valSuffix string) []dst.Expr {
 	if fl == nil {
 		return nil
 	}
@@ -1616,7 +1605,7 @@ func (c *Converter) passthroughElements(
 			if comp || !dropNonComparable {
 				pName := fmt.Sprintf(unnamed, unnamedPrefix, count+1)
 				elts = append(elts, Key(c.exportId(pName)).Value(
-					c.passthroughValue(Id(pName+valSuffix), false, sel)).
+					c.passthroughValue(Id(pName+valSuffix), false, nil)).
 					Decs(kvExprDec(beforeDec)).Obj)
 				beforeDec = dst.None
 			}
@@ -1627,7 +1616,7 @@ func (c *Converter) passthroughElements(
 			if comp || !dropNonComparable {
 				vName := validName(name.Name, unnamedPrefix, count)
 				elts = append(elts, Key(c.exportId(vName)).Value(
-					c.passthroughValue(Id(vName+valSuffix), false, sel)).
+					c.passthroughValue(Id(vName+valSuffix), false, nil)).
 					Decs(kvExprDec(beforeDec)).Obj)
 				beforeDec = dst.None
 			}
