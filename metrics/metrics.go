@@ -1,3 +1,5 @@
+// Package metrics implements a simple metrics mechanism for gathering,
+// reporting and aggregating metrics
 package metrics
 
 import (
@@ -51,8 +53,8 @@ func add(m1, m2 metricsState) metricsState {
 	}
 }
 
-// MetricsState maintains the state of the metrics system
-type MetricsState struct {
+// Processor maintains the state of the metrics system
+type Processor struct {
 	isLoggingFn IsLoggingFn
 	loggingfFn  LoggingfFn
 
@@ -70,49 +72,49 @@ type IsLoggingFn func() bool
 type LoggingfFn func(format string, args ...interface{})
 
 // NewMetrics returns a new system for gathering metrics
-func NewMetrics(isLoggingFn IsLoggingFn, loggingfFn LoggingfFn) *MetricsState {
-	return &MetricsState{
+func NewMetrics(isLoggingFn IsLoggingFn, loggingfFn LoggingfFn) *Processor {
+	return &Processor{
 		isLoggingFn: isLoggingFn,
 		loggingfFn:  loggingfFn,
 	}
 }
 
 // Finalize is called after generating mocks to log metrics
-func (m *MetricsState) Finalize() {
+func (m *Processor) Finalize() {
 	if m.isLoggingFn() {
 		m.loggingfFn(metricsLogKey+" %s", serializeState(m.state))
 	}
 }
 
 // ASTPkgCacheHitsInc increments the ASTPkgCacheHits metric
-func (m *MetricsState) ASTPkgCacheHitsInc() {
+func (m *Processor) ASTPkgCacheHitsInc() {
 	m.state.ASTPkgCacheHits++
 }
 
 // ASTPkgCacheMissesInc increments the ASTPkgCacheMisses metric
-func (m *MetricsState) ASTPkgCacheMissesInc() {
+func (m *Processor) ASTPkgCacheMissesInc() {
 	m.state.ASTPkgCacheMisses++
 }
 
 // ASTTypeCacheHitsInc increments the ASTTypeCacheHits metric
-func (m *MetricsState) ASTTypeCacheHitsInc() {
+func (m *Processor) ASTTypeCacheHitsInc() {
 	m.state.ASTTypeCacheHits++
 }
 
 // ASTTypeCacheMissesInc increments the ASTTypeCacheMisses metric
-func (m *MetricsState) ASTTypeCacheMissesInc() {
+func (m *Processor) ASTTypeCacheMissesInc() {
 	m.state.ASTTypeCacheMisses++
 }
 
 // ASTTotalLoadTimeInc increments the ASTTotalLoadTime duration metric by the
 // d duration specified
-func (m *MetricsState) ASTTotalLoadTimeInc(d time.Duration) {
+func (m *Processor) ASTTotalLoadTimeInc(d time.Duration) {
 	m.state.ASTTotalLoadTime += d
 }
 
 // TotalProcessingTimeInc increments the TotalProcessingTime duration metric
 // by the d duration specified
-func (m *MetricsState) TotalProcessingTimeInc(d time.Duration) {
+func (m *Processor) TotalProcessingTimeInc(d time.Duration) {
 	m.state.TotalProcessingTime += d
 }
 

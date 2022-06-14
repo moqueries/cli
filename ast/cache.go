@@ -1,3 +1,4 @@
+// Package ast provides utilities for working with Go's Abstract Syntax Tree
 package ast
 
 import (
@@ -82,7 +83,7 @@ func (c *Cache) Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, erro
 	typ, ok := c.typesByIdent[realId]
 	if !ok {
 		return nil, "", fmt.Errorf(
-			"%q (original package %q): %w", realId, id.Path, ErrTypeNotFound)
+			"%w: %q (original package %q)", ErrTypeNotFound, realId, id.Path)
 	}
 
 	return typ, pkgPath, nil

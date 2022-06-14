@@ -1,3 +1,5 @@
+// Package hash implements a deep hash mechanism so that arbitrary types can be
+// used as a key in hash maps
 package hash
 
 import (

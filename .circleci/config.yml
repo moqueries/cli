@@ -25,8 +25,15 @@ jobs:
 
         command: |
           set -ux
+          find . -name moq_\*.go -delete
           go build -o $GOPATH/bin/moqueries github.com/myshkin5/moqueries
+          export MOQ_BULK_STATE_FILE=$(mktemp -t moq)
+          moqueries bulk-initialize
           go generate ./...
+          MOQ_DEBUG=true moqueries bulk-finalize
+
+          # fail if working directory is dirty
+          git diff --quiet
 
     - run:
         name: Run tests

@@ -1,3 +1,5 @@
+// Package testmoqs contains multiple test mocks and adaptors for use in unit
+// testing
 package testmoqs
 
 import "io"

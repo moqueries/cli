@@ -15,7 +15,7 @@ func TestMetrics(t *testing.T) {
 		isLoggingFnMoq *moqIsLoggingFn
 		loggingfFnMoq  *moqLoggingfFn
 
-		m *metrics.MetricsState
+		m *metrics.Processor
 	)
 
 	beforeEach := func(t *testing.T) {
@@ -57,11 +57,11 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("single int increment", func(t *testing.T) {
-		incFuncs := map[string]func(m *metrics.MetricsState){
-			"ASTPkgCacheHits":    func(m *metrics.MetricsState) { m.ASTPkgCacheHitsInc() },
-			"ASTPkgCacheMisses":  func(m *metrics.MetricsState) { m.ASTPkgCacheMissesInc() },
-			"ASTTypeCacheHits":   func(m *metrics.MetricsState) { m.ASTTypeCacheHitsInc() },
-			"ASTTypeCacheMisses": func(m *metrics.MetricsState) { m.ASTTypeCacheMissesInc() },
+		incFuncs := map[string]func(m *metrics.Processor){
+			"ASTPkgCacheHits":    func(m *metrics.Processor) { m.ASTPkgCacheHitsInc() },
+			"ASTPkgCacheMisses":  func(m *metrics.Processor) { m.ASTPkgCacheMissesInc() },
+			"ASTTypeCacheHits":   func(m *metrics.Processor) { m.ASTTypeCacheHitsInc() },
+			"ASTTypeCacheMisses": func(m *metrics.Processor) { m.ASTTypeCacheMissesInc() },
 		}
 
 		for name, incFunc := range incFuncs {
@@ -127,11 +127,11 @@ func TestMetrics(t *testing.T) {
 	})
 
 	t.Run("single duration increment", func(t *testing.T) {
-		incFuncs := map[string]func(m *metrics.MetricsState, d time.Duration){
-			"ASTTotalLoadTime": func(m *metrics.MetricsState, d time.Duration) {
+		incFuncs := map[string]func(m *metrics.Processor, d time.Duration){
+			"ASTTotalLoadTime": func(m *metrics.Processor, d time.Duration) {
 				m.ASTTotalLoadTimeInc(d)
 			},
-			"TotalProcessingTime": func(m *metrics.MetricsState, d time.Duration) {
+			"TotalProcessingTime": func(m *metrics.Processor, d time.Duration) {
 				m.TotalProcessingTimeInc(d)
 			},
 		}

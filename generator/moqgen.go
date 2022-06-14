@@ -1,10 +1,12 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"go/token"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
@@ -19,6 +21,10 @@ const (
 	testPkgSuffix = "_test"
 )
 
+// ErrInvalidConfig is returned when configuration values are invalid or
+// conflict with each other
+var ErrInvalidConfig = errors.New("invalid configuration")
+
 // Type describes the type being converted into a mock
 type Type struct {
 	TypeSpec   *dst.TypeSpec
@@ -26,6 +32,11 @@ type Type struct {
 	InPkgPath  string
 	OutPkgPath string
 }
+
+//go:generate moqueries GetwdFunc
+
+// GetwdFunc is the signature of os.Getwd
+type GetwdFunc func() (string, error)
 
 //go:generate moqueries NewConverterFunc
 
@@ -51,6 +62,7 @@ type Converterer interface {
 // MoqGenerator generates moqs
 type MoqGenerator struct {
 	typeCache      TypeCache
+	getwdFn        GetwdFunc
 	newConverterFn NewConverterFunc
 }
 
@@ -65,31 +77,49 @@ type TypeCache interface {
 }
 
 // New returns a new MoqGenerator
-func New(typeCache TypeCache, newConverterFn NewConverterFunc) *MoqGenerator {
+func New(
+	typeCache TypeCache,
+	getwdFn GetwdFunc,
+	newConverterFn NewConverterFunc,
+) *MoqGenerator {
 	return &MoqGenerator{
 		typeCache:      typeCache,
+		getwdFn:        getwdFn,
 		newConverterFn: newConverterFn,
 	}
 }
 
 // Generate generates moqs for the given types in the given destination package
-func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File, error) {
-	outPkgPath, err := g.outPackagePath(req)
+func (g *MoqGenerator) Generate(req GenerateRequest) (*dst.File, string, error) {
+	relPath, err := g.relativePath(req.WorkingDir)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
-	fSet, file := initializeFile(outPkgPath)
+
+	outPkgPath, err := g.outPackagePath(req, relPath)
+	if err != nil {
+		return nil, "", err
+	}
+	file := initializeFile(outPkgPath)
+
+	imp := importPath(req.Import, relPath)
+
+	destPath, err := destinationPath(req, relPath)
+	if err != nil {
+		return nil, "", err
+	}
 
 	var decls []dst.Decl
 	for _, inType := range req.Types {
-		typeSpec, inPkgPath, err := g.typeCache.Type(*ast.IdPath(inType, req.Import), req.TestImport)
+		typeSpec, inPkgPath, err := g.typeCache.Type(
+			*ast.IdPath(inType, imp), req.TestImport)
 		if err != nil {
-			return nil, nil, err
+			return nil, "", err
 		}
 
 		funcs, tErr := g.findFuncs(typeSpec)
 		if tErr != nil {
-			return nil, nil, tErr
+			return nil, "", tErr
 		}
 
 		typ := Type{
@@ -102,7 +132,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 
 		structs, err := g.structs(converter, typ)
 		if err != nil {
-			return nil, nil, err
+			return nil, "", err
 		}
 		decls = append(decls, structs...)
 
@@ -116,12 +146,15 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 	}
 	file.Decls = decls
 
-	return fSet, file, nil
+	return file, destPath, nil
 }
 
-func (g *MoqGenerator) outPackagePath(req GenerateRequest) (string, error) {
-	dest := path.Join(req.DestinationDir, req.Destination)
-	outPkgPath, err := g.typeCache.FindPackage(filepath.Dir(dest))
+func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (string, error) {
+	destDir := path.Join(relPath, req.DestinationDir, req.Destination)
+	if strings.HasSuffix(destDir, ".go") {
+		destDir = filepath.Dir(destDir)
+	}
+	outPkgPath, err := g.typeCache.FindPackage(destDir)
 	if err != nil {
 		return "", err
 	}
@@ -136,7 +169,7 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest) (string, error) {
 	return outPkgPath, nil
 }
 
-func initializeFile(pkg string) (*token.FileSet, *dst.File) {
+func initializeFile(pkg string) *dst.File {
 	fSet := token.NewFileSet()
 
 	base := filepath.Base(pkg)
@@ -146,7 +179,41 @@ func initializeFile(pkg string) (*token.FileSet, *dst.File) {
 		logs.Panic("Could not create decorator", err)
 	}
 
-	return fSet, file
+	return file
+}
+
+func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
+	wd, err := g.getwdFn()
+	if err != nil {
+		return "", fmt.Errorf("error getting current working directory: %w", err)
+	}
+
+	if workingDir == wd {
+		return ".", nil
+	}
+
+	relPath, err := filepath.Rel(wd, workingDir)
+	if err != nil {
+		return "", fmt.Errorf("error getting relative import path from %s to %s: %w",
+			wd, workingDir, err)
+	}
+
+	return relPath, err
+}
+
+func importPath(imp, relPath string) string {
+	if imp != "." && !strings.HasPrefix(imp, "./") {
+		return imp
+	}
+
+	imp = filepath.Join(relPath, imp)
+	if strings.HasPrefix(imp, ".") {
+		return imp
+	}
+
+	// Relative imports must always start with a `.` and filepath.Join will
+	// remove a prefixed `./` of a relative path
+	return "./" + imp
 }
 
 func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
@@ -271,4 +338,34 @@ func (g *MoqGenerator) methods(
 	}
 
 	return decls
+}
+
+func destinationPath(req GenerateRequest, relPath string) (string, error) {
+	if req.Export && strings.HasSuffix(req.Destination, "_test.go") {
+		logs.Warn("Exported moq in a test file will not be accessible in" +
+			" other packages. Remove --export option or set the --destination" +
+			" to a non-test file.")
+	}
+
+	if req.Destination != "" && req.DestinationDir != "" {
+		return "", fmt.Errorf("%w: both --destination and"+
+			" --destination-dir flags must not be present together", ErrInvalidConfig)
+	}
+
+	destPath := req.Destination
+	if destPath == "" {
+		destPath = "moq_"
+		for n, typ := range req.Types {
+			destPath += strings.ToLower(typ)
+			if n+1 < len(req.Types) {
+				destPath += "_"
+			}
+		}
+		if !req.Export || (req.Package != "" && strings.HasSuffix(req.Package, testPkgSuffix)) {
+			destPath += testPkgSuffix
+		}
+		destPath += ".go"
+	}
+
+	return filepath.Join(relPath, req.DestinationDir, destPath), nil
 }

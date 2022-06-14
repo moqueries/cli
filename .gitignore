@@ -26,4 +26,3 @@ moq_*_dst.txt
 # other
 .envrc
 /.idea
-/.go

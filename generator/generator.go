@@ -1,13 +1,11 @@
+// Package generator generates Moqueries mocks
 package generator
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/dave/dst/decorator"
@@ -19,19 +17,16 @@ import (
 	"github.com/myshkin5/moqueries/metrics"
 )
 
-// ErrInvalidConfig is returned when configuration values are invalid or
-// conflict with each other
-var ErrInvalidConfig = errors.New("invalid configuration")
-
 // GenerateRequest contains all the parameters needed to call Generate
 type GenerateRequest struct {
-	Types          []string
-	Export         bool
-	Destination    string
-	DestinationDir string
-	Package        string
-	Import         string
-	TestImport     bool
+	Types          []string `json:"types"`
+	Export         bool     `json:"export"`
+	Destination    string   `json:"destination"`
+	DestinationDir string   `json:"destination-dir"`
+	Package        string   `json:"package"`
+	Import         string   `json:"import"`
+	TestImport     bool     `json:"test-import"`
+	WorkingDir     string   `json:"working-dir"`
 }
 
 // Generate generates a moq
@@ -51,38 +46,12 @@ func Generate(reqs ...GenerateRequest) error {
 }
 
 func generate(cache *ast.Cache, req GenerateRequest) error {
-	if req.Export && strings.HasSuffix(req.Destination, "_test.go") {
-		logs.Warn("Exported moq in a test file will not be accessible in" +
-			" other packages. Remove --export option or set the --destination" +
-			" to a non-test file.")
-	}
-
-	if req.Destination != "" && req.DestinationDir != "" {
-		return fmt.Errorf("both destination and destination dir flags"+
-			"must not be present together: %w", ErrInvalidConfig)
-	}
-
-	if req.Destination == "" {
-		dest := "moq_"
-		for n, typ := range req.Types {
-			dest += strings.ToLower(typ)
-			if n+1 < len(req.Types) {
-				dest += "_"
-			}
-		}
-		if !req.Export || (req.Package != "" && strings.HasSuffix(req.Package, testPkgSuffix)) {
-			dest += testPkgSuffix
-		}
-		dest += ".go"
-		req.Destination = dest
-	}
-
 	newConverterFn := func(typ Type, export bool) Converterer {
 		return NewConverter(typ, export, cache)
 	}
-	gen := New(cache, newConverterFn)
+	gen := New(cache, os.Getwd, newConverterFn)
 
-	_, file, err := gen.Generate(req)
+	file, destPath, err := gen.Generate(req)
 	if err != nil {
 		return fmt.Errorf("error generating moqs: %w", err)
 	}
@@ -99,17 +68,13 @@ func generate(cache *ast.Cache, req GenerateRequest) error {
 		}
 	}()
 
-	destDir := req.DestinationDir
-	if destDir == "" {
-		destDir = filepath.Dir(req.Destination)
-	}
+	destDir := filepath.Dir(destPath)
 	if _, err = os.Stat(destDir); os.IsNotExist(err) {
 		err = os.MkdirAll(destDir, os.ModePerm)
 		if err != nil {
-			wd, _ := os.Getwd()
 			logs.Errorf(
 				"Error creating destination directory %s from working director %s: %v",
-				destDir, wd, err)
+				destDir, req.WorkingDir, err)
 		}
 	}
 
@@ -119,12 +84,11 @@ func generate(cache *ast.Cache, req GenerateRequest) error {
 		return fmt.Errorf("invalid moq: %w", err)
 	}
 
-	out := path.Join(destDir, filepath.Base(req.Destination))
-	err = os.Rename(tempFile.Name(), out)
+	err = os.Rename(tempFile.Name(), destPath)
 	if err != nil {
 		logs.Debugf("Error removing destination file: %v", err)
 	}
-	logs.Debugf("Wrote file: %s", out)
+	logs.Debugf("Wrote file: %s", destPath)
 
 	return nil
 }

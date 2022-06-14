@@ -1,3 +1,5 @@
+// Package logs provides a simple logging abstraction geared towards command
+// line tool logging
 package logs
 
 import (
@@ -29,13 +31,14 @@ func IsDebug() bool {
 	return debug
 }
 
-// Debugf will output a debugging log if debug logs are configured
+// Debugf logs a formatted debugging message if debug logs are configured
 func Debugf(format string, args ...interface{}) {
 	if debug {
 		debugLogger.Printf(format, args...)
 	}
 }
 
+// Infof logs a formatted informational message
 func Infof(format string, args ...interface{}) {
 	log.Printf(format, args...)
 }
@@ -45,17 +48,17 @@ func Warn(msg string) {
 	warnLogger.Print(msg)
 }
 
-// Error logs a error message with an error
+// Error logs an error message with an error
 func Error(msg string, err error) {
 	errLogger.Printf(msg+": %v", err)
 }
 
-// Errorf logs a formatted message
+// Errorf logs a formatted error message
 func Errorf(format string, args ...interface{}) {
 	errLogger.Printf(format, args...)
 }
 
-// Panic logs a message with an error then panics
+// Panic logs a formatted message with an error then panics
 func Panic(msg string, err error) {
 	log.Panicf(msg+": %v", err)
 }

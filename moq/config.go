@@ -1,3 +1,4 @@
+// Package moq is used by test code to interact with Moqueries mocks
 package moq
 
 // ExpectationMode determines the behavior of a moq when a method is invoked

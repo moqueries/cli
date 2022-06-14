@@ -1260,43 +1260,38 @@ func TestDoFuncs(t *testing.T) {
 }
 
 func TestOptionalInvocations(t *testing.T) {
-	testOptionalSuccess := func(t *testing.T, entry adaptor, invocations int) {
-		// ASSEMBLE
-		scene.Reset()
-		moqScene.Reset()
-
-		tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
-
-		rec := entry.newRecorder([]string{"Hi", "you"}, true)
-		rec.returnResults([]string{"blue", "orange"}, nil)
-		rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
-
-		// ACT
-		for n := 0; n < invocations; n++ {
-			entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
-				results{sResults: []string{"blue", "orange"}, err: nil})
-		}
-
-		// ASSERT
-		scene.AssertExpectationsMet()
-		moqScene.AssertExpectationsMet()
+	subTestCases := map[string]int{
+		"success when optional invocations are not made": 2,
+		"success when optional invocations are made":     4,
 	}
 
-	t.Run("success when optional invocations are not made", func(t *testing.T) {
-		for name, entry := range testCases(t, moq.Config{}) {
-			t.Run(name, func(t *testing.T) {
-				testOptionalSuccess(t, entry, 2)
-			})
-		}
-	})
+	for subName, invocations := range subTestCases {
+		t.Run(subName, func(t *testing.T) {
+			for name, entry := range testCases(t, moq.Config{}) {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					scene.Reset()
+					moqScene.Reset()
 
-	t.Run("success when optional invocations are made", func(t *testing.T) {
-		for name, entry := range testCases(t, moq.Config{}) {
-			t.Run(name, func(t *testing.T) {
-				testOptionalSuccess(t, entry, 4)
-			})
-		}
-	})
+					tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+
+					rec := entry.newRecorder([]string{"Hi", "you"}, true)
+					rec.returnResults([]string{"blue", "orange"}, nil)
+					rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
+
+					// ACT
+					for n := 0; n < invocations; n++ {
+						entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
+							results{sResults: []string{"blue", "orange"}, err: nil})
+					}
+
+					// ASSERT
+					scene.AssertExpectationsMet()
+					moqScene.AssertExpectationsMet()
+				})
+			}
+		})
+	}
 
 	t.Run("failure when fewer than min invocations are not made", func(t *testing.T) {
 		for name, entry := range testCases(t, moq.Config{}) {
