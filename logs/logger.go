@@ -14,9 +14,9 @@ var (
 
 func init() {
 	debugLogger = log.New(os.Stdout, "DEBUG: ", log.LstdFlags)
-	errLogger = log.New(os.Stderr, "ERROR: ", log.LstdFlags)
 	warnLogger = log.New(os.Stderr, "WARNING: ", log.LstdFlags)
-	log.SetPrefix("DEBUG: ")
+	errLogger = log.New(os.Stderr, "ERROR: ", log.LstdFlags)
+	log.SetPrefix("INFO: ")
 }
 
 // Init initializes the loggers
@@ -24,11 +24,20 @@ func Init(dbg bool) {
 	debug = dbg
 }
 
+// IsDebug returns true if debug logging is enabled
+func IsDebug() bool {
+	return debug
+}
+
 // Debugf will output a debugging log if debug logs are configured
 func Debugf(format string, args ...interface{}) {
 	if debug {
 		debugLogger.Printf(format, args...)
 	}
+}
+
+func Infof(format string, args ...interface{}) {
+	log.Printf(format, args...)
 }
 
 // Warn logs a warning message

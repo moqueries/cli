@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/logs"
+	"github.com/myshkin5/moqueries/metrics"
 )
 
 // ErrInvalidConfig is returned when configuration values are invalid or
@@ -34,16 +36,21 @@ type GenerateRequest struct {
 
 // Generate generates a moq
 func Generate(reqs ...GenerateRequest) error {
+	m := metrics.NewMetrics(logs.IsDebug, logs.Debugf)
+	cache := ast.NewCache(packages.Load, m)
+	start := time.Now()
 	for _, req := range reqs {
-		err := generate(req)
+		err := generate(cache, req)
 		if err != nil {
 			return err
 		}
 	}
+	m.TotalProcessingTimeInc(time.Since(start))
+	m.Finalize()
 	return nil
 }
 
-func generate(req GenerateRequest) error {
+func generate(cache *ast.Cache, req GenerateRequest) error {
 	if req.Export && strings.HasSuffix(req.Destination, "_test.go") {
 		logs.Warn("Exported moq in a test file will not be accessible in" +
 			" other packages. Remove --export option or set the --destination" +
@@ -70,7 +77,6 @@ func generate(req GenerateRequest) error {
 		req.Destination = dest
 	}
 
-	cache := ast.NewCache(packages.Load)
 	newConverterFn := func(typ Type, export bool) Converterer {
 		return NewConverter(typ, export, cache)
 	}

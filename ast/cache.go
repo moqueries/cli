@@ -12,6 +12,7 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	"github.com/myshkin5/moqueries/logs"
+	"github.com/myshkin5/moqueries/metrics"
 )
 
 //go:generate moqueries LoadFn
@@ -30,7 +31,8 @@ var (
 
 // Cache loads types from the AST and caches the results
 type Cache struct {
-	load LoadFn
+	load    LoadFn
+	metrics metrics.Metrics
 
 	typesByIdent map[string]*dst.TypeSpec
 	loadedPkgs   map[string]*pkgInfo
@@ -44,9 +46,10 @@ type pkgInfo struct {
 }
 
 // NewCache returns a new empty Caches
-func NewCache(load LoadFn) *Cache {
+func NewCache(load LoadFn, metrics metrics.Metrics) *Cache {
 	return &Cache{
-		load: load,
+		load:    load,
+		metrics: metrics,
 
 		typesByIdent: make(map[string]*dst.TypeSpec),
 		loadedPkgs:   make(map[string]*pkgInfo),
@@ -184,10 +187,12 @@ func (c *Cache) loadPackage(path string, loadTestPkgs bool) (string, error) {
 		if loadedPkg.loadTestPkgs || !loadTestPkgs {
 			// If we direct loaded and indexed the types, we're done
 			if loadedPkg.directLoaded && loadedPkg.typesIndexed {
+				c.metrics.ASTPkgCacheHitsInc()
 				return loadedPkg.pkg.PkgPath, nil
 			}
 		}
 	}
+	c.metrics.ASTPkgCacheMissesInc()
 
 	pkgPath, err := c.loadTypes(path, loadTestPkgs)
 	if err != nil {
@@ -243,10 +248,12 @@ func (c *Cache) loadAST(loadPkg string, loadTestPkgs bool) ([]*pkgInfo, error) {
 		if dp.loadTestPkgs || !loadTestPkgs {
 			// If we direct loaded, we're done
 			if dp.directLoaded {
+				c.metrics.ASTTypeCacheHitsInc()
 				return []*pkgInfo{dp}, nil
 			}
 		}
 	}
+	c.metrics.ASTTypeCacheMissesInc()
 
 	start := time.Now()
 	pkgs, err := c.load(&packages.Config{
@@ -260,8 +267,10 @@ func (c *Cache) loadAST(loadPkg string, loadTestPkgs bool) ([]*pkgInfo, error) {
 			packages.NeedTypesSizes,
 		Tests: loadTestPkgs,
 	}, loadPkg)
+	loadTime := time.Since(start)
+	c.metrics.ASTTotalLoadTimeInc(loadTime)
 	logs.Debugf("Loading package %s (test packages: %t) took %s",
-		loadPkg, loadTestPkgs, time.Since(start).String())
+		loadPkg, loadTestPkgs, loadTime.String())
 	if err != nil {
 		return nil, err
 	}
