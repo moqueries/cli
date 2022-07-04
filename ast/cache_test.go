@@ -54,7 +54,54 @@ func TestCache(t *testing.T) {
 		pkgs []*packages.Package
 	)
 
-	beforeEach := func(t *testing.T, loadTestPkgs bool) {
+	pkg := func(testPkg bool, fs *token.FileSet) *packages.Package {
+		pkgPath := "the_pkg"
+		typePrefix := ""
+		if testPkg {
+			pkgPath += "_test"
+			typePrefix = "test_"
+		}
+
+		return &packages.Package{
+			Syntax: []*goAst.File{
+				{
+					Package: 1,
+					Decls: []goAst.Decl{
+						&goAst.GenDecl{
+							Specs: []goAst.Spec{
+								&goAst.TypeSpec{
+									Name: goAst.NewIdent(typePrefix + "type1"),
+									Type: &goAst.StructType{
+										Fields: &goAst.FieldList{},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					Package: 2,
+					Decls: []goAst.Decl{
+						&goAst.GenDecl{
+							Specs: []goAst.Spec{
+								&goAst.TypeSpec{
+									Name: goAst.NewIdent(typePrefix + "type2"),
+									Type: &goAst.StructType{
+										Fields: &goAst.FieldList{},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			TypesInfo: &types.Info{},
+			Fset:      fs,
+			GoFiles:   []string{"file1", "file2"},
+			PkgPath:   pkgPath,
+		}
+	}
+	beforeEach := func(t *testing.T, testImport bool) {
 		t.Helper()
 		if scene != nil {
 			t.Fatal("afterEach not called")
@@ -74,51 +121,19 @@ func TestCache(t *testing.T) {
 				packages.NeedSyntax |
 				packages.NeedTypesInfo |
 				packages.NeedTypesSizes,
-			Tests: loadTestPkgs,
+			Tests: testImport,
 		}
 
 		fs := token.NewFileSet()
 		fs.AddFile("file1", 1, 0)
 		fs.AddFile("file2", 2, 0)
 		pkgs = []*packages.Package{
-			{
-				Syntax: []*goAst.File{
-					{
-						Package: 1,
-						Decls: []goAst.Decl{
-							&goAst.GenDecl{
-								Specs: []goAst.Spec{
-									&goAst.TypeSpec{
-										Name: goAst.NewIdent("type1"),
-										Type: &goAst.StructType{
-											Fields: &goAst.FieldList{},
-										},
-									},
-								},
-							},
-						},
-					},
-					{
-						Package: 2,
-						Decls: []goAst.Decl{
-							&goAst.GenDecl{
-								Specs: []goAst.Spec{
-									&goAst.TypeSpec{
-										Name: goAst.NewIdent("type2"),
-										Type: &goAst.StructType{
-											Fields: &goAst.FieldList{},
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-				TypesInfo: &types.Info{},
-				Fset:      fs,
-				GoFiles:   []string{"file1", "file2"},
-				PkgPath:   "the-pkg",
-			},
+			pkg(false, fs),
+		}
+		if testImport {
+			// When loading test packages, the regular package typically
+			// precedes the test package
+			pkgs = append(pkgs, pkg(true, fs))
 		}
 	}
 
@@ -129,31 +144,72 @@ func TestCache(t *testing.T) {
 
 	t.Run("Type", func(t *testing.T) {
 		t.Run("simple load", func(t *testing.T) {
+			type testCase struct {
+				typeToLoad, expectedPkg string
+			}
+			testCases := map[bool]testCase{
+				false: {typeToLoad: "type1", expectedPkg: "the_pkg"},
+				true:  {typeToLoad: "test_type1", expectedPkg: "the_pkg_test"},
+			}
+
+			for testImport, tc := range testCases {
+				t.Run(fmt.Sprintf("testImport: %t", testImport), func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t, testImport)
+					defer afterEach()
+
+					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
+					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
+					loadFnMoq.onCall(loadCfg, ".").returnResults(pkgs, nil)
+					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
+
+					id := ast.IdPath(tc.typeToLoad, ".")
+
+					// ACT
+					actualType, actualPkg, actualErr := cache.Type(*id, testImport)
+
+					// ASSERT
+					if actualErr != nil {
+						t.Fatalf("got %#v, want no error", actualErr)
+					}
+
+					if actualType.Name.Name != tc.typeToLoad {
+						t.Errorf("got %#v, want %s", actualType.Name.Name, tc.typeToLoad)
+					}
+
+					if actualPkg != tc.expectedPkg {
+						t.Errorf("got %s, want %s", actualPkg, tc.expectedPkg)
+					}
+				})
+			}
+		})
+
+		t.Run("loads test package when given a test package", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t, true)
 			defer afterEach()
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
 			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, ".").returnResults(pkgs, nil)
+			loadFnMoq.onCall(loadCfg, "the_pkg").returnResults(pkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 
-			id := ast.IdPath("type1", ".")
+			id := ast.IdPath("test_type1", "the_pkg_test")
 
 			// ACT
-			actualType, actualPkg, actualErr := cache.Type(*id, true)
+			actualType, actualPkg, actualErr := cache.Type(*id, false)
 
 			// ASSERT
 			if actualErr != nil {
 				t.Fatalf("got %#v, want no error", actualErr)
 			}
 
-			if actualType.Name.Name != "type1" {
-				t.Errorf("got %#v, want type1", actualType.Name.Name)
+			if actualType.Name.Name != "test_type1" {
+				t.Errorf("got %#v, want test_type1", actualType.Name.Name)
 			}
 
-			if actualPkg != "the-pkg" {
-				t.Errorf("got %s, want the-pkg", actualPkg)
+			if actualPkg != "the_pkg_test" {
+				t.Errorf("got %s, want the_pkg_test", actualPkg)
 			}
 		})
 
@@ -194,11 +250,11 @@ func TestCache(t *testing.T) {
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
 			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, "the-pkg").
+			loadFnMoq.onCall(loadCfg, "the_pkg").
 				returnResults(pkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 
-			id := ast.IdPath("type3", "the-pkg")
+			id := ast.IdPath("type3", "the_pkg")
 
 			// ACT
 			actualType, actualPkg, actualErr := cache.Type(*id, false)
@@ -206,6 +262,9 @@ func TestCache(t *testing.T) {
 			// ASSERT
 			if actualErr == nil || !strings.Contains(actualErr.Error(), "not found") {
 				t.Errorf("got %#v, want to contain 'not found'", actualErr)
+			}
+			if !errors.Is(actualErr, ast.ErrTypeNotFound) {
+				t.Errorf("got %#v, want ast.ErrTypeNotFound", actualErr)
 			}
 
 			if actualType != nil {
@@ -219,7 +278,7 @@ func TestCache(t *testing.T) {
 
 		t.Run("load packages only once", func(t *testing.T) {
 			testCases := map[string]string{
-				"any package":     "the-pkg",
+				"any package":     "the_pkg",
 				"default package": ".",
 			}
 
@@ -236,7 +295,7 @@ func TestCache(t *testing.T) {
 					metricsMoq.OnCall().ASTPkgCacheHitsInc().ReturnResults()
 					_, _, _ = cache.Type(*ast.IdPath("type1", pkg), true)
 
-					id := ast.IdPath("type2", "the-pkg")
+					id := ast.IdPath("type2", "the_pkg")
 
 					// ACT
 					actualType, actualPkg, actualErr := cache.Type(*id, false)
@@ -250,8 +309,8 @@ func TestCache(t *testing.T) {
 						t.Errorf("got %#v, want type2", actualType.Name.Name)
 					}
 
-					if actualPkg != "the-pkg" {
-						t.Errorf("got %s, want 'the-pkg'", actualPkg)
+					if actualPkg != "the_pkg" {
+						t.Errorf("got %s, want 'the_pkg'", actualPkg)
 					}
 				})
 			}
@@ -262,46 +321,25 @@ func TestCache(t *testing.T) {
 			beforeEach(t, false)
 			defer afterEach()
 
+			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
+			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
+			loadFnMoq.onCall(loadCfg, "the_pkg").returnResults(pkgs, nil)
+			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
+			_, _, _ = cache.Type(*ast.IdPath("type1", "the_pkg"), false)
+
+			loadCfg.Tests = true
+
 			fs := token.NewFileSet()
 			fs.AddFile("file1", 1, 0)
-			nonTestPkgs := []*packages.Package{
-				{
-					Syntax: []*goAst.File{
-						{
-							Package: 1,
-							Decls: []goAst.Decl{
-								&goAst.GenDecl{
-									Specs: []goAst.Spec{
-										&goAst.TypeSpec{
-											Name: goAst.NewIdent("type1"),
-											Type: &goAst.StructType{
-												Fields: &goAst.FieldList{},
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					TypesInfo: &types.Info{},
-					Fset:      fs,
-					GoFiles:   []string{"file1"},
-					PkgPath:   "the-pkg",
-				},
-			}
+			fs.AddFile("file2", 2, 0)
+			pkgs = append(pkgs, pkg(true, fs))
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
 			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, "the-pkg").returnResults(nonTestPkgs, nil)
-			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
-			_, _, _ = cache.Type(*ast.IdPath("type1", "the-pkg"), false)
-			loadCfg.Tests = true
-			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, "the-pkg").returnResults(pkgs, nil)
+			loadFnMoq.onCall(loadCfg, "the_pkg").returnResults(pkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 
-			id := ast.IdPath("type2", "the-pkg")
+			id := ast.IdPath("test_type2", "the_pkg")
 
 			// ACT
 			actualType, actualPkg, actualErr := cache.Type(*id, true)
@@ -311,12 +349,12 @@ func TestCache(t *testing.T) {
 				t.Fatalf("got %#v, want no error", actualErr)
 			}
 
-			if actualType.Name.Name != "type2" {
-				t.Errorf("got %#v, want type2", actualType.Name.Name)
+			if actualType.Name.Name != "test_type2" {
+				t.Errorf("got %#v, want test_type2", actualType.Name.Name)
 			}
 
-			if actualPkg != "the-pkg" {
-				t.Errorf("got %s, want 'the-pkg'", actualPkg)
+			if actualPkg != "the_pkg_test" {
+				t.Errorf("got %s, want 'the_pkg_test'", actualPkg)
 			}
 		})
 	})
@@ -639,7 +677,7 @@ type e struct {
 		metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults().Repeat(moq.AnyTimes())
 
 		typ, _, err := cache.Type(
-			*ast.IdPath("TypeCache", "github.com/myshkin5/moqueries/generator"), true)
+			*ast.IdPath("TypeCache", "github.com/myshkin5/moqueries/generator"), false)
 		if err != nil {
 			t.Fatalf("got %#v, want no error", err)
 		}
@@ -672,18 +710,18 @@ type e struct {
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
 			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, "./the-pkg").returnResults(pkgs, nil)
+			loadFnMoq.onCall(loadCfg, "./the_pkg").returnResults(pkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 
 			// ACT
-			pkgPath, err := cache.FindPackage("the-pkg")
+			pkgPath, err := cache.FindPackage("the_pkg")
 			// ASSERT
 			if err != nil {
 				t.Fatalf("got %#v, want no error", err)
 			}
 
-			if pkgPath != "the-pkg" {
-				t.Errorf("got %s, want the-pkg", pkgPath)
+			if pkgPath != "the_pkg" {
+				t.Errorf("got %s, want the_pkg", pkgPath)
 			}
 		})
 
@@ -704,8 +742,8 @@ type e struct {
 				t.Fatalf("got %#v, want no error", err)
 			}
 
-			if pkgPath != "the-pkg" {
-				t.Errorf("got %s, want the-pkg", pkgPath)
+			if pkgPath != "the_pkg" {
+				t.Errorf("got %s, want the_pkg", pkgPath)
 			}
 		})
 
@@ -726,8 +764,8 @@ type e struct {
 				t.Fatalf("got %#v, want no error", err)
 			}
 
-			if pkgPath != "the-pkg" {
-				t.Errorf("got %s, want the-pkg", pkgPath)
+			if pkgPath != "the_pkg" {
+				t.Errorf("got %s, want the_pkg", pkgPath)
 			}
 		})
 	})

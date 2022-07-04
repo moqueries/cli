@@ -26,8 +26,8 @@ type moqTypeCache struct {
 	runtime struct {
 		parameterIndexing struct {
 			Type struct {
-				id           moq.ParamIndexing
-				loadTestPkgs moq.ParamIndexing
+				id         moq.ParamIndexing
+				testImport moq.ParamIndexing
 			}
 			IsComparable struct {
 				expr moq.ParamIndexing
@@ -54,16 +54,16 @@ type moqTypeCache_recorder struct {
 
 // moqTypeCache_Type_params holds the params of the TypeCache type
 type moqTypeCache_Type_params struct {
-	id           dst.Ident
-	loadTestPkgs bool
+	id         dst.Ident
+	testImport bool
 }
 
 // moqTypeCache_Type_paramsKey holds the map key params of the TypeCache type
 type moqTypeCache_Type_paramsKey struct {
-	params struct{ loadTestPkgs bool }
+	params struct{ testImport bool }
 	hashes struct {
-		id           hash.Hash
-		loadTestPkgs hash.Hash
+		id         hash.Hash
+		testImport hash.Hash
 	}
 }
 
@@ -75,10 +75,10 @@ type moqTypeCache_Type_resultsByParams struct {
 }
 
 // moqTypeCache_Type_doFn defines the type of function needed when calling andDo for the TypeCache type
-type moqTypeCache_Type_doFn func(id dst.Ident, loadTestPkgs bool)
+type moqTypeCache_Type_doFn func(id dst.Ident, testImport bool)
 
 // moqTypeCache_Type_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
-type moqTypeCache_Type_doReturnFn func(id dst.Ident, loadTestPkgs bool) (*dst.TypeSpec, string, error)
+type moqTypeCache_Type_doReturnFn func(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
 
 // moqTypeCache_Type_results holds the results of the TypeCache type
 type moqTypeCache_Type_results struct {
@@ -280,8 +280,8 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 		runtime: struct {
 			parameterIndexing struct {
 				Type struct {
-					id           moq.ParamIndexing
-					loadTestPkgs moq.ParamIndexing
+					id         moq.ParamIndexing
+					testImport moq.ParamIndexing
 				}
 				IsComparable struct {
 					expr moq.ParamIndexing
@@ -295,8 +295,8 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 			}
 		}{parameterIndexing: struct {
 			Type struct {
-				id           moq.ParamIndexing
-				loadTestPkgs moq.ParamIndexing
+				id         moq.ParamIndexing
+				testImport moq.ParamIndexing
 			}
 			IsComparable struct {
 				expr moq.ParamIndexing
@@ -309,11 +309,11 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 			}
 		}{
 			Type: struct {
-				id           moq.ParamIndexing
-				loadTestPkgs moq.ParamIndexing
+				id         moq.ParamIndexing
+				testImport moq.ParamIndexing
 			}{
-				id:           moq.ParamIndexByHash,
-				loadTestPkgs: moq.ParamIndexByValue,
+				id:         moq.ParamIndexByHash,
+				testImport: moq.ParamIndexByValue,
 			},
 			IsComparable: struct {
 				expr moq.ParamIndexing
@@ -341,11 +341,11 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 // mock returns the mock implementation of the TypeCache type
 func (m *moqTypeCache) mock() *moqTypeCache_mock { return m.moq }
 
-func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
+func (m *moqTypeCache_mock) Type(id dst.Ident, testImport bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
 	m.moq.scene.T.Helper()
 	params := moqTypeCache_Type_params{
-		id:           id,
-		loadTestPkgs: loadTestPkgs,
+		id:         id,
+		testImport: testImport,
 	}
 	var results *moqTypeCache_Type_results
 	for _, resultsByParams := range m.moq.resultsByParams_Type {
@@ -383,7 +383,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.
 	}
 
 	if result.doFn != nil {
-		result.doFn(id, loadTestPkgs)
+		result.doFn(id, testImport)
 	}
 
 	if result.values != nil {
@@ -392,7 +392,7 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, loadTestPkgs bool) (result1 *dst.
 		result3 = result.values.result3
 	}
 	if result.doReturnFn != nil {
-		result1, result2, result3 = result.doReturnFn(id, loadTestPkgs)
+		result1, result2, result3 = result.doReturnFn(id, testImport)
 	}
 	return
 }
@@ -566,11 +566,11 @@ func (m *moqTypeCache) onCall() *moqTypeCache_recorder {
 	}
 }
 
-func (m *moqTypeCache_recorder) Type(id dst.Ident, loadTestPkgs bool) *moqTypeCache_Type_fnRecorder {
+func (m *moqTypeCache_recorder) Type(id dst.Ident, testImport bool) *moqTypeCache_Type_fnRecorder {
 	return &moqTypeCache_Type_fnRecorder{
 		params: moqTypeCache_Type_params{
-			id:           id,
-			loadTestPkgs: loadTestPkgs,
+			id:         id,
+			testImport: testImport,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -591,7 +591,7 @@ func (a *moqTypeCache_Type_anyParams) id() *moqTypeCache_Type_fnRecorder {
 	return a.recorder
 }
 
-func (a *moqTypeCache_Type_anyParams) loadTestPkgs() *moqTypeCache_Type_fnRecorder {
+func (a *moqTypeCache_Type_anyParams) testImport() *moqTypeCache_Type_fnRecorder {
 	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
@@ -760,7 +760,7 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 }
 
 func (m *moqTypeCache) prettyParams_Type(params moqTypeCache_Type_params) string {
-	return fmt.Sprintf("Type(%#v, %#v)", params.id, params.loadTestPkgs)
+	return fmt.Sprintf("Type(%#v, %#v)", params.id, params.testImport)
 }
 
 func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams uint64) moqTypeCache_Type_paramsKey {
@@ -771,25 +771,25 @@ func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams
 		}
 		idUsedHash = hash.DeepHash(params.id)
 	}
-	var loadTestPkgsUsed bool
-	var loadTestPkgsUsedHash hash.Hash
+	var testImportUsed bool
+	var testImportUsedHash hash.Hash
 	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Type.loadTestPkgs == moq.ParamIndexByValue {
-			loadTestPkgsUsed = params.loadTestPkgs
+		if m.runtime.parameterIndexing.Type.testImport == moq.ParamIndexByValue {
+			testImportUsed = params.testImport
 		} else {
-			loadTestPkgsUsedHash = hash.DeepHash(params.loadTestPkgs)
+			testImportUsedHash = hash.DeepHash(params.testImport)
 		}
 	}
 	return moqTypeCache_Type_paramsKey{
-		params: struct{ loadTestPkgs bool }{
-			loadTestPkgs: loadTestPkgsUsed,
+		params: struct{ testImport bool }{
+			testImport: testImportUsed,
 		},
 		hashes: struct {
-			id           hash.Hash
-			loadTestPkgs hash.Hash
+			id         hash.Hash
+			testImport hash.Hash
 		}{
-			id:           idUsedHash,
-			loadTestPkgs: loadTestPkgsUsedHash,
+			id:         idUsedHash,
+			testImport: testImportUsedHash,
 		},
 	}
 }

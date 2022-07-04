@@ -17,6 +17,10 @@ import (
 
 //go:generate moqueries LoadFn
 
+const (
+	testPkgSuffix = "_test"
+)
+
 // LoadFn is the function type of packages.Load
 type LoadFn func(cfg *packages.Config, patterns ...string) ([]*packages.Package, error)
 
@@ -57,10 +61,21 @@ func NewCache(load LoadFn, metrics metrics.Metrics) *Cache {
 }
 
 // Type returns the requested TypeSpec or an error if the type can't be found
-func (c *Cache) Type(id dst.Ident, loadTestPkgs bool) (*dst.TypeSpec, string, error) {
-	pkgPath, err := c.loadPackage(id.Path, loadTestPkgs)
+func (c *Cache) Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error) {
+	if strings.HasSuffix(id.Path, testPkgSuffix) {
+		// Strip the _test suffix when loading a package but set testImport so
+		// we know to add it back later
+		id.Path = strings.TrimSuffix(id.Path, testPkgSuffix)
+		testImport = true
+	}
+
+	pkgPath, err := c.loadPackage(id.Path, testImport)
 	if err != nil {
 		return nil, "", err
+	}
+
+	if testImport && !strings.HasSuffix(pkgPath, testPkgSuffix) {
+		pkgPath += testPkgSuffix
 	}
 
 	realId := IdPath(id.Name, pkgPath).String()
@@ -179,12 +194,12 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 	return true, nil
 }
 
-func (c *Cache) loadPackage(path string, loadTestPkgs bool) (string, error) {
+func (c *Cache) loadPackage(path string, testImport bool) (string, error) {
 	loadedPkg, ok := c.loadedPkgs[path]
 	if ok {
 		// If we already loaded the test packages or if the test packages
 		// aren't requested, we're done
-		if loadedPkg.loadTestPkgs || !loadTestPkgs {
+		if loadedPkg.loadTestPkgs || !testImport {
 			// If we direct loaded and indexed the types, we're done
 			if loadedPkg.directLoaded && loadedPkg.typesIndexed {
 				c.metrics.ASTPkgCacheHitsInc()
@@ -194,7 +209,7 @@ func (c *Cache) loadPackage(path string, loadTestPkgs bool) (string, error) {
 	}
 	c.metrics.ASTPkgCacheMissesInc()
 
-	pkgPath, err := c.loadTypes(path, loadTestPkgs)
+	pkgPath, err := c.loadTypes(path, testImport)
 	if err != nil {
 		return "", err
 	}
@@ -207,8 +222,8 @@ func (c *Cache) loadPackage(path string, loadTestPkgs bool) (string, error) {
 	return pkgPath, nil
 }
 
-func (c *Cache) loadTypes(loadPkg string, loadTestPkgs bool) (string, error) {
-	pkgs, err := c.loadAST(loadPkg, loadTestPkgs)
+func (c *Cache) loadTypes(loadPkg string, testImport bool) (string, error) {
+	pkgs, err := c.loadAST(loadPkg, testImport)
 	if err != nil {
 		return "", err
 	}
@@ -241,11 +256,11 @@ func (c *Cache) loadTypes(loadPkg string, loadTestPkgs bool) (string, error) {
 	return foundPkg, nil
 }
 
-func (c *Cache) loadAST(loadPkg string, loadTestPkgs bool) ([]*pkgInfo, error) {
+func (c *Cache) loadAST(loadPkg string, testImport bool) ([]*pkgInfo, error) {
 	if dp, ok := c.loadedPkgs[loadPkg]; ok {
 		// If we already loaded the test types or if the test types aren't
 		// requested, we're done
-		if dp.loadTestPkgs || !loadTestPkgs {
+		if dp.loadTestPkgs || !testImport {
 			// If we direct loaded, we're done
 			if dp.directLoaded {
 				c.metrics.ASTTypeCacheHitsInc()
@@ -265,19 +280,19 @@ func (c *Cache) loadAST(loadPkg string, loadTestPkgs bool) ([]*pkgInfo, error) {
 			packages.NeedSyntax |
 			packages.NeedTypesInfo |
 			packages.NeedTypesSizes,
-		Tests: loadTestPkgs,
+		Tests: testImport,
 	}, loadPkg)
 	loadTime := time.Since(start)
 	c.metrics.ASTTotalLoadTimeInc(loadTime)
 	logs.Debugf("Loading package %s (test packages: %t) took %s",
-		loadPkg, loadTestPkgs, loadTime.String())
+		loadPkg, testImport, loadTime.String())
 	if err != nil {
 		return nil, err
 	}
 
 	var out []*pkgInfo
 	for _, pkg := range pkgs {
-		p, cErr := c.convert(pkg, loadTestPkgs, true)
+		p, cErr := c.convert(pkg, testImport, true)
 		if cErr != nil {
 			return nil, cErr
 		}
@@ -288,10 +303,10 @@ func (c *Cache) loadAST(loadPkg string, loadTestPkgs bool) ([]*pkgInfo, error) {
 }
 
 // convert was copied from github.com/dave/dst/decorator.Load with minor modifications
-func (c *Cache) convert(pkg *packages.Package, loadTestPkgs, directLoaded bool) (*pkgInfo, error) {
+func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*pkgInfo, error) {
 	p := &pkgInfo{
 		directLoaded: directLoaded,
-		loadTestPkgs: loadTestPkgs,
+		loadTestPkgs: testImport,
 		pkg: &decorator.Package{
 			Package: pkg,
 			Imports: map[string]*decorator.Package{},

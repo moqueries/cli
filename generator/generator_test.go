@@ -12,6 +12,15 @@ import (
 	"github.com/myshkin5/moqueries/generator"
 )
 
+//go:generate moqueries --test-import testInterface
+
+// testInterface verifies that the generator can access types in the test
+// package
+//nolint:deadcode,unused // Used by go:generate to verify accessibility
+type testInterface interface {
+	something()
+}
+
 func TestGenerating(t *testing.T) {
 	t.Run("generates lots of different types of moqs which are then tested by testmoqs", func(t *testing.T) {
 		if testing.Short() {

@@ -299,6 +299,7 @@ Interfaces and function types are separated by whitespace. Multiple types may be
 | `--export`                | `bool`   | `false`                                                                                                                              | If true, generated mocks will be exported and accessible from other packages                                                                    |
 | `--import <name>`         | `string` | `.` (the directory containing generate directive)                                                                                    | The package containing the type (interface or function type) to be mocked                                                                       |
 | `--package <name>`        | `string` | The test package of the destination directory when `--export=false` or the package of the destination directory when `--export=true` | The package to generate code into                                                                                                               |
+| `--test-import`           | `bool`   | `false`                                                                                                                              | Indicates that the types are defined in the test package                                                                                        |
 
 Values specified after an option are separated from the option by whitespace (`--destination moq_isfavorite_test.go`) or by an equal sign (`--destination=moq_isfavorite_test.go`).
 
