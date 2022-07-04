@@ -3,7 +3,7 @@ module github.com/myshkin5/moqueries
 go 1.18
 
 require (
-	github.com/dave/dst v0.26.2
+	github.com/dave/dst v0.27.0
 	github.com/davegardnerisme/deephash v0.0.0-20210406090112-6d072427d830
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/text v0.3.7
