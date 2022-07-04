@@ -5,7 +5,6 @@ import (
 	"go/token"
 	"path"
 	"path/filepath"
-	"strings"
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
@@ -59,7 +58,7 @@ type MoqGenerator struct {
 
 // TypeCache defines the interface to the Cache type
 type TypeCache interface {
-	Type(id dst.Ident, loadTestPkgs bool) (*dst.TypeSpec, string, error)
+	Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
 	IsComparable(expr dst.Expr) (bool, error)
 	IsDefaultComparable(expr dst.Expr) (bool, error)
 	FindPackage(dir string) (string, error)
@@ -83,7 +82,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*token.FileSet, *dst.File,
 
 	var decls []dst.Decl
 	for _, inType := range req.Types {
-		typeSpec, inPkgPath, err := g.loadInType(inType, req.Import, req.TestImport)
+		typeSpec, inPkgPath, err := g.typeCache.Type(*ast.IdPath(inType, req.Import), req.TestImport)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -148,16 +147,6 @@ func initializeFile(pkg string) (*token.FileSet, *dst.File) {
 	}
 
 	return fSet, file
-}
-
-func (g *MoqGenerator) loadInType(inType, imp string, loadTestPkgs bool) (
-	*dst.TypeSpec, string, error,
-) {
-	if strings.HasSuffix(imp, testPkgSuffix) {
-		imp = strings.TrimSuffix(imp, testPkgSuffix)
-		loadTestPkgs = true
-	}
-	return g.typeCache.Type(*ast.IdPath(inType, imp), loadTestPkgs)
 }
 
 func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
