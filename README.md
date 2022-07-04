@@ -299,6 +299,7 @@ Interfaces and function types are separated by whitespace. Multiple types may be
 | `--export`                | `bool`   | `false`                                                                                                                              | If true, generated mocks will be exported and accessible from other packages                                                                    |
 | `--import <name>`         | `string` | `.` (the directory containing generate directive)                                                                                    | The package containing the type (interface or function type) to be mocked                                                                       |
 | `--package <name>`        | `string` | The test package of the destination directory when `--export=false` or the package of the destination directory when `--export=true` | The package to generate code into                                                                                                               |
+| `--test-import`           | `bool`   | `false`                                                                                                                              | Indicates that the types are defined in the test package                                                                                        |
 
 Values specified after an option are separated from the option by whitespace (`--destination moq_isfavorite_test.go`) or by an equal sign (`--destination=moq_isfavorite_test.go`).
 
@@ -312,3 +313,16 @@ The Moqueries command line can also be controlled by the following environment v
 | Name        | Usage                                                                                                                                                                                                       |
 |-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `MOQ_DEBUG` | If set to a "true" value (see [`strconv.ParseBool`](https://pkg.go.dev/strconv#ParseBool)), debugging output will be logged (also see `--debug` in [Command line reference](#command-line-reference) above) |
+
+### Subcommands
+
+#### Default
+The default subcommand generates one or more mocks based on the command specified. As described [above](#generating-mocks), this is typically invoked by a `go:generate` directive. The default subcommand is invoked when no subcommand is specified.
+
+#### Summarize metrics
+The `summarize-metrics` subcommand takes the debug logs from multiple generate runs (using the [default](#default) subcommand), reads metrics from each individual run, and outputs summary metrics. This subcommand takes a single, optional argument specifying the log file to read. If no file is specified or if the file is specified as `-', standard in is read.
+
+The following command generates all mocks specified in `go:generate` directives and summarizes the metrics for all runs:
+```shell
+$ MOQ_DEBUG=true go generate ./... | moqueries summarize-metrics
+```

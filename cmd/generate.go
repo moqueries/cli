@@ -1,69 +1,85 @@
 package cmd
 
 import (
-	"os"
-	"strconv"
-
 	"github.com/spf13/cobra"
 
 	"github.com/myshkin5/moqueries/generator"
 	"github.com/myshkin5/moqueries/logs"
 )
 
+const (
+	exportFlag = "export"
+
+	destinationFlag    = "destination"
+	destinationDirFlag = "destination-dir"
+
+	packageFlag    = "package"
+	importFlag     = "import"
+	testImportFlag = "test-import"
+)
+
+func addGenerateFlags() {
+	rootCmd.Flags().Bool(exportFlag, false,
+		"If true, generated mocks will be exported and accessible from other packages")
+
+	rootCmd.Flags().String(destinationFlag, "",
+		"The file path where mocks are generated relative to the directory "+
+			"containing the generate directive (or relative to the current directory) "+
+			"(defaults to ./moq_<type>.go when exported or ./moq_<type>_test.go "+
+			"when not exported)")
+	rootCmd.Flags().String(destinationDirFlag, "",
+		"The file directory where mocks are generated relative to the directory "+
+			"containing the generate directive (or relative to the current directory) "+
+			"(defaults to .)")
+
+	rootCmd.Flags().String(packageFlag, "",
+		"The package to generate code into (defaults to the test package of the "+
+			"destination directory when --export=false or the package of the "+
+			"destination directory when --export=true)")
+	rootCmd.Flags().String(importFlag, ".",
+		"The package containing the type (interface or function type) to be "+
+			"mocked (defaults to the directory containing generate directive)")
+	rootCmd.Flags().Bool(testImportFlag, false,
+		"Look for the types to be mocked in the test package")
+}
+
 // generate gathers details on the environment and calls the generator
 func generate(cmd *cobra.Command, typs []string) {
-	debug, err := cmd.PersistentFlags().GetBool(debugFlag)
-	if err != nil {
-		logs.Panic("Error getting debug flag", err)
-	}
-	export, err := cmd.PersistentFlags().GetBool(exportFlag)
+	rootSetup(cmd)
+
+	export, err := cmd.Flags().GetBool(exportFlag)
 	if err != nil {
 		logs.Panic("Error getting export flag", err)
 	}
-	dest, err := cmd.PersistentFlags().GetString(destinationFlag)
+	dest, err := cmd.Flags().GetString(destinationFlag)
 	if err != nil {
 		logs.Panic("Error getting destination flag", err)
 	}
-	destDir, err := cmd.PersistentFlags().GetString(destinationDirFlag)
+	destDir, err := cmd.Flags().GetString(destinationDirFlag)
 	if err != nil {
 		logs.Panic("Error getting destination dir flag", err)
 	}
-	pkg, err := cmd.PersistentFlags().GetString(packageFlag)
+	pkg, err := cmd.Flags().GetString(packageFlag)
 	if err != nil {
 		logs.Panic("Error getting package flag", err)
 	}
-	imp, err := cmd.PersistentFlags().GetString(importFlag)
+	imp, err := cmd.Flags().GetString(importFlag)
 	if err != nil {
 		logs.Panic("Error getting import flag", err)
 	}
-	testImp, err := cmd.PersistentFlags().GetBool(testImportFlag)
+	testImp, err := cmd.Flags().GetBool(testImportFlag)
 	if err != nil {
 		logs.Panic("Error getting test-import flag", err)
 	}
 
-	debugStr, ok := os.LookupEnv("MOQ_DEBUG")
-	if ok {
-		debugEnvVar, err := strconv.ParseBool(debugStr)
-		if err != nil {
-			logs.Panic("Error parsing MOQ_DEBUG environment variable", err)
-		}
-		debug = debug || debugEnvVar
-	}
-
-	logs.Init(debug)
-	if debug {
-		cwd, _ := os.Getwd()
-		logs.Debugf("Moqueries invoked,"+
-			" debug: %t,"+
-			" export: %t,"+
-			" destination: %s,"+
-			" destination-dir: %s,"+
-			" package: %s,"+
-			" import: %s,"+
-			" types: %s,"+
-			" current working directory: %s",
-			debug, export, dest, destDir, pkg, imp, typs, cwd)
-	}
+	logs.Debugf("Moqueries generate invoked,"+
+		" export: %t,"+
+		" destination: %s,"+
+		" destination-dir: %s,"+
+		" package: %s,"+
+		" import: %s,"+
+		" types: %s",
+		export, dest, destDir, pkg, imp, typs)
 
 	err = generator.Generate(generator.GenerateRequest{
 		Types:          typs,
