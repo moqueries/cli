@@ -188,7 +188,7 @@ func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
 		return "", fmt.Errorf("error getting current working directory: %w", err)
 	}
 
-	if workingDir == wd {
+	if workingDir == wd || workingDir == "" {
 		return ".", nil
 	}
 

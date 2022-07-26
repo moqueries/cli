@@ -33,7 +33,8 @@ func TestScene(t *testing.T) {
 		testScene.AddMoq(moq2.mock())
 	}
 
-	afterEach := func() {
+	afterEach := func(t *testing.T) {
+		t.Helper()
 		scene.AssertExpectationsMet()
 		scene = nil
 	}
@@ -41,6 +42,8 @@ func TestScene(t *testing.T) {
 	t.Run("resets all of its moqs", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach(t)
+
 		moq1.onCall().Reset().returnResults()
 		moq2.onCall().Reset().returnResults()
 
@@ -48,12 +51,14 @@ func TestScene(t *testing.T) {
 		testScene.Reset()
 
 		// ASSERT
-		afterEach()
 	})
 
 	t.Run("asserts all of its moqs meet expectations", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach(t)
+
+		tMoq.OnCall().Helper().ReturnResults()
 		moq1.onCall().AssertExpectationsMet().returnResults()
 		moq2.onCall().AssertExpectationsMet().returnResults()
 
@@ -61,12 +66,12 @@ func TestScene(t *testing.T) {
 		testScene.AssertExpectationsMet()
 
 		// ASSERT
-		afterEach()
 	})
 
 	t.Run("returns the same MoqT it is given", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
+		defer afterEach(t)
 
 		// ACT
 		actualMoqT := testScene.T
@@ -75,6 +80,5 @@ func TestScene(t *testing.T) {
 		if actualMoqT != moqT {
 			t.Errorf("got %#v, wanted %#v", actualMoqT, moqT)
 		}
-		afterEach()
 	})
 }

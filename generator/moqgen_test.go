@@ -348,6 +348,22 @@ func TestMoqGenerator(t *testing.T) {
 				typePath:   ".",
 				destPath:   "file_test.go",
 			},
+			"req working dir not set": {
+				request: generator.GenerateRequest{
+					Types:       types,
+					Export:      false,
+					Destination: "file_test.go",
+					Package:     "",
+					Import:      ".",
+					TestImport:  false,
+				},
+				findPkgDir: ".",
+				findPkgOut: "thispkg",
+				outPkgPath: "thispkg_test",
+				getwdDir:   "/some-nice-path",
+				typePath:   ".",
+				destPath:   "file_test.go",
+			},
 			"current working dir parent of req working dir": {
 				request: generator.GenerateRequest{
 					Types:       types,

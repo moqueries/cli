@@ -17,6 +17,7 @@ linters:
   - maintidx
   - maligned
   - nlreturn
+  - nosnakecase
   - paralleltest
   - prealloc
   - predeclared

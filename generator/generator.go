@@ -26,7 +26,12 @@ type GenerateRequest struct {
 	Package        string   `json:"package"`
 	Import         string   `json:"import"`
 	TestImport     bool     `json:"test-import"`
-	WorkingDir     string   `json:"working-dir"`
+	// WorkingDir is the current working directory. Optional, in which case
+	// os.Getwd is used. Useful in cases where a request is serialized then
+	// rerun in bulk processing from a different working directory. WorkingDir
+	// is used for relative-path imports and relative path destination
+	// files/directories.
+	WorkingDir string `json:"working-dir"`
 }
 
 // Generate generates a moq
