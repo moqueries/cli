@@ -33,7 +33,8 @@ jobs:
           MOQ_DEBUG=true moqueries bulk-finalize
 
           # fail if working directory is dirty
-          git diff --quiet || (echo "Working directory dirty" && exit 1)
+          git status --short
+          [[ -n $(git status --short) ]] && (echo "Working directory dirty" && exit 1)
 
     - run:
         name: Run tests
