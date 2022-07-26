@@ -34,7 +34,10 @@ jobs:
 
           # fail if working directory is dirty
           git status --short
-          [[ -n $(git status --short) ]] && (echo "Working directory dirty" && exit 1)
+          if [[ -n $(git status --short) ]]; then
+            echo "Working directory dirty"
+            exit 1
+          fi
 
     - run:
         name: Run tests
