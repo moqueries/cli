@@ -249,6 +249,22 @@ Quite often tests will require several mocks. A `Scene` is a collection of mocks
 scene.AssertExpectationsMet()
 ```
 
+## Bulk generation
+Generating mock can be CPU intensive! Additionally, Moqueries only knows the package where to look for a type so the entire package has to be parsed. And to top it off, you will quite often mock several types from the same package. To avoid re-parsing the same package repeatedly, Moqueries has a bulk mode that can best be described by these three steps:
+1. Initialize the bulk processing file
+2. `go generate ./...`
+3. Finalize the bulk processing (and generate all the mocks)
+
+Moqueries [CI/CD pipeline](.circleci/config.yml) accomplishes this with the following few commands:
+```shell
+export MOQ_BULK_STATE_FILE=$(mktemp --tmpdir= moq-XXXXXX)
+moqueries bulk-initialize
+go generate ./...
+moqueries bulk-finalize
+```
+
+The first line creates a new temporary file to hold the state. The second line initializes the file (holds on to some global attributes to ensure consistency). The third line is the standard `go generate` line but because `MOQ_BULK_STATE_FILE` is defined, it only records the intent to generate a new mock. The forth and final line is where the work actually occurs, and it might take some time depending on how many mocks you want to generate. See more details below in the [Command line reference](#command-line-reference).
+
 ## More command line options
 Below is a loose collection of out-of-the-ordinary command line options for use in out-of-the-ordinary situations.
 
@@ -285,8 +301,8 @@ writerMoq.OnCall().Write([]byte("3")).ReturnResults(0, fmt.Errorf("couldn't writ
 ## Command line reference
 The Moqueries command line has the following form:
 
-```bash
-$ moqueries [options] [interfaces and/or function types to mock] [options]
+```shell
+moqueries [options] [interfaces and/or function types to mock] [options]
 ```
 
 Interfaces and function types are separated by whitespace. Multiple types may be specified.
@@ -297,6 +313,7 @@ Interfaces and function types are separated by whitespace. Multiple types may be
 | `--destination <file>`    | `string` | `./moq_<type>.go` when exported or `./moq_<type>_test.go` when not exported                                                          | The file path where mocks are generated relative to directory containing generate directive (or relative to the current directory)              |
 | `--destination-dir <dir>` | `string` | `.`                                                                                                                                  | The file directory where mocks are generated relative to the directory containing the generate directive (or relative to the current directory) |
 | `--export`                | `bool`   | `false`                                                                                                                              | If true, generated mocks will be exported and accessible from other packages                                                                    |
+| `-h` or `--help`          | `bool`   | `false`                                                                                                                              | Display command help                                                                                                                            |
 | `--import <name>`         | `string` | `.` (the directory containing generate directive)                                                                                    | The package containing the type (interface or function type) to be mocked                                                                       |
 | `--package <name>`        | `string` | The test package of the destination directory when `--export=false` or the package of the destination directory when `--export=true` | The package to generate code into                                                                                                               |
 | `--test-import`           | `bool`   | `false`                                                                                                                              | Indicates that the types are defined in the test package                                                                                        |
@@ -310,19 +327,34 @@ Options with a value type of `bool` are set (turned on) by specifying the option
 ### Environment Variables
 The Moqueries command line can also be controlled by the following environment variables:
 
-| Name        | Usage                                                                                                                                                                                                       |
-|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `MOQ_DEBUG` | If set to a "true" value (see [`strconv.ParseBool`](https://pkg.go.dev/strconv#ParseBool)), debugging output will be logged (also see `--debug` in [Command line reference](#command-line-reference) above) |
+| Name                  | Usage                                                                                                                                                                                                       |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MOQ_BULK_STATE_FILE` | If set, defines the bulk state file in which generate requests will be stored for bulk generation. See [Bulk generation](#bulk-generation) above.                                                           |
+| `MOQ_DEBUG`           | If set to a "true" value (see [`strconv.ParseBool`](https://pkg.go.dev/strconv#ParseBool)), debugging output will be logged (also see `--debug` in [Command line reference](#command-line-reference) above) |
 
 ### Subcommands
 
 #### Default
 The default subcommand generates one or more mocks based on the command specified. As described [above](#generating-mocks), this is typically invoked by a `go:generate` directive. The default subcommand is invoked when no subcommand is specified.
 
+If the `MOQ_BULK_STATE_FILE` environment variable is defined (see [above](#environment-variables)), the default subcommand does not immediately generate the mocks, but instead appends the generate request to the state file. See [Bulk generation](#bulk-generation) above.
+
+#### Bulk initialize
+Initializes the bulk state file defined by the `MOQ_BULK_STATE_FILE` environment variable. `MOQ_BULK_STATE_FILE` is required. Note that the bulk state file is overwritten if it exists.
+```shell
+moqueries bulk-initialize
+```
+
+#### Bulk finalize
+Finalizes bulk processing by generating multiple mocks at once. The `MOQ_BULK_STATE_FILE` environment variable is required and specifies which mocks to generate.
+```shell
+moqueries bulk-finalize
+```
+
 #### Summarize metrics
 The `summarize-metrics` subcommand takes the debug logs from multiple generate runs (using the [default](#default) subcommand), reads metrics from each individual run, and outputs summary metrics. This subcommand takes a single, optional argument specifying the log file to read. If no file is specified or if the file is specified as `-', standard in is read.
 
 The following command generates all mocks specified in `go:generate` directives and summarizes the metrics for all runs:
 ```shell
-$ MOQ_DEBUG=true go generate ./... | moqueries summarize-metrics
+MOQ_DEBUG=true go generate ./... | moqueries summarize-metrics
 ```
