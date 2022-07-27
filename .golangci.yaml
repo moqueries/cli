@@ -17,17 +17,21 @@ linters:
   - maintidx
   - maligned
   - nlreturn
+  - nosnakecase
   - paralleltest
   - prealloc
   - predeclared
-  - varnamelen
   - scopelint
+  - tagliatelle
+  - varnamelen
   - wsl
 
   # Consider enabling
   - gocyclo
-  - golint
   - wrapcheck
+
+  # Usually disabled but useful for checking everything has godoc
+  - golint
 
 linters-settings:
   gci:
@@ -47,6 +51,7 @@ linters-settings:
     - "-ID"
 
 issues:
+  exclude-use-default: false
   exclude-rules:
   - path: '(.+)_test.go'
     linters:
@@ -56,9 +61,6 @@ issues:
   - linters:
     - lll
     source: "^//go:generate "
-  # Inline nolint directive isn't working (CI/CD fails on nolintlint)
-  - linters:
-    - thelper
-    # This is the actual test so not a helper
-    path: 'generator/testmoqs/testmoqs_test.go'
-    source: "testOptionalSuccess := func"
+  include:
+  # disable excluding of issues about comments from golint.
+  - EXC0002

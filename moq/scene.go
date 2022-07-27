@@ -53,6 +53,7 @@ func (s *Scene) Reset() {
 // AssertExpectationsMet asserts that all expectations for all moqs in the
 // scene are met
 func (s *Scene) AssertExpectationsMet() {
+	s.T.Helper()
 	for _, m := range s.moqs {
 		m.AssertExpectationsMet()
 	}

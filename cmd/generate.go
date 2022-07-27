@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/myshkin5/moqueries/bulk"
 	"github.com/myshkin5/moqueries/generator"
 	"github.com/myshkin5/moqueries/logs"
 )
@@ -45,7 +46,7 @@ func addGenerateFlags() {
 
 // generate gathers details on the environment and calls the generator
 func generate(cmd *cobra.Command, typs []string) {
-	rootSetup(cmd)
+	root := rootSetup(cmd)
 
 	export, err := cmd.Flags().GetBool(exportFlag)
 	if err != nil {
@@ -81,7 +82,7 @@ func generate(cmd *cobra.Command, typs []string) {
 		" types: %s",
 		export, dest, destDir, pkg, imp, typs)
 
-	err = generator.Generate(generator.GenerateRequest{
+	req := generator.GenerateRequest{
 		Types:          typs,
 		Export:         export,
 		Destination:    dest,
@@ -89,8 +90,17 @@ func generate(cmd *cobra.Command, typs []string) {
 		Package:        pkg,
 		Import:         imp,
 		TestImport:     testImp,
-	})
-	if err != nil {
-		logs.Panicf("Error generating mock for %s in %s: %#v", typs, imp, err)
+		WorkingDir:     root.workingDir,
+	}
+	if root.stateFile == "" {
+		err = generator.Generate(req)
+		if err != nil {
+			logs.Panicf("Error generating mock for %s in %s: %#v", typs, imp, err)
+		}
+	} else {
+		err = bulk.Append(root.stateFile, req)
+		if err != nil {
+			logs.Panicf("Error appending mock request for %s in %s: %#v", typs, imp, err)
+		}
 	}
 }

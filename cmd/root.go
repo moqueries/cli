@@ -1,3 +1,4 @@
+// Package cmd centralizes the command line interface
 package cmd
 
 import (
@@ -10,8 +11,10 @@ import (
 )
 
 const (
-	debugFlag   = "debug"
-	debugEnvVar = "MOQ_DEBUG"
+	debugFlag = "debug"
+
+	stateFileEnvVar = "MOQ_BULK_STATE_FILE"
+	debugEnvVar     = "MOQ_DEBUG"
 )
 
 var rootCmd = &cobra.Command{
@@ -30,6 +33,8 @@ func init() {
 	addGenerateFlags()
 
 	rootCmd.AddCommand(summarizeMetricsCmd)
+	rootCmd.AddCommand(initializeCmd)
+	rootCmd.AddCommand(finalizeCmd)
 }
 
 // Execute generates one or more mocks
@@ -39,8 +44,13 @@ func Execute() {
 	}
 }
 
+type rootInfo struct {
+	workingDir string
+	stateFile  string
+}
+
 // rootSetup is called by all subcommands for general setup
-func rootSetup(cmd *cobra.Command) {
+func rootSetup(cmd *cobra.Command) rootInfo {
 	debug, err := cmd.Root().PersistentFlags().GetBool(debugFlag)
 	if err != nil {
 		logs.Panic("Error getting debug flag", err)
@@ -56,4 +66,21 @@ func rootSetup(cmd *cobra.Command) {
 	}
 
 	logs.Init(debug)
+
+	workingDir, err := os.Getwd()
+	if err != nil {
+		logs.Panic("Could not get working directory", err)
+	}
+
+	stateFile, _ := os.LookupEnv(stateFileEnvVar)
+
+	logs.Debugf("Moqueries root info,"+
+		" bulk processing state file: %s,"+
+		" working directory: %s",
+		stateFile, workingDir)
+
+	return rootInfo{
+		workingDir: workingDir,
+		stateFile:  stateFile,
+	}
 }

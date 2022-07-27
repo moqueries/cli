@@ -1,3 +1,4 @@
+// Package demo provides code examples used in the ../README.md
 package demo
 
 import (
@@ -11,14 +12,19 @@ import (
 
 //go:generate moqueries IsFavorite
 
+// IsFavorite is the function type for a function that determines if a number
+// is a favorite
 type IsFavorite func(n int) bool
 
+// FavWriter is used to filter and write only favorite number
 type FavWriter struct {
 	IsFav IsFavorite
 	W     io.Writer
 	Store Store
 }
 
+// WriteFavorites iterates through a given list of numbers and writes any
+// favorite number to the given Writer
 func (d *FavWriter) WriteFavorites(nums []int) error {
 	for _, num := range nums {
 		if d.IsFav(num) {
@@ -32,11 +38,13 @@ func (d *FavWriter) WriteFavorites(nums []int) error {
 	return nil
 }
 
+// Widget holds the state of a widget
 type Widget struct {
 	Id             int
 	GadgetsByColor map[string]Gadget
 }
 
+// Gadget holds the state of a gadget
 type Gadget struct {
 	Id       int
 	WidgetId int
@@ -46,12 +54,14 @@ type Gadget struct {
 
 //go:generate moqueries Store
 
+// Store is the abstraction for Widget and Gadget types
 type Store interface {
 	AllWidgetsIds() ([]int, error)
 	GadgetsByWidgetId(widgetId int) ([]Gadget, error)
 	LightGadgetsByWidgetId(widgetId int, maxWeight uint32) ([]Gadget, error)
 }
 
+// Load retrieves multiple Widget objects
 func (d *FavWriter) Load(maxWeight uint32) (map[int]Widget, error) {
 	wIds, err := d.Store.AllWidgetsIds()
 	if err != nil {
