@@ -149,6 +149,25 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*dst.File, string, error) 
 	return file, destPath, nil
 }
 
+func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
+	wd, err := g.getwdFn()
+	if err != nil {
+		return "", fmt.Errorf("error getting current working directory: %w", err)
+	}
+
+	if workingDir == wd || workingDir == "" {
+		return ".", nil
+	}
+
+	relPath, err := filepath.Rel(wd, workingDir)
+	if err != nil {
+		return "", fmt.Errorf("error getting relative import path from %s to %s: %w",
+			wd, workingDir, err)
+	}
+
+	return relPath, err
+}
+
 func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (string, error) {
 	destDir := path.Join(relPath, req.DestinationDir, req.Destination)
 	if strings.HasSuffix(destDir, ".go") {
@@ -180,25 +199,6 @@ func initializeFile(pkg string) *dst.File {
 	}
 
 	return file
-}
-
-func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
-	wd, err := g.getwdFn()
-	if err != nil {
-		return "", fmt.Errorf("error getting current working directory: %w", err)
-	}
-
-	if workingDir == wd || workingDir == "" {
-		return ".", nil
-	}
-
-	relPath, err := filepath.Rel(wd, workingDir)
-	if err != nil {
-		return "", fmt.Errorf("error getting relative import path from %s to %s: %w",
-			wd, workingDir, err)
-	}
-
-	return relPath, err
 }
 
 func importPath(imp, relPath string) string {
@@ -365,6 +365,14 @@ func destinationPath(req GenerateRequest, relPath string) (string, error) {
 			destPath += testPkgSuffix
 		}
 		destPath += ".go"
+	}
+
+	if filepath.IsAbs(destPath) {
+		return destPath, nil
+	}
+
+	if filepath.IsAbs(req.DestinationDir) {
+		return filepath.Join(req.DestinationDir, destPath), nil
 	}
 
 	return filepath.Join(relPath, req.DestinationDir, destPath), nil
