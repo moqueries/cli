@@ -72,7 +72,7 @@ func rootSetup(cmd *cobra.Command) rootInfo {
 		logs.Panic("Could not get working directory", err)
 	}
 
-	stateFile, _ := os.LookupEnv(stateFileEnvVar)
+	stateFile := os.Getenv(stateFileEnvVar)
 
 	logs.Debugf("Moqueries root info,"+
 		" bulk processing state file: %s,"+
