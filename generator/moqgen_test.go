@@ -8,7 +8,6 @@ import (
 
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/logs"
 	"github.com/myshkin5/moqueries/moq"
 )
 
@@ -38,7 +37,6 @@ func TestMoqGenerator(t *testing.T) {
 
 	beforeEach := func(t *testing.T) {
 		t.Helper()
-		logs.Init(false)
 
 		if scene != nil {
 			t.Fatal("afterEach not called")

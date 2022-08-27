@@ -8,7 +8,6 @@ import (
 	"go/build"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -42,7 +41,7 @@ type ReadWriteSeekCloser interface {
 
 // Append appends a mock generate request to the bulk state
 func Append(stateFile string, req generator.GenerateRequest, openFileFn OpenFileFn) error {
-	if !path.IsAbs(req.WorkingDir) {
+	if !filepath.IsAbs(req.WorkingDir) {
 		return fmt.Errorf("%w: the request working directory must be absolute: %s",
 			ErrBadAppendRequest, req.WorkingDir)
 	}

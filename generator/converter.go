@@ -1806,6 +1806,15 @@ func cloneFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
 	if fl != nil {
 		//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 		fl = dst.Clone(fl).(*dst.FieldList)
+		for _, field := range fl.List {
+			if id, ok := field.Type.(*dst.Ident); ok {
+				if id.Path == "builtin" {
+					// When mocking errors, the string return value is reported
+					// in the builtin package
+					id.Path = ""
+				}
+			}
+		}
 		if removeNames {
 			for _, field := range fl.List {
 				for n := range field.Names {

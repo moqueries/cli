@@ -23,8 +23,11 @@ type Metrics interface {
 	ASTTypeCacheHitsInc()
 	ASTTypeCacheMissesInc()
 	ASTTotalLoadTimeInc(d time.Duration)
+	ASTTotalDecorationTimeInc(d time.Duration)
 
 	TotalProcessingTimeInc(d time.Duration)
+
+	Finalize()
 }
 
 type metricsState struct {
@@ -36,6 +39,9 @@ type metricsState struct {
 	ASTTotalLoadTime    time.Duration
 	ASTTotalLoadTimeStr string
 
+	ASTTotalDecorationTime    time.Duration
+	ASTTotalDecorationTimeStr string
+
 	TotalProcessingTime    time.Duration
 	TotalProcessingTimeStr string
 }
@@ -44,12 +50,13 @@ func add(m1, m2 metricsState) metricsState {
 	// NOTE: Intentionally close to struct definition as a reminder to update
 	//   this func when the struct is updated
 	return metricsState{
-		ASTPkgCacheHits:     m1.ASTPkgCacheHits + m2.ASTPkgCacheHits,
-		ASTPkgCacheMisses:   m1.ASTPkgCacheMisses + m2.ASTPkgCacheMisses,
-		ASTTypeCacheHits:    m1.ASTTypeCacheHits + m2.ASTTypeCacheHits,
-		ASTTypeCacheMisses:  m1.ASTTypeCacheMisses + m2.ASTTypeCacheMisses,
-		ASTTotalLoadTime:    m1.ASTTotalLoadTime + m2.ASTTotalLoadTime,
-		TotalProcessingTime: m1.TotalProcessingTime + m2.TotalProcessingTime,
+		ASTPkgCacheHits:        m1.ASTPkgCacheHits + m2.ASTPkgCacheHits,
+		ASTPkgCacheMisses:      m1.ASTPkgCacheMisses + m2.ASTPkgCacheMisses,
+		ASTTypeCacheHits:       m1.ASTTypeCacheHits + m2.ASTTypeCacheHits,
+		ASTTypeCacheMisses:     m1.ASTTypeCacheMisses + m2.ASTTypeCacheMisses,
+		ASTTotalLoadTime:       m1.ASTTotalLoadTime + m2.ASTTotalLoadTime,
+		ASTTotalDecorationTime: m1.ASTTotalDecorationTime + m2.ASTTotalDecorationTime,
+		TotalProcessingTime:    m1.TotalProcessingTime + m2.TotalProcessingTime,
 	}
 }
 
@@ -112,6 +119,12 @@ func (m *Processor) ASTTotalLoadTimeInc(d time.Duration) {
 	m.state.ASTTotalLoadTime += d
 }
 
+// ASTTotalDecorationTimeInc increments the ASTTotalDecorationTime duration
+// metric by the d duration specified
+func (m *Processor) ASTTotalDecorationTimeInc(d time.Duration) {
+	m.state.ASTTotalDecorationTime += d
+}
+
 // TotalProcessingTimeInc increments the TotalProcessingTime duration metric
 // by the d duration specified
 func (m *Processor) TotalProcessingTimeInc(d time.Duration) {
@@ -120,6 +133,7 @@ func (m *Processor) TotalProcessingTimeInc(d time.Duration) {
 
 func serializeState(state metricsState) []byte {
 	state.ASTTotalLoadTimeStr = state.ASTTotalLoadTime.String()
+	state.ASTTotalDecorationTimeStr = state.ASTTotalDecorationTime.String()
 	state.TotalProcessingTimeStr = state.TotalProcessingTime.String()
 
 	b, err := json.Marshal(state)

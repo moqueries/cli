@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -39,14 +40,18 @@ type Cache struct {
 	load    LoadFn
 	metrics metrics.Metrics
 
-	typesByIdent map[string]*dst.TypeSpec
+	typesByIdent map[string]*typInfo
 	loadedPkgs   map[string]*pkgInfo
+}
+
+type typInfo struct {
+	id  dst.Ident
+	typ *dst.TypeSpec
 }
 
 type pkgInfo struct {
 	directLoaded bool
 	loadTestPkgs bool
-	typesIndexed bool
 	pkg          *decorator.Package
 }
 
@@ -56,7 +61,7 @@ func NewCache(load LoadFn, metrics metrics.Metrics) *Cache {
 		load:    load,
 		metrics: metrics,
 
-		typesByIdent: make(map[string]*dst.TypeSpec),
+		typesByIdent: make(map[string]*typInfo),
 		loadedPkgs:   make(map[string]*pkgInfo),
 	}
 }
@@ -80,13 +85,28 @@ func (c *Cache) Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, erro
 	}
 
 	realId := IdPath(id.Name, pkgPath).String()
+	if typ, ok := c.typesByIdent[realId]; ok {
+		return typ.typ, pkgPath, nil
+	}
+
+	if id.Name != "error" {
+		return nil, "", fmt.Errorf(
+			"%w: %q (original package %q)", ErrTypeNotFound, realId, id.Path)
+	}
+
+	_, err = c.loadPackage("builtin", false)
+	if err != nil {
+		return nil, "", err
+	}
+
+	realId = IdPath(id.Name, "").String()
 	typ, ok := c.typesByIdent[realId]
 	if !ok {
 		return nil, "", fmt.Errorf(
 			"%w: %q (original package %q)", ErrTypeNotFound, realId, id.Path)
 	}
 
-	return typ, pkgPath, nil
+	return typ.typ, "", nil
 }
 
 // IsComparable determines if an expression is comparable
@@ -117,6 +137,71 @@ func (c *Cache) FindPackage(dir string) (string, error) {
 	return pkgPath, nil
 }
 
+// LoadPackage loads the specified pattern of package(s) and returns a list of
+// mock-able types
+func (c *Cache) LoadPackage(pkgPattern string) error {
+	_, err := c.loadPackage(pkgPattern, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// MockableTypes returns all the mockable types loaded so far
+func (c *Cache) MockableTypes(onlyExported bool) []dst.Ident {
+	var typs []dst.Ident
+	for _, typ := range c.typesByIdent {
+		_, okInterface := typ.typ.Type.(*dst.InterfaceType)
+		_, okFunc := typ.typ.Type.(*dst.FuncType)
+		if !okInterface && !okFunc {
+			continue
+		}
+
+		if strings.HasPrefix(typ.id.Path, "vendor/") {
+			continue
+		}
+
+		if onlyExported && !typ.id.IsExported() {
+			continue
+		}
+
+		if typ.id.Path == "builtin" {
+			continue
+		}
+
+		dir := typ.id.Path
+		file := ""
+		internal := false
+		const internalPkg = "internal"
+		for {
+			dir, file = filepath.Split(dir)
+			dir = filepath.Clean(dir)
+			if dir == internalPkg || file == internalPkg {
+				internal = true
+				break
+			}
+			if dir == "." {
+				break
+			}
+		}
+		if internal {
+			continue
+		}
+
+		typs = append(typs, typ.id)
+	}
+
+	sort.Slice(typs, func(i, j int) bool {
+		if typs[i].Path == typs[j].Path {
+			return typs[i].Name < typs[j].Name
+		}
+		return typs[i].Path < typs[j].Path
+	})
+
+	return typs
+}
+
 func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool) (bool, error) {
 	switch e := expr.(type) {
 	case *dst.ArrayType:
@@ -136,11 +221,16 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 			if !ok {
 				return false, fmt.Errorf("%q: %w", e.String(), ErrInvalidType)
 			}
+
+			if typ.Name.Name == "string" && typ.Name.Path == "" {
+				return true, nil
+			}
+
 			return c.isDefaultComparable(typ.Type, interfacePointerDefault)
 		}
 		typ, ok := c.typesByIdent[e.String()]
 		if ok {
-			return c.isDefaultComparable(typ.Type, interfacePointerDefault)
+			return c.isDefaultComparable(typ.typ.Type, interfacePointerDefault)
 		}
 
 		// Builtin type?
@@ -161,7 +251,7 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 
 		typ, ok = c.typesByIdent[e.String()]
 		if ok {
-			return c.isDefaultComparable(typ.Type, interfacePointerDefault)
+			return c.isDefaultComparable(typ.typ.Type, interfacePointerDefault)
 		}
 
 		return true, nil
@@ -178,7 +268,7 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 
 		typ, ok := c.typesByIdent[IdPath(e.Sel.Name, path).String()]
 		if ok {
-			return c.isDefaultComparable(typ.Type, interfacePointerDefault)
+			return c.isDefaultComparable(typ.typ.Type, interfacePointerDefault)
 		}
 
 		// Builtin type?
@@ -202,7 +292,7 @@ func (c *Cache) loadPackage(path string, testImport bool) (string, error) {
 		// aren't requested, we're done
 		if loadedPkg.loadTestPkgs || !testImport {
 			// If we direct loaded and indexed the types, we're done
-			if loadedPkg.directLoaded && loadedPkg.typesIndexed {
+			if loadedPkg.directLoaded {
 				c.metrics.ASTPkgCacheHitsInc()
 				return loadedPkg.pkg.PkgPath, nil
 			}
@@ -245,13 +335,21 @@ func (c *Cache) loadTypes(loadPkg string, testImport bool) (string, error) {
 								Name: typeSpec.Name.Name,
 								Path: pkg.pkg.PkgPath,
 							}
-							c.typesByIdent[ident.String()] = typeSpec
+							if typeSpec.Name.Name == "error" && pkg.pkg.PkgPath == "builtin" {
+								ident = dst.Ident{
+									Name: "error",
+									Path: "",
+								}
+							}
+							c.typesByIdent[ident.String()] = &typInfo{
+								id:  ident,
+								typ: typeSpec,
+							}
 						}
 					}
 				}
 			}
 		}
-		pkg.typesIndexed = true
 	}
 
 	return foundPkg, nil
@@ -285,14 +383,15 @@ func (c *Cache) loadAST(loadPkg string, testImport bool) ([]*pkgInfo, error) {
 	}, loadPkg)
 	loadTime := time.Since(start)
 	c.metrics.ASTTotalLoadTimeInc(loadTime)
-	logs.Debugf("Loading package %s (test packages: %t) took %s",
-		loadPkg, testImport, loadTime.String())
+	logs.Debugf("Loading package %s (test packages: %t) took %s, found %d packages",
+		loadPkg, testImport, loadTime.String(), len(pkgs))
 	if err != nil {
 		return nil, err
 	}
 
 	var out []*pkgInfo
 	for _, pkg := range pkgs {
+		logs.Debugf("Converting %s", pkg.PkgPath)
 		p, cErr := c.convert(pkg, testImport, true)
 		if cErr != nil {
 			return nil, cErr
@@ -305,7 +404,11 @@ func (c *Cache) loadAST(loadPkg string, testImport bool) ([]*pkgInfo, error) {
 
 // convert was copied from github.com/dave/dst/decorator.Load with minor modifications
 func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*pkgInfo, error) {
-	p := &pkgInfo{
+	p, ok := c.loadedPkgs[pkg.PkgPath]
+	if ok && p.directLoaded {
+		return p, nil
+	}
+	p = &pkgInfo{
 		directLoaded: directLoaded,
 		loadTestPkgs: testImport,
 		pkg: &decorator.Package{
@@ -336,8 +439,10 @@ func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*
 			}
 			p.pkg.Syntax = append(p.pkg.Syntax, file)
 		}
-		logs.Debugf("Decorating package %s took %s",
-			pkg.PkgPath, time.Since(start).String())
+		dTime := time.Since(start)
+		c.metrics.ASTTotalDecorationTimeInc(dTime)
+		logs.Debugf("Decorating package id %s, name %s, pkgPath %s took %s",
+			pkg.ID, pkg.Name, pkg.PkgPath, dTime.String())
 
 		dir, _ := filepath.Split(pkg.Fset.File(pkg.Syntax[0].Pos()).Name())
 		p.pkg.Dir = dir
