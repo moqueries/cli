@@ -1,3 +1,5 @@
+// Package internal is the internal implementation for generate mocks for an
+// entire package or module
 package internal
 
 import (
@@ -31,7 +33,8 @@ func Generate(
 	mProcessor metrics.Metrics,
 	genFn GenerateWithTypeCacheFn,
 	destDir string,
-	pkgPatterns []string) error {
+	pkgPatterns []string,
+) error {
 	start := time.Now()
 	for _, pkgPattern := range pkgPatterns {
 		err := cache.LoadPackage(pkgPattern)

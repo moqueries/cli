@@ -1,3 +1,4 @@
+// Package pkg is used to generate mocks for an entire package or module
 package pkg
 
 import (

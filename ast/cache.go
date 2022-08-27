@@ -20,6 +20,9 @@ import (
 //go:generate moqueries LoadFn
 
 const (
+	builtinPkg = "builtin"
+	errorType  = "error"
+
 	testPkgSuffix = "_test"
 )
 
@@ -89,12 +92,12 @@ func (c *Cache) Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, erro
 		return typ.typ, pkgPath, nil
 	}
 
-	if id.Name != "error" {
+	if id.Name != errorType {
 		return nil, "", fmt.Errorf(
 			"%w: %q (original package %q)", ErrTypeNotFound, realId, id.Path)
 	}
 
-	_, err = c.loadPackage("builtin", false)
+	_, err = c.loadPackage(builtinPkg, false)
 	if err != nil {
 		return nil, "", err
 	}
@@ -166,7 +169,7 @@ func (c *Cache) MockableTypes(onlyExported bool) []dst.Ident {
 			continue
 		}
 
-		if typ.id.Path == "builtin" {
+		if typ.id.Path == builtinPkg {
 			continue
 		}
 
@@ -237,7 +240,7 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 		if e.Path == "" {
 			// error is the one builtin type that may not be comparable (it's
 			// an interface so return the same result as an interface)
-			if e.Name == "error" {
+			if e.Name == errorType {
 				return interfacePointerDefault, nil
 			}
 
@@ -335,9 +338,9 @@ func (c *Cache) loadTypes(loadPkg string, testImport bool) (string, error) {
 								Name: typeSpec.Name.Name,
 								Path: pkg.pkg.PkgPath,
 							}
-							if typeSpec.Name.Name == "error" && pkg.pkg.PkgPath == "builtin" {
+							if typeSpec.Name.Name == errorType && pkg.pkg.PkgPath == builtinPkg {
 								ident = dst.Ident{
-									Name: "error",
+									Name: errorType,
 									Path: "",
 								}
 							}
