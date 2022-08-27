@@ -46,6 +46,7 @@ func TestMetrics(t *testing.T) {
 		m.ASTTypeCacheHitsInc()
 		m.ASTTypeCacheMissesInc()
 		m.ASTTotalLoadTimeInc(1234 * time.Millisecond)
+		m.ASTTotalDecorationTimeInc(9999 * time.Millisecond)
 		m.TotalProcessingTimeInc(4321 * time.Millisecond)
 
 		isLoggingFnMoq.onCall().returnResults(false)
@@ -130,6 +131,9 @@ func TestMetrics(t *testing.T) {
 		incFuncs := map[string]func(m *metrics.Processor, d time.Duration){
 			"ASTTotalLoadTime": func(m *metrics.Processor, d time.Duration) {
 				m.ASTTotalLoadTimeInc(d)
+			},
+			"ASTTotalDecorationTime": func(m *metrics.Processor, d time.Duration) {
+				m.ASTTotalDecorationTimeInc(d)
 			},
 			"TotalProcessingTime": func(m *metrics.Processor, d time.Duration) {
 				m.TotalProcessingTimeInc(d)

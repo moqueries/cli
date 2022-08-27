@@ -265,6 +265,19 @@ moqueries bulk-finalize
 
 The first line creates a new temporary file to hold the state. The second line initializes the file (holds on to some global attributes to ensure consistency). The third line is the standard `go generate` line but because `MOQ_BULK_STATE_FILE` is defined, it only records the intent to generate a new mock. The forth and final line is where the work actually occurs, and it might take some time depending on how many mocks you want to generate. See more details below in the [Command line reference](#command-line-reference).
 
+## Package generation
+Adding `//go:generate` directive for every type can be quite tedious. Maybe you have a library, and you just want to provide a mock for everything. Using the `package` subcommand, you can do exactly that &mdash; generate mocks for every exported interface and function type in an entire package or module:
+```shell
+moqueries package github.com/myorg/mylibrary --destination-dir .
+```
+
+Use a suffix of `...` to mock all export types in all sub-packages:
+```shell
+moqueries package github.com/myorg/mylibrary... --destination-dir .
+```
+
+Note the package or module must should not contain any exported mocks. Moqueries mocks contain several function types and the results would include mocks of these function types. Repeated calls might actually cause an explosion of generated calls!
+
 ## More command line options
 Below is a loose collection of out-of-the-ordinary command line options for use in out-of-the-ordinary situations.
 
@@ -350,6 +363,9 @@ Finalizes bulk processing by generating multiple mocks at once. The `MOQ_BULK_ST
 ```shell
 moqueries bulk-finalize
 ```
+
+#### Package
+Generates mocks for a complete package or module as described [above](#package-generation). The package or module specified is passed as-is to [golang.org/x/tools/go/packages.Load](https://pkg.go.dev/golang.org/x/tools/go/packages) as a `pattern`.
 
 #### Summarize metrics
 The `summarize-metrics` subcommand takes the debug logs from multiple generate runs (using the [default](#default) subcommand), reads metrics from each individual run, and outputs summary metrics. This subcommand takes a single, optional argument specifying the log file to read. If no file is specified or if the file is specified as `-', standard in is read.

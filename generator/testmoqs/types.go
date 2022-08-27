@@ -77,6 +77,8 @@ func (r *InterfaceResultReader) Read(p []byte) (int, error) {
 type InterfaceResultFn func(sParam string, bParam bool) (r io.Reader)
 
 // Usual combines all the above function types into an interface
+//
+//nolint:interfacebloat // Test interface with one of every method type
 type Usual interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
 	NoNames(string, bool) (string, error)

@@ -18,12 +18,14 @@ type MoqMetrics struct {
 	Config moq.Config
 	Moq    *MoqMetrics_mock
 
-	ResultsByParams_ASTPkgCacheHitsInc     []MoqMetrics_ASTPkgCacheHitsInc_resultsByParams
-	ResultsByParams_ASTPkgCacheMissesInc   []MoqMetrics_ASTPkgCacheMissesInc_resultsByParams
-	ResultsByParams_ASTTypeCacheHitsInc    []MoqMetrics_ASTTypeCacheHitsInc_resultsByParams
-	ResultsByParams_ASTTypeCacheMissesInc  []MoqMetrics_ASTTypeCacheMissesInc_resultsByParams
-	ResultsByParams_ASTTotalLoadTimeInc    []MoqMetrics_ASTTotalLoadTimeInc_resultsByParams
-	ResultsByParams_TotalProcessingTimeInc []MoqMetrics_TotalProcessingTimeInc_resultsByParams
+	ResultsByParams_ASTPkgCacheHitsInc        []MoqMetrics_ASTPkgCacheHitsInc_resultsByParams
+	ResultsByParams_ASTPkgCacheMissesInc      []MoqMetrics_ASTPkgCacheMissesInc_resultsByParams
+	ResultsByParams_ASTTypeCacheHitsInc       []MoqMetrics_ASTTypeCacheHitsInc_resultsByParams
+	ResultsByParams_ASTTypeCacheMissesInc     []MoqMetrics_ASTTypeCacheMissesInc_resultsByParams
+	ResultsByParams_ASTTotalLoadTimeInc       []MoqMetrics_ASTTotalLoadTimeInc_resultsByParams
+	ResultsByParams_ASTTotalDecorationTimeInc []MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams
+	ResultsByParams_TotalProcessingTimeInc    []MoqMetrics_TotalProcessingTimeInc_resultsByParams
+	ResultsByParams_Finalize                  []MoqMetrics_Finalize_resultsByParams
 
 	Runtime struct {
 		ParameterIndexing struct {
@@ -34,14 +36,18 @@ type MoqMetrics struct {
 			ASTTotalLoadTimeInc   struct {
 				D moq.ParamIndexing
 			}
+			ASTTotalDecorationTimeInc struct {
+				D moq.ParamIndexing
+			}
 			TotalProcessingTimeInc struct {
 				D moq.ParamIndexing
 			}
+			Finalize struct{}
 		}
 	}
-	// MoqMetrics_mock isolates the mock interface of the Metrics type
 }
 
+// MoqMetrics_mock isolates the mock interface of the Metrics type
 type MoqMetrics_mock struct {
 	Moq *MoqMetrics
 }
@@ -296,6 +302,55 @@ type MoqMetrics_ASTTotalLoadTimeInc_anyParams struct {
 	Recorder *MoqMetrics_ASTTotalLoadTimeInc_fnRecorder
 }
 
+// MoqMetrics_ASTTotalDecorationTimeInc_params holds the params of the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_params struct{ D time.Duration }
+
+// MoqMetrics_ASTTotalDecorationTimeInc_paramsKey holds the map key params of the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_paramsKey struct {
+	Params struct{ D time.Duration }
+	Hashes struct{ D hash.Hash }
+}
+
+// MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqMetrics_ASTTotalDecorationTimeInc_paramsKey]*MoqMetrics_ASTTotalDecorationTimeInc_results
+}
+
+// MoqMetrics_ASTTotalDecorationTimeInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_doFn func(d time.Duration)
+
+// MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn func(d time.Duration)
+
+// MoqMetrics_ASTTotalDecorationTimeInc_results holds the results of the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_results struct {
+	Params  MoqMetrics_ASTTotalDecorationTimeInc_params
+	Results []struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqMetrics_ASTTotalDecorationTimeInc_doFn
+		DoReturnFn MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+type MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder struct {
+	Params    MoqMetrics_ASTTotalDecorationTimeInc_params
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqMetrics_ASTTotalDecorationTimeInc_results
+	Moq       *MoqMetrics
+}
+
+// MoqMetrics_ASTTotalDecorationTimeInc_anyParams isolates the any params functions of the Metrics type
+type MoqMetrics_ASTTotalDecorationTimeInc_anyParams struct {
+	Recorder *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder
+}
+
 // MoqMetrics_TotalProcessingTimeInc_params holds the params of the Metrics type
 type MoqMetrics_TotalProcessingTimeInc_params struct{ D time.Duration }
 
@@ -345,6 +400,55 @@ type MoqMetrics_TotalProcessingTimeInc_anyParams struct {
 	Recorder *MoqMetrics_TotalProcessingTimeInc_fnRecorder
 }
 
+// MoqMetrics_Finalize_params holds the params of the Metrics type
+type MoqMetrics_Finalize_params struct{}
+
+// MoqMetrics_Finalize_paramsKey holds the map key params of the Metrics type
+type MoqMetrics_Finalize_paramsKey struct {
+	Params struct{}
+	Hashes struct{}
+}
+
+// MoqMetrics_Finalize_resultsByParams contains the results for a given set of parameters for the Metrics type
+type MoqMetrics_Finalize_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqMetrics_Finalize_paramsKey]*MoqMetrics_Finalize_results
+}
+
+// MoqMetrics_Finalize_doFn defines the type of function needed when calling AndDo for the Metrics type
+type MoqMetrics_Finalize_doFn func()
+
+// MoqMetrics_Finalize_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+type MoqMetrics_Finalize_doReturnFn func()
+
+// MoqMetrics_Finalize_results holds the results of the Metrics type
+type MoqMetrics_Finalize_results struct {
+	Params  MoqMetrics_Finalize_params
+	Results []struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqMetrics_Finalize_doFn
+		DoReturnFn MoqMetrics_Finalize_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqMetrics_Finalize_fnRecorder routes recorded function calls to the MoqMetrics moq
+type MoqMetrics_Finalize_fnRecorder struct {
+	Params    MoqMetrics_Finalize_params
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqMetrics_Finalize_results
+	Moq       *MoqMetrics
+}
+
+// MoqMetrics_Finalize_anyParams isolates the any params functions of the Metrics type
+type MoqMetrics_Finalize_anyParams struct {
+	Recorder *MoqMetrics_Finalize_fnRecorder
+}
+
 // NewMoqMetrics creates a new moq of the Metrics type
 func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 	if config == nil {
@@ -364,9 +468,13 @@ func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 				ASTTotalLoadTimeInc   struct {
 					D moq.ParamIndexing
 				}
+				ASTTotalDecorationTimeInc struct {
+					D moq.ParamIndexing
+				}
 				TotalProcessingTimeInc struct {
 					D moq.ParamIndexing
 				}
+				Finalize struct{}
 			}
 		}{ParameterIndexing: struct {
 			ASTPkgCacheHitsInc    struct{}
@@ -376,9 +484,13 @@ func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 			ASTTotalLoadTimeInc   struct {
 				D moq.ParamIndexing
 			}
+			ASTTotalDecorationTimeInc struct {
+				D moq.ParamIndexing
+			}
 			TotalProcessingTimeInc struct {
 				D moq.ParamIndexing
 			}
+			Finalize struct{}
 		}{
 			ASTPkgCacheHitsInc:    struct{}{},
 			ASTPkgCacheMissesInc:  struct{}{},
@@ -389,11 +501,17 @@ func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 			}{
 				D: moq.ParamIndexByValue,
 			},
+			ASTTotalDecorationTimeInc: struct {
+				D moq.ParamIndexing
+			}{
+				D: moq.ParamIndexByValue,
+			},
 			TotalProcessingTimeInc: struct {
 				D moq.ParamIndexing
 			}{
 				D: moq.ParamIndexByValue,
 			},
+			Finalize: struct{}{},
 		}},
 	}
 	m.Moq.Moq = m
@@ -647,6 +765,56 @@ func (m *MoqMetrics_mock) ASTTotalLoadTimeInc(d time.Duration) {
 	return
 }
 
+func (m *MoqMetrics_mock) ASTTotalDecorationTimeInc(d time.Duration) {
+	m.Moq.Scene.T.Helper()
+	params := MoqMetrics_ASTTotalDecorationTimeInc_params{
+		D: d,
+	}
+	var results *MoqMetrics_ASTTotalDecorationTimeInc_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_ASTTotalDecorationTimeInc {
+		paramsKey := m.Moq.ParamsKey_ASTTotalDecorationTimeInc(params, resultsByParams.AnyParams)
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_ASTTotalDecorationTimeInc(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_ASTTotalDecorationTimeInc(params))
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_ASTTotalDecorationTimeInc(params))
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn(d)
+	}
+
+	if result.DoReturnFn != nil {
+		result.DoReturnFn(d)
+	}
+	return
+}
+
 func (m *MoqMetrics_mock) TotalProcessingTimeInc(d time.Duration) {
 	m.Moq.Scene.T.Helper()
 	params := MoqMetrics_TotalProcessingTimeInc_params{
@@ -693,6 +861,54 @@ func (m *MoqMetrics_mock) TotalProcessingTimeInc(d time.Duration) {
 
 	if result.DoReturnFn != nil {
 		result.DoReturnFn(d)
+	}
+	return
+}
+
+func (m *MoqMetrics_mock) Finalize() {
+	m.Moq.Scene.T.Helper()
+	params := MoqMetrics_Finalize_params{}
+	var results *MoqMetrics_Finalize_results
+	for _, resultsByParams := range m.Moq.ResultsByParams_Finalize {
+		paramsKey := m.Moq.ParamsKey_Finalize(params, resultsByParams.AnyParams)
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_Finalize(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_Finalize(params))
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_Finalize(params))
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn()
+	}
+
+	if result.DoReturnFn != nil {
+		result.DoReturnFn()
 	}
 	return
 }
@@ -1579,6 +1795,197 @@ func (m *MoqMetrics) ParamsKey_ASTTotalLoadTimeInc(params MoqMetrics_ASTTotalLoa
 	}
 }
 
+func (m *MoqMetrics_recorder) ASTTotalDecorationTimeInc(d time.Duration) *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	return &MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder{
+		Params: MoqMetrics_ASTTotalDecorationTimeInc_params{
+			D: d,
+		},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) Any() *MoqMetrics_ASTTotalDecorationTimeInc_anyParams {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTotalDecorationTimeInc(r.Params))
+		return nil
+	}
+	return &MoqMetrics_ASTTotalDecorationTimeInc_anyParams{Recorder: r}
+}
+
+func (a *MoqMetrics_ASTTotalDecorationTimeInc_anyParams) D() *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	a.Recorder.AnyParams |= 1 << 0
+	return a.Recorder
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) Seq() *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTotalDecorationTimeInc(r.Params))
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) NoSeq() *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTotalDecorationTimeInc(r.Params))
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) ReturnResults() *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqMetrics_ASTTotalDecorationTimeInc_doFn
+		DoReturnFn MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn
+	}{
+		Values:   &struct{}{},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) AndDo(fn MoqMetrics_ASTTotalDecorationTimeInc_doFn) *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) DoReturnResults(fn MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn) *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqMetrics_ASTTotalDecorationTimeInc_doFn
+		DoReturnFn MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) FindResults() {
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_ASTTotalDecorationTimeInc {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqMetrics_ASTTotalDecorationTimeInc_paramsKey]*MoqMetrics_ASTTotalDecorationTimeInc_results{},
+		}
+		r.Moq.ResultsByParams_ASTTotalDecorationTimeInc = append(r.Moq.ResultsByParams_ASTTotalDecorationTimeInc, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_ASTTotalDecorationTimeInc) {
+			copy(r.Moq.ResultsByParams_ASTTotalDecorationTimeInc[insertAt+1:], r.Moq.ResultsByParams_ASTTotalDecorationTimeInc[insertAt:0])
+			r.Moq.ResultsByParams_ASTTotalDecorationTimeInc[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_ASTTotalDecorationTimeInc(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqMetrics_ASTTotalDecorationTimeInc_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values     *struct{}
+				Sequence   uint32
+				DoFn       MoqMetrics_ASTTotalDecorationTimeInc_doFn
+				DoReturnFn MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn
+			}{
+				Values:   last.Values,
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqMetrics) PrettyParams_ASTTotalDecorationTimeInc(params MoqMetrics_ASTTotalDecorationTimeInc_params) string {
+	return fmt.Sprintf("ASTTotalDecorationTimeInc(%#v)", params.D)
+}
+
+func (m *MoqMetrics) ParamsKey_ASTTotalDecorationTimeInc(params MoqMetrics_ASTTotalDecorationTimeInc_params, anyParams uint64) MoqMetrics_ASTTotalDecorationTimeInc_paramsKey {
+	var dUsed time.Duration
+	var dUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.Runtime.ParameterIndexing.ASTTotalDecorationTimeInc.D == moq.ParamIndexByValue {
+			dUsed = params.D
+		} else {
+			dUsedHash = hash.DeepHash(params.D)
+		}
+	}
+	return MoqMetrics_ASTTotalDecorationTimeInc_paramsKey{
+		Params: struct{ D time.Duration }{
+			D: dUsed,
+		},
+		Hashes: struct{ D hash.Hash }{
+			D: dUsedHash,
+		},
+	}
+}
+
 func (m *MoqMetrics_recorder) TotalProcessingTimeInc(d time.Duration) *MoqMetrics_TotalProcessingTimeInc_fnRecorder {
 	return &MoqMetrics_TotalProcessingTimeInc_fnRecorder{
 		Params: MoqMetrics_TotalProcessingTimeInc_params{
@@ -1770,6 +2177,177 @@ func (m *MoqMetrics) ParamsKey_TotalProcessingTimeInc(params MoqMetrics_TotalPro
 	}
 }
 
+func (m *MoqMetrics_recorder) Finalize() *MoqMetrics_Finalize_fnRecorder {
+	return &MoqMetrics_Finalize_fnRecorder{
+		Params:   MoqMetrics_Finalize_params{},
+		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m.Moq,
+	}
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) Any() *MoqMetrics_Finalize_anyParams {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Finalize(r.Params))
+		return nil
+	}
+	return &MoqMetrics_Finalize_anyParams{Recorder: r}
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) Seq() *MoqMetrics_Finalize_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Finalize(r.Params))
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) NoSeq() *MoqMetrics_Finalize_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Finalize(r.Params))
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) ReturnResults() *MoqMetrics_Finalize_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqMetrics_Finalize_doFn
+		DoReturnFn MoqMetrics_Finalize_doReturnFn
+	}{
+		Values:   &struct{}{},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) AndDo(fn MoqMetrics_Finalize_doFn) *MoqMetrics_Finalize_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) DoReturnResults(fn MoqMetrics_Finalize_doReturnFn) *MoqMetrics_Finalize_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values     *struct{}
+		Sequence   uint32
+		DoFn       MoqMetrics_Finalize_doFn
+		DoReturnFn MoqMetrics_Finalize_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) FindResults() {
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqMetrics_Finalize_resultsByParams
+	for n, res := range r.Moq.ResultsByParams_Finalize {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &MoqMetrics_Finalize_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqMetrics_Finalize_paramsKey]*MoqMetrics_Finalize_results{},
+		}
+		r.Moq.ResultsByParams_Finalize = append(r.Moq.ResultsByParams_Finalize, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Finalize) {
+			copy(r.Moq.ResultsByParams_Finalize[insertAt+1:], r.Moq.ResultsByParams_Finalize[insertAt:0])
+			r.Moq.ResultsByParams_Finalize[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey_Finalize(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqMetrics_Finalize_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqMetrics_Finalize_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqMetrics_Finalize_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values     *struct{}
+				Sequence   uint32
+				DoFn       MoqMetrics_Finalize_doFn
+				DoReturnFn MoqMetrics_Finalize_doReturnFn
+			}{
+				Values:   last.Values,
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqMetrics) PrettyParams_Finalize(params MoqMetrics_Finalize_params) string {
+	return fmt.Sprintf("Finalize()")
+}
+
+func (m *MoqMetrics) ParamsKey_Finalize(params MoqMetrics_Finalize_params, anyParams uint64) MoqMetrics_Finalize_paramsKey {
+	return MoqMetrics_Finalize_paramsKey{
+		Params: struct{}{},
+		Hashes: struct{}{},
+	}
+}
+
 // Reset resets the state of the moq
 func (m *MoqMetrics) Reset() {
 	m.ResultsByParams_ASTPkgCacheHitsInc = nil
@@ -1777,7 +2355,9 @@ func (m *MoqMetrics) Reset() {
 	m.ResultsByParams_ASTTypeCacheHitsInc = nil
 	m.ResultsByParams_ASTTypeCacheMissesInc = nil
 	m.ResultsByParams_ASTTotalLoadTimeInc = nil
+	m.ResultsByParams_ASTTotalDecorationTimeInc = nil
 	m.ResultsByParams_TotalProcessingTimeInc = nil
+	m.ResultsByParams_Finalize = nil
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
@@ -1823,11 +2403,27 @@ func (m *MoqMetrics) AssertExpectationsMet() {
 			}
 		}
 	}
+	for _, res := range m.ResultsByParams_ASTTotalDecorationTimeInc {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_ASTTotalDecorationTimeInc(results.Params))
+			}
+		}
+	}
 	for _, res := range m.ResultsByParams_TotalProcessingTimeInc {
 		for _, results := range res.Results {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_TotalProcessingTimeInc(results.Params))
+			}
+		}
+	}
+	for _, res := range m.ResultsByParams_Finalize {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Finalize(results.Params))
 			}
 		}
 	}

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"go/token"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -64,16 +63,6 @@ type MoqGenerator struct {
 	typeCache      TypeCache
 	getwdFn        GetwdFunc
 	newConverterFn NewConverterFunc
-}
-
-//go:generate moqueries TypeCache
-
-// TypeCache defines the interface to the Cache type
-type TypeCache interface {
-	Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
-	IsComparable(expr dst.Expr) (bool, error)
-	IsDefaultComparable(expr dst.Expr) (bool, error)
-	FindPackage(dir string) (string, error)
 }
 
 // New returns a new MoqGenerator
@@ -169,7 +158,7 @@ func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
 }
 
 func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (string, error) {
-	destDir := path.Join(relPath, req.DestinationDir, req.Destination)
+	destDir := filepath.Join(relPath, req.DestinationDir, req.Destination)
 	if strings.HasSuffix(destDir, ".go") {
 		destDir = filepath.Dir(destDir)
 	}
@@ -182,7 +171,7 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (stri
 			outPkgPath += testPkgSuffix
 		}
 	} else {
-		outPkgPath = path.Join(path.Dir(outPkgPath), req.Package)
+		outPkgPath = filepath.Join(filepath.Dir(outPkgPath), req.Package)
 	}
 	logs.Debugf("Output package: %s", outPkgPath)
 	return outPkgPath, nil

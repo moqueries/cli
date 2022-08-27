@@ -3,11 +3,11 @@ package generator
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
 	"golang.org/x/tools/go/packages"
@@ -40,7 +40,7 @@ func Generate(reqs ...GenerateRequest) error {
 	cache := ast.NewCache(packages.Load, m)
 	start := time.Now()
 	for _, req := range reqs {
-		err := generate(cache, req)
+		err := GenerateWithTypeCache(cache, req)
 		if err != nil {
 			return err
 		}
@@ -50,7 +50,20 @@ func Generate(reqs ...GenerateRequest) error {
 	return nil
 }
 
-func generate(cache *ast.Cache, req GenerateRequest) error {
+//go:generate moqueries TypeCache
+
+// TypeCache defines the interface to the Cache type
+type TypeCache interface {
+	Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
+	IsComparable(expr dst.Expr) (bool, error)
+	IsDefaultComparable(expr dst.Expr) (bool, error)
+	FindPackage(dir string) (string, error)
+}
+
+// GenerateWithTypeCache generates a single moq using the provided type cache.
+// This function is exposed for use in bulk operations that have already loaded
+// a type.
+func GenerateWithTypeCache(cache TypeCache, req GenerateRequest) error {
 	newConverterFn := func(typ Type, export bool) Converterer {
 		return NewConverter(typ, export, cache)
 	}
@@ -61,7 +74,7 @@ func generate(cache *ast.Cache, req GenerateRequest) error {
 		return fmt.Errorf("error generating moqs: %w", err)
 	}
 
-	tempFile, err := ioutil.TempFile("", "*.go")
+	tempFile, err := os.CreateTemp("", "*.go")
 	if err != nil {
 		return fmt.Errorf("error creating temp file: %w", err)
 	}

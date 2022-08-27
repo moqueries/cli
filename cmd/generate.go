@@ -24,24 +24,30 @@ func addGenerateFlags() {
 		"If true, generated mocks will be exported and accessible from other packages")
 
 	rootCmd.Flags().String(destinationFlag, "",
-		"The file path where mocks are generated relative to the directory "+
-			"containing the generate directive (or relative to the current directory) "+
-			"(defaults to ./moq_<type>.go when exported or ./moq_<type>_test.go "+
-			"when not exported)")
-	rootCmd.Flags().String(destinationDirFlag, "",
-		"The file directory where mocks are generated relative to the directory "+
-			"containing the generate directive (or relative to the current directory) "+
-			"(defaults to .)")
+		"The file path where mocks are generated. Relative paths are "+
+			"allowed (relative to the directory containing the generate "+
+			"directive or relative to the current directory) (defaults to "+
+			"./moq_<type>.go when exported or ./moq_<type>_test.go when not "+
+			"exported)")
+	addDestinationDirFlag(rootCmd)
 
 	rootCmd.Flags().String(packageFlag, "",
-		"The package to generate code into (defaults to the test package of the "+
-			"destination directory when --export=false or the package of the "+
-			"destination directory when --export=true)")
+		"The package to generate code into (defaults to the test package of "+
+			"the destination directory when --export=false or the package of "+
+			"the destination directory when --export=true)")
 	rootCmd.Flags().String(importFlag, ".",
 		"The package containing the type (interface or function type) to be "+
 			"mocked (defaults to the directory containing generate directive)")
 	rootCmd.Flags().Bool(testImportFlag, false,
 		"Look for the types to be mocked in the test package")
+}
+
+func addDestinationDirFlag(cmd *cobra.Command) {
+	cmd.Flags().String(destinationDirFlag, "",
+		"The file directory where mocks are generated relative. Relative "+
+			"paths are allowed (relative to the directory containing the "+
+			"generate directive (or relative to the current directory) "+
+			"(defaults to .)")
 }
 
 // generate gathers details on the environment and calls the generator

@@ -35,6 +35,7 @@ func init() {
 	rootCmd.AddCommand(summarizeMetricsCmd)
 	rootCmd.AddCommand(initializeCmd)
 	rootCmd.AddCommand(finalizeCmd)
+	rootCmd.AddCommand(packageCmd())
 }
 
 // Execute generates one or more mocks

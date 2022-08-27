@@ -16,6 +16,7 @@ import (
 
 // testInterface verifies that the generator can access types in the test
 // package
+//
 //nolint:deadcode,unused // Used by go:generate to verify accessibility
 type testInterface interface {
 	something()
