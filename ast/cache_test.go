@@ -511,6 +511,11 @@ func TestCache(t *testing.T) {
 				defaultComparable: false,
 				structable:        true,
 			},
+			"func()": {
+				comparable:        false,
+				defaultComparable: false,
+				structable:        false,
+			},
 		}
 
 		parse := func(t *testing.T, code string) *dst.File {

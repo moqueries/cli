@@ -212,7 +212,7 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 			return false, nil
 		}
 		return c.isDefaultComparable(e.Elt, interfacePointerDefault)
-	case *dst.MapType, *dst.Ellipsis:
+	case *dst.MapType, *dst.Ellipsis, *dst.FuncType:
 		return false, nil
 	case *dst.StarExpr:
 		return interfacePointerDefault, nil
