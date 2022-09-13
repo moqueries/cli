@@ -1487,15 +1487,15 @@ func (a *difficultParamNamesFnAdaptor) config() adaptorConfig { return adaptorCo
 func (a *difficultParamNamesFnAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *difficultParamNamesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
-	return &difficultParamNamesFnRecorder{r: a.m.onCall(bParam, false, sParams[0], 0, 0, 0.0, 0.0)}
+	return &difficultParamNamesFnRecorder{r: a.m.onCall(bParam, false, sParams[0], 0, 0, 0, 0.0, 0.0)}
 }
 
 func (a *difficultParamNamesFnAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
-	a.m.mock()(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
+	a.m.mock()(bParam, false, sParams[0], 0, 0, 0, 0.0, 0.0)
 }
 
 func (a *difficultParamNamesFnAdaptor) prettyParams(sParams []string, bParam bool) string {
-	return fmt.Sprintf("DifficultParamNamesFn(%#v, false, %#v, 0, 0, 0, 0)", bParam, sParams[0])
+	return fmt.Sprintf("DifficultParamNamesFn(%#v, false, %#v, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
 func (a *difficultParamNamesFnAdaptor) sceneMoq() moq.Moq {
@@ -1535,7 +1535,7 @@ func (r *difficultParamNamesFnRecorder) returnResults([]string, error) {
 }
 
 func (r *difficultParamNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
-	r.r = r.r.andDo(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+	r.r = r.r.andDo(func(m, _ bool, sequence string, _, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
@@ -1549,7 +1549,7 @@ func (r *difficultParamNamesFnRecorder) andDo(t moq.T, fn func(), expectedSParam
 func (r *difficultParamNamesFnRecorder) doReturnResults(
 	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error,
 ) {
-	r.r = r.r.doReturnResults(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+	r.r = r.r.doReturnResults(func(m, _ bool, sequence string, _, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
@@ -1580,18 +1580,18 @@ func (a *exportedDifficultParamNamesFnAdaptor) mock() interface{} { return a.m.M
 
 func (a *exportedDifficultParamNamesFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedDifficultParamNamesFnRecorder{
-		r: a.m.OnCall(bParam, false, sParams[0], 0, 0, 0.0, 0.0),
+		r: a.m.OnCall(bParam, false, sParams[0], 0, 0, 0, 0.0, 0.0),
 	}
 }
 
 func (a *exportedDifficultParamNamesFnAdaptor) invokeMockAndExpectResults(
 	_ moq.T, sParams []string, bParam bool, _ results,
 ) {
-	a.m.Mock()(bParam, false, sParams[0], 0, 0, 0.0, 0.0)
+	a.m.Mock()(bParam, false, sParams[0], 0, 0, 0, 0.0, 0.0)
 }
 
 func (a *exportedDifficultParamNamesFnAdaptor) prettyParams(sParams []string, bParam bool) string {
-	return fmt.Sprintf("DifficultParamNamesFn(%#v, false, %#v, 0, 0, 0, 0)", bParam, sParams[0])
+	return fmt.Sprintf("DifficultParamNamesFn(%#v, false, %#v, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
 func (a *exportedDifficultParamNamesFnAdaptor) sceneMoq() moq.Moq {
@@ -1633,7 +1633,7 @@ func (r *exportedDifficultParamNamesFnRecorder) returnResults([]string, error) {
 func (r *exportedDifficultParamNamesFnRecorder) andDo(
 	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
 ) {
-	r.r = r.r.AndDo(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+	r.r = r.r.AndDo(func(m, _ bool, sequence string, _, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
@@ -1647,7 +1647,7 @@ func (r *exportedDifficultParamNamesFnRecorder) andDo(
 func (r *exportedDifficultParamNamesFnRecorder) doReturnResults(
 	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, _ []string, _ error,
 ) {
-	r.r = r.r.DoReturnResults(func(m, _ bool, sequence string, _, _ int, _, _ float32) {
+	r.r = r.r.DoReturnResults(func(m, _ bool, sequence string, _, _, _ int, _, _ float32) {
 		fn()
 		if sequence != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sequence)
@@ -1681,7 +1681,7 @@ func (a *difficultResultNamesFnAdaptor) newRecorder([]string, bool) recorder {
 }
 
 func (a *difficultResultNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool, res results) {
-	m, r, sequence, _, _, _, _ := a.m.mock()()
+	m, r, sequence, _, _, _, _, _ := a.m.mock()()
 	if m != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], m)
 	}
@@ -1718,7 +1718,7 @@ func (r *difficultResultNamesFnRecorder) noSeq() {
 }
 
 func (r *difficultResultNamesFnRecorder) returnResults(sResults []string, err error) {
-	r.r = r.r.returnResults(sResults[0], sResults[1], err, 0, 0, 0.0, 0.0)
+	r.r = r.r.returnResults(sResults[0], sResults[1], err, 0, 0, 0, 0.0, 0.0)
 }
 
 func (r *difficultResultNamesFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
@@ -1731,9 +1731,9 @@ func (r *difficultResultNamesFnRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
-	r.r = r.r.doReturnResults(func() (string, string, error, int, int, float32, float32) {
+	r.r = r.r.doReturnResults(func() (string, string, error, int, int, int, float32, float32) {
 		fn()
-		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
+		return sResults[0], sResults[1], err, 0, 0, 0, 0.0, 0.0
 	})
 }
 
@@ -1760,7 +1760,7 @@ func (a *exportedDifficultResultNamesFnAdaptor) newRecorder([]string, bool) reco
 }
 
 func (a *exportedDifficultResultNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bool, res results) {
-	m, r, sequence, _, _, _, _ := a.m.Mock()()
+	m, r, sequence, _, _, _, _, _ := a.m.Mock()()
 	if m != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], m)
 	}
@@ -1797,7 +1797,7 @@ func (r *exportedDifficultResultNamesFnRecorder) noSeq() {
 }
 
 func (r *exportedDifficultResultNamesFnRecorder) returnResults(sResults []string, err error) {
-	r.r = r.r.ReturnResults(sResults[0], sResults[1], err, 0, 0, 0.0, 0.0)
+	r.r = r.r.ReturnResults(sResults[0], sResults[1], err, 0, 0, 0, 0.0, 0.0)
 }
 
 func (r *exportedDifficultResultNamesFnRecorder) andDo(_ moq.T, fn func(), _ []string, _ bool) {
@@ -1810,9 +1810,9 @@ func (r *exportedDifficultResultNamesFnRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
 	//nolint:stylecheck // doReturnFn functions may have error in middle of params
-	r.r = r.r.DoReturnResults(func() (string, string, error, int, int, float32, float32) {
+	r.r = r.r.DoReturnResults(func() (string, string, error, int, int, int, float32, float32) {
 		fn()
-		return sResults[0], sResults[1], err, 0, 0, 0.0, 0.0
+		return sResults[0], sResults[1], err, 0, 0, 0, 0.0, 0.0
 	})
 }
 
