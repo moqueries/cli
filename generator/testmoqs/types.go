@@ -34,10 +34,10 @@ type RepeatedIdsFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult
 type TimesFn func(times string, bParam bool) (sResult string, err error)
 
 // DifficultParamNamesFn has parameters with names that have been problematic
-type DifficultParamNamesFn func(m, r bool, sequence string, param, params int, result, results float32)
+type DifficultParamNamesFn func(m, r bool, sequence string, param, params, i int, result, results float32)
 
 // DifficultResultNamesFn has parameters with names that have been problematic
-type DifficultResultNamesFn func() (m, r string, sequence error, param, params int, result, results float32)
+type DifficultResultNamesFn func() (m, r string, sequence error, param, params, i int, result, results float32)
 
 // PassByReferenceParams encapsulates the parameters for passing by reference
 // tests
@@ -88,8 +88,8 @@ type Usual interface {
 	Variadic(other bool, args ...string) (sResult string, err error)
 	RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 	Times(sParam string, times bool) (sResult string, err error)
-	DifficultParamNames(m, r bool, sequence string, param, params int, result, results float32)
-	DifficultResultNames() (m, r string, sequence error, param, params int, result, results float32)
+	DifficultParamNames(m, r bool, sequence string, param, params, i int, result, results float32)
+	DifficultResultNames() (m, r string, sequence error, param, params, i int, result, results float32)
 	PassByReference(p *PassByReferenceParams) (sResult string, err error)
 	InterfaceParam(w io.Writer) (sResult string, err error)
 	InterfaceResult(sParam string, bParam bool) (r io.Reader)

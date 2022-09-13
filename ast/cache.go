@@ -310,7 +310,6 @@ func (c *Cache) loadPackage(path string, testImport bool) (string, error) {
 
 	if path != pkgPath {
 		logs.Debugf("Requested package %s loaded as %s", path, pkgPath)
-		c.loadedPkgs[path] = c.loadedPkgs[pkgPath]
 	}
 
 	return pkgPath, nil

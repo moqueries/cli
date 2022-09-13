@@ -103,6 +103,7 @@ const (
 // result list, they are treated as though the name doesn't exist and a generic
 // name is given (e.g.: param1).
 var invalidNames = map[string]struct{}{
+	iIdent:                {},
 	moqReceiverIdent:      {},
 	recorderReceiverIdent: {},
 	sequenceIdent:         {},

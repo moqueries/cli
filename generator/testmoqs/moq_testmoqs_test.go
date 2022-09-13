@@ -3210,6 +3210,7 @@ type moqDifficultParamNamesFn struct {
 			param5 moq.ParamIndexing
 			param6 moq.ParamIndexing
 			param7 moq.ParamIndexing
+			param8 moq.ParamIndexing
 		}
 	}
 }
@@ -3221,25 +3222,25 @@ type moqDifficultParamNamesFn_mock struct {
 
 // moqDifficultParamNamesFn_params holds the params of the DifficultParamNamesFn type
 type moqDifficultParamNamesFn_params struct {
-	param1, param2 bool
-	param3         string
-	param, param5  int
-	param6, param7 float32
+	param1, param2        bool
+	param3                string
+	param, param5, param6 int
+	param7, param8        float32
 }
 
 // moqDifficultParamNamesFn_paramsKey holds the map key params of the DifficultParamNamesFn type
 type moqDifficultParamNamesFn_paramsKey struct {
 	params struct {
-		param1, param2 bool
-		param3         string
-		param, param5  int
-		param6, param7 float32
+		param1, param2        bool
+		param3                string
+		param, param5, param6 int
+		param7, param8        float32
 	}
 	hashes struct {
-		param1, param2 hash.Hash
-		param3         hash.Hash
-		param, param5  hash.Hash
-		param6, param7 hash.Hash
+		param1, param2        hash.Hash
+		param3                hash.Hash
+		param, param5, param6 hash.Hash
+		param7, param8        hash.Hash
 	}
 }
 
@@ -3251,10 +3252,10 @@ type moqDifficultParamNamesFn_resultsByParams struct {
 }
 
 // moqDifficultParamNamesFn_doFn defines the type of function needed when calling andDo for the DifficultParamNamesFn type
-type moqDifficultParamNamesFn_doFn func(m, r bool, sequence string, param, params int, result, results float32)
+type moqDifficultParamNamesFn_doFn func(m, r bool, sequence string, param, params, i int, result, results float32)
 
 // moqDifficultParamNamesFn_doReturnFn defines the type of function needed when calling doReturnResults for the DifficultParamNamesFn type
-type moqDifficultParamNamesFn_doReturnFn func(m, r bool, sequence string, param, params int, result, results float32)
+type moqDifficultParamNamesFn_doReturnFn func(m, r bool, sequence string, param, params, i int, result, results float32)
 
 // moqDifficultParamNamesFn_results holds the results of the DifficultParamNamesFn type
 type moqDifficultParamNamesFn_results struct {
@@ -3302,6 +3303,7 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 				param5 moq.ParamIndexing
 				param6 moq.ParamIndexing
 				param7 moq.ParamIndexing
+				param8 moq.ParamIndexing
 			}
 		}{parameterIndexing: struct {
 			param1 moq.ParamIndexing
@@ -3311,6 +3313,7 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 			param5 moq.ParamIndexing
 			param6 moq.ParamIndexing
 			param7 moq.ParamIndexing
+			param8 moq.ParamIndexing
 		}{
 			param1: moq.ParamIndexByValue,
 			param2: moq.ParamIndexByValue,
@@ -3319,6 +3322,7 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 			param5: moq.ParamIndexByValue,
 			param6: moq.ParamIndexByValue,
 			param7: moq.ParamIndexByValue,
+			param8: moq.ParamIndexByValue,
 		}},
 	}
 	m.moq.moq = m
@@ -3329,13 +3333,13 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 
 // mock returns the moq implementation of the DifficultParamNamesFn type
 func (m *moqDifficultParamNamesFn) mock() testmoqs.DifficultParamNamesFn {
-	return func(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) {
+	return func(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8 float32) {
 		moq := &moqDifficultParamNamesFn_mock{moq: m}
-		moq.fn(param1, param2, param3, param, param5, param6, param7)
+		moq.fn(param1, param2, param3, param, param5, param6, param7, param8)
 	}
 }
 
-func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) {
+func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8 float32) {
 	m.moq.scene.T.Helper()
 	params := moqDifficultParamNamesFn_params{
 		param1: param1,
@@ -3345,6 +3349,7 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 		param5: param5,
 		param6: param6,
 		param7: param7,
+		param8: param8,
 	}
 	var results *moqDifficultParamNamesFn_results
 	for _, resultsByParams := range m.moq.resultsByParams {
@@ -3382,16 +3387,16 @@ func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, p
 	}
 
 	if result.doFn != nil {
-		result.doFn(param1, param2, param3, param, param5, param6, param7)
+		result.doFn(param1, param2, param3, param, param5, param6, param7, param8)
 	}
 
 	if result.doReturnFn != nil {
-		result.doReturnFn(param1, param2, param3, param, param5, param6, param7)
+		result.doReturnFn(param1, param2, param3, param, param5, param6, param7, param8)
 	}
 	return
 }
 
-func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) *moqDifficultParamNamesFn_fnRecorder {
+func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8 float32) *moqDifficultParamNamesFn_fnRecorder {
 	return &moqDifficultParamNamesFn_fnRecorder{
 		params: moqDifficultParamNamesFn_params{
 			param1: param1,
@@ -3401,6 +3406,7 @@ func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, pa
 			param5: param5,
 			param6: param6,
 			param7: param7,
+			param8: param8,
 		},
 		sequence: m.config.Sequence == moq.SeqDefaultOn,
 		moq:      m,
@@ -3448,6 +3454,11 @@ func (a *moqDifficultParamNamesFn_anyParams) param6() *moqDifficultParamNamesFn_
 
 func (a *moqDifficultParamNamesFn_anyParams) param7() *moqDifficultParamNamesFn_fnRecorder {
 	a.recorder.anyParams |= 1 << 6
+	return a.recorder
+}
+
+func (a *moqDifficultParamNamesFn_anyParams) param8() *moqDifficultParamNamesFn_fnRecorder {
+	a.recorder.anyParams |= 1 << 7
 	return a.recorder
 }
 
@@ -3595,7 +3606,7 @@ func (r *moqDifficultParamNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) 
 }
 
 func (m *moqDifficultParamNamesFn) prettyParams(params moqDifficultParamNamesFn_params) string {
-	return fmt.Sprintf("DifficultParamNamesFn(%#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7)
+	return fmt.Sprintf("DifficultParamNamesFn(%#v, %#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8)
 }
 
 func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_params, anyParams uint64) moqDifficultParamNamesFn_paramsKey {
@@ -3644,7 +3655,7 @@ func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_par
 			param5UsedHash = hash.DeepHash(params.param5)
 		}
 	}
-	var param6Used float32
+	var param6Used int
 	var param6UsedHash hash.Hash
 	if anyParams&(1<<5) == 0 {
 		if m.runtime.parameterIndexing.param6 == moq.ParamIndexByValue {
@@ -3662,12 +3673,21 @@ func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_par
 			param7UsedHash = hash.DeepHash(params.param7)
 		}
 	}
+	var param8Used float32
+	var param8UsedHash hash.Hash
+	if anyParams&(1<<7) == 0 {
+		if m.runtime.parameterIndexing.param8 == moq.ParamIndexByValue {
+			param8Used = params.param8
+		} else {
+			param8UsedHash = hash.DeepHash(params.param8)
+		}
+	}
 	return moqDifficultParamNamesFn_paramsKey{
 		params: struct {
-			param1, param2 bool
-			param3         string
-			param, param5  int
-			param6, param7 float32
+			param1, param2        bool
+			param3                string
+			param, param5, param6 int
+			param7, param8        float32
 		}{
 			param1: param1Used,
 			param2: param2Used,
@@ -3676,12 +3696,13 @@ func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_par
 			param5: param5Used,
 			param6: param6Used,
 			param7: param7Used,
+			param8: param8Used,
 		},
 		hashes: struct {
-			param1, param2 hash.Hash
-			param3         hash.Hash
-			param, param5  hash.Hash
-			param6, param7 hash.Hash
+			param1, param2        hash.Hash
+			param3                hash.Hash
+			param, param5, param6 hash.Hash
+			param7, param8        hash.Hash
 		}{
 			param1: param1UsedHash,
 			param2: param2UsedHash,
@@ -3690,6 +3711,7 @@ func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_par
 			param5: param5UsedHash,
 			param6: param6UsedHash,
 			param7: param7UsedHash,
+			param8: param8UsedHash,
 		},
 	}
 }
@@ -3748,17 +3770,17 @@ type moqDifficultResultNamesFn_resultsByParams struct {
 type moqDifficultResultNamesFn_doFn func()
 
 // moqDifficultResultNamesFn_doReturnFn defines the type of function needed when calling doReturnResults for the DifficultResultNamesFn type
-type moqDifficultResultNamesFn_doReturnFn func() (m, r string, sequence error, param, params int, result, results float32)
+type moqDifficultResultNamesFn_doReturnFn func() (m, r string, sequence error, param, params, i int, result, results float32)
 
 // moqDifficultResultNamesFn_results holds the results of the DifficultResultNamesFn type
 type moqDifficultResultNamesFn_results struct {
 	params  moqDifficultResultNamesFn_params
 	results []struct {
 		values *struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}
 		sequence   uint32
 		doFn       moqDifficultResultNamesFn_doFn
@@ -3804,13 +3826,13 @@ func newMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *moqDiff
 
 // mock returns the moq implementation of the DifficultResultNamesFn type
 func (m *moqDifficultResultNamesFn) mock() testmoqs.DifficultResultNamesFn {
-	return func() (_, _ string, _ error, _, _ int, _, _ float32) {
+	return func() (_, _ string, _ error, _, _, _ int, _, _ float32) {
 		moq := &moqDifficultResultNamesFn_mock{moq: m}
 		return moq.fn()
 	}
 }
 
-func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 error, param, result5 int, result6, result7 float32) {
+func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 error, param, result5, result6 int, result7, result8 float32) {
 	m.moq.scene.T.Helper()
 	params := moqDifficultResultNamesFn_params{}
 	var results *moqDifficultResultNamesFn_results
@@ -3860,9 +3882,10 @@ func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 
 		result5 = result.values.result5
 		result6 = result.values.result6
 		result7 = result.values.result7
+		result8 = result.values.result8
 	}
 	if result.doReturnFn != nil {
-		result1, result2, result3, param, result5, result6, result7 = result.doReturnFn()
+		result1, result2, result3, param, result5, result6, result7, result8 = result.doReturnFn()
 	}
 	return
 }
@@ -3904,7 +3927,7 @@ func (r *moqDifficultResultNamesFn_fnRecorder) noSeq() *moqDifficultResultNamesF
 	return r
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5 int, result6, result7 float32) *moqDifficultResultNamesFn_fnRecorder {
+func (r *moqDifficultResultNamesFn_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5, result6 int, result7, result8 float32) *moqDifficultResultNamesFn_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -3915,20 +3938,20 @@ func (r *moqDifficultResultNamesFn_fnRecorder) returnResults(result1, result2 st
 
 	r.results.results = append(r.results.results, struct {
 		values *struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}
 		sequence   uint32
 		doFn       moqDifficultResultNamesFn_doFn
 		doReturnFn moqDifficultResultNamesFn_doReturnFn
 	}{
 		values: &struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}{
 			result1: result1,
 			result2: result2,
@@ -3937,6 +3960,7 @@ func (r *moqDifficultResultNamesFn_fnRecorder) returnResults(result1, result2 st
 			result5: result5,
 			result6: result6,
 			result7: result7,
+			result8: result8,
 		},
 		sequence: sequence,
 	})
@@ -3965,10 +3989,10 @@ func (r *moqDifficultResultNamesFn_fnRecorder) doReturnResults(fn moqDifficultRe
 
 	r.results.results = append(r.results.results, struct {
 		values *struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}
 		sequence   uint32
 		doFn       moqDifficultResultNamesFn_doFn
@@ -4037,10 +4061,10 @@ func (r *moqDifficultResultNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater)
 		if r.sequence {
 			last = struct {
 				values *struct {
-					result1, result2 string
-					result3          error
-					param, result5   int
-					result6, result7 float32
+					result1, result2        string
+					result3                 error
+					param, result5, result6 int
+					result7, result8        float32
 				}
 				sequence   uint32
 				doFn       moqDifficultResultNamesFn_doFn
@@ -5308,6 +5332,7 @@ type moqUsual struct {
 				param5 moq.ParamIndexing
 				param6 moq.ParamIndexing
 				param7 moq.ParamIndexing
+				param8 moq.ParamIndexing
 			}
 			DifficultResultNames struct{}
 			PassByReference      struct {
@@ -5797,25 +5822,25 @@ type moqUsual_Times_anyParams struct {
 
 // moqUsual_DifficultParamNames_params holds the params of the Usual type
 type moqUsual_DifficultParamNames_params struct {
-	param1, param2 bool
-	param3         string
-	param, param5  int
-	param6, param7 float32
+	param1, param2        bool
+	param3                string
+	param, param5, param6 int
+	param7, param8        float32
 }
 
 // moqUsual_DifficultParamNames_paramsKey holds the map key params of the Usual type
 type moqUsual_DifficultParamNames_paramsKey struct {
 	params struct {
-		param1, param2 bool
-		param3         string
-		param, param5  int
-		param6, param7 float32
+		param1, param2        bool
+		param3                string
+		param, param5, param6 int
+		param7, param8        float32
 	}
 	hashes struct {
-		param1, param2 hash.Hash
-		param3         hash.Hash
-		param, param5  hash.Hash
-		param6, param7 hash.Hash
+		param1, param2        hash.Hash
+		param3                hash.Hash
+		param, param5, param6 hash.Hash
+		param7, param8        hash.Hash
 	}
 }
 
@@ -5827,10 +5852,10 @@ type moqUsual_DifficultParamNames_resultsByParams struct {
 }
 
 // moqUsual_DifficultParamNames_doFn defines the type of function needed when calling andDo for the Usual type
-type moqUsual_DifficultParamNames_doFn func(m, r bool, sequence string, param, params int, result, results float32)
+type moqUsual_DifficultParamNames_doFn func(m, r bool, sequence string, param, params, i int, result, results float32)
 
 // moqUsual_DifficultParamNames_doReturnFn defines the type of function needed when calling doReturnResults for the Usual type
-type moqUsual_DifficultParamNames_doReturnFn func(m, r bool, sequence string, param, params int, result, results float32)
+type moqUsual_DifficultParamNames_doReturnFn func(m, r bool, sequence string, param, params, i int, result, results float32)
 
 // moqUsual_DifficultParamNames_results holds the results of the Usual type
 type moqUsual_DifficultParamNames_results struct {
@@ -5879,17 +5904,17 @@ type moqUsual_DifficultResultNames_resultsByParams struct {
 type moqUsual_DifficultResultNames_doFn func()
 
 // moqUsual_DifficultResultNames_doReturnFn defines the type of function needed when calling doReturnResults for the Usual type
-type moqUsual_DifficultResultNames_doReturnFn func() (m, r string, sequence error, param, params int, result, results float32)
+type moqUsual_DifficultResultNames_doReturnFn func() (m, r string, sequence error, param, params, i int, result, results float32)
 
 // moqUsual_DifficultResultNames_results holds the results of the Usual type
 type moqUsual_DifficultResultNames_results struct {
 	params  moqUsual_DifficultResultNames_params
 	results []struct {
 		values *struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}
 		sequence   uint32
 		doFn       moqUsual_DifficultResultNames_doFn
@@ -6126,6 +6151,7 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 					param5 moq.ParamIndexing
 					param6 moq.ParamIndexing
 					param7 moq.ParamIndexing
+					param8 moq.ParamIndexing
 				}
 				DifficultResultNames struct{}
 				PassByReference      struct {
@@ -6175,6 +6201,7 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				param5 moq.ParamIndexing
 				param6 moq.ParamIndexing
 				param7 moq.ParamIndexing
+				param8 moq.ParamIndexing
 			}
 			DifficultResultNames struct{}
 			PassByReference      struct {
@@ -6242,6 +6269,7 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				param5 moq.ParamIndexing
 				param6 moq.ParamIndexing
 				param7 moq.ParamIndexing
+				param8 moq.ParamIndexing
 			}{
 				param1: moq.ParamIndexByValue,
 				param2: moq.ParamIndexByValue,
@@ -6250,6 +6278,7 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				param5: moq.ParamIndexByValue,
 				param6: moq.ParamIndexByValue,
 				param7: moq.ParamIndexByValue,
+				param8: moq.ParamIndexByValue,
 			},
 			DifficultResultNames: struct{}{},
 			PassByReference: struct {
@@ -6708,7 +6737,7 @@ func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err er
 	return
 }
 
-func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) {
+func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8 float32) {
 	m.moq.scene.T.Helper()
 	params := moqUsual_DifficultParamNames_params{
 		param1: param1,
@@ -6718,6 +6747,7 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 		param5: param5,
 		param6: param6,
 		param7: param7,
+		param8: param8,
 	}
 	var results *moqUsual_DifficultParamNames_results
 	for _, resultsByParams := range m.moq.resultsByParams_DifficultParamNames {
@@ -6755,16 +6785,16 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 	}
 
 	if result.doFn != nil {
-		result.doFn(param1, param2, param3, param, param5, param6, param7)
+		result.doFn(param1, param2, param3, param, param5, param6, param7, param8)
 	}
 
 	if result.doReturnFn != nil {
-		result.doReturnFn(param1, param2, param3, param, param5, param6, param7)
+		result.doReturnFn(param1, param2, param3, param, param5, param6, param7, param8)
 	}
 	return
 }
 
-func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3 error, param, result5 int, result6, result7 float32) {
+func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3 error, param, result5, result6 int, result7, result8 float32) {
 	m.moq.scene.T.Helper()
 	params := moqUsual_DifficultResultNames_params{}
 	var results *moqUsual_DifficultResultNames_results
@@ -6814,9 +6844,10 @@ func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3
 		result5 = result.values.result5
 		result6 = result.values.result6
 		result7 = result.values.result7
+		result8 = result.values.result8
 	}
 	if result.doReturnFn != nil {
-		result1, result2, result3, param, result5, result6, result7 = result.doReturnFn()
+		result1, result2, result3, param, result5, result6, result7, result8 = result.doReturnFn()
 	}
 	return
 }
@@ -8718,7 +8749,7 @@ func (m *moqUsual) paramsKey_Times(params moqUsual_Times_params, anyParams uint6
 	}
 }
 
-func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5 int, param6, param7 float32) *moqUsual_DifficultParamNames_fnRecorder {
+func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8 float32) *moqUsual_DifficultParamNames_fnRecorder {
 	return &moqUsual_DifficultParamNames_fnRecorder{
 		params: moqUsual_DifficultParamNames_params{
 			param1: param1,
@@ -8728,6 +8759,7 @@ func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 stri
 			param5: param5,
 			param6: param6,
 			param7: param7,
+			param8: param8,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -8775,6 +8807,11 @@ func (a *moqUsual_DifficultParamNames_anyParams) param6() *moqUsual_DifficultPar
 
 func (a *moqUsual_DifficultParamNames_anyParams) param7() *moqUsual_DifficultParamNames_fnRecorder {
 	a.recorder.anyParams |= 1 << 6
+	return a.recorder
+}
+
+func (a *moqUsual_DifficultParamNames_anyParams) param8() *moqUsual_DifficultParamNames_fnRecorder {
+	a.recorder.anyParams |= 1 << 7
 	return a.recorder
 }
 
@@ -8922,7 +8959,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) repeat(repeaters ...moq.Repeat
 }
 
 func (m *moqUsual) prettyParams_DifficultParamNames(params moqUsual_DifficultParamNames_params) string {
-	return fmt.Sprintf("DifficultParamNames(%#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7)
+	return fmt.Sprintf("DifficultParamNames(%#v, %#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8)
 }
 
 func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamNames_params, anyParams uint64) moqUsual_DifficultParamNames_paramsKey {
@@ -8971,7 +9008,7 @@ func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamN
 			param5UsedHash = hash.DeepHash(params.param5)
 		}
 	}
-	var param6Used float32
+	var param6Used int
 	var param6UsedHash hash.Hash
 	if anyParams&(1<<5) == 0 {
 		if m.runtime.parameterIndexing.DifficultParamNames.param6 == moq.ParamIndexByValue {
@@ -8989,12 +9026,21 @@ func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamN
 			param7UsedHash = hash.DeepHash(params.param7)
 		}
 	}
+	var param8Used float32
+	var param8UsedHash hash.Hash
+	if anyParams&(1<<7) == 0 {
+		if m.runtime.parameterIndexing.DifficultParamNames.param8 == moq.ParamIndexByValue {
+			param8Used = params.param8
+		} else {
+			param8UsedHash = hash.DeepHash(params.param8)
+		}
+	}
 	return moqUsual_DifficultParamNames_paramsKey{
 		params: struct {
-			param1, param2 bool
-			param3         string
-			param, param5  int
-			param6, param7 float32
+			param1, param2        bool
+			param3                string
+			param, param5, param6 int
+			param7, param8        float32
 		}{
 			param1: param1Used,
 			param2: param2Used,
@@ -9003,12 +9049,13 @@ func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamN
 			param5: param5Used,
 			param6: param6Used,
 			param7: param7Used,
+			param8: param8Used,
 		},
 		hashes: struct {
-			param1, param2 hash.Hash
-			param3         hash.Hash
-			param, param5  hash.Hash
-			param6, param7 hash.Hash
+			param1, param2        hash.Hash
+			param3                hash.Hash
+			param, param5, param6 hash.Hash
+			param7, param8        hash.Hash
 		}{
 			param1: param1UsedHash,
 			param2: param2UsedHash,
@@ -9017,6 +9064,7 @@ func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamN
 			param5: param5UsedHash,
 			param6: param6UsedHash,
 			param7: param7UsedHash,
+			param8: param8UsedHash,
 		},
 	}
 }
@@ -9058,7 +9106,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) noSeq() *moqUsual_DifficultRe
 	return r
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5 int, result6, result7 float32) *moqUsual_DifficultResultNames_fnRecorder {
+func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5, result6 int, result7, result8 float32) *moqUsual_DifficultResultNames_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -9069,20 +9117,20 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result
 
 	r.results.results = append(r.results.results, struct {
 		values *struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}
 		sequence   uint32
 		doFn       moqUsual_DifficultResultNames_doFn
 		doReturnFn moqUsual_DifficultResultNames_doReturnFn
 	}{
 		values: &struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}{
 			result1: result1,
 			result2: result2,
@@ -9091,6 +9139,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result
 			result5: result5,
 			result6: result6,
 			result7: result7,
+			result8: result8,
 		},
 		sequence: sequence,
 	})
@@ -9119,10 +9168,10 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) doReturnResults(fn moqUsual_D
 
 	r.results.results = append(r.results.results, struct {
 		values *struct {
-			result1, result2 string
-			result3          error
-			param, result5   int
-			result6, result7 float32
+			result1, result2        string
+			result3                 error
+			param, result5, result6 int
+			result7, result8        float32
 		}
 		sequence   uint32
 		doFn       moqUsual_DifficultResultNames_doFn
@@ -9191,10 +9240,10 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) repeat(repeaters ...moq.Repea
 		if r.sequence {
 			last = struct {
 				values *struct {
-					result1, result2 string
-					result3          error
-					param, result5   int
-					result6, result7 float32
+					result1, result2        string
+					result3                 error
+					param, result5, result6 int
+					result7, result8        float32
 				}
 				sequence   uint32
 				doFn       moqUsual_DifficultResultNames_doFn
