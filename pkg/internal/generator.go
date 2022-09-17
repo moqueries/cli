@@ -3,6 +3,7 @@
 package internal
 
 import (
+	"errors"
 	"path/filepath"
 	"time"
 
@@ -54,12 +55,18 @@ func Generate(
 			pkgDestDir, id.String())
 
 		err := genFn(cache, generator.GenerateRequest{
-			Types:          []string{id.Name},
-			Export:         true,
-			DestinationDir: pkgDestDir,
-			Import:         id.Path,
+			Types:              []string{id.Name},
+			Export:             true,
+			DestinationDir:     pkgDestDir,
+			Import:             id.Path,
+			ErrorOnNonExported: true,
 		})
 		if err != nil {
+			if errors.Is(err, generator.ErrNonExported) {
+				logs.Debugf("Skipping generation of mock for %s, %s",
+					id.String(), err.Error())
+				continue
+			}
 			return err
 		}
 	}
