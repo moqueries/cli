@@ -78,16 +78,22 @@ func New(
 	}
 }
 
+type MoqResponse struct {
+	File       *dst.File
+	DestPath   string
+	OutPkgPath string
+}
+
 // Generate generates moqs for the given types in the given destination package
-func (g *MoqGenerator) Generate(req GenerateRequest) (*dst.File, string, error) {
+func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 	relPath, err := g.relativePath(req.WorkingDir)
 	if err != nil {
-		return nil, "", err
+		return MoqResponse{}, err
 	}
 
 	outPkgPath, err := g.outPackagePath(req, relPath)
 	if err != nil {
-		return nil, "", err
+		return MoqResponse{}, err
 	}
 	file := initializeFile(outPkgPath)
 
@@ -95,20 +101,24 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*dst.File, string, error) 
 
 	destPath, err := destinationPath(req, relPath)
 	if err != nil {
-		return nil, "", err
+		return MoqResponse{}, err
 	}
 
 	var decls []dst.Decl
 	for _, inType := range req.Types {
+		if req.ErrorOnNonExported && !dst.IsExported(inType) {
+			return MoqResponse{}, fmt.Errorf("%w: %s mocked type is not exported", ErrNonExported, inType)
+		}
+
 		typeSpec, inPkgPath, err := g.typeCache.Type(
 			*ast.IdPath(inType, imp), req.TestImport)
 		if err != nil {
-			return nil, "", err
+			return MoqResponse{}, err
 		}
 
-		funcs, tErr := g.findFuncs(typeSpec)
+		funcs, tErr := g.findFuncs(typeSpec, req.ErrorOnNonExported)
 		if tErr != nil {
-			return nil, "", tErr
+			return MoqResponse{}, tErr
 		}
 
 		typ := Type{
@@ -121,7 +131,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*dst.File, string, error) 
 
 		structs, err := g.structs(converter, typ)
 		if err != nil {
-			return nil, "", err
+			return MoqResponse{}, err
 		}
 		decls = append(decls, structs...)
 
@@ -135,7 +145,11 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (*dst.File, string, error) 
 	}
 	file.Decls = decls
 
-	return file, destPath, nil
+	return MoqResponse{
+		File:       file,
+		DestPath:   destPath,
+		OutPkgPath: outPkgPath,
+	}, nil
 }
 
 func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
@@ -205,10 +219,10 @@ func importPath(imp, relPath string) string {
 	return "./" + imp
 }
 
-func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
+func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, errorOnNonExported bool) ([]Func, error) {
 	switch typ := typeSpec.Type.(type) {
 	case *dst.InterfaceType:
-		return g.loadNestedInterfaces(typ)
+		return g.loadNestedInterfaces(typ, errorOnNonExported)
 	case *dst.FuncType:
 		return []Func{
 			{
@@ -218,19 +232,23 @@ func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec) ([]Func, error) {
 		}, nil
 	case *dst.Ident:
 		var funcs []Func
-		return g.loadTypeEquivalent(funcs, typ)
+		return g.loadTypeEquivalent(funcs, typ, errorOnNonExported)
 	default:
 		logs.Panicf("Unknown type: %v", typeSpec.Type)
 		panic("unreachable")
 	}
 }
 
-func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType) ([]Func, error) {
+func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, errorOnNonExported bool) ([]Func, error) {
 	var funcs []Func
 
 	for _, method := range iType.Methods.List {
 		switch typ := method.Type.(type) {
 		case *dst.FuncType:
+			if errorOnNonExported && !method.Names[0].IsExported() {
+				return nil, fmt.Errorf(
+					"%w: %s method is not exported", ErrNonExported, method.Names[0].Name)
+			}
 			funcs = append(funcs, Func{
 				Name:    method.Names[0].Name,
 				Params:  typ.Params,
@@ -238,7 +256,7 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType) ([]Func, e
 			})
 		case *dst.Ident:
 			var err error
-			funcs, err = g.loadTypeEquivalent(funcs, typ)
+			funcs, err = g.loadTypeEquivalent(funcs, typ, errorOnNonExported)
 			if err != nil {
 				return nil, err
 			}
@@ -250,13 +268,19 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType) ([]Func, e
 	return funcs, nil
 }
 
-func (g *MoqGenerator) loadTypeEquivalent(funcs []Func, id *dst.Ident) ([]Func, error) {
+func (g *MoqGenerator) loadTypeEquivalent(funcs []Func, id *dst.Ident, errorOnNonExported bool) ([]Func, error) {
 	nestedType, _, err := g.typeCache.Type(*id, false)
 	if err != nil {
 		return nil, err
 	}
 
-	newFuncs, err := g.findFuncs(nestedType)
+	isError := nestedType.Name.Name == "error" && nestedType.Name.Path == ""
+	if errorOnNonExported && !nestedType.Name.IsExported() && !isError {
+		return nil, fmt.Errorf("%w: %s embedded type is not exported",
+			ErrNonExported, nestedType.Name.String())
+	}
+
+	newFuncs, err := g.findFuncs(nestedType, errorOnNonExported)
 	if err != nil {
 		return nil, err
 	}

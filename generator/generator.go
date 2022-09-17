@@ -2,7 +2,9 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -32,7 +34,14 @@ type GenerateRequest struct {
 	// is used for relative-path imports and relative path destination
 	// files/directories.
 	WorkingDir string `json:"working-dir"`
+	// ErrorOnNonExported causes the generator to return ErrNonExported if any
+	// non-exported type would normally be emitted in generated code.
+	ErrorOnNonExported bool `json:"error-on-non-exported"`
 }
+
+// ErrNonExported is returned by Generate when ErrorOnNonExported is set to
+// to true and any function or parameter is not exported in any generated code.
+var ErrNonExported = errors.New("non-exported types")
 
 // Generate generates a moq
 func Generate(reqs ...GenerateRequest) error {
@@ -69,12 +78,22 @@ func GenerateWithTypeCache(cache TypeCache, req GenerateRequest) error {
 	}
 	gen := New(cache, os.Getwd, newConverterFn)
 
-	file, destPath, err := gen.Generate(req)
+	resp, err := gen.Generate(req)
 	if err != nil {
-		return fmt.Errorf("error generating moqs: %w", err)
+		return err
 	}
 
-	tempFile, err := os.CreateTemp("", "*.go")
+	destDir := filepath.Dir(resp.DestPath)
+	if _, err = os.Stat(destDir); os.IsNotExist(err) {
+		err = os.MkdirAll(destDir, os.ModePerm)
+		if err != nil {
+			logs.Errorf(
+				"Error creating destination directory %s from working director %s: %v",
+				destDir, req.WorkingDir, err)
+		}
+	}
+
+	tempFile, err := ioutil.TempFile(destDir, "*.go-gen")
 	if err != nil {
 		return fmt.Errorf("error creating temp file: %w", err)
 	}
@@ -86,27 +105,17 @@ func GenerateWithTypeCache(cache TypeCache, req GenerateRequest) error {
 		}
 	}()
 
-	destDir := filepath.Dir(destPath)
-	if _, err = os.Stat(destDir); os.IsNotExist(err) {
-		err = os.MkdirAll(destDir, os.ModePerm)
-		if err != nil {
-			logs.Errorf(
-				"Error creating destination directory %s from working director %s: %v",
-				destDir, req.WorkingDir, err)
-		}
-	}
-
-	restorer := decorator.NewRestorerWithImports(destDir, gopackages.New(destDir))
-	err = restorer.Fprint(tempFile, file)
+	restorer := decorator.NewRestorerWithImports(resp.OutPkgPath, gopackages.New(destDir))
+	err = restorer.Fprint(tempFile, resp.File)
 	if err != nil {
 		return fmt.Errorf("invalid moq: %w", err)
 	}
 
-	err = os.Rename(tempFile.Name(), destPath)
+	err = os.Rename(tempFile.Name(), resp.DestPath)
 	if err != nil {
 		logs.Debugf("Error removing destination file: %v", err)
 	}
-	logs.Debugf("Wrote file: %s", destPath)
+	logs.Debugf("Wrote file: %s", resp.DestPath)
 
 	return nil
 }

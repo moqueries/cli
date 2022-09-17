@@ -2,6 +2,7 @@ package internal_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/dave/dst"
@@ -50,17 +51,19 @@ func TestGenerate(t *testing.T) {
 		id2 := dst.Ident{Name: "Typ2", Path: "pkg2"}
 		cacheMoq.onCall().MockableTypes(true).returnResults([]dst.Ident{id1, id2})
 		req1 := generator.GenerateRequest{
-			Types:          []string{"Typ1"},
-			Export:         true,
-			DestinationDir: "that-dir/there/pkg1",
-			Import:         "pkg1",
+			Types:              []string{"Typ1"},
+			Export:             true,
+			DestinationDir:     "that-dir/there/pkg1",
+			Import:             "pkg1",
+			ErrorOnNonExported: true,
 		}
 		genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(nil)
 		req2 := generator.GenerateRequest{
-			Types:          []string{"Typ2"},
-			Export:         true,
-			DestinationDir: "that-dir/there/pkg2",
-			Import:         "pkg2",
+			Types:              []string{"Typ2"},
+			Export:             true,
+			DestinationDir:     "that-dir/there/pkg2",
+			Import:             "pkg2",
+			ErrorOnNonExported: true,
 		}
 		genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(nil)
 		metricsMoq.OnCall().TotalProcessingTimeInc(0).Any().D().ReturnResults()
@@ -102,41 +105,52 @@ func TestGenerate(t *testing.T) {
 	})
 
 	t.Run("generate error", func(t *testing.T) {
-		// ASSEMBLE
-		beforeEach(t)
-		defer afterEach(t)
-
-		cacheMoq.onCall().LoadPackage("pkg1").returnResults(nil)
-		cacheMoq.onCall().LoadPackage("pkg2").returnResults(nil)
-		id1 := dst.Ident{Name: "Typ1", Path: "pkg1"}
-		id2 := dst.Ident{Name: "Typ2", Path: "pkg2"}
-		cacheMoq.onCall().MockableTypes(true).returnResults([]dst.Ident{id1, id2})
-		req1 := generator.GenerateRequest{
-			Types:          []string{"Typ1"},
-			Export:         true,
-			DestinationDir: "that-dir/there/pkg1",
-			Import:         "pkg1",
+		tc := map[string]error{
+			"no first err":           nil,
+			"non-exported first err": fmt.Errorf("%w: wha-wha", generator.ErrNonExported),
 		}
-		genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(nil)
-		req2 := generator.GenerateRequest{
-			Types:          []string{"Typ2"},
-			Export:         true,
-			DestinationDir: "that-dir/there/pkg2",
-			Import:         "pkg2",
-		}
-		expectedErr := errors.New("generate-error")
-		genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(expectedErr)
 
-		// ACT
-		err := internal.Generate(
-			cacheMoq.mock(),
-			metricsMoq.Mock(),
-			genFnMoq.mock(),
-			"./that-dir/there",
-			[]string{"pkg1", "pkg2"})
-		// ASSERT
-		if err != expectedErr {
-			t.Fatalf("got %#v, want %#v", err, expectedErr)
+		for name, firstErr := range tc {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				beforeEach(t)
+				defer afterEach(t)
+
+				cacheMoq.onCall().LoadPackage("pkg1").returnResults(nil)
+				cacheMoq.onCall().LoadPackage("pkg2").returnResults(nil)
+				id1 := dst.Ident{Name: "Typ1", Path: "pkg1"}
+				id2 := dst.Ident{Name: "Typ2", Path: "pkg2"}
+				cacheMoq.onCall().MockableTypes(true).returnResults([]dst.Ident{id1, id2})
+				req1 := generator.GenerateRequest{
+					Types:              []string{"Typ1"},
+					Export:             true,
+					DestinationDir:     "that-dir/there/pkg1",
+					Import:             "pkg1",
+					ErrorOnNonExported: true,
+				}
+				genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(firstErr)
+				req2 := generator.GenerateRequest{
+					Types:              []string{"Typ2"},
+					Export:             true,
+					DestinationDir:     "that-dir/there/pkg2",
+					Import:             "pkg2",
+					ErrorOnNonExported: true,
+				}
+				expectedErr := errors.New("generate-error")
+				genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(expectedErr)
+
+				// ACT
+				err := internal.Generate(
+					cacheMoq.mock(),
+					metricsMoq.Mock(),
+					genFnMoq.mock(),
+					"./that-dir/there",
+					[]string{"pkg1", "pkg2"})
+				// ASSERT
+				if err != expectedErr {
+					t.Fatalf("got %#v, want %#v", err, expectedErr)
+				}
+			})
 		}
 	})
 }
