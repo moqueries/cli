@@ -163,74 +163,6 @@ func TestMoqGenerator(t *testing.T) {
 		}
 	})
 
-	t.Run("defaults a test package when not exported and the package isn't specified", func(t *testing.T) {
-		// ASSEMBLE
-		beforeEach(t)
-		defer afterEach(t)
-		req := generator.GenerateRequest{
-			Types:       nil,
-			Export:      false,
-			Destination: "dir/file_test.go",
-			Package:     "",
-			Import:      ".",
-			TestImport:  false,
-			WorkingDir:  "/some-nice-path",
-		}
-
-		typeCacheMoq.onCall().FindPackage("dir").returnResults("myrepo.com/dir", nil)
-		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-
-		// ACT
-		resp, err := gen.Generate(req)
-		// ASSERT
-		if err != nil {
-			t.Errorf("got %#v, wanted nil err", err)
-		}
-		if resp.File.Name.Name != "dir_test" {
-			t.Errorf("got %s, wanted dir_test", resp.File.Name.Name)
-		}
-		if resp.DestPath != "dir/file_test.go" {
-			t.Errorf("got %s, wanted dir/file_test.go", resp.DestPath)
-		}
-		if resp.OutPkgPath != "myrepo.com/dir_test" {
-			t.Errorf("got %s, wanted myrepo.com/dir_test", resp.OutPkgPath)
-		}
-	})
-
-	t.Run("defaults a non-test package when exported and the package isn't specified", func(t *testing.T) {
-		// ASSEMBLE
-		beforeEach(t)
-		defer afterEach(t)
-		req := generator.GenerateRequest{
-			Types:       nil,
-			Export:      true,
-			Destination: "dir/file_test.go",
-			Package:     "",
-			Import:      ".",
-			TestImport:  false,
-			WorkingDir:  "/some-nice-path",
-		}
-
-		typeCacheMoq.onCall().FindPackage("dir").returnResults("myrepo.com/dir", nil)
-		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-
-		// ACT
-		resp, err := gen.Generate(req)
-		// ASSERT
-		if err != nil {
-			t.Errorf("got %#v, wanted nil err", err)
-		}
-		if resp.File.Name.Name != "dir" {
-			t.Errorf("got %s, wanted dir", resp.File.Name.Name)
-		}
-		if resp.DestPath != "dir/file_test.go" {
-			t.Errorf("got %s, wanted dir/file_test.go", resp.DestPath)
-		}
-		if resp.OutPkgPath != "myrepo.com/dir" {
-			t.Errorf("got %s, wanted myrepo.com/dir", resp.OutPkgPath)
-		}
-	})
-
 	t.Run("can put mocks in parent packages when given a relative destination", func(t *testing.T) {
 		// ASSEMBLE
 		beforeEach(t)
@@ -265,73 +197,51 @@ func TestMoqGenerator(t *testing.T) {
 		}
 	})
 
-	t.Run("defaults the package to a test name based on the current"+
-		" directory when it isn't specified and not exported", func(t *testing.T) {
-		// ASSEMBLE
-		beforeEach(t)
-		defer afterEach(t)
-		req := generator.GenerateRequest{
-			Types:       nil,
-			Export:      false,
-			Destination: "file_test.go",
-			Package:     "",
-			Import:      ".",
-			TestImport:  false,
-			WorkingDir:  "/some-nice-path",
+	t.Run("package naming based on current directory and export flag", func(t *testing.T) {
+		type testCase struct {
+			export bool
+			pkg    string
+		}
+		testCases := map[string]testCase{
+			"test package when not exported": {export: false, pkg: "thispkg_test"},
+			"non-test package when exported": {export: true, pkg: "thispkg"},
 		}
 
-		typeCacheMoq.onCall().FindPackage(".").returnResults("myrepo.com/thispkg", nil)
-		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+		for name, tc := range testCases {
+			t.Run(name, func(t *testing.T) {
+				// ASSEMBLE
+				beforeEach(t)
+				defer afterEach(t)
+				req := generator.GenerateRequest{
+					Types:       nil,
+					Export:      tc.export,
+					Destination: "file_test.go",
+					Package:     "",
+					Import:      ".",
+					TestImport:  false,
+					WorkingDir:  "/some-nice-path",
+				}
 
-		// ACT
-		resp, err := gen.Generate(req)
-		// ASSERT
-		if err != nil {
-			t.Errorf("got %#v, wanted nil err", err)
-		}
-		if resp.File.Name.Name != "thispkg_test" {
-			t.Errorf("got %s, wanted generator_test", resp.File.Name.Name)
-		}
-		if resp.DestPath != "file_test.go" {
-			t.Errorf("got %s, wanted file_test.go", resp.DestPath)
-		}
-		if resp.OutPkgPath != "myrepo.com/thispkg_test" {
-			t.Errorf("got %s, wanted myrepo.com/thispkg_test", resp.OutPkgPath)
-		}
-	})
+				typeCacheMoq.onCall().FindPackage(".").returnResults("myrepo.com/thispkg", nil)
+				getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 
-	t.Run("defaults the package to a non-test name based on the current"+
-		" directory when it isn't specified and exported", func(t *testing.T) {
-		// ASSEMBLE
-		beforeEach(t)
-		defer afterEach(t)
-		req := generator.GenerateRequest{
-			Types:       nil,
-			Export:      true,
-			Destination: "file_test.go",
-			Package:     "",
-			Import:      ".",
-			TestImport:  false,
-			WorkingDir:  "/some-nice-path",
-		}
-
-		typeCacheMoq.onCall().FindPackage(".").returnResults("myrepo.com/thispkg", nil)
-		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-
-		// ACT
-		resp, err := gen.Generate(req)
-		// ASSERT
-		if err != nil {
-			t.Errorf("got %#v, wanted nil err", err)
-		}
-		if resp.File.Name.Name != "thispkg" {
-			t.Errorf("got %s, wanted generator", resp.File.Name.Name)
-		}
-		if resp.DestPath != "file_test.go" {
-			t.Errorf("got %s, wanted file_test.go", resp.DestPath)
-		}
-		if resp.OutPkgPath != "myrepo.com/thispkg" {
-			t.Errorf("got %s, wanted myrepo.com/thispkg", resp.OutPkgPath)
+				// ACT
+				resp, err := gen.Generate(req)
+				// ASSERT
+				if err != nil {
+					t.Errorf("got %#v, wanted nil err", err)
+				}
+				if resp.File.Name.Name != tc.pkg {
+					t.Errorf("got %s, wanted %s", resp.File.Name.Name, tc.pkg)
+				}
+				if resp.DestPath != "file_test.go" {
+					t.Errorf("got %s, wanted file_test.go", resp.DestPath)
+				}
+				outPkgPath := "myrepo.com/" + tc.pkg
+				if resp.OutPkgPath != outPkgPath {
+					t.Errorf("got %s, wanted %s", resp.OutPkgPath, outPkgPath)
+				}
+			})
 		}
 	})
 

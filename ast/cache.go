@@ -174,7 +174,7 @@ func (c *Cache) MockableTypes(onlyExported bool) []dst.Ident {
 		}
 
 		dir := typ.id.Path
-		file := ""
+		var file string
 		internal := false
 		const internalPkg = "internal"
 		for {
