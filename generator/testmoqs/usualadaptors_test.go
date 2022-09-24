@@ -1487,7 +1487,8 @@ func (a *difficultParamNamesAdaptor) config() adaptorConfig { return adaptorConf
 func (a *difficultParamNamesAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *difficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
-	return &difficultParamNamesRecorder{r: a.m.onCall().DifficultParamNames(bParam, false, sParams[0], 0, 0, 0, 0.0, 0.0, 0.0)}
+	return &difficultParamNamesRecorder{r: a.m.onCall().DifficultParamNames(
+		bParam, false, sParams[0], 0, 0, 0, 0.0, 0.0, 0.0)}
 }
 
 func (a *difficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams []string, bParam bool, _ results) {
