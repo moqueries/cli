@@ -31,6 +31,7 @@ const (
 	anyParamsIdent         = "anyParams"
 	anyParamsReceiverIdent = "a"
 	anyTimesIdent          = "AnyTimes"
+	blankIdent             = "_"
 	configIdent            = "config"
 	doFnIdent              = "doFn"
 	doReturnFnIdent        = "doReturnFn"
@@ -103,6 +104,7 @@ const (
 // result list, they are treated as though the name doesn't exist and a generic
 // name is given (e.g.: param1).
 var invalidNames = map[string]struct{}{
+	blankIdent:            {},
 	iIdent:                {},
 	moqReceiverIdent:      {},
 	recorderReceiverIdent: {},
