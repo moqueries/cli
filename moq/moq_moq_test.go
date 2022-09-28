@@ -46,17 +46,20 @@ type moqMoq_Reset_paramsKey struct {
 	hashes struct{}
 }
 
-// moqMoq_Reset_resultsByParams contains the results for a given set of parameters for the Moq type
+// moqMoq_Reset_resultsByParams contains the results for a given set of
+// parameters for the Moq type
 type moqMoq_Reset_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqMoq_Reset_paramsKey]*moqMoq_Reset_results
 }
 
-// moqMoq_Reset_doFn defines the type of function needed when calling andDo for the Moq type
+// moqMoq_Reset_doFn defines the type of function needed when calling andDo for
+// the Moq type
 type moqMoq_Reset_doFn func()
 
-// moqMoq_Reset_doReturnFn defines the type of function needed when calling doReturnResults for the Moq type
+// moqMoq_Reset_doReturnFn defines the type of function needed when calling
+// doReturnResults for the Moq type
 type moqMoq_Reset_doReturnFn func()
 
 // moqMoq_Reset_results holds the results of the Moq type
@@ -89,23 +92,27 @@ type moqMoq_Reset_anyParams struct {
 // moqMoq_AssertExpectationsMet_params holds the params of the Moq type
 type moqMoq_AssertExpectationsMet_params struct{}
 
-// moqMoq_AssertExpectationsMet_paramsKey holds the map key params of the Moq type
+// moqMoq_AssertExpectationsMet_paramsKey holds the map key params of the Moq
+// type
 type moqMoq_AssertExpectationsMet_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqMoq_AssertExpectationsMet_resultsByParams contains the results for a given set of parameters for the Moq type
+// moqMoq_AssertExpectationsMet_resultsByParams contains the results for a
+// given set of parameters for the Moq type
 type moqMoq_AssertExpectationsMet_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqMoq_AssertExpectationsMet_paramsKey]*moqMoq_AssertExpectationsMet_results
 }
 
-// moqMoq_AssertExpectationsMet_doFn defines the type of function needed when calling andDo for the Moq type
+// moqMoq_AssertExpectationsMet_doFn defines the type of function needed when
+// calling andDo for the Moq type
 type moqMoq_AssertExpectationsMet_doFn func()
 
-// moqMoq_AssertExpectationsMet_doReturnFn defines the type of function needed when calling doReturnResults for the Moq type
+// moqMoq_AssertExpectationsMet_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Moq type
 type moqMoq_AssertExpectationsMet_doReturnFn func()
 
 // moqMoq_AssertExpectationsMet_results holds the results of the Moq type
@@ -121,7 +128,8 @@ type moqMoq_AssertExpectationsMet_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqMoq_AssertExpectationsMet_fnRecorder routes recorded function calls to the moqMoq moq
+// moqMoq_AssertExpectationsMet_fnRecorder routes recorded function calls to
+// the moqMoq moq
 type moqMoq_AssertExpectationsMet_fnRecorder struct {
 	params    moqMoq_AssertExpectationsMet_params
 	anyParams uint64
@@ -130,7 +138,8 @@ type moqMoq_AssertExpectationsMet_fnRecorder struct {
 	moq       *moqMoq
 }
 
-// moqMoq_AssertExpectationsMet_anyParams isolates the any params functions of the Moq type
+// moqMoq_AssertExpectationsMet_anyParams isolates the any params functions of
+// the Moq type
 type moqMoq_AssertExpectationsMet_anyParams struct {
 	recorder *moqMoq_AssertExpectationsMet_fnRecorder
 }

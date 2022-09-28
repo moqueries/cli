@@ -1846,20 +1846,13 @@ func cloneStmt(stmt dst.Stmt) dst.Stmt {
 
 func genDeclDec(format string, a ...interface{}) dst.GenDeclDecorations {
 	return dst.GenDeclDecorations{
-		NodeDecs: nodeDec(format, a...),
+		NodeDecs: NodeDecsf(format, a...),
 	}
 }
 
 func fnDeclDec(format string, a ...interface{}) dst.FuncDeclDecorations {
 	return dst.FuncDeclDecorations{
-		NodeDecs: nodeDec(format, a...),
-	}
-}
-
-func nodeDec(format string, a ...interface{}) dst.NodeDecs {
-	return dst.NodeDecs{
-		Before: dst.NewLine,
-		Start:  dst.Decorations{fmt.Sprintf(format, a...)},
+		NodeDecs: NodeDecsf(format, a...),
 	}
 }
 

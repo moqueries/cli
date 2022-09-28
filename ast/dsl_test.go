@@ -860,6 +860,62 @@ func TestMapType(t *testing.T) {
 	})
 }
 
+func TestNodeDecsf(t *testing.T) {
+	t.Run("short", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.NodeDecs{
+			Before: dst.NewLine,
+			Start: dst.Decorations{
+				"// here's a short line",
+			},
+		}
+
+		// ACT
+		actual := ast.NodeDecsf("// here's a %s line", "short")
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+
+	t.Run("long", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.NodeDecs{
+			Before: dst.NewLine,
+			Start: dst.Decorations{
+				"// here's a long line that seems to go on forever and never quite finishes in a",
+				"// single line",
+			},
+		}
+
+		// ACT
+		actual := ast.NodeDecsf("// here's a %s line",
+			"long line that seems to go on forever and never quite finishes in a single")
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+
+	t.Run("nothing", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.NodeDecs{
+			Before: dst.NewLine,
+			Start:  dst.Decorations{},
+		}
+
+		// ACT
+		actual := ast.NodeDecsf("")
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
 func TestParen(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		// ASSEMBLE

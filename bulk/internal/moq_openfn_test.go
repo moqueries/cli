@@ -42,17 +42,20 @@ type moqOpenFn_paramsKey struct {
 	hashes struct{ name hash.Hash }
 }
 
-// moqOpenFn_resultsByParams contains the results for a given set of parameters for the OpenFn type
+// moqOpenFn_resultsByParams contains the results for a given set of parameters
+// for the OpenFn type
 type moqOpenFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqOpenFn_paramsKey]*moqOpenFn_results
 }
 
-// moqOpenFn_doFn defines the type of function needed when calling andDo for the OpenFn type
+// moqOpenFn_doFn defines the type of function needed when calling andDo for
+// the OpenFn type
 type moqOpenFn_doFn func(name string)
 
-// moqOpenFn_doReturnFn defines the type of function needed when calling doReturnResults for the OpenFn type
+// moqOpenFn_doReturnFn defines the type of function needed when calling
+// doReturnResults for the OpenFn type
 type moqOpenFn_doReturnFn func(name string) (file io.ReadCloser, err error)
 
 // moqOpenFn_results holds the results of the OpenFn type

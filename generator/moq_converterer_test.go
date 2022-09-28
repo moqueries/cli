@@ -64,7 +64,8 @@ type moqConverterer_mock struct {
 	moq *moqConverterer
 }
 
-// moqConverterer_recorder isolates the recorder interface of the Converterer type
+// moqConverterer_recorder isolates the recorder interface of the Converterer
+// type
 type moqConverterer_recorder struct {
 	moq *moqConverterer
 }
@@ -72,23 +73,27 @@ type moqConverterer_recorder struct {
 // moqConverterer_BaseStruct_params holds the params of the Converterer type
 type moqConverterer_BaseStruct_params struct{}
 
-// moqConverterer_BaseStruct_paramsKey holds the map key params of the Converterer type
+// moqConverterer_BaseStruct_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_BaseStruct_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqConverterer_BaseStruct_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_BaseStruct_resultsByParams contains the results for a given
+// set of parameters for the Converterer type
 type moqConverterer_BaseStruct_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_BaseStruct_paramsKey]*moqConverterer_BaseStruct_results
 }
 
-// moqConverterer_BaseStruct_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_BaseStruct_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_BaseStruct_doFn func()
 
-// moqConverterer_BaseStruct_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_BaseStruct_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Converterer type
 type moqConverterer_BaseStruct_doReturnFn func() (structDecl *dst.GenDecl)
 
 // moqConverterer_BaseStruct_results holds the results of the Converterer type
@@ -104,7 +109,8 @@ type moqConverterer_BaseStruct_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_BaseStruct_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_BaseStruct_fnRecorder routes recorded function calls to the
+// moqConverterer moq
 type moqConverterer_BaseStruct_fnRecorder struct {
 	params    moqConverterer_BaseStruct_params
 	anyParams uint64
@@ -113,34 +119,41 @@ type moqConverterer_BaseStruct_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_BaseStruct_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_BaseStruct_anyParams isolates the any params functions of the
+// Converterer type
 type moqConverterer_BaseStruct_anyParams struct {
 	recorder *moqConverterer_BaseStruct_fnRecorder
 }
 
-// moqConverterer_IsolationStruct_params holds the params of the Converterer type
+// moqConverterer_IsolationStruct_params holds the params of the Converterer
+// type
 type moqConverterer_IsolationStruct_params struct{ suffix string }
 
-// moqConverterer_IsolationStruct_paramsKey holds the map key params of the Converterer type
+// moqConverterer_IsolationStruct_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_IsolationStruct_paramsKey struct {
 	params struct{ suffix string }
 	hashes struct{ suffix hash.Hash }
 }
 
-// moqConverterer_IsolationStruct_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_IsolationStruct_resultsByParams contains the results for a
+// given set of parameters for the Converterer type
 type moqConverterer_IsolationStruct_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_IsolationStruct_paramsKey]*moqConverterer_IsolationStruct_results
 }
 
-// moqConverterer_IsolationStruct_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_IsolationStruct_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_IsolationStruct_doFn func(suffix string)
 
-// moqConverterer_IsolationStruct_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_IsolationStruct_doReturnFn defines the type of function
+// needed when calling doReturnResults for the Converterer type
 type moqConverterer_IsolationStruct_doReturnFn func(suffix string) (structDecl *dst.GenDecl)
 
-// moqConverterer_IsolationStruct_results holds the results of the Converterer type
+// moqConverterer_IsolationStruct_results holds the results of the Converterer
+// type
 type moqConverterer_IsolationStruct_results struct {
 	params  moqConverterer_IsolationStruct_params
 	results []struct {
@@ -153,7 +166,8 @@ type moqConverterer_IsolationStruct_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_IsolationStruct_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_IsolationStruct_fnRecorder routes recorded function calls to
+// the moqConverterer moq
 type moqConverterer_IsolationStruct_fnRecorder struct {
 	params    moqConverterer_IsolationStruct_params
 	anyParams uint64
@@ -162,7 +176,8 @@ type moqConverterer_IsolationStruct_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_IsolationStruct_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_IsolationStruct_anyParams isolates the any params functions
+// of the Converterer type
 type moqConverterer_IsolationStruct_anyParams struct {
 	recorder *moqConverterer_IsolationStruct_fnRecorder
 }
@@ -170,26 +185,31 @@ type moqConverterer_IsolationStruct_anyParams struct {
 // moqConverterer_MethodStructs_params holds the params of the Converterer type
 type moqConverterer_MethodStructs_params struct{ fn generator.Func }
 
-// moqConverterer_MethodStructs_paramsKey holds the map key params of the Converterer type
+// moqConverterer_MethodStructs_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_MethodStructs_paramsKey struct {
 	params struct{ fn generator.Func }
 	hashes struct{ fn hash.Hash }
 }
 
-// moqConverterer_MethodStructs_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_MethodStructs_resultsByParams contains the results for a
+// given set of parameters for the Converterer type
 type moqConverterer_MethodStructs_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_MethodStructs_paramsKey]*moqConverterer_MethodStructs_results
 }
 
-// moqConverterer_MethodStructs_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_MethodStructs_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_MethodStructs_doFn func(fn generator.Func)
 
-// moqConverterer_MethodStructs_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_MethodStructs_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Converterer type
 type moqConverterer_MethodStructs_doReturnFn func(fn generator.Func) (structDecls []dst.Decl, err error)
 
-// moqConverterer_MethodStructs_results holds the results of the Converterer type
+// moqConverterer_MethodStructs_results holds the results of the Converterer
+// type
 type moqConverterer_MethodStructs_results struct {
 	params  moqConverterer_MethodStructs_params
 	results []struct {
@@ -205,7 +225,8 @@ type moqConverterer_MethodStructs_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_MethodStructs_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_MethodStructs_fnRecorder routes recorded function calls to
+// the moqConverterer moq
 type moqConverterer_MethodStructs_fnRecorder struct {
 	params    moqConverterer_MethodStructs_params
 	anyParams uint64
@@ -214,7 +235,8 @@ type moqConverterer_MethodStructs_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_MethodStructs_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_MethodStructs_anyParams isolates the any params functions of
+// the Converterer type
 type moqConverterer_MethodStructs_anyParams struct {
 	recorder *moqConverterer_MethodStructs_fnRecorder
 }
@@ -222,23 +244,27 @@ type moqConverterer_MethodStructs_anyParams struct {
 // moqConverterer_NewFunc_params holds the params of the Converterer type
 type moqConverterer_NewFunc_params struct{}
 
-// moqConverterer_NewFunc_paramsKey holds the map key params of the Converterer type
+// moqConverterer_NewFunc_paramsKey holds the map key params of the Converterer
+// type
 type moqConverterer_NewFunc_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqConverterer_NewFunc_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_NewFunc_resultsByParams contains the results for a given set
+// of parameters for the Converterer type
 type moqConverterer_NewFunc_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_NewFunc_paramsKey]*moqConverterer_NewFunc_results
 }
 
-// moqConverterer_NewFunc_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_NewFunc_doFn defines the type of function needed when calling
+// andDo for the Converterer type
 type moqConverterer_NewFunc_doFn func()
 
-// moqConverterer_NewFunc_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_NewFunc_doReturnFn defines the type of function needed when
+// calling doReturnResults for the Converterer type
 type moqConverterer_NewFunc_doReturnFn func() (funcDecl *dst.FuncDecl)
 
 // moqConverterer_NewFunc_results holds the results of the Converterer type
@@ -254,7 +280,8 @@ type moqConverterer_NewFunc_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_NewFunc_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_NewFunc_fnRecorder routes recorded function calls to the
+// moqConverterer moq
 type moqConverterer_NewFunc_fnRecorder struct {
 	params    moqConverterer_NewFunc_params
 	anyParams uint64
@@ -263,34 +290,41 @@ type moqConverterer_NewFunc_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_NewFunc_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_NewFunc_anyParams isolates the any params functions of the
+// Converterer type
 type moqConverterer_NewFunc_anyParams struct {
 	recorder *moqConverterer_NewFunc_fnRecorder
 }
 
-// moqConverterer_IsolationAccessor_params holds the params of the Converterer type
+// moqConverterer_IsolationAccessor_params holds the params of the Converterer
+// type
 type moqConverterer_IsolationAccessor_params struct{ suffix, fnName string }
 
-// moqConverterer_IsolationAccessor_paramsKey holds the map key params of the Converterer type
+// moqConverterer_IsolationAccessor_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_IsolationAccessor_paramsKey struct {
 	params struct{ suffix, fnName string }
 	hashes struct{ suffix, fnName hash.Hash }
 }
 
-// moqConverterer_IsolationAccessor_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_IsolationAccessor_resultsByParams contains the results for a
+// given set of parameters for the Converterer type
 type moqConverterer_IsolationAccessor_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_IsolationAccessor_paramsKey]*moqConverterer_IsolationAccessor_results
 }
 
-// moqConverterer_IsolationAccessor_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_IsolationAccessor_doFn defines the type of function needed
+// when calling andDo for the Converterer type
 type moqConverterer_IsolationAccessor_doFn func(suffix, fnName string)
 
-// moqConverterer_IsolationAccessor_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_IsolationAccessor_doReturnFn defines the type of function
+// needed when calling doReturnResults for the Converterer type
 type moqConverterer_IsolationAccessor_doReturnFn func(suffix, fnName string) (funcDecl *dst.FuncDecl)
 
-// moqConverterer_IsolationAccessor_results holds the results of the Converterer type
+// moqConverterer_IsolationAccessor_results holds the results of the
+// Converterer type
 type moqConverterer_IsolationAccessor_results struct {
 	params  moqConverterer_IsolationAccessor_params
 	results []struct {
@@ -303,7 +337,8 @@ type moqConverterer_IsolationAccessor_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_IsolationAccessor_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_IsolationAccessor_fnRecorder routes recorded function calls
+// to the moqConverterer moq
 type moqConverterer_IsolationAccessor_fnRecorder struct {
 	params    moqConverterer_IsolationAccessor_params
 	anyParams uint64
@@ -312,7 +347,8 @@ type moqConverterer_IsolationAccessor_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_IsolationAccessor_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_IsolationAccessor_anyParams isolates the any params functions
+// of the Converterer type
 type moqConverterer_IsolationAccessor_anyParams struct {
 	recorder *moqConverterer_IsolationAccessor_fnRecorder
 }
@@ -320,23 +356,27 @@ type moqConverterer_IsolationAccessor_anyParams struct {
 // moqConverterer_FuncClosure_params holds the params of the Converterer type
 type moqConverterer_FuncClosure_params struct{ fn generator.Func }
 
-// moqConverterer_FuncClosure_paramsKey holds the map key params of the Converterer type
+// moqConverterer_FuncClosure_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_FuncClosure_paramsKey struct {
 	params struct{ fn generator.Func }
 	hashes struct{ fn hash.Hash }
 }
 
-// moqConverterer_FuncClosure_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_FuncClosure_resultsByParams contains the results for a given
+// set of parameters for the Converterer type
 type moqConverterer_FuncClosure_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_FuncClosure_paramsKey]*moqConverterer_FuncClosure_results
 }
 
-// moqConverterer_FuncClosure_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_FuncClosure_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_FuncClosure_doFn func(fn generator.Func)
 
-// moqConverterer_FuncClosure_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_FuncClosure_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Converterer type
 type moqConverterer_FuncClosure_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_FuncClosure_results holds the results of the Converterer type
@@ -352,7 +392,8 @@ type moqConverterer_FuncClosure_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_FuncClosure_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_FuncClosure_fnRecorder routes recorded function calls to the
+// moqConverterer moq
 type moqConverterer_FuncClosure_fnRecorder struct {
 	params    moqConverterer_FuncClosure_params
 	anyParams uint64
@@ -361,7 +402,8 @@ type moqConverterer_FuncClosure_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_FuncClosure_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_FuncClosure_anyParams isolates the any params functions of
+// the Converterer type
 type moqConverterer_FuncClosure_anyParams struct {
 	recorder *moqConverterer_FuncClosure_fnRecorder
 }
@@ -369,23 +411,27 @@ type moqConverterer_FuncClosure_anyParams struct {
 // moqConverterer_MockMethod_params holds the params of the Converterer type
 type moqConverterer_MockMethod_params struct{ fn generator.Func }
 
-// moqConverterer_MockMethod_paramsKey holds the map key params of the Converterer type
+// moqConverterer_MockMethod_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_MockMethod_paramsKey struct {
 	params struct{ fn generator.Func }
 	hashes struct{ fn hash.Hash }
 }
 
-// moqConverterer_MockMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_MockMethod_resultsByParams contains the results for a given
+// set of parameters for the Converterer type
 type moqConverterer_MockMethod_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_MockMethod_paramsKey]*moqConverterer_MockMethod_results
 }
 
-// moqConverterer_MockMethod_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_MockMethod_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_MockMethod_doFn func(fn generator.Func)
 
-// moqConverterer_MockMethod_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_MockMethod_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Converterer type
 type moqConverterer_MockMethod_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl)
 
 // moqConverterer_MockMethod_results holds the results of the Converterer type
@@ -401,7 +447,8 @@ type moqConverterer_MockMethod_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_MockMethod_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_MockMethod_fnRecorder routes recorded function calls to the
+// moqConverterer moq
 type moqConverterer_MockMethod_fnRecorder struct {
 	params    moqConverterer_MockMethod_params
 	anyParams uint64
@@ -410,34 +457,41 @@ type moqConverterer_MockMethod_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_MockMethod_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_MockMethod_anyParams isolates the any params functions of the
+// Converterer type
 type moqConverterer_MockMethod_anyParams struct {
 	recorder *moqConverterer_MockMethod_fnRecorder
 }
 
-// moqConverterer_RecorderMethods_params holds the params of the Converterer type
+// moqConverterer_RecorderMethods_params holds the params of the Converterer
+// type
 type moqConverterer_RecorderMethods_params struct{ fn generator.Func }
 
-// moqConverterer_RecorderMethods_paramsKey holds the map key params of the Converterer type
+// moqConverterer_RecorderMethods_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_RecorderMethods_paramsKey struct {
 	params struct{ fn generator.Func }
 	hashes struct{ fn hash.Hash }
 }
 
-// moqConverterer_RecorderMethods_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_RecorderMethods_resultsByParams contains the results for a
+// given set of parameters for the Converterer type
 type moqConverterer_RecorderMethods_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_RecorderMethods_paramsKey]*moqConverterer_RecorderMethods_results
 }
 
-// moqConverterer_RecorderMethods_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_RecorderMethods_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_RecorderMethods_doFn func(fn generator.Func)
 
-// moqConverterer_RecorderMethods_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_RecorderMethods_doReturnFn defines the type of function
+// needed when calling doReturnResults for the Converterer type
 type moqConverterer_RecorderMethods_doReturnFn func(fn generator.Func) (funcDecls []dst.Decl)
 
-// moqConverterer_RecorderMethods_results holds the results of the Converterer type
+// moqConverterer_RecorderMethods_results holds the results of the Converterer
+// type
 type moqConverterer_RecorderMethods_results struct {
 	params  moqConverterer_RecorderMethods_params
 	results []struct {
@@ -450,7 +504,8 @@ type moqConverterer_RecorderMethods_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_RecorderMethods_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_RecorderMethods_fnRecorder routes recorded function calls to
+// the moqConverterer moq
 type moqConverterer_RecorderMethods_fnRecorder struct {
 	params    moqConverterer_RecorderMethods_params
 	anyParams uint64
@@ -459,7 +514,8 @@ type moqConverterer_RecorderMethods_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_RecorderMethods_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_RecorderMethods_anyParams isolates the any params functions
+// of the Converterer type
 type moqConverterer_RecorderMethods_anyParams struct {
 	recorder *moqConverterer_RecorderMethods_fnRecorder
 }
@@ -467,23 +523,27 @@ type moqConverterer_RecorderMethods_anyParams struct {
 // moqConverterer_ResetMethod_params holds the params of the Converterer type
 type moqConverterer_ResetMethod_params struct{}
 
-// moqConverterer_ResetMethod_paramsKey holds the map key params of the Converterer type
+// moqConverterer_ResetMethod_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_ResetMethod_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqConverterer_ResetMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_ResetMethod_resultsByParams contains the results for a given
+// set of parameters for the Converterer type
 type moqConverterer_ResetMethod_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_ResetMethod_paramsKey]*moqConverterer_ResetMethod_results
 }
 
-// moqConverterer_ResetMethod_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_ResetMethod_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_ResetMethod_doFn func()
 
-// moqConverterer_ResetMethod_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_ResetMethod_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Converterer type
 type moqConverterer_ResetMethod_doReturnFn func() (funcDecl *dst.FuncDecl)
 
 // moqConverterer_ResetMethod_results holds the results of the Converterer type
@@ -499,7 +559,8 @@ type moqConverterer_ResetMethod_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_ResetMethod_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_ResetMethod_fnRecorder routes recorded function calls to the
+// moqConverterer moq
 type moqConverterer_ResetMethod_fnRecorder struct {
 	params    moqConverterer_ResetMethod_params
 	anyParams uint64
@@ -508,7 +569,8 @@ type moqConverterer_ResetMethod_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_ResetMethod_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_ResetMethod_anyParams isolates the any params functions of
+// the Converterer type
 type moqConverterer_ResetMethod_anyParams struct {
 	recorder *moqConverterer_ResetMethod_fnRecorder
 }
@@ -516,26 +578,31 @@ type moqConverterer_ResetMethod_anyParams struct {
 // moqConverterer_AssertMethod_params holds the params of the Converterer type
 type moqConverterer_AssertMethod_params struct{}
 
-// moqConverterer_AssertMethod_paramsKey holds the map key params of the Converterer type
+// moqConverterer_AssertMethod_paramsKey holds the map key params of the
+// Converterer type
 type moqConverterer_AssertMethod_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqConverterer_AssertMethod_resultsByParams contains the results for a given set of parameters for the Converterer type
+// moqConverterer_AssertMethod_resultsByParams contains the results for a given
+// set of parameters for the Converterer type
 type moqConverterer_AssertMethod_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqConverterer_AssertMethod_paramsKey]*moqConverterer_AssertMethod_results
 }
 
-// moqConverterer_AssertMethod_doFn defines the type of function needed when calling andDo for the Converterer type
+// moqConverterer_AssertMethod_doFn defines the type of function needed when
+// calling andDo for the Converterer type
 type moqConverterer_AssertMethod_doFn func()
 
-// moqConverterer_AssertMethod_doReturnFn defines the type of function needed when calling doReturnResults for the Converterer type
+// moqConverterer_AssertMethod_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Converterer type
 type moqConverterer_AssertMethod_doReturnFn func() (funcDecl *dst.FuncDecl)
 
-// moqConverterer_AssertMethod_results holds the results of the Converterer type
+// moqConverterer_AssertMethod_results holds the results of the Converterer
+// type
 type moqConverterer_AssertMethod_results struct {
 	params  moqConverterer_AssertMethod_params
 	results []struct {
@@ -548,7 +615,8 @@ type moqConverterer_AssertMethod_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_AssertMethod_fnRecorder routes recorded function calls to the moqConverterer moq
+// moqConverterer_AssertMethod_fnRecorder routes recorded function calls to the
+// moqConverterer moq
 type moqConverterer_AssertMethod_fnRecorder struct {
 	params    moqConverterer_AssertMethod_params
 	anyParams uint64
@@ -557,7 +625,8 @@ type moqConverterer_AssertMethod_fnRecorder struct {
 	moq       *moqConverterer
 }
 
-// moqConverterer_AssertMethod_anyParams isolates the any params functions of the Converterer type
+// moqConverterer_AssertMethod_anyParams isolates the any params functions of
+// the Converterer type
 type moqConverterer_AssertMethod_anyParams struct {
 	recorder *moqConverterer_AssertMethod_fnRecorder
 }

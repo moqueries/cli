@@ -60,23 +60,27 @@ type MoqMetrics_recorder struct {
 // MoqMetrics_ASTPkgCacheHitsInc_params holds the params of the Metrics type
 type MoqMetrics_ASTPkgCacheHitsInc_params struct{}
 
-// MoqMetrics_ASTPkgCacheHitsInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_ASTPkgCacheHitsInc_paramsKey holds the map key params of the
+// Metrics type
 type MoqMetrics_ASTPkgCacheHitsInc_paramsKey struct {
 	Params struct{}
 	Hashes struct{}
 }
 
-// MoqMetrics_ASTPkgCacheHitsInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_ASTPkgCacheHitsInc_resultsByParams contains the results for a
+// given set of parameters for the Metrics type
 type MoqMetrics_ASTPkgCacheHitsInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_ASTPkgCacheHitsInc_paramsKey]*MoqMetrics_ASTPkgCacheHitsInc_results
 }
 
-// MoqMetrics_ASTPkgCacheHitsInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_ASTPkgCacheHitsInc_doFn defines the type of function needed when
+// calling AndDo for the Metrics type
 type MoqMetrics_ASTPkgCacheHitsInc_doFn func()
 
-// MoqMetrics_ASTPkgCacheHitsInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_ASTPkgCacheHitsInc_doReturnFn defines the type of function needed
+// when calling DoReturnResults for the Metrics type
 type MoqMetrics_ASTPkgCacheHitsInc_doReturnFn func()
 
 // MoqMetrics_ASTPkgCacheHitsInc_results holds the results of the Metrics type
@@ -92,7 +96,8 @@ type MoqMetrics_ASTPkgCacheHitsInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_ASTPkgCacheHitsInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_ASTPkgCacheHitsInc_fnRecorder routes recorded function calls to
+// the MoqMetrics moq
 type MoqMetrics_ASTPkgCacheHitsInc_fnRecorder struct {
 	Params    MoqMetrics_ASTPkgCacheHitsInc_params
 	AnyParams uint64
@@ -101,7 +106,8 @@ type MoqMetrics_ASTPkgCacheHitsInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_ASTPkgCacheHitsInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_ASTPkgCacheHitsInc_anyParams isolates the any params functions of
+// the Metrics type
 type MoqMetrics_ASTPkgCacheHitsInc_anyParams struct {
 	Recorder *MoqMetrics_ASTPkgCacheHitsInc_fnRecorder
 }
@@ -109,26 +115,31 @@ type MoqMetrics_ASTPkgCacheHitsInc_anyParams struct {
 // MoqMetrics_ASTPkgCacheMissesInc_params holds the params of the Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_params struct{}
 
-// MoqMetrics_ASTPkgCacheMissesInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_ASTPkgCacheMissesInc_paramsKey holds the map key params of the
+// Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_paramsKey struct {
 	Params struct{}
 	Hashes struct{}
 }
 
-// MoqMetrics_ASTPkgCacheMissesInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_ASTPkgCacheMissesInc_resultsByParams contains the results for a
+// given set of parameters for the Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_ASTPkgCacheMissesInc_paramsKey]*MoqMetrics_ASTPkgCacheMissesInc_results
 }
 
-// MoqMetrics_ASTPkgCacheMissesInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_ASTPkgCacheMissesInc_doFn defines the type of function needed
+// when calling AndDo for the Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_doFn func()
 
-// MoqMetrics_ASTPkgCacheMissesInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_ASTPkgCacheMissesInc_doReturnFn defines the type of function
+// needed when calling DoReturnResults for the Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_doReturnFn func()
 
-// MoqMetrics_ASTPkgCacheMissesInc_results holds the results of the Metrics type
+// MoqMetrics_ASTPkgCacheMissesInc_results holds the results of the Metrics
+// type
 type MoqMetrics_ASTPkgCacheMissesInc_results struct {
 	Params  MoqMetrics_ASTPkgCacheMissesInc_params
 	Results []struct {
@@ -141,7 +152,8 @@ type MoqMetrics_ASTPkgCacheMissesInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_ASTPkgCacheMissesInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_ASTPkgCacheMissesInc_fnRecorder routes recorded function calls to
+// the MoqMetrics moq
 type MoqMetrics_ASTPkgCacheMissesInc_fnRecorder struct {
 	Params    MoqMetrics_ASTPkgCacheMissesInc_params
 	AnyParams uint64
@@ -150,7 +162,8 @@ type MoqMetrics_ASTPkgCacheMissesInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_ASTPkgCacheMissesInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_ASTPkgCacheMissesInc_anyParams isolates the any params functions
+// of the Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_anyParams struct {
 	Recorder *MoqMetrics_ASTPkgCacheMissesInc_fnRecorder
 }
@@ -158,23 +171,27 @@ type MoqMetrics_ASTPkgCacheMissesInc_anyParams struct {
 // MoqMetrics_ASTTypeCacheHitsInc_params holds the params of the Metrics type
 type MoqMetrics_ASTTypeCacheHitsInc_params struct{}
 
-// MoqMetrics_ASTTypeCacheHitsInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_ASTTypeCacheHitsInc_paramsKey holds the map key params of the
+// Metrics type
 type MoqMetrics_ASTTypeCacheHitsInc_paramsKey struct {
 	Params struct{}
 	Hashes struct{}
 }
 
-// MoqMetrics_ASTTypeCacheHitsInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_ASTTypeCacheHitsInc_resultsByParams contains the results for a
+// given set of parameters for the Metrics type
 type MoqMetrics_ASTTypeCacheHitsInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_ASTTypeCacheHitsInc_paramsKey]*MoqMetrics_ASTTypeCacheHitsInc_results
 }
 
-// MoqMetrics_ASTTypeCacheHitsInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_ASTTypeCacheHitsInc_doFn defines the type of function needed when
+// calling AndDo for the Metrics type
 type MoqMetrics_ASTTypeCacheHitsInc_doFn func()
 
-// MoqMetrics_ASTTypeCacheHitsInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_ASTTypeCacheHitsInc_doReturnFn defines the type of function
+// needed when calling DoReturnResults for the Metrics type
 type MoqMetrics_ASTTypeCacheHitsInc_doReturnFn func()
 
 // MoqMetrics_ASTTypeCacheHitsInc_results holds the results of the Metrics type
@@ -190,7 +207,8 @@ type MoqMetrics_ASTTypeCacheHitsInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_ASTTypeCacheHitsInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_ASTTypeCacheHitsInc_fnRecorder routes recorded function calls to
+// the MoqMetrics moq
 type MoqMetrics_ASTTypeCacheHitsInc_fnRecorder struct {
 	Params    MoqMetrics_ASTTypeCacheHitsInc_params
 	AnyParams uint64
@@ -199,7 +217,8 @@ type MoqMetrics_ASTTypeCacheHitsInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_ASTTypeCacheHitsInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_ASTTypeCacheHitsInc_anyParams isolates the any params functions
+// of the Metrics type
 type MoqMetrics_ASTTypeCacheHitsInc_anyParams struct {
 	Recorder *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder
 }
@@ -207,26 +226,31 @@ type MoqMetrics_ASTTypeCacheHitsInc_anyParams struct {
 // MoqMetrics_ASTTypeCacheMissesInc_params holds the params of the Metrics type
 type MoqMetrics_ASTTypeCacheMissesInc_params struct{}
 
-// MoqMetrics_ASTTypeCacheMissesInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_ASTTypeCacheMissesInc_paramsKey holds the map key params of the
+// Metrics type
 type MoqMetrics_ASTTypeCacheMissesInc_paramsKey struct {
 	Params struct{}
 	Hashes struct{}
 }
 
-// MoqMetrics_ASTTypeCacheMissesInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_ASTTypeCacheMissesInc_resultsByParams contains the results for a
+// given set of parameters for the Metrics type
 type MoqMetrics_ASTTypeCacheMissesInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_ASTTypeCacheMissesInc_paramsKey]*MoqMetrics_ASTTypeCacheMissesInc_results
 }
 
-// MoqMetrics_ASTTypeCacheMissesInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_ASTTypeCacheMissesInc_doFn defines the type of function needed
+// when calling AndDo for the Metrics type
 type MoqMetrics_ASTTypeCacheMissesInc_doFn func()
 
-// MoqMetrics_ASTTypeCacheMissesInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_ASTTypeCacheMissesInc_doReturnFn defines the type of function
+// needed when calling DoReturnResults for the Metrics type
 type MoqMetrics_ASTTypeCacheMissesInc_doReturnFn func()
 
-// MoqMetrics_ASTTypeCacheMissesInc_results holds the results of the Metrics type
+// MoqMetrics_ASTTypeCacheMissesInc_results holds the results of the Metrics
+// type
 type MoqMetrics_ASTTypeCacheMissesInc_results struct {
 	Params  MoqMetrics_ASTTypeCacheMissesInc_params
 	Results []struct {
@@ -239,7 +263,8 @@ type MoqMetrics_ASTTypeCacheMissesInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_ASTTypeCacheMissesInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_ASTTypeCacheMissesInc_fnRecorder routes recorded function calls
+// to the MoqMetrics moq
 type MoqMetrics_ASTTypeCacheMissesInc_fnRecorder struct {
 	Params    MoqMetrics_ASTTypeCacheMissesInc_params
 	AnyParams uint64
@@ -248,7 +273,8 @@ type MoqMetrics_ASTTypeCacheMissesInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_ASTTypeCacheMissesInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_ASTTypeCacheMissesInc_anyParams isolates the any params functions
+// of the Metrics type
 type MoqMetrics_ASTTypeCacheMissesInc_anyParams struct {
 	Recorder *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder
 }
@@ -256,23 +282,27 @@ type MoqMetrics_ASTTypeCacheMissesInc_anyParams struct {
 // MoqMetrics_ASTTotalLoadTimeInc_params holds the params of the Metrics type
 type MoqMetrics_ASTTotalLoadTimeInc_params struct{ D time.Duration }
 
-// MoqMetrics_ASTTotalLoadTimeInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_ASTTotalLoadTimeInc_paramsKey holds the map key params of the
+// Metrics type
 type MoqMetrics_ASTTotalLoadTimeInc_paramsKey struct {
 	Params struct{ D time.Duration }
 	Hashes struct{ D hash.Hash }
 }
 
-// MoqMetrics_ASTTotalLoadTimeInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_ASTTotalLoadTimeInc_resultsByParams contains the results for a
+// given set of parameters for the Metrics type
 type MoqMetrics_ASTTotalLoadTimeInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_ASTTotalLoadTimeInc_paramsKey]*MoqMetrics_ASTTotalLoadTimeInc_results
 }
 
-// MoqMetrics_ASTTotalLoadTimeInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_ASTTotalLoadTimeInc_doFn defines the type of function needed when
+// calling AndDo for the Metrics type
 type MoqMetrics_ASTTotalLoadTimeInc_doFn func(d time.Duration)
 
-// MoqMetrics_ASTTotalLoadTimeInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_ASTTotalLoadTimeInc_doReturnFn defines the type of function
+// needed when calling DoReturnResults for the Metrics type
 type MoqMetrics_ASTTotalLoadTimeInc_doReturnFn func(d time.Duration)
 
 // MoqMetrics_ASTTotalLoadTimeInc_results holds the results of the Metrics type
@@ -288,7 +318,8 @@ type MoqMetrics_ASTTotalLoadTimeInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_ASTTotalLoadTimeInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_ASTTotalLoadTimeInc_fnRecorder routes recorded function calls to
+// the MoqMetrics moq
 type MoqMetrics_ASTTotalLoadTimeInc_fnRecorder struct {
 	Params    MoqMetrics_ASTTotalLoadTimeInc_params
 	AnyParams uint64
@@ -297,34 +328,41 @@ type MoqMetrics_ASTTotalLoadTimeInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_ASTTotalLoadTimeInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_ASTTotalLoadTimeInc_anyParams isolates the any params functions
+// of the Metrics type
 type MoqMetrics_ASTTotalLoadTimeInc_anyParams struct {
 	Recorder *MoqMetrics_ASTTotalLoadTimeInc_fnRecorder
 }
 
-// MoqMetrics_ASTTotalDecorationTimeInc_params holds the params of the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_params holds the params of the Metrics
+// type
 type MoqMetrics_ASTTotalDecorationTimeInc_params struct{ D time.Duration }
 
-// MoqMetrics_ASTTotalDecorationTimeInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_paramsKey holds the map key params of
+// the Metrics type
 type MoqMetrics_ASTTotalDecorationTimeInc_paramsKey struct {
 	Params struct{ D time.Duration }
 	Hashes struct{ D hash.Hash }
 }
 
-// MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams contains the results
+// for a given set of parameters for the Metrics type
 type MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_ASTTotalDecorationTimeInc_paramsKey]*MoqMetrics_ASTTotalDecorationTimeInc_results
 }
 
-// MoqMetrics_ASTTotalDecorationTimeInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_doFn defines the type of function
+// needed when calling AndDo for the Metrics type
 type MoqMetrics_ASTTotalDecorationTimeInc_doFn func(d time.Duration)
 
-// MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn defines the type of function
+// needed when calling DoReturnResults for the Metrics type
 type MoqMetrics_ASTTotalDecorationTimeInc_doReturnFn func(d time.Duration)
 
-// MoqMetrics_ASTTotalDecorationTimeInc_results holds the results of the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_results holds the results of the
+// Metrics type
 type MoqMetrics_ASTTotalDecorationTimeInc_results struct {
 	Params  MoqMetrics_ASTTotalDecorationTimeInc_params
 	Results []struct {
@@ -337,7 +375,8 @@ type MoqMetrics_ASTTotalDecorationTimeInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder routes recorded function
+// calls to the MoqMetrics moq
 type MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder struct {
 	Params    MoqMetrics_ASTTotalDecorationTimeInc_params
 	AnyParams uint64
@@ -346,34 +385,41 @@ type MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_ASTTotalDecorationTimeInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_ASTTotalDecorationTimeInc_anyParams isolates the any params
+// functions of the Metrics type
 type MoqMetrics_ASTTotalDecorationTimeInc_anyParams struct {
 	Recorder *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder
 }
 
-// MoqMetrics_TotalProcessingTimeInc_params holds the params of the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_params holds the params of the Metrics
+// type
 type MoqMetrics_TotalProcessingTimeInc_params struct{ D time.Duration }
 
-// MoqMetrics_TotalProcessingTimeInc_paramsKey holds the map key params of the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_paramsKey holds the map key params of the
+// Metrics type
 type MoqMetrics_TotalProcessingTimeInc_paramsKey struct {
 	Params struct{ D time.Duration }
 	Hashes struct{ D hash.Hash }
 }
 
-// MoqMetrics_TotalProcessingTimeInc_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_resultsByParams contains the results for a
+// given set of parameters for the Metrics type
 type MoqMetrics_TotalProcessingTimeInc_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_TotalProcessingTimeInc_paramsKey]*MoqMetrics_TotalProcessingTimeInc_results
 }
 
-// MoqMetrics_TotalProcessingTimeInc_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_doFn defines the type of function needed
+// when calling AndDo for the Metrics type
 type MoqMetrics_TotalProcessingTimeInc_doFn func(d time.Duration)
 
-// MoqMetrics_TotalProcessingTimeInc_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_doReturnFn defines the type of function
+// needed when calling DoReturnResults for the Metrics type
 type MoqMetrics_TotalProcessingTimeInc_doReturnFn func(d time.Duration)
 
-// MoqMetrics_TotalProcessingTimeInc_results holds the results of the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_results holds the results of the Metrics
+// type
 type MoqMetrics_TotalProcessingTimeInc_results struct {
 	Params  MoqMetrics_TotalProcessingTimeInc_params
 	Results []struct {
@@ -386,7 +432,8 @@ type MoqMetrics_TotalProcessingTimeInc_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_TotalProcessingTimeInc_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_TotalProcessingTimeInc_fnRecorder routes recorded function calls
+// to the MoqMetrics moq
 type MoqMetrics_TotalProcessingTimeInc_fnRecorder struct {
 	Params    MoqMetrics_TotalProcessingTimeInc_params
 	AnyParams uint64
@@ -395,7 +442,8 @@ type MoqMetrics_TotalProcessingTimeInc_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_TotalProcessingTimeInc_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_TotalProcessingTimeInc_anyParams isolates the any params
+// functions of the Metrics type
 type MoqMetrics_TotalProcessingTimeInc_anyParams struct {
 	Recorder *MoqMetrics_TotalProcessingTimeInc_fnRecorder
 }
@@ -409,17 +457,20 @@ type MoqMetrics_Finalize_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqMetrics_Finalize_resultsByParams contains the results for a given set of parameters for the Metrics type
+// MoqMetrics_Finalize_resultsByParams contains the results for a given set of
+// parameters for the Metrics type
 type MoqMetrics_Finalize_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqMetrics_Finalize_paramsKey]*MoqMetrics_Finalize_results
 }
 
-// MoqMetrics_Finalize_doFn defines the type of function needed when calling AndDo for the Metrics type
+// MoqMetrics_Finalize_doFn defines the type of function needed when calling
+// AndDo for the Metrics type
 type MoqMetrics_Finalize_doFn func()
 
-// MoqMetrics_Finalize_doReturnFn defines the type of function needed when calling DoReturnResults for the Metrics type
+// MoqMetrics_Finalize_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Metrics type
 type MoqMetrics_Finalize_doReturnFn func()
 
 // MoqMetrics_Finalize_results holds the results of the Metrics type
@@ -435,7 +486,8 @@ type MoqMetrics_Finalize_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqMetrics_Finalize_fnRecorder routes recorded function calls to the MoqMetrics moq
+// MoqMetrics_Finalize_fnRecorder routes recorded function calls to the
+// MoqMetrics moq
 type MoqMetrics_Finalize_fnRecorder struct {
 	Params    MoqMetrics_Finalize_params
 	AnyParams uint64
@@ -444,7 +496,8 @@ type MoqMetrics_Finalize_fnRecorder struct {
 	Moq       *MoqMetrics
 }
 
-// MoqMetrics_Finalize_anyParams isolates the any params functions of the Metrics type
+// MoqMetrics_Finalize_anyParams isolates the any params functions of the
+// Metrics type
 type MoqMetrics_Finalize_anyParams struct {
 	Recorder *MoqMetrics_Finalize_fnRecorder
 }

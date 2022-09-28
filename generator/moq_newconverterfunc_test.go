@@ -28,7 +28,8 @@ type moqNewConverterFunc struct {
 	}
 }
 
-// moqNewConverterFunc_mock isolates the mock interface of the NewConverterFunc type
+// moqNewConverterFunc_mock isolates the mock interface of the NewConverterFunc
+// type
 type moqNewConverterFunc_mock struct {
 	moq *moqNewConverterFunc
 }
@@ -39,7 +40,8 @@ type moqNewConverterFunc_params struct {
 	export bool
 }
 
-// moqNewConverterFunc_paramsKey holds the map key params of the NewConverterFunc type
+// moqNewConverterFunc_paramsKey holds the map key params of the
+// NewConverterFunc type
 type moqNewConverterFunc_paramsKey struct {
 	params struct{ export bool }
 	hashes struct {
@@ -48,17 +50,20 @@ type moqNewConverterFunc_paramsKey struct {
 	}
 }
 
-// moqNewConverterFunc_resultsByParams contains the results for a given set of parameters for the NewConverterFunc type
+// moqNewConverterFunc_resultsByParams contains the results for a given set of
+// parameters for the NewConverterFunc type
 type moqNewConverterFunc_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqNewConverterFunc_paramsKey]*moqNewConverterFunc_results
 }
 
-// moqNewConverterFunc_doFn defines the type of function needed when calling andDo for the NewConverterFunc type
+// moqNewConverterFunc_doFn defines the type of function needed when calling
+// andDo for the NewConverterFunc type
 type moqNewConverterFunc_doFn func(typ generator.Type, export bool)
 
-// moqNewConverterFunc_doReturnFn defines the type of function needed when calling doReturnResults for the NewConverterFunc type
+// moqNewConverterFunc_doReturnFn defines the type of function needed when
+// calling doReturnResults for the NewConverterFunc type
 type moqNewConverterFunc_doReturnFn func(typ generator.Type, export bool) generator.Converterer
 
 // moqNewConverterFunc_results holds the results of the NewConverterFunc type
@@ -76,7 +81,8 @@ type moqNewConverterFunc_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqNewConverterFunc_fnRecorder routes recorded function calls to the moqNewConverterFunc moq
+// moqNewConverterFunc_fnRecorder routes recorded function calls to the
+// moqNewConverterFunc moq
 type moqNewConverterFunc_fnRecorder struct {
 	params    moqNewConverterFunc_params
 	anyParams uint64
@@ -85,7 +91,8 @@ type moqNewConverterFunc_fnRecorder struct {
 	moq       *moqNewConverterFunc
 }
 
-// moqNewConverterFunc_anyParams isolates the any params functions of the NewConverterFunc type
+// moqNewConverterFunc_anyParams isolates the any params functions of the
+// NewConverterFunc type
 type moqNewConverterFunc_anyParams struct {
 	recorder *moqNewConverterFunc_fnRecorder
 }

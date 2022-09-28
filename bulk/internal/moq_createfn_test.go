@@ -42,17 +42,20 @@ type moqCreateFn_paramsKey struct {
 	hashes struct{ name hash.Hash }
 }
 
-// moqCreateFn_resultsByParams contains the results for a given set of parameters for the CreateFn type
+// moqCreateFn_resultsByParams contains the results for a given set of
+// parameters for the CreateFn type
 type moqCreateFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqCreateFn_paramsKey]*moqCreateFn_results
 }
 
-// moqCreateFn_doFn defines the type of function needed when calling andDo for the CreateFn type
+// moqCreateFn_doFn defines the type of function needed when calling andDo for
+// the CreateFn type
 type moqCreateFn_doFn func(name string)
 
-// moqCreateFn_doReturnFn defines the type of function needed when calling doReturnResults for the CreateFn type
+// moqCreateFn_doReturnFn defines the type of function needed when calling
+// doReturnResults for the CreateFn type
 type moqCreateFn_doReturnFn func(name string) (file io.WriteCloser, err error)
 
 // moqCreateFn_results holds the results of the CreateFn type

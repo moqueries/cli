@@ -56,17 +56,20 @@ type moqOpenFileFn_paramsKey struct {
 	}
 }
 
-// moqOpenFileFn_resultsByParams contains the results for a given set of parameters for the OpenFileFn type
+// moqOpenFileFn_resultsByParams contains the results for a given set of
+// parameters for the OpenFileFn type
 type moqOpenFileFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqOpenFileFn_paramsKey]*moqOpenFileFn_results
 }
 
-// moqOpenFileFn_doFn defines the type of function needed when calling andDo for the OpenFileFn type
+// moqOpenFileFn_doFn defines the type of function needed when calling andDo
+// for the OpenFileFn type
 type moqOpenFileFn_doFn func(name string, flag int, perm os.FileMode)
 
-// moqOpenFileFn_doReturnFn defines the type of function needed when calling doReturnResults for the OpenFileFn type
+// moqOpenFileFn_doReturnFn defines the type of function needed when calling
+// doReturnResults for the OpenFileFn type
 type moqOpenFileFn_doReturnFn func(name string, flag int, perm os.FileMode) (internal.ReadWriteSeekCloser, error)
 
 // moqOpenFileFn_results holds the results of the OpenFileFn type
@@ -85,7 +88,8 @@ type moqOpenFileFn_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqOpenFileFn_fnRecorder routes recorded function calls to the moqOpenFileFn moq
+// moqOpenFileFn_fnRecorder routes recorded function calls to the moqOpenFileFn
+// moq
 type moqOpenFileFn_fnRecorder struct {
 	params    moqOpenFileFn_params
 	anyParams uint64
@@ -94,7 +98,8 @@ type moqOpenFileFn_fnRecorder struct {
 	moq       *moqOpenFileFn
 }
 
-// moqOpenFileFn_anyParams isolates the any params functions of the OpenFileFn type
+// moqOpenFileFn_anyParams isolates the any params functions of the OpenFileFn
+// type
 type moqOpenFileFn_anyParams struct {
 	recorder *moqOpenFileFn_fnRecorder
 }

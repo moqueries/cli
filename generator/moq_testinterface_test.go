@@ -30,7 +30,8 @@ type moqTestInterface_mock struct {
 	moq *moqTestInterface
 }
 
-// moqTestInterface_recorder isolates the recorder interface of the testInterface type
+// moqTestInterface_recorder isolates the recorder interface of the
+// testInterface type
 type moqTestInterface_recorder struct {
 	moq *moqTestInterface
 }
@@ -38,26 +39,31 @@ type moqTestInterface_recorder struct {
 // moqTestInterface_something_params holds the params of the testInterface type
 type moqTestInterface_something_params struct{}
 
-// moqTestInterface_something_paramsKey holds the map key params of the testInterface type
+// moqTestInterface_something_paramsKey holds the map key params of the
+// testInterface type
 type moqTestInterface_something_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqTestInterface_something_resultsByParams contains the results for a given set of parameters for the testInterface type
+// moqTestInterface_something_resultsByParams contains the results for a given
+// set of parameters for the testInterface type
 type moqTestInterface_something_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqTestInterface_something_paramsKey]*moqTestInterface_something_results
 }
 
-// moqTestInterface_something_doFn defines the type of function needed when calling andDo for the testInterface type
+// moqTestInterface_something_doFn defines the type of function needed when
+// calling andDo for the testInterface type
 type moqTestInterface_something_doFn func()
 
-// moqTestInterface_something_doReturnFn defines the type of function needed when calling doReturnResults for the testInterface type
+// moqTestInterface_something_doReturnFn defines the type of function needed
+// when calling doReturnResults for the testInterface type
 type moqTestInterface_something_doReturnFn func()
 
-// moqTestInterface_something_results holds the results of the testInterface type
+// moqTestInterface_something_results holds the results of the testInterface
+// type
 type moqTestInterface_something_results struct {
 	params  moqTestInterface_something_params
 	results []struct {
@@ -70,7 +76,8 @@ type moqTestInterface_something_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqTestInterface_something_fnRecorder routes recorded function calls to the moqTestInterface moq
+// moqTestInterface_something_fnRecorder routes recorded function calls to the
+// moqTestInterface moq
 type moqTestInterface_something_fnRecorder struct {
 	params    moqTestInterface_something_params
 	anyParams uint64
@@ -79,7 +86,8 @@ type moqTestInterface_something_fnRecorder struct {
 	moq       *moqTestInterface
 }
 
-// moqTestInterface_something_anyParams isolates the any params functions of the testInterface type
+// moqTestInterface_something_anyParams isolates the any params functions of
+// the testInterface type
 type moqTestInterface_something_anyParams struct {
 	recorder *moqTestInterface_something_fnRecorder
 }

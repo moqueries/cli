@@ -52,17 +52,20 @@ type MoqUsualFn_paramsKey struct {
 	}
 }
 
-// MoqUsualFn_resultsByParams contains the results for a given set of parameters for the UsualFn type
+// MoqUsualFn_resultsByParams contains the results for a given set of
+// parameters for the UsualFn type
 type MoqUsualFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsualFn_paramsKey]*MoqUsualFn_results
 }
 
-// MoqUsualFn_doFn defines the type of function needed when calling AndDo for the UsualFn type
+// MoqUsualFn_doFn defines the type of function needed when calling AndDo for
+// the UsualFn type
 type MoqUsualFn_doFn func(sParam string, bParam bool)
 
-// MoqUsualFn_doReturnFn defines the type of function needed when calling DoReturnResults for the UsualFn type
+// MoqUsualFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the UsualFn type
 type MoqUsualFn_doReturnFn func(sParam string, bParam bool) (sResult string, err error)
 
 // MoqUsualFn_results holds the results of the UsualFn type
@@ -471,17 +474,20 @@ type MoqNoNamesFn_paramsKey struct {
 	}
 }
 
-// MoqNoNamesFn_resultsByParams contains the results for a given set of parameters for the NoNamesFn type
+// MoqNoNamesFn_resultsByParams contains the results for a given set of
+// parameters for the NoNamesFn type
 type MoqNoNamesFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqNoNamesFn_paramsKey]*MoqNoNamesFn_results
 }
 
-// MoqNoNamesFn_doFn defines the type of function needed when calling AndDo for the NoNamesFn type
+// MoqNoNamesFn_doFn defines the type of function needed when calling AndDo for
+// the NoNamesFn type
 type MoqNoNamesFn_doFn func(string, bool)
 
-// MoqNoNamesFn_doReturnFn defines the type of function needed when calling DoReturnResults for the NoNamesFn type
+// MoqNoNamesFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the NoNamesFn type
 type MoqNoNamesFn_doReturnFn func(string, bool) (string, error)
 
 // MoqNoNamesFn_results holds the results of the NoNamesFn type
@@ -500,7 +506,8 @@ type MoqNoNamesFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqNoNamesFn_fnRecorder routes recorded function calls to the MoqNoNamesFn moq
+// MoqNoNamesFn_fnRecorder routes recorded function calls to the MoqNoNamesFn
+// moq
 type MoqNoNamesFn_fnRecorder struct {
 	Params    MoqNoNamesFn_params
 	AnyParams uint64
@@ -509,7 +516,8 @@ type MoqNoNamesFn_fnRecorder struct {
 	Moq       *MoqNoNamesFn
 }
 
-// MoqNoNamesFn_anyParams isolates the any params functions of the NoNamesFn type
+// MoqNoNamesFn_anyParams isolates the any params functions of the NoNamesFn
+// type
 type MoqNoNamesFn_anyParams struct {
 	Recorder *MoqNoNamesFn_fnRecorder
 }
@@ -890,17 +898,20 @@ type MoqNoResultsFn_paramsKey struct {
 	}
 }
 
-// MoqNoResultsFn_resultsByParams contains the results for a given set of parameters for the NoResultsFn type
+// MoqNoResultsFn_resultsByParams contains the results for a given set of
+// parameters for the NoResultsFn type
 type MoqNoResultsFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqNoResultsFn_paramsKey]*MoqNoResultsFn_results
 }
 
-// MoqNoResultsFn_doFn defines the type of function needed when calling AndDo for the NoResultsFn type
+// MoqNoResultsFn_doFn defines the type of function needed when calling AndDo
+// for the NoResultsFn type
 type MoqNoResultsFn_doFn func(sParam string, bParam bool)
 
-// MoqNoResultsFn_doReturnFn defines the type of function needed when calling DoReturnResults for the NoResultsFn type
+// MoqNoResultsFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the NoResultsFn type
 type MoqNoResultsFn_doReturnFn func(sParam string, bParam bool)
 
 // MoqNoResultsFn_results holds the results of the NoResultsFn type
@@ -916,7 +927,8 @@ type MoqNoResultsFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqNoResultsFn_fnRecorder routes recorded function calls to the MoqNoResultsFn moq
+// MoqNoResultsFn_fnRecorder routes recorded function calls to the
+// MoqNoResultsFn moq
 type MoqNoResultsFn_fnRecorder struct {
 	Params    MoqNoResultsFn_params
 	AnyParams uint64
@@ -925,7 +937,8 @@ type MoqNoResultsFn_fnRecorder struct {
 	Moq       *MoqNoResultsFn
 }
 
-// MoqNoResultsFn_anyParams isolates the any params functions of the NoResultsFn type
+// MoqNoResultsFn_anyParams isolates the any params functions of the
+// NoResultsFn type
 type MoqNoResultsFn_anyParams struct {
 	Recorder *MoqNoResultsFn_fnRecorder
 }
@@ -1272,17 +1285,20 @@ type MoqNoParamsFn_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqNoParamsFn_resultsByParams contains the results for a given set of parameters for the NoParamsFn type
+// MoqNoParamsFn_resultsByParams contains the results for a given set of
+// parameters for the NoParamsFn type
 type MoqNoParamsFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqNoParamsFn_paramsKey]*MoqNoParamsFn_results
 }
 
-// MoqNoParamsFn_doFn defines the type of function needed when calling AndDo for the NoParamsFn type
+// MoqNoParamsFn_doFn defines the type of function needed when calling AndDo
+// for the NoParamsFn type
 type MoqNoParamsFn_doFn func()
 
-// MoqNoParamsFn_doReturnFn defines the type of function needed when calling DoReturnResults for the NoParamsFn type
+// MoqNoParamsFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the NoParamsFn type
 type MoqNoParamsFn_doReturnFn func() (sResult string, err error)
 
 // MoqNoParamsFn_results holds the results of the NoParamsFn type
@@ -1301,7 +1317,8 @@ type MoqNoParamsFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqNoParamsFn_fnRecorder routes recorded function calls to the MoqNoParamsFn moq
+// MoqNoParamsFn_fnRecorder routes recorded function calls to the MoqNoParamsFn
+// moq
 type MoqNoParamsFn_fnRecorder struct {
 	Params    MoqNoParamsFn_params
 	AnyParams uint64
@@ -1310,7 +1327,8 @@ type MoqNoParamsFn_fnRecorder struct {
 	Moq       *MoqNoParamsFn
 }
 
-// MoqNoParamsFn_anyParams isolates the any params functions of the NoParamsFn type
+// MoqNoParamsFn_anyParams isolates the any params functions of the NoParamsFn
+// type
 type MoqNoParamsFn_anyParams struct {
 	Recorder *MoqNoParamsFn_fnRecorder
 }
@@ -1621,17 +1639,20 @@ type MoqNothingFn_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqNothingFn_resultsByParams contains the results for a given set of parameters for the NothingFn type
+// MoqNothingFn_resultsByParams contains the results for a given set of
+// parameters for the NothingFn type
 type MoqNothingFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqNothingFn_paramsKey]*MoqNothingFn_results
 }
 
-// MoqNothingFn_doFn defines the type of function needed when calling AndDo for the NothingFn type
+// MoqNothingFn_doFn defines the type of function needed when calling AndDo for
+// the NothingFn type
 type MoqNothingFn_doFn func()
 
-// MoqNothingFn_doReturnFn defines the type of function needed when calling DoReturnResults for the NothingFn type
+// MoqNothingFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the NothingFn type
 type MoqNothingFn_doReturnFn func()
 
 // MoqNothingFn_results holds the results of the NothingFn type
@@ -1647,7 +1668,8 @@ type MoqNothingFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqNothingFn_fnRecorder routes recorded function calls to the MoqNothingFn moq
+// MoqNothingFn_fnRecorder routes recorded function calls to the MoqNothingFn
+// moq
 type MoqNothingFn_fnRecorder struct {
 	Params    MoqNothingFn_params
 	AnyParams uint64
@@ -1656,7 +1678,8 @@ type MoqNothingFn_fnRecorder struct {
 	Moq       *MoqNothingFn
 }
 
-// MoqNothingFn_anyParams isolates the any params functions of the NothingFn type
+// MoqNothingFn_anyParams isolates the any params functions of the NothingFn
+// type
 type MoqNothingFn_anyParams struct {
 	Recorder *MoqNothingFn_fnRecorder
 }
@@ -1957,17 +1980,20 @@ type MoqVariadicFn_paramsKey struct {
 	}
 }
 
-// MoqVariadicFn_resultsByParams contains the results for a given set of parameters for the VariadicFn type
+// MoqVariadicFn_resultsByParams contains the results for a given set of
+// parameters for the VariadicFn type
 type MoqVariadicFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqVariadicFn_paramsKey]*MoqVariadicFn_results
 }
 
-// MoqVariadicFn_doFn defines the type of function needed when calling AndDo for the VariadicFn type
+// MoqVariadicFn_doFn defines the type of function needed when calling AndDo
+// for the VariadicFn type
 type MoqVariadicFn_doFn func(other bool, args ...string)
 
-// MoqVariadicFn_doReturnFn defines the type of function needed when calling DoReturnResults for the VariadicFn type
+// MoqVariadicFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the VariadicFn type
 type MoqVariadicFn_doReturnFn func(other bool, args ...string) (sResult string, err error)
 
 // MoqVariadicFn_results holds the results of the VariadicFn type
@@ -1986,7 +2012,8 @@ type MoqVariadicFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqVariadicFn_fnRecorder routes recorded function calls to the MoqVariadicFn moq
+// MoqVariadicFn_fnRecorder routes recorded function calls to the MoqVariadicFn
+// moq
 type MoqVariadicFn_fnRecorder struct {
 	Params    MoqVariadicFn_params
 	AnyParams uint64
@@ -1995,7 +2022,8 @@ type MoqVariadicFn_fnRecorder struct {
 	Moq       *MoqVariadicFn
 }
 
-// MoqVariadicFn_anyParams isolates the any params functions of the VariadicFn type
+// MoqVariadicFn_anyParams isolates the any params functions of the VariadicFn
+// type
 type MoqVariadicFn_anyParams struct {
 	Recorder *MoqVariadicFn_fnRecorder
 }
@@ -2359,7 +2387,8 @@ type MoqRepeatedIdsFn_params struct {
 	BParam           bool
 }
 
-// MoqRepeatedIdsFn_paramsKey holds the map key params of the RepeatedIdsFn type
+// MoqRepeatedIdsFn_paramsKey holds the map key params of the RepeatedIdsFn
+// type
 type MoqRepeatedIdsFn_paramsKey struct {
 	Params struct {
 		SParam1, SParam2 string
@@ -2371,17 +2400,20 @@ type MoqRepeatedIdsFn_paramsKey struct {
 	}
 }
 
-// MoqRepeatedIdsFn_resultsByParams contains the results for a given set of parameters for the RepeatedIdsFn type
+// MoqRepeatedIdsFn_resultsByParams contains the results for a given set of
+// parameters for the RepeatedIdsFn type
 type MoqRepeatedIdsFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqRepeatedIdsFn_paramsKey]*MoqRepeatedIdsFn_results
 }
 
-// MoqRepeatedIdsFn_doFn defines the type of function needed when calling AndDo for the RepeatedIdsFn type
+// MoqRepeatedIdsFn_doFn defines the type of function needed when calling AndDo
+// for the RepeatedIdsFn type
 type MoqRepeatedIdsFn_doFn func(sParam1, sParam2 string, bParam bool)
 
-// MoqRepeatedIdsFn_doReturnFn defines the type of function needed when calling DoReturnResults for the RepeatedIdsFn type
+// MoqRepeatedIdsFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the RepeatedIdsFn type
 type MoqRepeatedIdsFn_doReturnFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 
 // MoqRepeatedIdsFn_results holds the results of the RepeatedIdsFn type
@@ -2400,7 +2432,8 @@ type MoqRepeatedIdsFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqRepeatedIdsFn_fnRecorder routes recorded function calls to the MoqRepeatedIdsFn moq
+// MoqRepeatedIdsFn_fnRecorder routes recorded function calls to the
+// MoqRepeatedIdsFn moq
 type MoqRepeatedIdsFn_fnRecorder struct {
 	Params    MoqRepeatedIdsFn_params
 	AnyParams uint64
@@ -2409,7 +2442,8 @@ type MoqRepeatedIdsFn_fnRecorder struct {
 	Moq       *MoqRepeatedIdsFn
 }
 
-// MoqRepeatedIdsFn_anyParams isolates the any params functions of the RepeatedIdsFn type
+// MoqRepeatedIdsFn_anyParams isolates the any params functions of the
+// RepeatedIdsFn type
 type MoqRepeatedIdsFn_anyParams struct {
 	Recorder *MoqRepeatedIdsFn_fnRecorder
 }
@@ -2813,17 +2847,20 @@ type MoqTimesFn_paramsKey struct {
 	}
 }
 
-// MoqTimesFn_resultsByParams contains the results for a given set of parameters for the TimesFn type
+// MoqTimesFn_resultsByParams contains the results for a given set of
+// parameters for the TimesFn type
 type MoqTimesFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqTimesFn_paramsKey]*MoqTimesFn_results
 }
 
-// MoqTimesFn_doFn defines the type of function needed when calling AndDo for the TimesFn type
+// MoqTimesFn_doFn defines the type of function needed when calling AndDo for
+// the TimesFn type
 type MoqTimesFn_doFn func(times string, bParam bool)
 
-// MoqTimesFn_doReturnFn defines the type of function needed when calling DoReturnResults for the TimesFn type
+// MoqTimesFn_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the TimesFn type
 type MoqTimesFn_doReturnFn func(times string, bParam bool) (sResult string, err error)
 
 // MoqTimesFn_results holds the results of the TimesFn type
@@ -3193,7 +3230,8 @@ func (m *MoqTimesFn) AssertExpectationsMet() {
 	}
 }
 
-// MoqDifficultParamNamesFn holds the state of a moq of the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn holds the state of a moq of the
+// DifficultParamNamesFn type
 type MoqDifficultParamNamesFn struct {
 	Scene  *moq.Scene
 	Config moq.Config
@@ -3216,12 +3254,14 @@ type MoqDifficultParamNamesFn struct {
 	}
 }
 
-// MoqDifficultParamNamesFn_mock isolates the mock interface of the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_mock isolates the mock interface of the
+// DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_mock struct {
 	Moq *MoqDifficultParamNamesFn
 }
 
-// MoqDifficultParamNamesFn_params holds the params of the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_params holds the params of the
+// DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_params struct {
 	Param1, Param2         bool
 	Param3                 string
@@ -3229,7 +3269,8 @@ type MoqDifficultParamNamesFn_params struct {
 	Param7, Param8, Param9 float32
 }
 
-// MoqDifficultParamNamesFn_paramsKey holds the map key params of the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_paramsKey holds the map key params of the
+// DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_paramsKey struct {
 	Params struct {
 		Param1, Param2         bool
@@ -3245,20 +3286,24 @@ type MoqDifficultParamNamesFn_paramsKey struct {
 	}
 }
 
-// MoqDifficultParamNamesFn_resultsByParams contains the results for a given set of parameters for the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_resultsByParams contains the results for a given
+// set of parameters for the DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqDifficultParamNamesFn_paramsKey]*MoqDifficultParamNamesFn_results
 }
 
-// MoqDifficultParamNamesFn_doFn defines the type of function needed when calling AndDo for the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_doFn defines the type of function needed when
+// calling AndDo for the DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_doFn func(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 
-// MoqDifficultParamNamesFn_doReturnFn defines the type of function needed when calling DoReturnResults for the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_doReturnFn func(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 
-// MoqDifficultParamNamesFn_results holds the results of the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_results holds the results of the
+// DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_results struct {
 	Params  MoqDifficultParamNamesFn_params
 	Results []struct {
@@ -3271,7 +3316,8 @@ type MoqDifficultParamNamesFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqDifficultParamNamesFn_fnRecorder routes recorded function calls to the MoqDifficultParamNamesFn moq
+// MoqDifficultParamNamesFn_fnRecorder routes recorded function calls to the
+// MoqDifficultParamNamesFn moq
 type MoqDifficultParamNamesFn_fnRecorder struct {
 	Params    MoqDifficultParamNamesFn_params
 	AnyParams uint64
@@ -3280,12 +3326,14 @@ type MoqDifficultParamNamesFn_fnRecorder struct {
 	Moq       *MoqDifficultParamNamesFn
 }
 
-// MoqDifficultParamNamesFn_anyParams isolates the any params functions of the DifficultParamNamesFn type
+// MoqDifficultParamNamesFn_anyParams isolates the any params functions of the
+// DifficultParamNamesFn type
 type MoqDifficultParamNamesFn_anyParams struct {
 	Recorder *MoqDifficultParamNamesFn_fnRecorder
 }
 
-// NewMoqDifficultParamNamesFn creates a new moq of the DifficultParamNamesFn type
+// NewMoqDifficultParamNamesFn creates a new moq of the DifficultParamNamesFn
+// type
 func NewMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *MoqDifficultParamNamesFn {
 	if config == nil {
 		config = &moq.Config{}
@@ -3754,7 +3802,8 @@ func (m *MoqDifficultParamNamesFn) AssertExpectationsMet() {
 	}
 }
 
-// MoqDifficultResultNamesFn holds the state of a moq of the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn holds the state of a moq of the
+// DifficultResultNamesFn type
 type MoqDifficultResultNamesFn struct {
 	Scene  *moq.Scene
 	Config moq.Config
@@ -3767,34 +3816,41 @@ type MoqDifficultResultNamesFn struct {
 	}
 }
 
-// MoqDifficultResultNamesFn_mock isolates the mock interface of the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_mock isolates the mock interface of the
+// DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_mock struct {
 	Moq *MoqDifficultResultNamesFn
 }
 
-// MoqDifficultResultNamesFn_params holds the params of the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_params holds the params of the
+// DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_params struct{}
 
-// MoqDifficultResultNamesFn_paramsKey holds the map key params of the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_paramsKey holds the map key params of the
+// DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_paramsKey struct {
 	Params struct{}
 	Hashes struct{}
 }
 
-// MoqDifficultResultNamesFn_resultsByParams contains the results for a given set of parameters for the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_resultsByParams contains the results for a given
+// set of parameters for the DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqDifficultResultNamesFn_paramsKey]*MoqDifficultResultNamesFn_results
 }
 
-// MoqDifficultResultNamesFn_doFn defines the type of function needed when calling AndDo for the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_doFn defines the type of function needed when
+// calling AndDo for the DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_doFn func()
 
-// MoqDifficultResultNamesFn_doReturnFn defines the type of function needed when calling DoReturnResults for the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_doReturnFn defines the type of function needed
+// when calling DoReturnResults for the DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_doReturnFn func() (m, r string, sequence error, param, params, i int, result, results, _ float32)
 
-// MoqDifficultResultNamesFn_results holds the results of the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_results holds the results of the
+// DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_results struct {
 	Params  MoqDifficultResultNamesFn_params
 	Results []struct {
@@ -3812,7 +3868,8 @@ type MoqDifficultResultNamesFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqDifficultResultNamesFn_fnRecorder routes recorded function calls to the MoqDifficultResultNamesFn moq
+// MoqDifficultResultNamesFn_fnRecorder routes recorded function calls to the
+// MoqDifficultResultNamesFn moq
 type MoqDifficultResultNamesFn_fnRecorder struct {
 	Params    MoqDifficultResultNamesFn_params
 	AnyParams uint64
@@ -3821,12 +3878,14 @@ type MoqDifficultResultNamesFn_fnRecorder struct {
 	Moq       *MoqDifficultResultNamesFn
 }
 
-// MoqDifficultResultNamesFn_anyParams isolates the any params functions of the DifficultResultNamesFn type
+// MoqDifficultResultNamesFn_anyParams isolates the any params functions of the
+// DifficultResultNamesFn type
 type MoqDifficultResultNamesFn_anyParams struct {
 	Recorder *MoqDifficultResultNamesFn_fnRecorder
 }
 
-// NewMoqDifficultResultNamesFn creates a new moq of the DifficultResultNamesFn type
+// NewMoqDifficultResultNamesFn creates a new moq of the DifficultResultNamesFn
+// type
 func NewMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *MoqDifficultResultNamesFn {
 	if config == nil {
 		config = &moq.Config{}
@@ -4145,7 +4204,8 @@ type MoqPassByReferenceFn struct {
 	}
 }
 
-// MoqPassByReferenceFn_mock isolates the mock interface of the PassByReferenceFn type
+// MoqPassByReferenceFn_mock isolates the mock interface of the
+// PassByReferenceFn type
 type MoqPassByReferenceFn_mock struct {
 	Moq *MoqPassByReferenceFn
 }
@@ -4155,7 +4215,8 @@ type MoqPassByReferenceFn_params struct {
 	P *testmoqs.PassByReferenceParams
 }
 
-// MoqPassByReferenceFn_paramsKey holds the map key params of the PassByReferenceFn type
+// MoqPassByReferenceFn_paramsKey holds the map key params of the
+// PassByReferenceFn type
 type MoqPassByReferenceFn_paramsKey struct {
 	Params struct {
 		P *testmoqs.PassByReferenceParams
@@ -4163,17 +4224,20 @@ type MoqPassByReferenceFn_paramsKey struct {
 	Hashes struct{ P hash.Hash }
 }
 
-// MoqPassByReferenceFn_resultsByParams contains the results for a given set of parameters for the PassByReferenceFn type
+// MoqPassByReferenceFn_resultsByParams contains the results for a given set of
+// parameters for the PassByReferenceFn type
 type MoqPassByReferenceFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqPassByReferenceFn_paramsKey]*MoqPassByReferenceFn_results
 }
 
-// MoqPassByReferenceFn_doFn defines the type of function needed when calling AndDo for the PassByReferenceFn type
+// MoqPassByReferenceFn_doFn defines the type of function needed when calling
+// AndDo for the PassByReferenceFn type
 type MoqPassByReferenceFn_doFn func(p *testmoqs.PassByReferenceParams)
 
-// MoqPassByReferenceFn_doReturnFn defines the type of function needed when calling DoReturnResults for the PassByReferenceFn type
+// MoqPassByReferenceFn_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the PassByReferenceFn type
 type MoqPassByReferenceFn_doReturnFn func(p *testmoqs.PassByReferenceParams) (sResult string, err error)
 
 // MoqPassByReferenceFn_results holds the results of the PassByReferenceFn type
@@ -4192,7 +4256,8 @@ type MoqPassByReferenceFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqPassByReferenceFn_fnRecorder routes recorded function calls to the MoqPassByReferenceFn moq
+// MoqPassByReferenceFn_fnRecorder routes recorded function calls to the
+// MoqPassByReferenceFn moq
 type MoqPassByReferenceFn_fnRecorder struct {
 	Params    MoqPassByReferenceFn_params
 	AnyParams uint64
@@ -4201,7 +4266,8 @@ type MoqPassByReferenceFn_fnRecorder struct {
 	Moq       *MoqPassByReferenceFn
 }
 
-// MoqPassByReferenceFn_anyParams isolates the any params functions of the PassByReferenceFn type
+// MoqPassByReferenceFn_anyParams isolates the any params functions of the
+// PassByReferenceFn type
 type MoqPassByReferenceFn_anyParams struct {
 	Recorder *MoqPassByReferenceFn_fnRecorder
 }
@@ -4533,7 +4599,8 @@ type MoqInterfaceParamFn struct {
 	}
 }
 
-// MoqInterfaceParamFn_mock isolates the mock interface of the InterfaceParamFn type
+// MoqInterfaceParamFn_mock isolates the mock interface of the InterfaceParamFn
+// type
 type MoqInterfaceParamFn_mock struct {
 	Moq *MoqInterfaceParamFn
 }
@@ -4541,23 +4608,27 @@ type MoqInterfaceParamFn_mock struct {
 // MoqInterfaceParamFn_params holds the params of the InterfaceParamFn type
 type MoqInterfaceParamFn_params struct{ W io.Writer }
 
-// MoqInterfaceParamFn_paramsKey holds the map key params of the InterfaceParamFn type
+// MoqInterfaceParamFn_paramsKey holds the map key params of the
+// InterfaceParamFn type
 type MoqInterfaceParamFn_paramsKey struct {
 	Params struct{ W io.Writer }
 	Hashes struct{ W hash.Hash }
 }
 
-// MoqInterfaceParamFn_resultsByParams contains the results for a given set of parameters for the InterfaceParamFn type
+// MoqInterfaceParamFn_resultsByParams contains the results for a given set of
+// parameters for the InterfaceParamFn type
 type MoqInterfaceParamFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqInterfaceParamFn_paramsKey]*MoqInterfaceParamFn_results
 }
 
-// MoqInterfaceParamFn_doFn defines the type of function needed when calling AndDo for the InterfaceParamFn type
+// MoqInterfaceParamFn_doFn defines the type of function needed when calling
+// AndDo for the InterfaceParamFn type
 type MoqInterfaceParamFn_doFn func(w io.Writer)
 
-// MoqInterfaceParamFn_doReturnFn defines the type of function needed when calling DoReturnResults for the InterfaceParamFn type
+// MoqInterfaceParamFn_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the InterfaceParamFn type
 type MoqInterfaceParamFn_doReturnFn func(w io.Writer) (sResult string, err error)
 
 // MoqInterfaceParamFn_results holds the results of the InterfaceParamFn type
@@ -4576,7 +4647,8 @@ type MoqInterfaceParamFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqInterfaceParamFn_fnRecorder routes recorded function calls to the MoqInterfaceParamFn moq
+// MoqInterfaceParamFn_fnRecorder routes recorded function calls to the
+// MoqInterfaceParamFn moq
 type MoqInterfaceParamFn_fnRecorder struct {
 	Params    MoqInterfaceParamFn_params
 	AnyParams uint64
@@ -4585,7 +4657,8 @@ type MoqInterfaceParamFn_fnRecorder struct {
 	Moq       *MoqInterfaceParamFn
 }
 
-// MoqInterfaceParamFn_anyParams isolates the any params functions of the InterfaceParamFn type
+// MoqInterfaceParamFn_anyParams isolates the any params functions of the
+// InterfaceParamFn type
 type MoqInterfaceParamFn_anyParams struct {
 	Recorder *MoqInterfaceParamFn_fnRecorder
 }
@@ -4913,7 +4986,8 @@ type MoqInterfaceResultFn struct {
 	}
 }
 
-// MoqInterfaceResultFn_mock isolates the mock interface of the InterfaceResultFn type
+// MoqInterfaceResultFn_mock isolates the mock interface of the
+// InterfaceResultFn type
 type MoqInterfaceResultFn_mock struct {
 	Moq *MoqInterfaceResultFn
 }
@@ -4924,7 +4998,8 @@ type MoqInterfaceResultFn_params struct {
 	BParam bool
 }
 
-// MoqInterfaceResultFn_paramsKey holds the map key params of the InterfaceResultFn type
+// MoqInterfaceResultFn_paramsKey holds the map key params of the
+// InterfaceResultFn type
 type MoqInterfaceResultFn_paramsKey struct {
 	Params struct {
 		SParam string
@@ -4936,17 +5011,20 @@ type MoqInterfaceResultFn_paramsKey struct {
 	}
 }
 
-// MoqInterfaceResultFn_resultsByParams contains the results for a given set of parameters for the InterfaceResultFn type
+// MoqInterfaceResultFn_resultsByParams contains the results for a given set of
+// parameters for the InterfaceResultFn type
 type MoqInterfaceResultFn_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqInterfaceResultFn_paramsKey]*MoqInterfaceResultFn_results
 }
 
-// MoqInterfaceResultFn_doFn defines the type of function needed when calling AndDo for the InterfaceResultFn type
+// MoqInterfaceResultFn_doFn defines the type of function needed when calling
+// AndDo for the InterfaceResultFn type
 type MoqInterfaceResultFn_doFn func(sParam string, bParam bool)
 
-// MoqInterfaceResultFn_doReturnFn defines the type of function needed when calling DoReturnResults for the InterfaceResultFn type
+// MoqInterfaceResultFn_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the InterfaceResultFn type
 type MoqInterfaceResultFn_doReturnFn func(sParam string, bParam bool) (r io.Reader)
 
 // MoqInterfaceResultFn_results holds the results of the InterfaceResultFn type
@@ -4962,7 +5040,8 @@ type MoqInterfaceResultFn_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqInterfaceResultFn_fnRecorder routes recorded function calls to the MoqInterfaceResultFn moq
+// MoqInterfaceResultFn_fnRecorder routes recorded function calls to the
+// MoqInterfaceResultFn moq
 type MoqInterfaceResultFn_fnRecorder struct {
 	Params    MoqInterfaceResultFn_params
 	AnyParams uint64
@@ -4971,7 +5050,8 @@ type MoqInterfaceResultFn_fnRecorder struct {
 	Moq       *MoqInterfaceResultFn
 }
 
-// MoqInterfaceResultFn_anyParams isolates the any params functions of the InterfaceResultFn type
+// MoqInterfaceResultFn_anyParams isolates the any params functions of the
+// InterfaceResultFn type
 type MoqInterfaceResultFn_anyParams struct {
 	Recorder *MoqInterfaceResultFn_fnRecorder
 }
@@ -5402,17 +5482,20 @@ type MoqUsual_Usual_paramsKey struct {
 	}
 }
 
-// MoqUsual_Usual_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_Usual_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_Usual_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_Usual_paramsKey]*MoqUsual_Usual_results
 }
 
-// MoqUsual_Usual_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_Usual_doFn defines the type of function needed when calling AndDo
+// for the Usual type
 type MoqUsual_Usual_doFn func(sParam string, bParam bool)
 
-// MoqUsual_Usual_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_Usual_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the Usual type
 type MoqUsual_Usual_doReturnFn func(sParam string, bParam bool) (sResult string, err error)
 
 // MoqUsual_Usual_results holds the results of the Usual type
@@ -5463,17 +5546,20 @@ type MoqUsual_NoNames_paramsKey struct {
 	}
 }
 
-// MoqUsual_NoNames_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_NoNames_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_NoNames_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_NoNames_paramsKey]*MoqUsual_NoNames_results
 }
 
-// MoqUsual_NoNames_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_NoNames_doFn defines the type of function needed when calling AndDo
+// for the Usual type
 type MoqUsual_NoNames_doFn func(string, bool)
 
-// MoqUsual_NoNames_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_NoNames_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the Usual type
 type MoqUsual_NoNames_doReturnFn func(string, bool) (string, error)
 
 // MoqUsual_NoNames_results holds the results of the Usual type
@@ -5492,7 +5578,8 @@ type MoqUsual_NoNames_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_NoNames_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_NoNames_fnRecorder routes recorded function calls to the MoqUsual
+// moq
 type MoqUsual_NoNames_fnRecorder struct {
 	Params    MoqUsual_NoNames_params
 	AnyParams uint64
@@ -5501,7 +5588,8 @@ type MoqUsual_NoNames_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_NoNames_anyParams isolates the any params functions of the Usual type
+// MoqUsual_NoNames_anyParams isolates the any params functions of the Usual
+// type
 type MoqUsual_NoNames_anyParams struct {
 	Recorder *MoqUsual_NoNames_fnRecorder
 }
@@ -5524,17 +5612,20 @@ type MoqUsual_NoResults_paramsKey struct {
 	}
 }
 
-// MoqUsual_NoResults_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_NoResults_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_NoResults_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_NoResults_paramsKey]*MoqUsual_NoResults_results
 }
 
-// MoqUsual_NoResults_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_NoResults_doFn defines the type of function needed when calling
+// AndDo for the Usual type
 type MoqUsual_NoResults_doFn func(sParam string, bParam bool)
 
-// MoqUsual_NoResults_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_NoResults_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_NoResults_doReturnFn func(sParam string, bParam bool)
 
 // MoqUsual_NoResults_results holds the results of the Usual type
@@ -5550,7 +5641,8 @@ type MoqUsual_NoResults_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_NoResults_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_NoResults_fnRecorder routes recorded function calls to the MoqUsual
+// moq
 type MoqUsual_NoResults_fnRecorder struct {
 	Params    MoqUsual_NoResults_params
 	AnyParams uint64
@@ -5559,7 +5651,8 @@ type MoqUsual_NoResults_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_NoResults_anyParams isolates the any params functions of the Usual type
+// MoqUsual_NoResults_anyParams isolates the any params functions of the Usual
+// type
 type MoqUsual_NoResults_anyParams struct {
 	Recorder *MoqUsual_NoResults_fnRecorder
 }
@@ -5573,17 +5666,20 @@ type MoqUsual_NoParams_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqUsual_NoParams_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_NoParams_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_NoParams_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_NoParams_paramsKey]*MoqUsual_NoParams_results
 }
 
-// MoqUsual_NoParams_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_NoParams_doFn defines the type of function needed when calling
+// AndDo for the Usual type
 type MoqUsual_NoParams_doFn func()
 
-// MoqUsual_NoParams_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_NoParams_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_NoParams_doReturnFn func() (sResult string, err error)
 
 // MoqUsual_NoParams_results holds the results of the Usual type
@@ -5602,7 +5698,8 @@ type MoqUsual_NoParams_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_NoParams_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_NoParams_fnRecorder routes recorded function calls to the MoqUsual
+// moq
 type MoqUsual_NoParams_fnRecorder struct {
 	Params    MoqUsual_NoParams_params
 	AnyParams uint64
@@ -5611,7 +5708,8 @@ type MoqUsual_NoParams_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_NoParams_anyParams isolates the any params functions of the Usual type
+// MoqUsual_NoParams_anyParams isolates the any params functions of the Usual
+// type
 type MoqUsual_NoParams_anyParams struct {
 	Recorder *MoqUsual_NoParams_fnRecorder
 }
@@ -5625,17 +5723,20 @@ type MoqUsual_Nothing_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqUsual_Nothing_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_Nothing_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_Nothing_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_Nothing_paramsKey]*MoqUsual_Nothing_results
 }
 
-// MoqUsual_Nothing_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_Nothing_doFn defines the type of function needed when calling AndDo
+// for the Usual type
 type MoqUsual_Nothing_doFn func()
 
-// MoqUsual_Nothing_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_Nothing_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the Usual type
 type MoqUsual_Nothing_doReturnFn func()
 
 // MoqUsual_Nothing_results holds the results of the Usual type
@@ -5651,7 +5752,8 @@ type MoqUsual_Nothing_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_Nothing_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_Nothing_fnRecorder routes recorded function calls to the MoqUsual
+// moq
 type MoqUsual_Nothing_fnRecorder struct {
 	Params    MoqUsual_Nothing_params
 	AnyParams uint64
@@ -5660,7 +5762,8 @@ type MoqUsual_Nothing_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_Nothing_anyParams isolates the any params functions of the Usual type
+// MoqUsual_Nothing_anyParams isolates the any params functions of the Usual
+// type
 type MoqUsual_Nothing_anyParams struct {
 	Recorder *MoqUsual_Nothing_fnRecorder
 }
@@ -5680,17 +5783,20 @@ type MoqUsual_Variadic_paramsKey struct {
 	}
 }
 
-// MoqUsual_Variadic_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_Variadic_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_Variadic_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_Variadic_paramsKey]*MoqUsual_Variadic_results
 }
 
-// MoqUsual_Variadic_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_Variadic_doFn defines the type of function needed when calling
+// AndDo for the Usual type
 type MoqUsual_Variadic_doFn func(other bool, args ...string)
 
-// MoqUsual_Variadic_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_Variadic_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_Variadic_doReturnFn func(other bool, args ...string) (sResult string, err error)
 
 // MoqUsual_Variadic_results holds the results of the Usual type
@@ -5709,7 +5815,8 @@ type MoqUsual_Variadic_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_Variadic_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_Variadic_fnRecorder routes recorded function calls to the MoqUsual
+// moq
 type MoqUsual_Variadic_fnRecorder struct {
 	Params    MoqUsual_Variadic_params
 	AnyParams uint64
@@ -5718,7 +5825,8 @@ type MoqUsual_Variadic_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_Variadic_anyParams isolates the any params functions of the Usual type
+// MoqUsual_Variadic_anyParams isolates the any params functions of the Usual
+// type
 type MoqUsual_Variadic_anyParams struct {
 	Recorder *MoqUsual_Variadic_fnRecorder
 }
@@ -5741,17 +5849,20 @@ type MoqUsual_RepeatedIds_paramsKey struct {
 	}
 }
 
-// MoqUsual_RepeatedIds_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_RepeatedIds_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_RepeatedIds_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_RepeatedIds_paramsKey]*MoqUsual_RepeatedIds_results
 }
 
-// MoqUsual_RepeatedIds_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_RepeatedIds_doFn defines the type of function needed when calling
+// AndDo for the Usual type
 type MoqUsual_RepeatedIds_doFn func(sParam1, sParam2 string, bParam bool)
 
-// MoqUsual_RepeatedIds_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_RepeatedIds_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_RepeatedIds_doReturnFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 
 // MoqUsual_RepeatedIds_results holds the results of the Usual type
@@ -5770,7 +5881,8 @@ type MoqUsual_RepeatedIds_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_RepeatedIds_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_RepeatedIds_fnRecorder routes recorded function calls to the
+// MoqUsual moq
 type MoqUsual_RepeatedIds_fnRecorder struct {
 	Params    MoqUsual_RepeatedIds_params
 	AnyParams uint64
@@ -5779,7 +5891,8 @@ type MoqUsual_RepeatedIds_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_RepeatedIds_anyParams isolates the any params functions of the Usual type
+// MoqUsual_RepeatedIds_anyParams isolates the any params functions of the
+// Usual type
 type MoqUsual_RepeatedIds_anyParams struct {
 	Recorder *MoqUsual_RepeatedIds_fnRecorder
 }
@@ -5802,17 +5915,20 @@ type MoqUsual_Times_paramsKey struct {
 	}
 }
 
-// MoqUsual_Times_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_Times_resultsByParams contains the results for a given set of
+// parameters for the Usual type
 type MoqUsual_Times_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_Times_paramsKey]*MoqUsual_Times_results
 }
 
-// MoqUsual_Times_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_Times_doFn defines the type of function needed when calling AndDo
+// for the Usual type
 type MoqUsual_Times_doFn func(sParam string, times bool)
 
-// MoqUsual_Times_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_Times_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the Usual type
 type MoqUsual_Times_doReturnFn func(sParam string, times bool) (sResult string, err error)
 
 // MoqUsual_Times_results holds the results of the Usual type
@@ -5853,7 +5969,8 @@ type MoqUsual_DifficultParamNames_params struct {
 	Param7, Param8, Param9 float32
 }
 
-// MoqUsual_DifficultParamNames_paramsKey holds the map key params of the Usual type
+// MoqUsual_DifficultParamNames_paramsKey holds the map key params of the Usual
+// type
 type MoqUsual_DifficultParamNames_paramsKey struct {
 	Params struct {
 		Param1, Param2         bool
@@ -5869,17 +5986,20 @@ type MoqUsual_DifficultParamNames_paramsKey struct {
 	}
 }
 
-// MoqUsual_DifficultParamNames_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_DifficultParamNames_resultsByParams contains the results for a
+// given set of parameters for the Usual type
 type MoqUsual_DifficultParamNames_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_DifficultParamNames_paramsKey]*MoqUsual_DifficultParamNames_results
 }
 
-// MoqUsual_DifficultParamNames_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_DifficultParamNames_doFn defines the type of function needed when
+// calling AndDo for the Usual type
 type MoqUsual_DifficultParamNames_doFn func(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 
-// MoqUsual_DifficultParamNames_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_DifficultParamNames_doReturnFn defines the type of function needed
+// when calling DoReturnResults for the Usual type
 type MoqUsual_DifficultParamNames_doReturnFn func(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 
 // MoqUsual_DifficultParamNames_results holds the results of the Usual type
@@ -5895,7 +6015,8 @@ type MoqUsual_DifficultParamNames_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_DifficultParamNames_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_DifficultParamNames_fnRecorder routes recorded function calls to
+// the MoqUsual moq
 type MoqUsual_DifficultParamNames_fnRecorder struct {
 	Params    MoqUsual_DifficultParamNames_params
 	AnyParams uint64
@@ -5904,7 +6025,8 @@ type MoqUsual_DifficultParamNames_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_DifficultParamNames_anyParams isolates the any params functions of the Usual type
+// MoqUsual_DifficultParamNames_anyParams isolates the any params functions of
+// the Usual type
 type MoqUsual_DifficultParamNames_anyParams struct {
 	Recorder *MoqUsual_DifficultParamNames_fnRecorder
 }
@@ -5912,23 +6034,27 @@ type MoqUsual_DifficultParamNames_anyParams struct {
 // MoqUsual_DifficultResultNames_params holds the params of the Usual type
 type MoqUsual_DifficultResultNames_params struct{}
 
-// MoqUsual_DifficultResultNames_paramsKey holds the map key params of the Usual type
+// MoqUsual_DifficultResultNames_paramsKey holds the map key params of the
+// Usual type
 type MoqUsual_DifficultResultNames_paramsKey struct {
 	Params struct{}
 	Hashes struct{}
 }
 
-// MoqUsual_DifficultResultNames_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_DifficultResultNames_resultsByParams contains the results for a
+// given set of parameters for the Usual type
 type MoqUsual_DifficultResultNames_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_DifficultResultNames_paramsKey]*MoqUsual_DifficultResultNames_results
 }
 
-// MoqUsual_DifficultResultNames_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_DifficultResultNames_doFn defines the type of function needed when
+// calling AndDo for the Usual type
 type MoqUsual_DifficultResultNames_doFn func()
 
-// MoqUsual_DifficultResultNames_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_DifficultResultNames_doReturnFn defines the type of function needed
+// when calling DoReturnResults for the Usual type
 type MoqUsual_DifficultResultNames_doReturnFn func() (m, r string, sequence error, param, params, i int, result, results, _ float32)
 
 // MoqUsual_DifficultResultNames_results holds the results of the Usual type
@@ -5949,7 +6075,8 @@ type MoqUsual_DifficultResultNames_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_DifficultResultNames_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_DifficultResultNames_fnRecorder routes recorded function calls to
+// the MoqUsual moq
 type MoqUsual_DifficultResultNames_fnRecorder struct {
 	Params    MoqUsual_DifficultResultNames_params
 	AnyParams uint64
@@ -5958,7 +6085,8 @@ type MoqUsual_DifficultResultNames_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_DifficultResultNames_anyParams isolates the any params functions of the Usual type
+// MoqUsual_DifficultResultNames_anyParams isolates the any params functions of
+// the Usual type
 type MoqUsual_DifficultResultNames_anyParams struct {
 	Recorder *MoqUsual_DifficultResultNames_fnRecorder
 }
@@ -5968,7 +6096,8 @@ type MoqUsual_PassByReference_params struct {
 	P *testmoqs.PassByReferenceParams
 }
 
-// MoqUsual_PassByReference_paramsKey holds the map key params of the Usual type
+// MoqUsual_PassByReference_paramsKey holds the map key params of the Usual
+// type
 type MoqUsual_PassByReference_paramsKey struct {
 	Params struct {
 		P *testmoqs.PassByReferenceParams
@@ -5976,17 +6105,20 @@ type MoqUsual_PassByReference_paramsKey struct {
 	Hashes struct{ P hash.Hash }
 }
 
-// MoqUsual_PassByReference_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_PassByReference_resultsByParams contains the results for a given
+// set of parameters for the Usual type
 type MoqUsual_PassByReference_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_PassByReference_paramsKey]*MoqUsual_PassByReference_results
 }
 
-// MoqUsual_PassByReference_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_PassByReference_doFn defines the type of function needed when
+// calling AndDo for the Usual type
 type MoqUsual_PassByReference_doFn func(p *testmoqs.PassByReferenceParams)
 
-// MoqUsual_PassByReference_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_PassByReference_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_PassByReference_doReturnFn func(p *testmoqs.PassByReferenceParams) (sResult string, err error)
 
 // MoqUsual_PassByReference_results holds the results of the Usual type
@@ -6005,7 +6137,8 @@ type MoqUsual_PassByReference_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_PassByReference_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_PassByReference_fnRecorder routes recorded function calls to the
+// MoqUsual moq
 type MoqUsual_PassByReference_fnRecorder struct {
 	Params    MoqUsual_PassByReference_params
 	AnyParams uint64
@@ -6014,7 +6147,8 @@ type MoqUsual_PassByReference_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_PassByReference_anyParams isolates the any params functions of the Usual type
+// MoqUsual_PassByReference_anyParams isolates the any params functions of the
+// Usual type
 type MoqUsual_PassByReference_anyParams struct {
 	Recorder *MoqUsual_PassByReference_fnRecorder
 }
@@ -6028,17 +6162,20 @@ type MoqUsual_InterfaceParam_paramsKey struct {
 	Hashes struct{ W hash.Hash }
 }
 
-// MoqUsual_InterfaceParam_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_InterfaceParam_resultsByParams contains the results for a given set
+// of parameters for the Usual type
 type MoqUsual_InterfaceParam_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_InterfaceParam_paramsKey]*MoqUsual_InterfaceParam_results
 }
 
-// MoqUsual_InterfaceParam_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_InterfaceParam_doFn defines the type of function needed when
+// calling AndDo for the Usual type
 type MoqUsual_InterfaceParam_doFn func(w io.Writer)
 
-// MoqUsual_InterfaceParam_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_InterfaceParam_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_InterfaceParam_doReturnFn func(w io.Writer) (sResult string, err error)
 
 // MoqUsual_InterfaceParam_results holds the results of the Usual type
@@ -6057,7 +6194,8 @@ type MoqUsual_InterfaceParam_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_InterfaceParam_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_InterfaceParam_fnRecorder routes recorded function calls to the
+// MoqUsual moq
 type MoqUsual_InterfaceParam_fnRecorder struct {
 	Params    MoqUsual_InterfaceParam_params
 	AnyParams uint64
@@ -6066,7 +6204,8 @@ type MoqUsual_InterfaceParam_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_InterfaceParam_anyParams isolates the any params functions of the Usual type
+// MoqUsual_InterfaceParam_anyParams isolates the any params functions of the
+// Usual type
 type MoqUsual_InterfaceParam_anyParams struct {
 	Recorder *MoqUsual_InterfaceParam_fnRecorder
 }
@@ -6077,7 +6216,8 @@ type MoqUsual_InterfaceResult_params struct {
 	BParam bool
 }
 
-// MoqUsual_InterfaceResult_paramsKey holds the map key params of the Usual type
+// MoqUsual_InterfaceResult_paramsKey holds the map key params of the Usual
+// type
 type MoqUsual_InterfaceResult_paramsKey struct {
 	Params struct {
 		SParam string
@@ -6089,17 +6229,20 @@ type MoqUsual_InterfaceResult_paramsKey struct {
 	}
 }
 
-// MoqUsual_InterfaceResult_resultsByParams contains the results for a given set of parameters for the Usual type
+// MoqUsual_InterfaceResult_resultsByParams contains the results for a given
+// set of parameters for the Usual type
 type MoqUsual_InterfaceResult_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqUsual_InterfaceResult_paramsKey]*MoqUsual_InterfaceResult_results
 }
 
-// MoqUsual_InterfaceResult_doFn defines the type of function needed when calling AndDo for the Usual type
+// MoqUsual_InterfaceResult_doFn defines the type of function needed when
+// calling AndDo for the Usual type
 type MoqUsual_InterfaceResult_doFn func(sParam string, bParam bool)
 
-// MoqUsual_InterfaceResult_doReturnFn defines the type of function needed when calling DoReturnResults for the Usual type
+// MoqUsual_InterfaceResult_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the Usual type
 type MoqUsual_InterfaceResult_doReturnFn func(sParam string, bParam bool) (r io.Reader)
 
 // MoqUsual_InterfaceResult_results holds the results of the Usual type
@@ -6115,7 +6258,8 @@ type MoqUsual_InterfaceResult_results struct {
 	Repeat *moq.RepeatVal
 }
 
-// MoqUsual_InterfaceResult_fnRecorder routes recorded function calls to the MoqUsual moq
+// MoqUsual_InterfaceResult_fnRecorder routes recorded function calls to the
+// MoqUsual moq
 type MoqUsual_InterfaceResult_fnRecorder struct {
 	Params    MoqUsual_InterfaceResult_params
 	AnyParams uint64
@@ -6124,7 +6268,8 @@ type MoqUsual_InterfaceResult_fnRecorder struct {
 	Moq       *MoqUsual
 }
 
-// MoqUsual_InterfaceResult_anyParams isolates the any params functions of the Usual type
+// MoqUsual_InterfaceResult_anyParams isolates the any params functions of the
+// Usual type
 type MoqUsual_InterfaceResult_anyParams struct {
 	Recorder *MoqUsual_InterfaceResult_fnRecorder
 }

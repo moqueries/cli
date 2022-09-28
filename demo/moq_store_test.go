@@ -55,17 +55,20 @@ type moqStore_AllWidgetsIds_paramsKey struct {
 	hashes struct{}
 }
 
-// moqStore_AllWidgetsIds_resultsByParams contains the results for a given set of parameters for the Store type
+// moqStore_AllWidgetsIds_resultsByParams contains the results for a given set
+// of parameters for the Store type
 type moqStore_AllWidgetsIds_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqStore_AllWidgetsIds_paramsKey]*moqStore_AllWidgetsIds_results
 }
 
-// moqStore_AllWidgetsIds_doFn defines the type of function needed when calling andDo for the Store type
+// moqStore_AllWidgetsIds_doFn defines the type of function needed when calling
+// andDo for the Store type
 type moqStore_AllWidgetsIds_doFn func()
 
-// moqStore_AllWidgetsIds_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
+// moqStore_AllWidgetsIds_doReturnFn defines the type of function needed when
+// calling doReturnResults for the Store type
 type moqStore_AllWidgetsIds_doReturnFn func() ([]int, error)
 
 // moqStore_AllWidgetsIds_results holds the results of the Store type
@@ -84,7 +87,8 @@ type moqStore_AllWidgetsIds_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqStore_AllWidgetsIds_fnRecorder routes recorded function calls to the moqStore moq
+// moqStore_AllWidgetsIds_fnRecorder routes recorded function calls to the
+// moqStore moq
 type moqStore_AllWidgetsIds_fnRecorder struct {
 	params    moqStore_AllWidgetsIds_params
 	anyParams uint64
@@ -93,7 +97,8 @@ type moqStore_AllWidgetsIds_fnRecorder struct {
 	moq       *moqStore
 }
 
-// moqStore_AllWidgetsIds_anyParams isolates the any params functions of the Store type
+// moqStore_AllWidgetsIds_anyParams isolates the any params functions of the
+// Store type
 type moqStore_AllWidgetsIds_anyParams struct {
 	recorder *moqStore_AllWidgetsIds_fnRecorder
 }
@@ -101,23 +106,27 @@ type moqStore_AllWidgetsIds_anyParams struct {
 // moqStore_GadgetsByWidgetId_params holds the params of the Store type
 type moqStore_GadgetsByWidgetId_params struct{ widgetId int }
 
-// moqStore_GadgetsByWidgetId_paramsKey holds the map key params of the Store type
+// moqStore_GadgetsByWidgetId_paramsKey holds the map key params of the Store
+// type
 type moqStore_GadgetsByWidgetId_paramsKey struct {
 	params struct{ widgetId int }
 	hashes struct{ widgetId hash.Hash }
 }
 
-// moqStore_GadgetsByWidgetId_resultsByParams contains the results for a given set of parameters for the Store type
+// moqStore_GadgetsByWidgetId_resultsByParams contains the results for a given
+// set of parameters for the Store type
 type moqStore_GadgetsByWidgetId_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqStore_GadgetsByWidgetId_paramsKey]*moqStore_GadgetsByWidgetId_results
 }
 
-// moqStore_GadgetsByWidgetId_doFn defines the type of function needed when calling andDo for the Store type
+// moqStore_GadgetsByWidgetId_doFn defines the type of function needed when
+// calling andDo for the Store type
 type moqStore_GadgetsByWidgetId_doFn func(widgetId int)
 
-// moqStore_GadgetsByWidgetId_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
+// moqStore_GadgetsByWidgetId_doReturnFn defines the type of function needed
+// when calling doReturnResults for the Store type
 type moqStore_GadgetsByWidgetId_doReturnFn func(widgetId int) ([]demo.Gadget, error)
 
 // moqStore_GadgetsByWidgetId_results holds the results of the Store type
@@ -136,7 +145,8 @@ type moqStore_GadgetsByWidgetId_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqStore_GadgetsByWidgetId_fnRecorder routes recorded function calls to the moqStore moq
+// moqStore_GadgetsByWidgetId_fnRecorder routes recorded function calls to the
+// moqStore moq
 type moqStore_GadgetsByWidgetId_fnRecorder struct {
 	params    moqStore_GadgetsByWidgetId_params
 	anyParams uint64
@@ -145,7 +155,8 @@ type moqStore_GadgetsByWidgetId_fnRecorder struct {
 	moq       *moqStore
 }
 
-// moqStore_GadgetsByWidgetId_anyParams isolates the any params functions of the Store type
+// moqStore_GadgetsByWidgetId_anyParams isolates the any params functions of
+// the Store type
 type moqStore_GadgetsByWidgetId_anyParams struct {
 	recorder *moqStore_GadgetsByWidgetId_fnRecorder
 }
@@ -156,7 +167,8 @@ type moqStore_LightGadgetsByWidgetId_params struct {
 	maxWeight uint32
 }
 
-// moqStore_LightGadgetsByWidgetId_paramsKey holds the map key params of the Store type
+// moqStore_LightGadgetsByWidgetId_paramsKey holds the map key params of the
+// Store type
 type moqStore_LightGadgetsByWidgetId_paramsKey struct {
 	params struct {
 		widgetId  int
@@ -168,17 +180,20 @@ type moqStore_LightGadgetsByWidgetId_paramsKey struct {
 	}
 }
 
-// moqStore_LightGadgetsByWidgetId_resultsByParams contains the results for a given set of parameters for the Store type
+// moqStore_LightGadgetsByWidgetId_resultsByParams contains the results for a
+// given set of parameters for the Store type
 type moqStore_LightGadgetsByWidgetId_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqStore_LightGadgetsByWidgetId_paramsKey]*moqStore_LightGadgetsByWidgetId_results
 }
 
-// moqStore_LightGadgetsByWidgetId_doFn defines the type of function needed when calling andDo for the Store type
+// moqStore_LightGadgetsByWidgetId_doFn defines the type of function needed
+// when calling andDo for the Store type
 type moqStore_LightGadgetsByWidgetId_doFn func(widgetId int, maxWeight uint32)
 
-// moqStore_LightGadgetsByWidgetId_doReturnFn defines the type of function needed when calling doReturnResults for the Store type
+// moqStore_LightGadgetsByWidgetId_doReturnFn defines the type of function
+// needed when calling doReturnResults for the Store type
 type moqStore_LightGadgetsByWidgetId_doReturnFn func(widgetId int, maxWeight uint32) ([]demo.Gadget, error)
 
 // moqStore_LightGadgetsByWidgetId_results holds the results of the Store type
@@ -197,7 +212,8 @@ type moqStore_LightGadgetsByWidgetId_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqStore_LightGadgetsByWidgetId_fnRecorder routes recorded function calls to the moqStore moq
+// moqStore_LightGadgetsByWidgetId_fnRecorder routes recorded function calls to
+// the moqStore moq
 type moqStore_LightGadgetsByWidgetId_fnRecorder struct {
 	params    moqStore_LightGadgetsByWidgetId_params
 	anyParams uint64
@@ -206,7 +222,8 @@ type moqStore_LightGadgetsByWidgetId_fnRecorder struct {
 	moq       *moqStore
 }
 
-// moqStore_LightGadgetsByWidgetId_anyParams isolates the any params functions of the Store type
+// moqStore_LightGadgetsByWidgetId_anyParams isolates the any params functions
+// of the Store type
 type moqStore_LightGadgetsByWidgetId_anyParams struct {
 	recorder *moqStore_LightGadgetsByWidgetId_fnRecorder
 }
