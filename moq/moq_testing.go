@@ -60,17 +60,20 @@ type MoqT_Errorf_paramsKey struct {
 	}
 }
 
-// MoqT_Errorf_resultsByParams contains the results for a given set of parameters for the T type
+// MoqT_Errorf_resultsByParams contains the results for a given set of
+// parameters for the T type
 type MoqT_Errorf_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqT_Errorf_paramsKey]*MoqT_Errorf_results
 }
 
-// MoqT_Errorf_doFn defines the type of function needed when calling AndDo for the T type
+// MoqT_Errorf_doFn defines the type of function needed when calling AndDo for
+// the T type
 type MoqT_Errorf_doFn func(format string, args ...interface{})
 
-// MoqT_Errorf_doReturnFn defines the type of function needed when calling DoReturnResults for the T type
+// MoqT_Errorf_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the T type
 type MoqT_Errorf_doReturnFn func(format string, args ...interface{})
 
 // MoqT_Errorf_results holds the results of the T type
@@ -115,17 +118,20 @@ type MoqT_Fatalf_paramsKey struct {
 	}
 }
 
-// MoqT_Fatalf_resultsByParams contains the results for a given set of parameters for the T type
+// MoqT_Fatalf_resultsByParams contains the results for a given set of
+// parameters for the T type
 type MoqT_Fatalf_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqT_Fatalf_paramsKey]*MoqT_Fatalf_results
 }
 
-// MoqT_Fatalf_doFn defines the type of function needed when calling AndDo for the T type
+// MoqT_Fatalf_doFn defines the type of function needed when calling AndDo for
+// the T type
 type MoqT_Fatalf_doFn func(format string, args ...interface{})
 
-// MoqT_Fatalf_doReturnFn defines the type of function needed when calling DoReturnResults for the T type
+// MoqT_Fatalf_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the T type
 type MoqT_Fatalf_doReturnFn func(format string, args ...interface{})
 
 // MoqT_Fatalf_results holds the results of the T type
@@ -164,17 +170,20 @@ type MoqT_Helper_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqT_Helper_resultsByParams contains the results for a given set of parameters for the T type
+// MoqT_Helper_resultsByParams contains the results for a given set of
+// parameters for the T type
 type MoqT_Helper_resultsByParams struct {
 	AnyCount  int
 	AnyParams uint64
 	Results   map[MoqT_Helper_paramsKey]*MoqT_Helper_results
 }
 
-// MoqT_Helper_doFn defines the type of function needed when calling AndDo for the T type
+// MoqT_Helper_doFn defines the type of function needed when calling AndDo for
+// the T type
 type MoqT_Helper_doFn func()
 
-// MoqT_Helper_doReturnFn defines the type of function needed when calling DoReturnResults for the T type
+// MoqT_Helper_doReturnFn defines the type of function needed when calling
+// DoReturnResults for the T type
 type MoqT_Helper_doReturnFn func()
 
 // MoqT_Helper_results holds the results of the T type

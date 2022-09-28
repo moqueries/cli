@@ -67,17 +67,20 @@ type moqTypeCache_Type_paramsKey struct {
 	}
 }
 
-// moqTypeCache_Type_resultsByParams contains the results for a given set of parameters for the TypeCache type
+// moqTypeCache_Type_resultsByParams contains the results for a given set of
+// parameters for the TypeCache type
 type moqTypeCache_Type_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqTypeCache_Type_paramsKey]*moqTypeCache_Type_results
 }
 
-// moqTypeCache_Type_doFn defines the type of function needed when calling andDo for the TypeCache type
+// moqTypeCache_Type_doFn defines the type of function needed when calling
+// andDo for the TypeCache type
 type moqTypeCache_Type_doFn func(id dst.Ident, testImport bool)
 
-// moqTypeCache_Type_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
+// moqTypeCache_Type_doReturnFn defines the type of function needed when
+// calling doReturnResults for the TypeCache type
 type moqTypeCache_Type_doReturnFn func(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
 
 // moqTypeCache_Type_results holds the results of the TypeCache type
@@ -97,7 +100,8 @@ type moqTypeCache_Type_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqTypeCache_Type_fnRecorder routes recorded function calls to the moqTypeCache moq
+// moqTypeCache_Type_fnRecorder routes recorded function calls to the
+// moqTypeCache moq
 type moqTypeCache_Type_fnRecorder struct {
 	params    moqTypeCache_Type_params
 	anyParams uint64
@@ -106,7 +110,8 @@ type moqTypeCache_Type_fnRecorder struct {
 	moq       *moqTypeCache
 }
 
-// moqTypeCache_Type_anyParams isolates the any params functions of the TypeCache type
+// moqTypeCache_Type_anyParams isolates the any params functions of the
+// TypeCache type
 type moqTypeCache_Type_anyParams struct {
 	recorder *moqTypeCache_Type_fnRecorder
 }
@@ -114,23 +119,27 @@ type moqTypeCache_Type_anyParams struct {
 // moqTypeCache_IsComparable_params holds the params of the TypeCache type
 type moqTypeCache_IsComparable_params struct{ expr dst.Expr }
 
-// moqTypeCache_IsComparable_paramsKey holds the map key params of the TypeCache type
+// moqTypeCache_IsComparable_paramsKey holds the map key params of the
+// TypeCache type
 type moqTypeCache_IsComparable_paramsKey struct {
 	params struct{ expr dst.Expr }
 	hashes struct{ expr hash.Hash }
 }
 
-// moqTypeCache_IsComparable_resultsByParams contains the results for a given set of parameters for the TypeCache type
+// moqTypeCache_IsComparable_resultsByParams contains the results for a given
+// set of parameters for the TypeCache type
 type moqTypeCache_IsComparable_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqTypeCache_IsComparable_paramsKey]*moqTypeCache_IsComparable_results
 }
 
-// moqTypeCache_IsComparable_doFn defines the type of function needed when calling andDo for the TypeCache type
+// moqTypeCache_IsComparable_doFn defines the type of function needed when
+// calling andDo for the TypeCache type
 type moqTypeCache_IsComparable_doFn func(expr dst.Expr)
 
-// moqTypeCache_IsComparable_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
+// moqTypeCache_IsComparable_doReturnFn defines the type of function needed
+// when calling doReturnResults for the TypeCache type
 type moqTypeCache_IsComparable_doReturnFn func(expr dst.Expr) (bool, error)
 
 // moqTypeCache_IsComparable_results holds the results of the TypeCache type
@@ -149,7 +158,8 @@ type moqTypeCache_IsComparable_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqTypeCache_IsComparable_fnRecorder routes recorded function calls to the moqTypeCache moq
+// moqTypeCache_IsComparable_fnRecorder routes recorded function calls to the
+// moqTypeCache moq
 type moqTypeCache_IsComparable_fnRecorder struct {
 	params    moqTypeCache_IsComparable_params
 	anyParams uint64
@@ -158,34 +168,41 @@ type moqTypeCache_IsComparable_fnRecorder struct {
 	moq       *moqTypeCache
 }
 
-// moqTypeCache_IsComparable_anyParams isolates the any params functions of the TypeCache type
+// moqTypeCache_IsComparable_anyParams isolates the any params functions of the
+// TypeCache type
 type moqTypeCache_IsComparable_anyParams struct {
 	recorder *moqTypeCache_IsComparable_fnRecorder
 }
 
-// moqTypeCache_IsDefaultComparable_params holds the params of the TypeCache type
+// moqTypeCache_IsDefaultComparable_params holds the params of the TypeCache
+// type
 type moqTypeCache_IsDefaultComparable_params struct{ expr dst.Expr }
 
-// moqTypeCache_IsDefaultComparable_paramsKey holds the map key params of the TypeCache type
+// moqTypeCache_IsDefaultComparable_paramsKey holds the map key params of the
+// TypeCache type
 type moqTypeCache_IsDefaultComparable_paramsKey struct {
 	params struct{ expr dst.Expr }
 	hashes struct{ expr hash.Hash }
 }
 
-// moqTypeCache_IsDefaultComparable_resultsByParams contains the results for a given set of parameters for the TypeCache type
+// moqTypeCache_IsDefaultComparable_resultsByParams contains the results for a
+// given set of parameters for the TypeCache type
 type moqTypeCache_IsDefaultComparable_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqTypeCache_IsDefaultComparable_paramsKey]*moqTypeCache_IsDefaultComparable_results
 }
 
-// moqTypeCache_IsDefaultComparable_doFn defines the type of function needed when calling andDo for the TypeCache type
+// moqTypeCache_IsDefaultComparable_doFn defines the type of function needed
+// when calling andDo for the TypeCache type
 type moqTypeCache_IsDefaultComparable_doFn func(expr dst.Expr)
 
-// moqTypeCache_IsDefaultComparable_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
+// moqTypeCache_IsDefaultComparable_doReturnFn defines the type of function
+// needed when calling doReturnResults for the TypeCache type
 type moqTypeCache_IsDefaultComparable_doReturnFn func(expr dst.Expr) (bool, error)
 
-// moqTypeCache_IsDefaultComparable_results holds the results of the TypeCache type
+// moqTypeCache_IsDefaultComparable_results holds the results of the TypeCache
+// type
 type moqTypeCache_IsDefaultComparable_results struct {
 	params  moqTypeCache_IsDefaultComparable_params
 	results []struct {
@@ -201,7 +218,8 @@ type moqTypeCache_IsDefaultComparable_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqTypeCache_IsDefaultComparable_fnRecorder routes recorded function calls to the moqTypeCache moq
+// moqTypeCache_IsDefaultComparable_fnRecorder routes recorded function calls
+// to the moqTypeCache moq
 type moqTypeCache_IsDefaultComparable_fnRecorder struct {
 	params    moqTypeCache_IsDefaultComparable_params
 	anyParams uint64
@@ -210,7 +228,8 @@ type moqTypeCache_IsDefaultComparable_fnRecorder struct {
 	moq       *moqTypeCache
 }
 
-// moqTypeCache_IsDefaultComparable_anyParams isolates the any params functions of the TypeCache type
+// moqTypeCache_IsDefaultComparable_anyParams isolates the any params functions
+// of the TypeCache type
 type moqTypeCache_IsDefaultComparable_anyParams struct {
 	recorder *moqTypeCache_IsDefaultComparable_fnRecorder
 }
@@ -218,23 +237,27 @@ type moqTypeCache_IsDefaultComparable_anyParams struct {
 // moqTypeCache_FindPackage_params holds the params of the TypeCache type
 type moqTypeCache_FindPackage_params struct{ dir string }
 
-// moqTypeCache_FindPackage_paramsKey holds the map key params of the TypeCache type
+// moqTypeCache_FindPackage_paramsKey holds the map key params of the TypeCache
+// type
 type moqTypeCache_FindPackage_paramsKey struct {
 	params struct{ dir string }
 	hashes struct{ dir hash.Hash }
 }
 
-// moqTypeCache_FindPackage_resultsByParams contains the results for a given set of parameters for the TypeCache type
+// moqTypeCache_FindPackage_resultsByParams contains the results for a given
+// set of parameters for the TypeCache type
 type moqTypeCache_FindPackage_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqTypeCache_FindPackage_paramsKey]*moqTypeCache_FindPackage_results
 }
 
-// moqTypeCache_FindPackage_doFn defines the type of function needed when calling andDo for the TypeCache type
+// moqTypeCache_FindPackage_doFn defines the type of function needed when
+// calling andDo for the TypeCache type
 type moqTypeCache_FindPackage_doFn func(dir string)
 
-// moqTypeCache_FindPackage_doReturnFn defines the type of function needed when calling doReturnResults for the TypeCache type
+// moqTypeCache_FindPackage_doReturnFn defines the type of function needed when
+// calling doReturnResults for the TypeCache type
 type moqTypeCache_FindPackage_doReturnFn func(dir string) (string, error)
 
 // moqTypeCache_FindPackage_results holds the results of the TypeCache type
@@ -253,7 +276,8 @@ type moqTypeCache_FindPackage_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqTypeCache_FindPackage_fnRecorder routes recorded function calls to the moqTypeCache moq
+// moqTypeCache_FindPackage_fnRecorder routes recorded function calls to the
+// moqTypeCache moq
 type moqTypeCache_FindPackage_fnRecorder struct {
 	params    moqTypeCache_FindPackage_params
 	anyParams uint64
@@ -262,7 +286,8 @@ type moqTypeCache_FindPackage_fnRecorder struct {
 	moq       *moqTypeCache
 }
 
-// moqTypeCache_FindPackage_anyParams isolates the any params functions of the TypeCache type
+// moqTypeCache_FindPackage_anyParams isolates the any params functions of the
+// TypeCache type
 type moqTypeCache_FindPackage_anyParams struct {
 	recorder *moqTypeCache_FindPackage_fnRecorder
 }

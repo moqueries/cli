@@ -35,7 +35,8 @@ type moqReadCloser_mock struct {
 	moq *moqReadCloser
 }
 
-// moqReadCloser_recorder isolates the recorder interface of the ReadCloser type
+// moqReadCloser_recorder isolates the recorder interface of the ReadCloser
+// type
 type moqReadCloser_recorder struct {
 	moq *moqReadCloser
 }
@@ -49,17 +50,20 @@ type moqReadCloser_Read_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqReadCloser_Read_resultsByParams contains the results for a given set of parameters for the ReadCloser type
+// moqReadCloser_Read_resultsByParams contains the results for a given set of
+// parameters for the ReadCloser type
 type moqReadCloser_Read_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReadCloser_Read_paramsKey]*moqReadCloser_Read_results
 }
 
-// moqReadCloser_Read_doFn defines the type of function needed when calling andDo for the ReadCloser type
+// moqReadCloser_Read_doFn defines the type of function needed when calling
+// andDo for the ReadCloser type
 type moqReadCloser_Read_doFn func(p []byte)
 
-// moqReadCloser_Read_doReturnFn defines the type of function needed when calling doReturnResults for the ReadCloser type
+// moqReadCloser_Read_doReturnFn defines the type of function needed when
+// calling doReturnResults for the ReadCloser type
 type moqReadCloser_Read_doReturnFn func(p []byte) (n int, err error)
 
 // moqReadCloser_Read_results holds the results of the ReadCloser type
@@ -78,7 +82,8 @@ type moqReadCloser_Read_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReadCloser_Read_fnRecorder routes recorded function calls to the moqReadCloser moq
+// moqReadCloser_Read_fnRecorder routes recorded function calls to the
+// moqReadCloser moq
 type moqReadCloser_Read_fnRecorder struct {
 	params    moqReadCloser_Read_params
 	anyParams uint64
@@ -87,7 +92,8 @@ type moqReadCloser_Read_fnRecorder struct {
 	moq       *moqReadCloser
 }
 
-// moqReadCloser_Read_anyParams isolates the any params functions of the ReadCloser type
+// moqReadCloser_Read_anyParams isolates the any params functions of the
+// ReadCloser type
 type moqReadCloser_Read_anyParams struct {
 	recorder *moqReadCloser_Read_fnRecorder
 }
@@ -95,23 +101,27 @@ type moqReadCloser_Read_anyParams struct {
 // moqReadCloser_Close_params holds the params of the ReadCloser type
 type moqReadCloser_Close_params struct{}
 
-// moqReadCloser_Close_paramsKey holds the map key params of the ReadCloser type
+// moqReadCloser_Close_paramsKey holds the map key params of the ReadCloser
+// type
 type moqReadCloser_Close_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqReadCloser_Close_resultsByParams contains the results for a given set of parameters for the ReadCloser type
+// moqReadCloser_Close_resultsByParams contains the results for a given set of
+// parameters for the ReadCloser type
 type moqReadCloser_Close_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReadCloser_Close_paramsKey]*moqReadCloser_Close_results
 }
 
-// moqReadCloser_Close_doFn defines the type of function needed when calling andDo for the ReadCloser type
+// moqReadCloser_Close_doFn defines the type of function needed when calling
+// andDo for the ReadCloser type
 type moqReadCloser_Close_doFn func()
 
-// moqReadCloser_Close_doReturnFn defines the type of function needed when calling doReturnResults for the ReadCloser type
+// moqReadCloser_Close_doReturnFn defines the type of function needed when
+// calling doReturnResults for the ReadCloser type
 type moqReadCloser_Close_doReturnFn func() error
 
 // moqReadCloser_Close_results holds the results of the ReadCloser type
@@ -129,7 +139,8 @@ type moqReadCloser_Close_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReadCloser_Close_fnRecorder routes recorded function calls to the moqReadCloser moq
+// moqReadCloser_Close_fnRecorder routes recorded function calls to the
+// moqReadCloser moq
 type moqReadCloser_Close_fnRecorder struct {
 	params    moqReadCloser_Close_params
 	anyParams uint64
@@ -138,7 +149,8 @@ type moqReadCloser_Close_fnRecorder struct {
 	moq       *moqReadCloser
 }
 
-// moqReadCloser_Close_anyParams isolates the any params functions of the ReadCloser type
+// moqReadCloser_Close_anyParams isolates the any params functions of the
+// ReadCloser type
 type moqReadCloser_Close_anyParams struct {
 	recorder *moqReadCloser_Close_fnRecorder
 }

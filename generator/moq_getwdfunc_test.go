@@ -38,17 +38,20 @@ type moqGetwdFunc_paramsKey struct {
 	hashes struct{}
 }
 
-// moqGetwdFunc_resultsByParams contains the results for a given set of parameters for the GetwdFunc type
+// moqGetwdFunc_resultsByParams contains the results for a given set of
+// parameters for the GetwdFunc type
 type moqGetwdFunc_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqGetwdFunc_paramsKey]*moqGetwdFunc_results
 }
 
-// moqGetwdFunc_doFn defines the type of function needed when calling andDo for the GetwdFunc type
+// moqGetwdFunc_doFn defines the type of function needed when calling andDo for
+// the GetwdFunc type
 type moqGetwdFunc_doFn func()
 
-// moqGetwdFunc_doReturnFn defines the type of function needed when calling doReturnResults for the GetwdFunc type
+// moqGetwdFunc_doReturnFn defines the type of function needed when calling
+// doReturnResults for the GetwdFunc type
 type moqGetwdFunc_doReturnFn func() (string, error)
 
 // moqGetwdFunc_results holds the results of the GetwdFunc type
@@ -67,7 +70,8 @@ type moqGetwdFunc_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqGetwdFunc_fnRecorder routes recorded function calls to the moqGetwdFunc moq
+// moqGetwdFunc_fnRecorder routes recorded function calls to the moqGetwdFunc
+// moq
 type moqGetwdFunc_fnRecorder struct {
 	params    moqGetwdFunc_params
 	anyParams uint64
@@ -76,7 +80,8 @@ type moqGetwdFunc_fnRecorder struct {
 	moq       *moqGetwdFunc
 }
 
-// moqGetwdFunc_anyParams isolates the any params functions of the GetwdFunc type
+// moqGetwdFunc_anyParams isolates the any params functions of the GetwdFunc
+// type
 type moqGetwdFunc_anyParams struct {
 	recorder *moqGetwdFunc_fnRecorder
 }

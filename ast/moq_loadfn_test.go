@@ -49,17 +49,20 @@ type moqLoadFn_paramsKey struct {
 	}
 }
 
-// moqLoadFn_resultsByParams contains the results for a given set of parameters for the LoadFn type
+// moqLoadFn_resultsByParams contains the results for a given set of parameters
+// for the LoadFn type
 type moqLoadFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqLoadFn_paramsKey]*moqLoadFn_results
 }
 
-// moqLoadFn_doFn defines the type of function needed when calling andDo for the LoadFn type
+// moqLoadFn_doFn defines the type of function needed when calling andDo for
+// the LoadFn type
 type moqLoadFn_doFn func(cfg *packages.Config, patterns ...string)
 
-// moqLoadFn_doReturnFn defines the type of function needed when calling doReturnResults for the LoadFn type
+// moqLoadFn_doReturnFn defines the type of function needed when calling
+// doReturnResults for the LoadFn type
 type moqLoadFn_doReturnFn func(cfg *packages.Config, patterns ...string) ([]*packages.Package, error)
 
 // moqLoadFn_results holds the results of the LoadFn type

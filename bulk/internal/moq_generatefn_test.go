@@ -42,17 +42,20 @@ type moqGenerateFn_paramsKey struct {
 	hashes struct{ reqs hash.Hash }
 }
 
-// moqGenerateFn_resultsByParams contains the results for a given set of parameters for the GenerateFn type
+// moqGenerateFn_resultsByParams contains the results for a given set of
+// parameters for the GenerateFn type
 type moqGenerateFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqGenerateFn_paramsKey]*moqGenerateFn_results
 }
 
-// moqGenerateFn_doFn defines the type of function needed when calling andDo for the GenerateFn type
+// moqGenerateFn_doFn defines the type of function needed when calling andDo
+// for the GenerateFn type
 type moqGenerateFn_doFn func(reqs ...generator.GenerateRequest)
 
-// moqGenerateFn_doReturnFn defines the type of function needed when calling doReturnResults for the GenerateFn type
+// moqGenerateFn_doReturnFn defines the type of function needed when calling
+// doReturnResults for the GenerateFn type
 type moqGenerateFn_doReturnFn func(reqs ...generator.GenerateRequest) error
 
 // moqGenerateFn_results holds the results of the GenerateFn type
@@ -70,7 +73,8 @@ type moqGenerateFn_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqGenerateFn_fnRecorder routes recorded function calls to the moqGenerateFn moq
+// moqGenerateFn_fnRecorder routes recorded function calls to the moqGenerateFn
+// moq
 type moqGenerateFn_fnRecorder struct {
 	params    moqGenerateFn_params
 	anyParams uint64
@@ -79,7 +83,8 @@ type moqGenerateFn_fnRecorder struct {
 	moq       *moqGenerateFn
 }
 
-// moqGenerateFn_anyParams isolates the any params functions of the GenerateFn type
+// moqGenerateFn_anyParams isolates the any params functions of the GenerateFn
+// type
 type moqGenerateFn_anyParams struct {
 	recorder *moqGenerateFn_fnRecorder
 }

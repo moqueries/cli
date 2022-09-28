@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/token"
 	"strconv"
+	"strings"
 
 	"github.com/dave/dst"
 )
@@ -438,6 +439,34 @@ func MapType(key dst.Expr) MapTypeDSL {
 func (d MapTypeDSL) Value(value dst.Expr) MapTypeDSL {
 	d.Obj.Value = value
 	return d
+}
+
+// NodeDecsf formats a string into a standard node decoration, chopping down
+// the line as necessary
+func NodeDecsf(format string, a ...interface{}) dst.NodeDecs {
+	const (
+		sep     = " "
+		maxLine = 79
+	)
+	full := fmt.Sprintf(format, a...)
+	words := strings.Split(full, sep)
+	first := words[0]
+	line := first
+	start := dst.Decorations{}
+	for _, w := range words[1:] {
+		if len(line)+len(sep)+len(w) > maxLine {
+			start = append(start, line)
+			line = first
+		}
+		line += sep + w
+	}
+	if len(line) > 0 {
+		start = append(start, line)
+	}
+	return dst.NodeDecs{
+		Before: dst.NewLine,
+		Start:  start,
+	}
 }
 
 // Paren translates to a dst.ParenExpr

@@ -38,17 +38,20 @@ type moqIsLoggingFn_paramsKey struct {
 	hashes struct{}
 }
 
-// moqIsLoggingFn_resultsByParams contains the results for a given set of parameters for the IsLoggingFn type
+// moqIsLoggingFn_resultsByParams contains the results for a given set of
+// parameters for the IsLoggingFn type
 type moqIsLoggingFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqIsLoggingFn_paramsKey]*moqIsLoggingFn_results
 }
 
-// moqIsLoggingFn_doFn defines the type of function needed when calling andDo for the IsLoggingFn type
+// moqIsLoggingFn_doFn defines the type of function needed when calling andDo
+// for the IsLoggingFn type
 type moqIsLoggingFn_doFn func()
 
-// moqIsLoggingFn_doReturnFn defines the type of function needed when calling doReturnResults for the IsLoggingFn type
+// moqIsLoggingFn_doReturnFn defines the type of function needed when calling
+// doReturnResults for the IsLoggingFn type
 type moqIsLoggingFn_doReturnFn func() bool
 
 // moqIsLoggingFn_results holds the results of the IsLoggingFn type
@@ -66,7 +69,8 @@ type moqIsLoggingFn_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqIsLoggingFn_fnRecorder routes recorded function calls to the moqIsLoggingFn moq
+// moqIsLoggingFn_fnRecorder routes recorded function calls to the
+// moqIsLoggingFn moq
 type moqIsLoggingFn_fnRecorder struct {
 	params    moqIsLoggingFn_params
 	anyParams uint64
@@ -75,7 +79,8 @@ type moqIsLoggingFn_fnRecorder struct {
 	moq       *moqIsLoggingFn
 }
 
-// moqIsLoggingFn_anyParams isolates the any params functions of the IsLoggingFn type
+// moqIsLoggingFn_anyParams isolates the any params functions of the
+// IsLoggingFn type
 type moqIsLoggingFn_anyParams struct {
 	recorder *moqIsLoggingFn_fnRecorder
 }

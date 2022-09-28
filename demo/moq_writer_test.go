@@ -47,17 +47,20 @@ type moqWriter_Write_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqWriter_Write_resultsByParams contains the results for a given set of parameters for the Writer type
+// moqWriter_Write_resultsByParams contains the results for a given set of
+// parameters for the Writer type
 type moqWriter_Write_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqWriter_Write_paramsKey]*moqWriter_Write_results
 }
 
-// moqWriter_Write_doFn defines the type of function needed when calling andDo for the Writer type
+// moqWriter_Write_doFn defines the type of function needed when calling andDo
+// for the Writer type
 type moqWriter_Write_doFn func(p []byte)
 
-// moqWriter_Write_doReturnFn defines the type of function needed when calling doReturnResults for the Writer type
+// moqWriter_Write_doReturnFn defines the type of function needed when calling
+// doReturnResults for the Writer type
 type moqWriter_Write_doReturnFn func(p []byte) (n int, err error)
 
 // moqWriter_Write_results holds the results of the Writer type
@@ -76,7 +79,8 @@ type moqWriter_Write_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqWriter_Write_fnRecorder routes recorded function calls to the moqWriter moq
+// moqWriter_Write_fnRecorder routes recorded function calls to the moqWriter
+// moq
 type moqWriter_Write_fnRecorder struct {
 	params    moqWriter_Write_params
 	anyParams uint64
@@ -85,7 +89,8 @@ type moqWriter_Write_fnRecorder struct {
 	moq       *moqWriter
 }
 
-// moqWriter_Write_anyParams isolates the any params functions of the Writer type
+// moqWriter_Write_anyParams isolates the any params functions of the Writer
+// type
 type moqWriter_Write_anyParams struct {
 	recorder *moqWriter_Write_fnRecorder
 }

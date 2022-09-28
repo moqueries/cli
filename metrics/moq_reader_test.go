@@ -47,17 +47,20 @@ type moqReader_Read_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqReader_Read_resultsByParams contains the results for a given set of parameters for the Reader type
+// moqReader_Read_resultsByParams contains the results for a given set of
+// parameters for the Reader type
 type moqReader_Read_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReader_Read_paramsKey]*moqReader_Read_results
 }
 
-// moqReader_Read_doFn defines the type of function needed when calling andDo for the Reader type
+// moqReader_Read_doFn defines the type of function needed when calling andDo
+// for the Reader type
 type moqReader_Read_doFn func(p []byte)
 
-// moqReader_Read_doReturnFn defines the type of function needed when calling doReturnResults for the Reader type
+// moqReader_Read_doReturnFn defines the type of function needed when calling
+// doReturnResults for the Reader type
 type moqReader_Read_doReturnFn func(p []byte) (n int, err error)
 
 // moqReader_Read_results holds the results of the Reader type
@@ -76,7 +79,8 @@ type moqReader_Read_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReader_Read_fnRecorder routes recorded function calls to the moqReader moq
+// moqReader_Read_fnRecorder routes recorded function calls to the moqReader
+// moq
 type moqReader_Read_fnRecorder struct {
 	params    moqReader_Read_params
 	anyParams uint64
@@ -85,7 +89,8 @@ type moqReader_Read_fnRecorder struct {
 	moq       *moqReader
 }
 
-// moqReader_Read_anyParams isolates the any params functions of the Reader type
+// moqReader_Read_anyParams isolates the any params functions of the Reader
+// type
 type moqReader_Read_anyParams struct {
 	recorder *moqReader_Read_fnRecorder
 }

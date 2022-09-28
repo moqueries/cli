@@ -35,7 +35,8 @@ type moqWriteCloser_mock struct {
 	moq *moqWriteCloser
 }
 
-// moqWriteCloser_recorder isolates the recorder interface of the WriteCloser type
+// moqWriteCloser_recorder isolates the recorder interface of the WriteCloser
+// type
 type moqWriteCloser_recorder struct {
 	moq *moqWriteCloser
 }
@@ -43,23 +44,27 @@ type moqWriteCloser_recorder struct {
 // moqWriteCloser_Write_params holds the params of the WriteCloser type
 type moqWriteCloser_Write_params struct{ p []byte }
 
-// moqWriteCloser_Write_paramsKey holds the map key params of the WriteCloser type
+// moqWriteCloser_Write_paramsKey holds the map key params of the WriteCloser
+// type
 type moqWriteCloser_Write_paramsKey struct {
 	params struct{}
 	hashes struct{ p hash.Hash }
 }
 
-// moqWriteCloser_Write_resultsByParams contains the results for a given set of parameters for the WriteCloser type
+// moqWriteCloser_Write_resultsByParams contains the results for a given set of
+// parameters for the WriteCloser type
 type moqWriteCloser_Write_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqWriteCloser_Write_paramsKey]*moqWriteCloser_Write_results
 }
 
-// moqWriteCloser_Write_doFn defines the type of function needed when calling andDo for the WriteCloser type
+// moqWriteCloser_Write_doFn defines the type of function needed when calling
+// andDo for the WriteCloser type
 type moqWriteCloser_Write_doFn func(p []byte)
 
-// moqWriteCloser_Write_doReturnFn defines the type of function needed when calling doReturnResults for the WriteCloser type
+// moqWriteCloser_Write_doReturnFn defines the type of function needed when
+// calling doReturnResults for the WriteCloser type
 type moqWriteCloser_Write_doReturnFn func(p []byte) (n int, err error)
 
 // moqWriteCloser_Write_results holds the results of the WriteCloser type
@@ -78,7 +83,8 @@ type moqWriteCloser_Write_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqWriteCloser_Write_fnRecorder routes recorded function calls to the moqWriteCloser moq
+// moqWriteCloser_Write_fnRecorder routes recorded function calls to the
+// moqWriteCloser moq
 type moqWriteCloser_Write_fnRecorder struct {
 	params    moqWriteCloser_Write_params
 	anyParams uint64
@@ -87,7 +93,8 @@ type moqWriteCloser_Write_fnRecorder struct {
 	moq       *moqWriteCloser
 }
 
-// moqWriteCloser_Write_anyParams isolates the any params functions of the WriteCloser type
+// moqWriteCloser_Write_anyParams isolates the any params functions of the
+// WriteCloser type
 type moqWriteCloser_Write_anyParams struct {
 	recorder *moqWriteCloser_Write_fnRecorder
 }
@@ -95,23 +102,27 @@ type moqWriteCloser_Write_anyParams struct {
 // moqWriteCloser_Close_params holds the params of the WriteCloser type
 type moqWriteCloser_Close_params struct{}
 
-// moqWriteCloser_Close_paramsKey holds the map key params of the WriteCloser type
+// moqWriteCloser_Close_paramsKey holds the map key params of the WriteCloser
+// type
 type moqWriteCloser_Close_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqWriteCloser_Close_resultsByParams contains the results for a given set of parameters for the WriteCloser type
+// moqWriteCloser_Close_resultsByParams contains the results for a given set of
+// parameters for the WriteCloser type
 type moqWriteCloser_Close_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqWriteCloser_Close_paramsKey]*moqWriteCloser_Close_results
 }
 
-// moqWriteCloser_Close_doFn defines the type of function needed when calling andDo for the WriteCloser type
+// moqWriteCloser_Close_doFn defines the type of function needed when calling
+// andDo for the WriteCloser type
 type moqWriteCloser_Close_doFn func()
 
-// moqWriteCloser_Close_doReturnFn defines the type of function needed when calling doReturnResults for the WriteCloser type
+// moqWriteCloser_Close_doReturnFn defines the type of function needed when
+// calling doReturnResults for the WriteCloser type
 type moqWriteCloser_Close_doReturnFn func() error
 
 // moqWriteCloser_Close_results holds the results of the WriteCloser type
@@ -129,7 +140,8 @@ type moqWriteCloser_Close_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqWriteCloser_Close_fnRecorder routes recorded function calls to the moqWriteCloser moq
+// moqWriteCloser_Close_fnRecorder routes recorded function calls to the
+// moqWriteCloser moq
 type moqWriteCloser_Close_fnRecorder struct {
 	params    moqWriteCloser_Close_params
 	anyParams uint64
@@ -138,7 +150,8 @@ type moqWriteCloser_Close_fnRecorder struct {
 	moq       *moqWriteCloser
 }
 
-// moqWriteCloser_Close_anyParams isolates the any params functions of the WriteCloser type
+// moqWriteCloser_Close_anyParams isolates the any params functions of the
+// WriteCloser type
 type moqWriteCloser_Close_anyParams struct {
 	recorder *moqWriteCloser_Close_fnRecorder
 }

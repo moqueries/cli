@@ -41,17 +41,20 @@ type moqIsFavorite_paramsKey struct {
 	hashes struct{ n hash.Hash }
 }
 
-// moqIsFavorite_resultsByParams contains the results for a given set of parameters for the IsFavorite type
+// moqIsFavorite_resultsByParams contains the results for a given set of
+// parameters for the IsFavorite type
 type moqIsFavorite_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqIsFavorite_paramsKey]*moqIsFavorite_results
 }
 
-// moqIsFavorite_doFn defines the type of function needed when calling andDo for the IsFavorite type
+// moqIsFavorite_doFn defines the type of function needed when calling andDo
+// for the IsFavorite type
 type moqIsFavorite_doFn func(n int)
 
-// moqIsFavorite_doReturnFn defines the type of function needed when calling doReturnResults for the IsFavorite type
+// moqIsFavorite_doReturnFn defines the type of function needed when calling
+// doReturnResults for the IsFavorite type
 type moqIsFavorite_doReturnFn func(n int) bool
 
 // moqIsFavorite_results holds the results of the IsFavorite type
@@ -69,7 +72,8 @@ type moqIsFavorite_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqIsFavorite_fnRecorder routes recorded function calls to the moqIsFavorite moq
+// moqIsFavorite_fnRecorder routes recorded function calls to the moqIsFavorite
+// moq
 type moqIsFavorite_fnRecorder struct {
 	params    moqIsFavorite_params
 	anyParams uint64
@@ -78,7 +82,8 @@ type moqIsFavorite_fnRecorder struct {
 	moq       *moqIsFavorite
 }
 
-// moqIsFavorite_anyParams isolates the any params functions of the IsFavorite type
+// moqIsFavorite_anyParams isolates the any params functions of the IsFavorite
+// type
 type moqIsFavorite_anyParams struct {
 	recorder *moqIsFavorite_fnRecorder
 }

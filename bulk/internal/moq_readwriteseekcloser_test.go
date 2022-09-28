@@ -11,7 +11,8 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
-// moqReadWriteSeekCloser holds the state of a moq of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser holds the state of a moq of the ReadWriteSeekCloser
+// type
 type moqReadWriteSeekCloser struct {
 	scene  *moq.Scene
 	config moq.Config
@@ -39,39 +40,47 @@ type moqReadWriteSeekCloser struct {
 	}
 }
 
-// moqReadWriteSeekCloser_mock isolates the mock interface of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_mock isolates the mock interface of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_mock struct {
 	moq *moqReadWriteSeekCloser
 }
 
-// moqReadWriteSeekCloser_recorder isolates the recorder interface of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_recorder isolates the recorder interface of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_recorder struct {
 	moq *moqReadWriteSeekCloser
 }
 
-// moqReadWriteSeekCloser_Read_params holds the params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_params holds the params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_params struct{ p []byte }
 
-// moqReadWriteSeekCloser_Read_paramsKey holds the map key params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_paramsKey holds the map key params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_paramsKey struct {
 	params struct{}
 	hashes struct{ p hash.Hash }
 }
 
-// moqReadWriteSeekCloser_Read_resultsByParams contains the results for a given set of parameters for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_resultsByParams contains the results for a given
+// set of parameters for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReadWriteSeekCloser_Read_paramsKey]*moqReadWriteSeekCloser_Read_results
 }
 
-// moqReadWriteSeekCloser_Read_doFn defines the type of function needed when calling andDo for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_doFn defines the type of function needed when
+// calling andDo for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_doFn func(p []byte)
 
-// moqReadWriteSeekCloser_Read_doReturnFn defines the type of function needed when calling doReturnResults for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_doReturnFn defines the type of function needed
+// when calling doReturnResults for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_doReturnFn func(p []byte) (n int, err error)
 
-// moqReadWriteSeekCloser_Read_results holds the results of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_results holds the results of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_results struct {
 	params  moqReadWriteSeekCloser_Read_params
 	results []struct {
@@ -87,7 +96,8 @@ type moqReadWriteSeekCloser_Read_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReadWriteSeekCloser_Read_fnRecorder routes recorded function calls to the moqReadWriteSeekCloser moq
+// moqReadWriteSeekCloser_Read_fnRecorder routes recorded function calls to the
+// moqReadWriteSeekCloser moq
 type moqReadWriteSeekCloser_Read_fnRecorder struct {
 	params    moqReadWriteSeekCloser_Read_params
 	anyParams uint64
@@ -96,34 +106,41 @@ type moqReadWriteSeekCloser_Read_fnRecorder struct {
 	moq       *moqReadWriteSeekCloser
 }
 
-// moqReadWriteSeekCloser_Read_anyParams isolates the any params functions of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Read_anyParams isolates the any params functions of
+// the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Read_anyParams struct {
 	recorder *moqReadWriteSeekCloser_Read_fnRecorder
 }
 
-// moqReadWriteSeekCloser_Write_params holds the params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_params holds the params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_params struct{ p []byte }
 
-// moqReadWriteSeekCloser_Write_paramsKey holds the map key params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_paramsKey holds the map key params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_paramsKey struct {
 	params struct{}
 	hashes struct{ p hash.Hash }
 }
 
-// moqReadWriteSeekCloser_Write_resultsByParams contains the results for a given set of parameters for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_resultsByParams contains the results for a
+// given set of parameters for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReadWriteSeekCloser_Write_paramsKey]*moqReadWriteSeekCloser_Write_results
 }
 
-// moqReadWriteSeekCloser_Write_doFn defines the type of function needed when calling andDo for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_doFn defines the type of function needed when
+// calling andDo for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_doFn func(p []byte)
 
-// moqReadWriteSeekCloser_Write_doReturnFn defines the type of function needed when calling doReturnResults for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_doReturnFn defines the type of function needed
+// when calling doReturnResults for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_doReturnFn func(p []byte) (n int, err error)
 
-// moqReadWriteSeekCloser_Write_results holds the results of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_results holds the results of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_results struct {
 	params  moqReadWriteSeekCloser_Write_params
 	results []struct {
@@ -139,7 +156,8 @@ type moqReadWriteSeekCloser_Write_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReadWriteSeekCloser_Write_fnRecorder routes recorded function calls to the moqReadWriteSeekCloser moq
+// moqReadWriteSeekCloser_Write_fnRecorder routes recorded function calls to
+// the moqReadWriteSeekCloser moq
 type moqReadWriteSeekCloser_Write_fnRecorder struct {
 	params    moqReadWriteSeekCloser_Write_params
 	anyParams uint64
@@ -148,18 +166,21 @@ type moqReadWriteSeekCloser_Write_fnRecorder struct {
 	moq       *moqReadWriteSeekCloser
 }
 
-// moqReadWriteSeekCloser_Write_anyParams isolates the any params functions of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Write_anyParams isolates the any params functions of
+// the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Write_anyParams struct {
 	recorder *moqReadWriteSeekCloser_Write_fnRecorder
 }
 
-// moqReadWriteSeekCloser_Seek_params holds the params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_params holds the params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_params struct {
 	offset int64
 	whence int
 }
 
-// moqReadWriteSeekCloser_Seek_paramsKey holds the map key params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_paramsKey holds the map key params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_paramsKey struct {
 	params struct {
 		offset int64
@@ -171,20 +192,24 @@ type moqReadWriteSeekCloser_Seek_paramsKey struct {
 	}
 }
 
-// moqReadWriteSeekCloser_Seek_resultsByParams contains the results for a given set of parameters for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_resultsByParams contains the results for a given
+// set of parameters for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReadWriteSeekCloser_Seek_paramsKey]*moqReadWriteSeekCloser_Seek_results
 }
 
-// moqReadWriteSeekCloser_Seek_doFn defines the type of function needed when calling andDo for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_doFn defines the type of function needed when
+// calling andDo for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_doFn func(offset int64, whence int)
 
-// moqReadWriteSeekCloser_Seek_doReturnFn defines the type of function needed when calling doReturnResults for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_doReturnFn defines the type of function needed
+// when calling doReturnResults for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_doReturnFn func(offset int64, whence int) (int64, error)
 
-// moqReadWriteSeekCloser_Seek_results holds the results of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_results holds the results of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_results struct {
 	params  moqReadWriteSeekCloser_Seek_params
 	results []struct {
@@ -200,7 +225,8 @@ type moqReadWriteSeekCloser_Seek_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReadWriteSeekCloser_Seek_fnRecorder routes recorded function calls to the moqReadWriteSeekCloser moq
+// moqReadWriteSeekCloser_Seek_fnRecorder routes recorded function calls to the
+// moqReadWriteSeekCloser moq
 type moqReadWriteSeekCloser_Seek_fnRecorder struct {
 	params    moqReadWriteSeekCloser_Seek_params
 	anyParams uint64
@@ -209,34 +235,41 @@ type moqReadWriteSeekCloser_Seek_fnRecorder struct {
 	moq       *moqReadWriteSeekCloser
 }
 
-// moqReadWriteSeekCloser_Seek_anyParams isolates the any params functions of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Seek_anyParams isolates the any params functions of
+// the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Seek_anyParams struct {
 	recorder *moqReadWriteSeekCloser_Seek_fnRecorder
 }
 
-// moqReadWriteSeekCloser_Close_params holds the params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_params holds the params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_params struct{}
 
-// moqReadWriteSeekCloser_Close_paramsKey holds the map key params of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_paramsKey holds the map key params of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqReadWriteSeekCloser_Close_resultsByParams contains the results for a given set of parameters for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_resultsByParams contains the results for a
+// given set of parameters for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqReadWriteSeekCloser_Close_paramsKey]*moqReadWriteSeekCloser_Close_results
 }
 
-// moqReadWriteSeekCloser_Close_doFn defines the type of function needed when calling andDo for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_doFn defines the type of function needed when
+// calling andDo for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_doFn func()
 
-// moqReadWriteSeekCloser_Close_doReturnFn defines the type of function needed when calling doReturnResults for the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_doReturnFn defines the type of function needed
+// when calling doReturnResults for the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_doReturnFn func() error
 
-// moqReadWriteSeekCloser_Close_results holds the results of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_results holds the results of the
+// ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_results struct {
 	params  moqReadWriteSeekCloser_Close_params
 	results []struct {
@@ -251,7 +284,8 @@ type moqReadWriteSeekCloser_Close_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqReadWriteSeekCloser_Close_fnRecorder routes recorded function calls to the moqReadWriteSeekCloser moq
+// moqReadWriteSeekCloser_Close_fnRecorder routes recorded function calls to
+// the moqReadWriteSeekCloser moq
 type moqReadWriteSeekCloser_Close_fnRecorder struct {
 	params    moqReadWriteSeekCloser_Close_params
 	anyParams uint64
@@ -260,7 +294,8 @@ type moqReadWriteSeekCloser_Close_fnRecorder struct {
 	moq       *moqReadWriteSeekCloser
 }
 
-// moqReadWriteSeekCloser_Close_anyParams isolates the any params functions of the ReadWriteSeekCloser type
+// moqReadWriteSeekCloser_Close_anyParams isolates the any params functions of
+// the ReadWriteSeekCloser type
 type moqReadWriteSeekCloser_Close_anyParams struct {
 	recorder *moqReadWriteSeekCloser_Close_fnRecorder
 }

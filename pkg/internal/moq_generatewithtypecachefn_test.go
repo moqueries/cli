@@ -13,7 +13,8 @@ import (
 	"github.com/myshkin5/moqueries/pkg/internal"
 )
 
-// moqGenerateWithTypeCacheFn holds the state of a moq of the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn holds the state of a moq of the
+// GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn struct {
 	scene  *moq.Scene
 	config moq.Config
@@ -29,18 +30,21 @@ type moqGenerateWithTypeCacheFn struct {
 	}
 }
 
-// moqGenerateWithTypeCacheFn_mock isolates the mock interface of the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_mock isolates the mock interface of the
+// GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_mock struct {
 	moq *moqGenerateWithTypeCacheFn
 }
 
-// moqGenerateWithTypeCacheFn_params holds the params of the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_params holds the params of the
+// GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_params struct {
 	cache generator.TypeCache
 	req   generator.GenerateRequest
 }
 
-// moqGenerateWithTypeCacheFn_paramsKey holds the map key params of the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_paramsKey holds the map key params of the
+// GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_paramsKey struct {
 	params struct{ cache generator.TypeCache }
 	hashes struct {
@@ -49,20 +53,24 @@ type moqGenerateWithTypeCacheFn_paramsKey struct {
 	}
 }
 
-// moqGenerateWithTypeCacheFn_resultsByParams contains the results for a given set of parameters for the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_resultsByParams contains the results for a given
+// set of parameters for the GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
 	results   map[moqGenerateWithTypeCacheFn_paramsKey]*moqGenerateWithTypeCacheFn_results
 }
 
-// moqGenerateWithTypeCacheFn_doFn defines the type of function needed when calling andDo for the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_doFn defines the type of function needed when
+// calling andDo for the GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_doFn func(cache generator.TypeCache, req generator.GenerateRequest)
 
-// moqGenerateWithTypeCacheFn_doReturnFn defines the type of function needed when calling doReturnResults for the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_doReturnFn defines the type of function needed
+// when calling doReturnResults for the GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_doReturnFn func(cache generator.TypeCache, req generator.GenerateRequest) error
 
-// moqGenerateWithTypeCacheFn_results holds the results of the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_results holds the results of the
+// GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_results struct {
 	params  moqGenerateWithTypeCacheFn_params
 	results []struct {
@@ -77,7 +85,8 @@ type moqGenerateWithTypeCacheFn_results struct {
 	repeat *moq.RepeatVal
 }
 
-// moqGenerateWithTypeCacheFn_fnRecorder routes recorded function calls to the moqGenerateWithTypeCacheFn moq
+// moqGenerateWithTypeCacheFn_fnRecorder routes recorded function calls to the
+// moqGenerateWithTypeCacheFn moq
 type moqGenerateWithTypeCacheFn_fnRecorder struct {
 	params    moqGenerateWithTypeCacheFn_params
 	anyParams uint64
@@ -86,12 +95,14 @@ type moqGenerateWithTypeCacheFn_fnRecorder struct {
 	moq       *moqGenerateWithTypeCacheFn
 }
 
-// moqGenerateWithTypeCacheFn_anyParams isolates the any params functions of the GenerateWithTypeCacheFn type
+// moqGenerateWithTypeCacheFn_anyParams isolates the any params functions of
+// the GenerateWithTypeCacheFn type
 type moqGenerateWithTypeCacheFn_anyParams struct {
 	recorder *moqGenerateWithTypeCacheFn_fnRecorder
 }
 
-// newMoqGenerateWithTypeCacheFn creates a new moq of the GenerateWithTypeCacheFn type
+// newMoqGenerateWithTypeCacheFn creates a new moq of the
+// GenerateWithTypeCacheFn type
 func newMoqGenerateWithTypeCacheFn(scene *moq.Scene, config *moq.Config) *moqGenerateWithTypeCacheFn {
 	if config == nil {
 		config = &moq.Config{}
