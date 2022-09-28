@@ -444,14 +444,17 @@ func (d MapTypeDSL) Value(value dst.Expr) MapTypeDSL {
 // NodeDecsf formats a string into a standard node decoration, chopping down
 // the line as necessary
 func NodeDecsf(format string, a ...interface{}) dst.NodeDecs {
-	const sep = " "
+	const (
+		sep     = " "
+		maxLine = 79
+	)
 	full := fmt.Sprintf(format, a...)
 	words := strings.Split(full, sep)
 	first := words[0]
 	line := first
 	start := dst.Decorations{}
 	for _, w := range words[1:] {
-		if len(line)+len(sep)+len(w) > 79 {
+		if len(line)+len(sep)+len(w) > maxLine {
 			start = append(start, line)
 			line = first
 		}
