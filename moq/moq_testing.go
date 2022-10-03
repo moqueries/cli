@@ -530,6 +530,7 @@ func (r *MoqT_Errorf_fnRecorder) DoReturnResults(fn MoqT_Errorf_doReturnFn) *Moq
 }
 
 func (r *MoqT_Errorf_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -607,6 +608,7 @@ func (m *MoqT) PrettyParams_Errorf(params MoqT_Errorf_params) string {
 }
 
 func (m *MoqT) ParamsKey_Errorf(params MoqT_Errorf_params, anyParams uint64) MoqT_Errorf_paramsKey {
+	m.Scene.T.Helper()
 	var formatUsed string
 	var formatUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -738,6 +740,7 @@ func (r *MoqT_Fatalf_fnRecorder) DoReturnResults(fn MoqT_Fatalf_doReturnFn) *Moq
 }
 
 func (r *MoqT_Fatalf_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -815,6 +818,7 @@ func (m *MoqT) PrettyParams_Fatalf(params MoqT_Fatalf_params) string {
 }
 
 func (m *MoqT) ParamsKey_Fatalf(params MoqT_Fatalf_params, anyParams uint64) MoqT_Fatalf_paramsKey {
+	m.Scene.T.Helper()
 	var formatUsed string
 	var formatUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -933,6 +937,7 @@ func (r *MoqT_Helper_fnRecorder) DoReturnResults(fn MoqT_Helper_doReturnFn) *Moq
 }
 
 func (r *MoqT_Helper_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -1008,6 +1013,7 @@ func (r *MoqT_Helper_fnRecorder) Repeat(repeaters ...Repeater) *MoqT_Helper_fnRe
 func (m *MoqT) PrettyParams_Helper(params MoqT_Helper_params) string { return fmt.Sprintf("Helper()") }
 
 func (m *MoqT) ParamsKey_Helper(params MoqT_Helper_params, anyParams uint64) MoqT_Helper_paramsKey {
+	m.Scene.T.Helper()
 	return MoqT_Helper_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},

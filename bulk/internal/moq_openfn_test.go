@@ -116,7 +116,11 @@ func newMoqOpenFn(scene *moq.Scene, config *moq.Config) *moqOpenFn {
 
 // mock returns the moq implementation of the OpenFn type
 func (m *moqOpenFn) mock() internal.OpenFn {
-	return func(name string) (_ io.ReadCloser, _ error) { moq := &moqOpenFn_mock{moq: m}; return moq.fn(name) }
+	return func(name string) (_ io.ReadCloser, _ error) {
+		m.scene.T.Helper()
+		moq := &moqOpenFn_mock{moq: m}
+		return moq.fn(name)
+	}
 }
 
 func (m *moqOpenFn_mock) fn(name string) (file io.ReadCloser, err error) {
@@ -280,6 +284,7 @@ func (r *moqOpenFn_fnRecorder) doReturnResults(fn moqOpenFn_doReturnFn) *moqOpen
 }
 
 func (r *moqOpenFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -360,6 +365,7 @@ func (m *moqOpenFn) prettyParams(params moqOpenFn_params) string {
 }
 
 func (m *moqOpenFn) paramsKey(params moqOpenFn_params, anyParams uint64) moqOpenFn_paramsKey {
+	m.scene.T.Helper()
 	var nameUsed string
 	var nameUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

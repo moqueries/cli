@@ -108,7 +108,7 @@ func newMoqGetwdFunc(scene *moq.Scene, config *moq.Config) *moqGetwdFunc {
 
 // mock returns the moq implementation of the GetwdFunc type
 func (m *moqGetwdFunc) mock() generator.GetwdFunc {
-	return func() (string, error) { moq := &moqGetwdFunc_mock{moq: m}; return moq.fn() }
+	return func() (string, error) { m.scene.T.Helper(); moq := &moqGetwdFunc_mock{moq: m}; return moq.fn() }
 }
 
 func (m *moqGetwdFunc_mock) fn() (result1 string, result2 error) {
@@ -263,6 +263,7 @@ func (r *moqGetwdFunc_fnRecorder) doReturnResults(fn moqGetwdFunc_doReturnFn) *m
 }
 
 func (r *moqGetwdFunc_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -343,6 +344,7 @@ func (m *moqGetwdFunc) prettyParams(params moqGetwdFunc_params) string {
 }
 
 func (m *moqGetwdFunc) paramsKey(params moqGetwdFunc_params, anyParams uint64) moqGetwdFunc_paramsKey {
+	m.scene.T.Helper()
 	return moqGetwdFunc_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},

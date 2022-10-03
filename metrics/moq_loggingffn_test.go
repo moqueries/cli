@@ -124,7 +124,11 @@ func newMoqLoggingfFn(scene *moq.Scene, config *moq.Config) *moqLoggingfFn {
 
 // mock returns the moq implementation of the LoggingfFn type
 func (m *moqLoggingfFn) mock() metrics.LoggingfFn {
-	return func(format string, args ...interface{}) { moq := &moqLoggingfFn_mock{moq: m}; moq.fn(format, args...) }
+	return func(format string, args ...interface{}) {
+		m.scene.T.Helper()
+		moq := &moqLoggingfFn_mock{moq: m}
+		moq.fn(format, args...)
+	}
 }
 
 func (m *moqLoggingfFn_mock) fn(format string, args ...interface{}) {
@@ -279,6 +283,7 @@ func (r *moqLoggingfFn_fnRecorder) doReturnResults(fn moqLoggingfFn_doReturnFn) 
 }
 
 func (r *moqLoggingfFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -356,6 +361,7 @@ func (m *moqLoggingfFn) prettyParams(params moqLoggingfFn_params) string {
 }
 
 func (m *moqLoggingfFn) paramsKey(params moqLoggingfFn_params, anyParams uint64) moqLoggingfFn_paramsKey {
+	m.scene.T.Helper()
 	var formatUsed string
 	var formatUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

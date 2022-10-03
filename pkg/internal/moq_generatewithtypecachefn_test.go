@@ -134,6 +134,7 @@ func newMoqGenerateWithTypeCacheFn(scene *moq.Scene, config *moq.Config) *moqGen
 // mock returns the moq implementation of the GenerateWithTypeCacheFn type
 func (m *moqGenerateWithTypeCacheFn) mock() internal.GenerateWithTypeCacheFn {
 	return func(cache generator.TypeCache, req generator.GenerateRequest) error {
+		m.scene.T.Helper()
 		moq := &moqGenerateWithTypeCacheFn_mock{moq: m}
 		return moq.fn(cache, req)
 	}
@@ -302,6 +303,7 @@ func (r *moqGenerateWithTypeCacheFn_fnRecorder) doReturnResults(fn moqGenerateWi
 }
 
 func (r *moqGenerateWithTypeCacheFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -381,6 +383,7 @@ func (m *moqGenerateWithTypeCacheFn) prettyParams(params moqGenerateWithTypeCach
 }
 
 func (m *moqGenerateWithTypeCacheFn) paramsKey(params moqGenerateWithTypeCacheFn_params, anyParams uint64) moqGenerateWithTypeCacheFn_paramsKey {
+	m.scene.T.Helper()
 	var cacheUsed generator.TypeCache
 	var cacheUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

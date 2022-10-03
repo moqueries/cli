@@ -944,6 +944,7 @@ func (r *moqTypeCache_LoadPackage_fnRecorder) doReturnResults(fn moqTypeCache_Lo
 }
 
 func (r *moqTypeCache_LoadPackage_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1023,6 +1024,7 @@ func (m *moqTypeCache) prettyParams_LoadPackage(params moqTypeCache_LoadPackage_
 }
 
 func (m *moqTypeCache) paramsKey_LoadPackage(params moqTypeCache_LoadPackage_params, anyParams uint64) moqTypeCache_LoadPackage_paramsKey {
+	m.scene.T.Helper()
 	var pkgPatternUsed string
 	var pkgPatternUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1145,6 +1147,7 @@ func (r *moqTypeCache_MockableTypes_fnRecorder) doReturnResults(fn moqTypeCache_
 }
 
 func (r *moqTypeCache_MockableTypes_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1224,6 +1227,7 @@ func (m *moqTypeCache) prettyParams_MockableTypes(params moqTypeCache_MockableTy
 }
 
 func (m *moqTypeCache) paramsKey_MockableTypes(params moqTypeCache_MockableTypes_params, anyParams uint64) moqTypeCache_MockableTypes_paramsKey {
+	m.scene.T.Helper()
 	var onlyExportedUsed bool
 	var onlyExportedUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1360,6 +1364,7 @@ func (r *moqTypeCache_Type_fnRecorder) doReturnResults(fn moqTypeCache_Type_doRe
 }
 
 func (r *moqTypeCache_Type_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1441,6 +1446,7 @@ func (m *moqTypeCache) prettyParams_Type(params moqTypeCache_Type_params) string
 }
 
 func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams uint64) moqTypeCache_Type_paramsKey {
+	m.scene.T.Helper()
 	var idUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.Type.id == moq.ParamIndexByValue {
@@ -1578,6 +1584,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) doReturnResults(fn moqTypeCache_I
 }
 
 func (r *moqTypeCache_IsComparable_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1658,6 +1665,7 @@ func (m *moqTypeCache) prettyParams_IsComparable(params moqTypeCache_IsComparabl
 }
 
 func (m *moqTypeCache) paramsKey_IsComparable(params moqTypeCache_IsComparable_params, anyParams uint64) moqTypeCache_IsComparable_paramsKey {
+	m.scene.T.Helper()
 	var exprUsed dst.Expr
 	var exprUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1784,6 +1792,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) doReturnResults(fn moqType
 }
 
 func (r *moqTypeCache_IsDefaultComparable_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1864,6 +1873,7 @@ func (m *moqTypeCache) prettyParams_IsDefaultComparable(params moqTypeCache_IsDe
 }
 
 func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefaultComparable_params, anyParams uint64) moqTypeCache_IsDefaultComparable_paramsKey {
+	m.scene.T.Helper()
 	var exprUsed dst.Expr
 	var exprUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1990,6 +2000,7 @@ func (r *moqTypeCache_FindPackage_fnRecorder) doReturnResults(fn moqTypeCache_Fi
 }
 
 func (r *moqTypeCache_FindPackage_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2070,6 +2081,7 @@ func (m *moqTypeCache) prettyParams_FindPackage(params moqTypeCache_FindPackage_
 }
 
 func (m *moqTypeCache) paramsKey_FindPackage(params moqTypeCache_FindPackage_params, anyParams uint64) moqTypeCache_FindPackage_paramsKey {
+	m.scene.T.Helper()
 	var dirUsed string
 	var dirUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

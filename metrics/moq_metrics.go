@@ -1061,6 +1061,7 @@ func (r *MoqMetrics_ASTPkgCacheHitsInc_fnRecorder) DoReturnResults(fn MoqMetrics
 }
 
 func (r *MoqMetrics_ASTPkgCacheHitsInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -1138,6 +1139,7 @@ func (m *MoqMetrics) PrettyParams_ASTPkgCacheHitsInc(params MoqMetrics_ASTPkgCac
 }
 
 func (m *MoqMetrics) ParamsKey_ASTPkgCacheHitsInc(params MoqMetrics_ASTPkgCacheHitsInc_params, anyParams uint64) MoqMetrics_ASTPkgCacheHitsInc_paramsKey {
+	m.Scene.T.Helper()
 	return MoqMetrics_ASTPkgCacheHitsInc_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},
@@ -1232,6 +1234,7 @@ func (r *MoqMetrics_ASTPkgCacheMissesInc_fnRecorder) DoReturnResults(fn MoqMetri
 }
 
 func (r *MoqMetrics_ASTPkgCacheMissesInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -1309,6 +1312,7 @@ func (m *MoqMetrics) PrettyParams_ASTPkgCacheMissesInc(params MoqMetrics_ASTPkgC
 }
 
 func (m *MoqMetrics) ParamsKey_ASTPkgCacheMissesInc(params MoqMetrics_ASTPkgCacheMissesInc_params, anyParams uint64) MoqMetrics_ASTPkgCacheMissesInc_paramsKey {
+	m.Scene.T.Helper()
 	return MoqMetrics_ASTPkgCacheMissesInc_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},
@@ -1403,6 +1407,7 @@ func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) DoReturnResults(fn MoqMetric
 }
 
 func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -1480,6 +1485,7 @@ func (m *MoqMetrics) PrettyParams_ASTTypeCacheHitsInc(params MoqMetrics_ASTTypeC
 }
 
 func (m *MoqMetrics) ParamsKey_ASTTypeCacheHitsInc(params MoqMetrics_ASTTypeCacheHitsInc_params, anyParams uint64) MoqMetrics_ASTTypeCacheHitsInc_paramsKey {
+	m.Scene.T.Helper()
 	return MoqMetrics_ASTTypeCacheHitsInc_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},
@@ -1574,6 +1580,7 @@ func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) DoReturnResults(fn MoqMetr
 }
 
 func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -1651,6 +1658,7 @@ func (m *MoqMetrics) PrettyParams_ASTTypeCacheMissesInc(params MoqMetrics_ASTTyp
 }
 
 func (m *MoqMetrics) ParamsKey_ASTTypeCacheMissesInc(params MoqMetrics_ASTTypeCacheMissesInc_params, anyParams uint64) MoqMetrics_ASTTypeCacheMissesInc_paramsKey {
+	m.Scene.T.Helper()
 	return MoqMetrics_ASTTypeCacheMissesInc_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},
@@ -1752,6 +1760,7 @@ func (r *MoqMetrics_ASTTotalLoadTimeInc_fnRecorder) DoReturnResults(fn MoqMetric
 }
 
 func (r *MoqMetrics_ASTTotalLoadTimeInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -1829,6 +1838,7 @@ func (m *MoqMetrics) PrettyParams_ASTTotalLoadTimeInc(params MoqMetrics_ASTTotal
 }
 
 func (m *MoqMetrics) ParamsKey_ASTTotalLoadTimeInc(params MoqMetrics_ASTTotalLoadTimeInc_params, anyParams uint64) MoqMetrics_ASTTotalLoadTimeInc_paramsKey {
+	m.Scene.T.Helper()
 	var dUsed time.Duration
 	var dUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1943,6 +1953,7 @@ func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) DoReturnResults(fn Moq
 }
 
 func (r *MoqMetrics_ASTTotalDecorationTimeInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -2020,6 +2031,7 @@ func (m *MoqMetrics) PrettyParams_ASTTotalDecorationTimeInc(params MoqMetrics_AS
 }
 
 func (m *MoqMetrics) ParamsKey_ASTTotalDecorationTimeInc(params MoqMetrics_ASTTotalDecorationTimeInc_params, anyParams uint64) MoqMetrics_ASTTotalDecorationTimeInc_paramsKey {
+	m.Scene.T.Helper()
 	var dUsed time.Duration
 	var dUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2134,6 +2146,7 @@ func (r *MoqMetrics_TotalProcessingTimeInc_fnRecorder) DoReturnResults(fn MoqMet
 }
 
 func (r *MoqMetrics_TotalProcessingTimeInc_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -2211,6 +2224,7 @@ func (m *MoqMetrics) PrettyParams_TotalProcessingTimeInc(params MoqMetrics_Total
 }
 
 func (m *MoqMetrics) ParamsKey_TotalProcessingTimeInc(params MoqMetrics_TotalProcessingTimeInc_params, anyParams uint64) MoqMetrics_TotalProcessingTimeInc_paramsKey {
+	m.Scene.T.Helper()
 	var dUsed time.Duration
 	var dUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2318,6 +2332,7 @@ func (r *MoqMetrics_Finalize_fnRecorder) DoReturnResults(fn MoqMetrics_Finalize_
 }
 
 func (r *MoqMetrics_Finalize_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
 	if r.Results != nil {
 		r.Results.Repeat.Increment(r.Moq.Scene.T)
 		return
@@ -2395,6 +2410,7 @@ func (m *MoqMetrics) PrettyParams_Finalize(params MoqMetrics_Finalize_params) st
 }
 
 func (m *MoqMetrics) ParamsKey_Finalize(params MoqMetrics_Finalize_params, anyParams uint64) MoqMetrics_Finalize_paramsKey {
+	m.Scene.T.Helper()
 	return MoqMetrics_Finalize_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},

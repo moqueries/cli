@@ -292,9 +292,8 @@ func (c *Converter) FuncClosure(fn Func) *dst.FuncDecl {
 		Results(Field(c.idPath(c.typ.TypeSpec.Name.Name, c.typ.TypeSpec.Name.Path)).Obj).
 		Body(Return(FnLit(FnType(cloneAndNameUnnamed(paramPrefix, fn.Params)).
 			Results(cloneFieldList(fn.Results, true)).Obj).
-			Body(Assign(Id(moqIdent)).
-				Tok(token.DEFINE).
-				Rhs(Un(
+			Body(c.helperCallExpr(Id(moqReceiverIdent)),
+				Assign(Id(moqIdent)).Tok(token.DEFINE).Rhs(Un(
 					token.AND,
 					Comp(Idf(double, mName, mockIdent)).
 						Elts(Key(c.exportId(moqIdent)).
@@ -1135,6 +1134,7 @@ func (c *Converter) findResultsFn(fn Func) *dst.FuncDecl {
 			Dot(c.exportId(sceneIdent)).Obj).
 			Dot(Id(tType)).Obj).Obj).Obj
 	body := []dst.Stmt{
+		c.helperCallExpr(Sel(Id(recorderReceiverIdent)).Dot(c.exportId(moqIdent)).Obj),
 		If(Bin(Sel(Id(recorderReceiverIdent)).
 			Dot(c.exportId(resultsIdent)).Obj).
 			Op(token.NEQ).
@@ -1395,7 +1395,9 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 }
 
 func (c *Converter) paramsKeyFn(fn Func) *dst.FuncDecl {
-	var stmts []dst.Stmt
+	stmts := []dst.Stmt{
+		c.helperCallExpr(Id(moqReceiverIdent)),
+	}
 	count := 0
 	for _, param := range fn.Params.List {
 		if len(param.Names) == 0 {

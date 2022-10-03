@@ -694,6 +694,7 @@ func (r *moqReadWriteSeekCloser_Read_fnRecorder) doReturnResults(fn moqReadWrite
 }
 
 func (r *moqReadWriteSeekCloser_Read_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -774,6 +775,7 @@ func (m *moqReadWriteSeekCloser) prettyParams_Read(params moqReadWriteSeekCloser
 }
 
 func (m *moqReadWriteSeekCloser) paramsKey_Read(params moqReadWriteSeekCloser_Read_params, anyParams uint64) moqReadWriteSeekCloser_Read_paramsKey {
+	m.scene.T.Helper()
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.Read.p == moq.ParamIndexByValue {
@@ -896,6 +898,7 @@ func (r *moqReadWriteSeekCloser_Write_fnRecorder) doReturnResults(fn moqReadWrit
 }
 
 func (r *moqReadWriteSeekCloser_Write_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -976,6 +979,7 @@ func (m *moqReadWriteSeekCloser) prettyParams_Write(params moqReadWriteSeekClose
 }
 
 func (m *moqReadWriteSeekCloser) paramsKey_Write(params moqReadWriteSeekCloser_Write_params, anyParams uint64) moqReadWriteSeekCloser_Write_paramsKey {
+	m.scene.T.Helper()
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.Write.p == moq.ParamIndexByValue {
@@ -1104,6 +1108,7 @@ func (r *moqReadWriteSeekCloser_Seek_fnRecorder) doReturnResults(fn moqReadWrite
 }
 
 func (r *moqReadWriteSeekCloser_Seek_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1184,6 +1189,7 @@ func (m *moqReadWriteSeekCloser) prettyParams_Seek(params moqReadWriteSeekCloser
 }
 
 func (m *moqReadWriteSeekCloser) paramsKey_Seek(params moqReadWriteSeekCloser_Seek_params, anyParams uint64) moqReadWriteSeekCloser_Seek_paramsKey {
+	m.scene.T.Helper()
 	var offsetUsed int64
 	var offsetUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1316,6 +1322,7 @@ func (r *moqReadWriteSeekCloser_Close_fnRecorder) doReturnResults(fn moqReadWrit
 }
 
 func (r *moqReadWriteSeekCloser_Close_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1395,6 +1402,7 @@ func (m *moqReadWriteSeekCloser) prettyParams_Close(params moqReadWriteSeekClose
 }
 
 func (m *moqReadWriteSeekCloser) paramsKey_Close(params moqReadWriteSeekCloser_Close_params, anyParams uint64) moqReadWriteSeekCloser_Close_paramsKey {
+	m.scene.T.Helper()
 	return moqReadWriteSeekCloser_Close_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},

@@ -107,7 +107,7 @@ func newMoqIsLoggingFn(scene *moq.Scene, config *moq.Config) *moqIsLoggingFn {
 
 // mock returns the moq implementation of the IsLoggingFn type
 func (m *moqIsLoggingFn) mock() metrics.IsLoggingFn {
-	return func() bool { moq := &moqIsLoggingFn_mock{moq: m}; return moq.fn() }
+	return func() bool { m.scene.T.Helper(); moq := &moqIsLoggingFn_mock{moq: m}; return moq.fn() }
 }
 
 func (m *moqIsLoggingFn_mock) fn() (result1 bool) {
@@ -257,6 +257,7 @@ func (r *moqIsLoggingFn_fnRecorder) doReturnResults(fn moqIsLoggingFn_doReturnFn
 }
 
 func (r *moqIsLoggingFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -336,6 +337,7 @@ func (m *moqIsLoggingFn) prettyParams(params moqIsLoggingFn_params) string {
 }
 
 func (m *moqIsLoggingFn) paramsKey(params moqIsLoggingFn_params, anyParams uint64) moqIsLoggingFn_paramsKey {
+	m.scene.T.Helper()
 	return moqIsLoggingFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},

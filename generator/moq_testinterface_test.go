@@ -264,6 +264,7 @@ func (r *moqTestInterface_something_fnRecorder) doReturnResults(fn moqTestInterf
 }
 
 func (r *moqTestInterface_something_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -341,6 +342,7 @@ func (m *moqTestInterface) prettyParams_something(params moqTestInterface_someth
 }
 
 func (m *moqTestInterface) paramsKey_something(params moqTestInterface_something_params, anyParams uint64) moqTestInterface_something_paramsKey {
+	m.scene.T.Helper()
 	return moqTestInterface_something_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
