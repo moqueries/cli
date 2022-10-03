@@ -118,6 +118,7 @@ func newMoqGenerateFn(scene *moq.Scene, config *moq.Config) *moqGenerateFn {
 // mock returns the moq implementation of the GenerateFn type
 func (m *moqGenerateFn) mock() internal.GenerateFn {
 	return func(reqs ...generator.GenerateRequest) error {
+		m.scene.T.Helper()
 		moq := &moqGenerateFn_mock{moq: m}
 		return moq.fn(reqs...)
 	}
@@ -279,6 +280,7 @@ func (r *moqGenerateFn_fnRecorder) doReturnResults(fn moqGenerateFn_doReturnFn) 
 }
 
 func (r *moqGenerateFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -358,6 +360,7 @@ func (m *moqGenerateFn) prettyParams(params moqGenerateFn_params) string {
 }
 
 func (m *moqGenerateFn) paramsKey(params moqGenerateFn_params, anyParams uint64) moqGenerateFn_paramsKey {
+	m.scene.T.Helper()
 	var reqsUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.reqs == moq.ParamIndexByValue {

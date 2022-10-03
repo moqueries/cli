@@ -415,6 +415,7 @@ func (r *moqWriteCloser_Write_fnRecorder) doReturnResults(fn moqWriteCloser_Writ
 }
 
 func (r *moqWriteCloser_Write_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -495,6 +496,7 @@ func (m *moqWriteCloser) prettyParams_Write(params moqWriteCloser_Write_params) 
 }
 
 func (m *moqWriteCloser) paramsKey_Write(params moqWriteCloser_Write_params, anyParams uint64) moqWriteCloser_Write_paramsKey {
+	m.scene.T.Helper()
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.Write.p == moq.ParamIndexByValue {
@@ -606,6 +608,7 @@ func (r *moqWriteCloser_Close_fnRecorder) doReturnResults(fn moqWriteCloser_Clos
 }
 
 func (r *moqWriteCloser_Close_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -685,6 +688,7 @@ func (m *moqWriteCloser) prettyParams_Close(params moqWriteCloser_Close_params) 
 }
 
 func (m *moqWriteCloser) paramsKey_Close(params moqWriteCloser_Close_params, anyParams uint64) moqWriteCloser_Close_paramsKey {
+	m.scene.T.Helper()
 	return moqWriteCloser_Close_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},

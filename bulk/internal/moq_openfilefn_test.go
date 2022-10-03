@@ -139,6 +139,7 @@ func newMoqOpenFileFn(scene *moq.Scene, config *moq.Config) *moqOpenFileFn {
 // mock returns the moq implementation of the OpenFileFn type
 func (m *moqOpenFileFn) mock() internal.OpenFileFn {
 	return func(name string, flag int, perm os.FileMode) (internal.ReadWriteSeekCloser, error) {
+		m.scene.T.Helper()
 		moq := &moqOpenFileFn_mock{moq: m}
 		return moq.fn(name, flag, perm)
 	}
@@ -319,6 +320,7 @@ func (r *moqOpenFileFn_fnRecorder) doReturnResults(fn moqOpenFileFn_doReturnFn) 
 }
 
 func (r *moqOpenFileFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -399,6 +401,7 @@ func (m *moqOpenFileFn) prettyParams(params moqOpenFileFn_params) string {
 }
 
 func (m *moqOpenFileFn) paramsKey(params moqOpenFileFn_params, anyParams uint64) moqOpenFileFn_paramsKey {
+	m.scene.T.Helper()
 	var nameUsed string
 	var nameUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

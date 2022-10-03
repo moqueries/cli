@@ -551,6 +551,7 @@ func (r *moqStore_AllWidgetsIds_fnRecorder) doReturnResults(fn moqStore_AllWidge
 }
 
 func (r *moqStore_AllWidgetsIds_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -631,6 +632,7 @@ func (m *moqStore) prettyParams_AllWidgetsIds(params moqStore_AllWidgetsIds_para
 }
 
 func (m *moqStore) paramsKey_AllWidgetsIds(params moqStore_AllWidgetsIds_params, anyParams uint64) moqStore_AllWidgetsIds_paramsKey {
+	m.scene.T.Helper()
 	return moqStore_AllWidgetsIds_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -744,6 +746,7 @@ func (r *moqStore_GadgetsByWidgetId_fnRecorder) doReturnResults(fn moqStore_Gadg
 }
 
 func (r *moqStore_GadgetsByWidgetId_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -824,6 +827,7 @@ func (m *moqStore) prettyParams_GadgetsByWidgetId(params moqStore_GadgetsByWidge
 }
 
 func (m *moqStore) paramsKey_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId_params, anyParams uint64) moqStore_GadgetsByWidgetId_paramsKey {
+	m.scene.T.Helper()
 	var widgetIdUsed int
 	var widgetIdUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -956,6 +960,7 @@ func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) doReturnResults(fn moqStore
 }
 
 func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1036,6 +1041,7 @@ func (m *moqStore) prettyParams_LightGadgetsByWidgetId(params moqStore_LightGadg
 }
 
 func (m *moqStore) paramsKey_LightGadgetsByWidgetId(params moqStore_LightGadgetsByWidgetId_params, anyParams uint64) moqStore_LightGadgetsByWidgetId_paramsKey {
+	m.scene.T.Helper()
 	var widgetIdUsed int
 	var widgetIdUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

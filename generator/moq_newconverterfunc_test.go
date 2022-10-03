@@ -129,6 +129,7 @@ func newMoqNewConverterFunc(scene *moq.Scene, config *moq.Config) *moqNewConvert
 // mock returns the moq implementation of the NewConverterFunc type
 func (m *moqNewConverterFunc) mock() generator.NewConverterFunc {
 	return func(typ generator.Type, export bool) generator.Converterer {
+		m.scene.T.Helper()
 		moq := &moqNewConverterFunc_mock{moq: m}
 		return moq.fn(typ, export)
 	}
@@ -297,6 +298,7 @@ func (r *moqNewConverterFunc_fnRecorder) doReturnResults(fn moqNewConverterFunc_
 }
 
 func (r *moqNewConverterFunc_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -376,6 +378,7 @@ func (m *moqNewConverterFunc) prettyParams(params moqNewConverterFunc_params) st
 }
 
 func (m *moqNewConverterFunc) paramsKey(params moqNewConverterFunc_params, anyParams uint64) moqNewConverterFunc_paramsKey {
+	m.scene.T.Helper()
 	var typUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.typ == moq.ParamIndexByValue {

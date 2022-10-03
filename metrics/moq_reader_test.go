@@ -300,6 +300,7 @@ func (r *moqReader_Read_fnRecorder) doReturnResults(fn moqReader_Read_doReturnFn
 }
 
 func (r *moqReader_Read_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -380,6 +381,7 @@ func (m *moqReader) prettyParams_Read(params moqReader_Read_params) string {
 }
 
 func (m *moqReader) paramsKey_Read(params moqReader_Read_params, anyParams uint64) moqReader_Read_paramsKey {
+	m.scene.T.Helper()
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.Read.p == moq.ParamIndexByValue {

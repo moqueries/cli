@@ -127,6 +127,7 @@ func newMoqLoadFn(scene *moq.Scene, config *moq.Config) *moqLoadFn {
 // mock returns the moq implementation of the LoadFn type
 func (m *moqLoadFn) mock() ast.LoadFn {
 	return func(cfg *packages.Config, patterns ...string) ([]*packages.Package, error) {
+		m.scene.T.Helper()
 		moq := &moqLoadFn_mock{moq: m}
 		return moq.fn(cfg, patterns...)
 	}
@@ -300,6 +301,7 @@ func (r *moqLoadFn_fnRecorder) doReturnResults(fn moqLoadFn_doReturnFn) *moqLoad
 }
 
 func (r *moqLoadFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -380,6 +382,7 @@ func (m *moqLoadFn) prettyParams(params moqLoadFn_params) string {
 }
 
 func (m *moqLoadFn) paramsKey(params moqLoadFn_params, anyParams uint64) moqLoadFn_paramsKey {
+	m.scene.T.Helper()
 	var cfgUsed *packages.Config
 	var cfgUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

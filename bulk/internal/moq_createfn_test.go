@@ -116,7 +116,11 @@ func newMoqCreateFn(scene *moq.Scene, config *moq.Config) *moqCreateFn {
 
 // mock returns the moq implementation of the CreateFn type
 func (m *moqCreateFn) mock() internal.CreateFn {
-	return func(name string) (_ io.WriteCloser, _ error) { moq := &moqCreateFn_mock{moq: m}; return moq.fn(name) }
+	return func(name string) (_ io.WriteCloser, _ error) {
+		m.scene.T.Helper()
+		moq := &moqCreateFn_mock{moq: m}
+		return moq.fn(name)
+	}
 }
 
 func (m *moqCreateFn_mock) fn(name string) (file io.WriteCloser, err error) {
@@ -280,6 +284,7 @@ func (r *moqCreateFn_fnRecorder) doReturnResults(fn moqCreateFn_doReturnFn) *moq
 }
 
 func (r *moqCreateFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -360,6 +365,7 @@ func (m *moqCreateFn) prettyParams(params moqCreateFn_params) string {
 }
 
 func (m *moqCreateFn) paramsKey(params moqCreateFn_params, anyParams uint64) moqCreateFn_paramsKey {
+	m.scene.T.Helper()
 	var nameUsed string
 	var nameUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

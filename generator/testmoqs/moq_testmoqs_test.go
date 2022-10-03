@@ -130,6 +130,7 @@ func newMoqUsualFn(scene *moq.Scene, config *moq.Config) *moqUsualFn {
 // mock returns the moq implementation of the UsualFn type
 func (m *moqUsualFn) mock() testmoqs.UsualFn {
 	return func(sParam string, bParam bool) (_ string, _ error) {
+		m.scene.T.Helper()
 		moq := &moqUsualFn_mock{moq: m}
 		return moq.fn(sParam, bParam)
 	}
@@ -303,6 +304,7 @@ func (r *moqUsualFn_fnRecorder) doReturnResults(fn moqUsualFn_doReturnFn) *moqUs
 }
 
 func (r *moqUsualFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -383,6 +385,7 @@ func (m *moqUsualFn) prettyParams(params moqUsualFn_params) string {
 }
 
 func (m *moqUsualFn) paramsKey(params moqUsualFn_params, anyParams uint64) moqUsualFn_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -554,6 +557,7 @@ func newMoqNoNamesFn(scene *moq.Scene, config *moq.Config) *moqNoNamesFn {
 // mock returns the moq implementation of the NoNamesFn type
 func (m *moqNoNamesFn) mock() testmoqs.NoNamesFn {
 	return func(param1 string, param2 bool) (string, error) {
+		m.scene.T.Helper()
 		moq := &moqNoNamesFn_mock{moq: m}
 		return moq.fn(param1, param2)
 	}
@@ -727,6 +731,7 @@ func (r *moqNoNamesFn_fnRecorder) doReturnResults(fn moqNoNamesFn_doReturnFn) *m
 }
 
 func (r *moqNoNamesFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -807,6 +812,7 @@ func (m *moqNoNamesFn) prettyParams(params moqNoNamesFn_params) string {
 }
 
 func (m *moqNoNamesFn) paramsKey(params moqNoNamesFn_params, anyParams uint64) moqNoNamesFn_paramsKey {
+	m.scene.T.Helper()
 	var param1Used string
 	var param1UsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -974,7 +980,11 @@ func newMoqNoResultsFn(scene *moq.Scene, config *moq.Config) *moqNoResultsFn {
 
 // mock returns the moq implementation of the NoResultsFn type
 func (m *moqNoResultsFn) mock() testmoqs.NoResultsFn {
-	return func(sParam string, bParam bool) { moq := &moqNoResultsFn_mock{moq: m}; moq.fn(sParam, bParam) }
+	return func(sParam string, bParam bool) {
+		m.scene.T.Helper()
+		moq := &moqNoResultsFn_mock{moq: m}
+		moq.fn(sParam, bParam)
+	}
 }
 
 func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
@@ -1129,6 +1139,7 @@ func (r *moqNoResultsFn_fnRecorder) doReturnResults(fn moqNoResultsFn_doReturnFn
 }
 
 func (r *moqNoResultsFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1206,6 +1217,7 @@ func (m *moqNoResultsFn) prettyParams(params moqNoResultsFn_params) string {
 }
 
 func (m *moqNoResultsFn) paramsKey(params moqNoResultsFn_params, anyParams uint64) moqNoResultsFn_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1355,7 +1367,7 @@ func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
 
 // mock returns the moq implementation of the NoParamsFn type
 func (m *moqNoParamsFn) mock() testmoqs.NoParamsFn {
-	return func() (_ string, _ error) { moq := &moqNoParamsFn_mock{moq: m}; return moq.fn() }
+	return func() (_ string, _ error) { m.scene.T.Helper(); moq := &moqNoParamsFn_mock{moq: m}; return moq.fn() }
 }
 
 func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
@@ -1510,6 +1522,7 @@ func (r *moqNoParamsFn_fnRecorder) doReturnResults(fn moqNoParamsFn_doReturnFn) 
 }
 
 func (r *moqNoParamsFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1590,6 +1603,7 @@ func (m *moqNoParamsFn) prettyParams(params moqNoParamsFn_params) string {
 }
 
 func (m *moqNoParamsFn) paramsKey(params moqNoParamsFn_params, anyParams uint64) moqNoParamsFn_paramsKey {
+	m.scene.T.Helper()
 	return moqNoParamsFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -1706,7 +1720,7 @@ func newMoqNothingFn(scene *moq.Scene, config *moq.Config) *moqNothingFn {
 
 // mock returns the moq implementation of the NothingFn type
 func (m *moqNothingFn) mock() testmoqs.NothingFn {
-	return func() { moq := &moqNothingFn_mock{moq: m}; moq.fn() }
+	return func() { m.scene.T.Helper(); moq := &moqNothingFn_mock{moq: m}; moq.fn() }
 }
 
 func (m *moqNothingFn_mock) fn() {
@@ -1845,6 +1859,7 @@ func (r *moqNothingFn_fnRecorder) doReturnResults(fn moqNothingFn_doReturnFn) *m
 }
 
 func (r *moqNothingFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1922,6 +1937,7 @@ func (m *moqNothingFn) prettyParams(params moqNothingFn_params) string {
 }
 
 func (m *moqNothingFn) paramsKey(params moqNothingFn_params, anyParams uint64) moqNothingFn_paramsKey {
+	m.scene.T.Helper()
 	return moqNothingFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -2060,6 +2076,7 @@ func newMoqVariadicFn(scene *moq.Scene, config *moq.Config) *moqVariadicFn {
 // mock returns the moq implementation of the VariadicFn type
 func (m *moqVariadicFn) mock() testmoqs.VariadicFn {
 	return func(other bool, args ...string) (_ string, _ error) {
+		m.scene.T.Helper()
 		moq := &moqVariadicFn_mock{moq: m}
 		return moq.fn(other, args...)
 	}
@@ -2233,6 +2250,7 @@ func (r *moqVariadicFn_fnRecorder) doReturnResults(fn moqVariadicFn_doReturnFn) 
 }
 
 func (r *moqVariadicFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2313,6 +2331,7 @@ func (m *moqVariadicFn) prettyParams(params moqVariadicFn_params) string {
 }
 
 func (m *moqVariadicFn) paramsKey(params moqVariadicFn_params, anyParams uint64) moqVariadicFn_paramsKey {
+	m.scene.T.Helper()
 	var otherUsed bool
 	var otherUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2483,6 +2502,7 @@ func newMoqRepeatedIdsFn(scene *moq.Scene, config *moq.Config) *moqRepeatedIdsFn
 // mock returns the moq implementation of the RepeatedIdsFn type
 func (m *moqRepeatedIdsFn) mock() testmoqs.RepeatedIdsFn {
 	return func(sParam1, sParam2 string, bParam bool) (_, _ string, _ error) {
+		m.scene.T.Helper()
 		moq := &moqRepeatedIdsFn_mock{moq: m}
 		return moq.fn(sParam1, sParam2, bParam)
 	}
@@ -2665,6 +2685,7 @@ func (r *moqRepeatedIdsFn_fnRecorder) doReturnResults(fn moqRepeatedIdsFn_doRetu
 }
 
 func (r *moqRepeatedIdsFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2745,6 +2766,7 @@ func (m *moqRepeatedIdsFn) prettyParams(params moqRepeatedIdsFn_params) string {
 }
 
 func (m *moqRepeatedIdsFn) paramsKey(params moqRepeatedIdsFn_params, anyParams uint64) moqRepeatedIdsFn_paramsKey {
+	m.scene.T.Helper()
 	var sParam1Used string
 	var sParam1UsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2925,6 +2947,7 @@ func newMoqTimesFn(scene *moq.Scene, config *moq.Config) *moqTimesFn {
 // mock returns the moq implementation of the TimesFn type
 func (m *moqTimesFn) mock() testmoqs.TimesFn {
 	return func(times string, bParam bool) (_ string, _ error) {
+		m.scene.T.Helper()
 		moq := &moqTimesFn_mock{moq: m}
 		return moq.fn(times, bParam)
 	}
@@ -3098,6 +3121,7 @@ func (r *moqTimesFn_fnRecorder) doReturnResults(fn moqTimesFn_doReturnFn) *moqTi
 }
 
 func (r *moqTimesFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -3178,6 +3202,7 @@ func (m *moqTimesFn) prettyParams(params moqTimesFn_params) string {
 }
 
 func (m *moqTimesFn) paramsKey(params moqTimesFn_params, anyParams uint64) moqTimesFn_paramsKey {
+	m.scene.T.Helper()
 	var timesUsed string
 	var timesUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -3386,6 +3411,7 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 // mock returns the moq implementation of the DifficultParamNamesFn type
 func (m *moqDifficultParamNamesFn) mock() testmoqs.DifficultParamNamesFn {
 	return func(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) {
+		m.scene.T.Helper()
 		moq := &moqDifficultParamNamesFn_mock{moq: m}
 		moq.fn(param1, param2, param3, param, param5, param6, param7, param8, param9)
 	}
@@ -3592,6 +3618,7 @@ func (r *moqDifficultParamNamesFn_fnRecorder) doReturnResults(fn moqDifficultPar
 }
 
 func (r *moqDifficultParamNamesFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -3669,6 +3696,7 @@ func (m *moqDifficultParamNamesFn) prettyParams(params moqDifficultParamNamesFn_
 }
 
 func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_params, anyParams uint64) moqDifficultParamNamesFn_paramsKey {
+	m.scene.T.Helper()
 	var param1Used bool
 	var param1UsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -3908,6 +3936,7 @@ func newMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *moqDiff
 // mock returns the moq implementation of the DifficultResultNamesFn type
 func (m *moqDifficultResultNamesFn) mock() testmoqs.DifficultResultNamesFn {
 	return func() (_, _ string, _ error, _, _, _ int, _, _, _ float32) {
+		m.scene.T.Helper()
 		moq := &moqDifficultResultNamesFn_mock{moq: m}
 		return moq.fn()
 	}
@@ -4085,6 +4114,7 @@ func (r *moqDifficultResultNamesFn_fnRecorder) doReturnResults(fn moqDifficultRe
 }
 
 func (r *moqDifficultResultNamesFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -4167,6 +4197,7 @@ func (m *moqDifficultResultNamesFn) prettyParams(params moqDifficultResultNamesF
 }
 
 func (m *moqDifficultResultNamesFn) paramsKey(params moqDifficultResultNamesFn_params, anyParams uint64) moqDifficultResultNamesFn_paramsKey {
+	m.scene.T.Helper()
 	return moqDifficultResultNamesFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -4301,6 +4332,7 @@ func newMoqPassByReferenceFn(scene *moq.Scene, config *moq.Config) *moqPassByRef
 // mock returns the moq implementation of the PassByReferenceFn type
 func (m *moqPassByReferenceFn) mock() testmoqs.PassByReferenceFn {
 	return func(p *testmoqs.PassByReferenceParams) (_ string, _ error) {
+		m.scene.T.Helper()
 		moq := &moqPassByReferenceFn_mock{moq: m}
 		return moq.fn(p)
 	}
@@ -4467,6 +4499,7 @@ func (r *moqPassByReferenceFn_fnRecorder) doReturnResults(fn moqPassByReferenceF
 }
 
 func (r *moqPassByReferenceFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -4547,6 +4580,7 @@ func (m *moqPassByReferenceFn) prettyParams(params moqPassByReferenceFn_params) 
 }
 
 func (m *moqPassByReferenceFn) paramsKey(params moqPassByReferenceFn_params, anyParams uint64) moqPassByReferenceFn_paramsKey {
+	m.scene.T.Helper()
 	var pUsed *testmoqs.PassByReferenceParams
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -4691,7 +4725,11 @@ func newMoqInterfaceParamFn(scene *moq.Scene, config *moq.Config) *moqInterfaceP
 
 // mock returns the moq implementation of the InterfaceParamFn type
 func (m *moqInterfaceParamFn) mock() testmoqs.InterfaceParamFn {
-	return func(w io.Writer) (_ string, _ error) { moq := &moqInterfaceParamFn_mock{moq: m}; return moq.fn(w) }
+	return func(w io.Writer) (_ string, _ error) {
+		m.scene.T.Helper()
+		moq := &moqInterfaceParamFn_mock{moq: m}
+		return moq.fn(w)
+	}
 }
 
 func (m *moqInterfaceParamFn_mock) fn(w io.Writer) (sResult string, err error) {
@@ -4855,6 +4893,7 @@ func (r *moqInterfaceParamFn_fnRecorder) doReturnResults(fn moqInterfaceParamFn_
 }
 
 func (r *moqInterfaceParamFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -4935,6 +4974,7 @@ func (m *moqInterfaceParamFn) prettyParams(params moqInterfaceParamFn_params) st
 }
 
 func (m *moqInterfaceParamFn) paramsKey(params moqInterfaceParamFn_params, anyParams uint64) moqInterfaceParamFn_paramsKey {
+	m.scene.T.Helper()
 	var wUsed io.Writer
 	var wUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -5088,6 +5128,7 @@ func newMoqInterfaceResultFn(scene *moq.Scene, config *moq.Config) *moqInterface
 // mock returns the moq implementation of the InterfaceResultFn type
 func (m *moqInterfaceResultFn) mock() testmoqs.InterfaceResultFn {
 	return func(sParam string, bParam bool) (_ io.Reader) {
+		m.scene.T.Helper()
 		moq := &moqInterfaceResultFn_mock{moq: m}
 		return moq.fn(sParam, bParam)
 	}
@@ -5250,6 +5291,7 @@ func (r *moqInterfaceResultFn_fnRecorder) doReturnResults(fn moqInterfaceResultF
 }
 
 func (r *moqInterfaceResultFn_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -5327,6 +5369,7 @@ func (m *moqInterfaceResultFn) prettyParams(params moqInterfaceResultFn_params) 
 }
 
 func (m *moqInterfaceResultFn) paramsKey(params moqInterfaceResultFn_params, anyParams uint64) moqInterfaceResultFn_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -7310,6 +7353,7 @@ func (r *moqUsual_Usual_fnRecorder) doReturnResults(fn moqUsual_Usual_doReturnFn
 }
 
 func (r *moqUsual_Usual_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -7390,6 +7434,7 @@ func (m *moqUsual) prettyParams_Usual(params moqUsual_Usual_params) string {
 }
 
 func (m *moqUsual) paramsKey_Usual(params moqUsual_Usual_params, anyParams uint64) moqUsual_Usual_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -7539,6 +7584,7 @@ func (r *moqUsual_NoNames_fnRecorder) doReturnResults(fn moqUsual_NoNames_doRetu
 }
 
 func (r *moqUsual_NoNames_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -7619,6 +7665,7 @@ func (m *moqUsual) prettyParams_NoNames(params moqUsual_NoNames_params) string {
 }
 
 func (m *moqUsual) paramsKey_NoNames(params moqUsual_NoNames_params, anyParams uint64) moqUsual_NoNames_paramsKey {
+	m.scene.T.Helper()
 	var param1Used string
 	var param1UsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -7756,6 +7803,7 @@ func (r *moqUsual_NoResults_fnRecorder) doReturnResults(fn moqUsual_NoResults_do
 }
 
 func (r *moqUsual_NoResults_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -7833,6 +7881,7 @@ func (m *moqUsual) prettyParams_NoResults(params moqUsual_NoResults_params) stri
 }
 
 func (m *moqUsual) paramsKey_NoResults(params moqUsual_NoResults_params, anyParams uint64) moqUsual_NoResults_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -7969,6 +8018,7 @@ func (r *moqUsual_NoParams_fnRecorder) doReturnResults(fn moqUsual_NoParams_doRe
 }
 
 func (r *moqUsual_NoParams_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -8049,6 +8099,7 @@ func (m *moqUsual) prettyParams_NoParams(params moqUsual_NoParams_params) string
 }
 
 func (m *moqUsual) paramsKey_NoParams(params moqUsual_NoParams_params, anyParams uint64) moqUsual_NoParams_paramsKey {
+	m.scene.T.Helper()
 	return moqUsual_NoParams_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -8143,6 +8194,7 @@ func (r *moqUsual_Nothing_fnRecorder) doReturnResults(fn moqUsual_Nothing_doRetu
 }
 
 func (r *moqUsual_Nothing_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -8220,6 +8272,7 @@ func (m *moqUsual) prettyParams_Nothing(params moqUsual_Nothing_params) string {
 }
 
 func (m *moqUsual) paramsKey_Nothing(params moqUsual_Nothing_params, anyParams uint64) moqUsual_Nothing_paramsKey {
+	m.scene.T.Helper()
 	return moqUsual_Nothing_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -8339,6 +8392,7 @@ func (r *moqUsual_Variadic_fnRecorder) doReturnResults(fn moqUsual_Variadic_doRe
 }
 
 func (r *moqUsual_Variadic_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -8419,6 +8473,7 @@ func (m *moqUsual) prettyParams_Variadic(params moqUsual_Variadic_params) string
 }
 
 func (m *moqUsual) paramsKey_Variadic(params moqUsual_Variadic_params, anyParams uint64) moqUsual_Variadic_paramsKey {
+	m.scene.T.Helper()
 	var otherUsed bool
 	var otherUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -8569,6 +8624,7 @@ func (r *moqUsual_RepeatedIds_fnRecorder) doReturnResults(fn moqUsual_RepeatedId
 }
 
 func (r *moqUsual_RepeatedIds_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -8649,6 +8705,7 @@ func (m *moqUsual) prettyParams_RepeatedIds(params moqUsual_RepeatedIds_params) 
 }
 
 func (m *moqUsual) paramsKey_RepeatedIds(params moqUsual_RepeatedIds_params, anyParams uint64) moqUsual_RepeatedIds_paramsKey {
+	m.scene.T.Helper()
 	var sParam1Used string
 	var sParam1UsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -8809,6 +8866,7 @@ func (r *moqUsual_Times_fnRecorder) doReturnResults(fn moqUsual_Times_doReturnFn
 }
 
 func (r *moqUsual_Times_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -8889,6 +8947,7 @@ func (m *moqUsual) prettyParams_Times(params moqUsual_Times_params) string {
 }
 
 func (m *moqUsual) paramsKey_Times(params moqUsual_Times_params, anyParams uint64) moqUsual_Times_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -9068,6 +9127,7 @@ func (r *moqUsual_DifficultParamNames_fnRecorder) doReturnResults(fn moqUsual_Di
 }
 
 func (r *moqUsual_DifficultParamNames_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -9145,6 +9205,7 @@ func (m *moqUsual) prettyParams_DifficultParamNames(params moqUsual_DifficultPar
 }
 
 func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamNames_params, anyParams uint64) moqUsual_DifficultParamNames_paramsKey {
+	m.scene.T.Helper()
 	var param1Used bool
 	var param1UsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -9375,6 +9436,7 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) doReturnResults(fn moqUsual_D
 }
 
 func (r *moqUsual_DifficultResultNames_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -9457,6 +9519,7 @@ func (m *moqUsual) prettyParams_DifficultResultNames(params moqUsual_DifficultRe
 }
 
 func (m *moqUsual) paramsKey_DifficultResultNames(params moqUsual_DifficultResultNames_params, anyParams uint64) moqUsual_DifficultResultNames_paramsKey {
+	m.scene.T.Helper()
 	return moqUsual_DifficultResultNames_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -9570,6 +9633,7 @@ func (r *moqUsual_PassByReference_fnRecorder) doReturnResults(fn moqUsual_PassBy
 }
 
 func (r *moqUsual_PassByReference_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -9650,6 +9714,7 @@ func (m *moqUsual) prettyParams_PassByReference(params moqUsual_PassByReference_
 }
 
 func (m *moqUsual) paramsKey_PassByReference(params moqUsual_PassByReference_params, anyParams uint64) moqUsual_PassByReference_paramsKey {
+	m.scene.T.Helper()
 	var pUsed *testmoqs.PassByReferenceParams
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -9778,6 +9843,7 @@ func (r *moqUsual_InterfaceParam_fnRecorder) doReturnResults(fn moqUsual_Interfa
 }
 
 func (r *moqUsual_InterfaceParam_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -9858,6 +9924,7 @@ func (m *moqUsual) prettyParams_InterfaceParam(params moqUsual_InterfaceParam_pa
 }
 
 func (m *moqUsual) paramsKey_InterfaceParam(params moqUsual_InterfaceParam_params, anyParams uint64) moqUsual_InterfaceParam_paramsKey {
+	m.scene.T.Helper()
 	var wUsed io.Writer
 	var wUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -9980,6 +10047,7 @@ func (r *moqUsual_InterfaceResult_fnRecorder) doReturnResults(fn moqUsual_Interf
 }
 
 func (r *moqUsual_InterfaceResult_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -10057,6 +10125,7 @@ func (m *moqUsual) prettyParams_InterfaceResult(params moqUsual_InterfaceResult_
 }
 
 func (m *moqUsual) paramsKey_InterfaceResult(params moqUsual_InterfaceResult_params, anyParams uint64) moqUsual_InterfaceResult_paramsKey {
+	m.scene.T.Helper()
 	var sParamUsed string
 	var sParamUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

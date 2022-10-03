@@ -116,7 +116,7 @@ func newMoqIsFavorite(scene *moq.Scene, config *moq.Config) *moqIsFavorite {
 
 // mock returns the moq implementation of the IsFavorite type
 func (m *moqIsFavorite) mock() demo.IsFavorite {
-	return func(n int) bool { moq := &moqIsFavorite_mock{moq: m}; return moq.fn(n) }
+	return func(n int) bool { m.scene.T.Helper(); moq := &moqIsFavorite_mock{moq: m}; return moq.fn(n) }
 }
 
 func (m *moqIsFavorite_mock) fn(n int) (result1 bool) {
@@ -275,6 +275,7 @@ func (r *moqIsFavorite_fnRecorder) doReturnResults(fn moqIsFavorite_doReturnFn) 
 }
 
 func (r *moqIsFavorite_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -354,6 +355,7 @@ func (m *moqIsFavorite) prettyParams(params moqIsFavorite_params) string {
 }
 
 func (m *moqIsFavorite) paramsKey(params moqIsFavorite_params, anyParams uint64) moqIsFavorite_paramsKey {
+	m.scene.T.Helper()
 	var nUsed int
 	var nUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {

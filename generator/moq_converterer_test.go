@@ -1360,6 +1360,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) doReturnResults(fn moqConverterer
 }
 
 func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1437,6 +1438,7 @@ func (m *moqConverterer) prettyParams_BaseStruct(params moqConverterer_BaseStruc
 }
 
 func (m *moqConverterer) paramsKey_BaseStruct(params moqConverterer_BaseStruct_params, anyParams uint64) moqConverterer_BaseStruct_paramsKey {
+	m.scene.T.Helper()
 	return moqConverterer_BaseStruct_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -1540,6 +1542,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) doReturnResults(fn moqConver
 }
 
 func (r *moqConverterer_IsolationStruct_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1617,6 +1620,7 @@ func (m *moqConverterer) prettyParams_IsolationStruct(params moqConverterer_Isol
 }
 
 func (m *moqConverterer) paramsKey_IsolationStruct(params moqConverterer_IsolationStruct_params, anyParams uint64) moqConverterer_IsolationStruct_paramsKey {
+	m.scene.T.Helper()
 	var suffixUsed string
 	var suffixUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1743,6 +1747,7 @@ func (r *moqConverterer_MethodStructs_fnRecorder) doReturnResults(fn moqConverte
 }
 
 func (r *moqConverterer_MethodStructs_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -1823,6 +1828,7 @@ func (m *moqConverterer) prettyParams_MethodStructs(params moqConverterer_Method
 }
 
 func (m *moqConverterer) paramsKey_MethodStructs(params moqConverterer_MethodStructs_params, anyParams uint64) moqConverterer_MethodStructs_paramsKey {
+	m.scene.T.Helper()
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -1932,6 +1938,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) doReturnResults(fn moqConverterer_Ne
 }
 
 func (r *moqConverterer_NewFunc_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2009,6 +2016,7 @@ func (m *moqConverterer) prettyParams_NewFunc(params moqConverterer_NewFunc_para
 }
 
 func (m *moqConverterer) paramsKey_NewFunc(params moqConverterer_NewFunc_params, anyParams uint64) moqConverterer_NewFunc_paramsKey {
+	m.scene.T.Helper()
 	return moqConverterer_NewFunc_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -2118,6 +2126,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) doReturnResults(fn moqConv
 }
 
 func (r *moqConverterer_IsolationAccessor_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2195,6 +2204,7 @@ func (m *moqConverterer) prettyParams_IsolationAccessor(params moqConverterer_Is
 }
 
 func (m *moqConverterer) paramsKey_IsolationAccessor(params moqConverterer_IsolationAccessor_params, anyParams uint64) moqConverterer_IsolationAccessor_paramsKey {
+	m.scene.T.Helper()
 	var suffixUsed string
 	var suffixUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2322,6 +2332,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) doReturnResults(fn moqConvertere
 }
 
 func (r *moqConverterer_FuncClosure_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2399,6 +2410,7 @@ func (m *moqConverterer) prettyParams_FuncClosure(params moqConverterer_FuncClos
 }
 
 func (m *moqConverterer) paramsKey_FuncClosure(params moqConverterer_FuncClosure_params, anyParams uint64) moqConverterer_FuncClosure_paramsKey {
+	m.scene.T.Helper()
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2515,6 +2527,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) doReturnResults(fn moqConverterer
 }
 
 func (r *moqConverterer_MockMethod_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2592,6 +2605,7 @@ func (m *moqConverterer) prettyParams_MockMethod(params moqConverterer_MockMetho
 }
 
 func (m *moqConverterer) paramsKey_MockMethod(params moqConverterer_MockMethod_params, anyParams uint64) moqConverterer_MockMethod_paramsKey {
+	m.scene.T.Helper()
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2708,6 +2722,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) doReturnResults(fn moqConver
 }
 
 func (r *moqConverterer_RecorderMethods_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2785,6 +2800,7 @@ func (m *moqConverterer) prettyParams_RecorderMethods(params moqConverterer_Reco
 }
 
 func (m *moqConverterer) paramsKey_RecorderMethods(params moqConverterer_RecorderMethods_params, anyParams uint64) moqConverterer_RecorderMethods_paramsKey {
+	m.scene.T.Helper()
 	var fnUsed generator.Func
 	var fnUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
@@ -2894,6 +2910,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) doReturnResults(fn moqConvertere
 }
 
 func (r *moqConverterer_ResetMethod_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -2971,6 +2988,7 @@ func (m *moqConverterer) prettyParams_ResetMethod(params moqConverterer_ResetMet
 }
 
 func (m *moqConverterer) paramsKey_ResetMethod(params moqConverterer_ResetMethod_params, anyParams uint64) moqConverterer_ResetMethod_paramsKey {
+	m.scene.T.Helper()
 	return moqConverterer_ResetMethod_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -3067,6 +3085,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) doReturnResults(fn moqConverter
 }
 
 func (r *moqConverterer_AssertMethod_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -3144,6 +3163,7 @@ func (m *moqConverterer) prettyParams_AssertMethod(params moqConverterer_AssertM
 }
 
 func (m *moqConverterer) paramsKey_AssertMethod(params moqConverterer_AssertMethod_params, anyParams uint64) moqConverterer_AssertMethod_paramsKey {
+	m.scene.T.Helper()
 	return moqConverterer_AssertMethod_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},

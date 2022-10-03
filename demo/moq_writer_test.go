@@ -300,6 +300,7 @@ func (r *moqWriter_Write_fnRecorder) doReturnResults(fn moqWriter_Write_doReturn
 }
 
 func (r *moqWriter_Write_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -380,6 +381,7 @@ func (m *moqWriter) prettyParams_Write(params moqWriter_Write_params) string {
 }
 
 func (m *moqWriter) paramsKey_Write(params moqWriter_Write_params, anyParams uint64) moqWriter_Write_paramsKey {
+	m.scene.T.Helper()
 	var pUsedHash hash.Hash
 	if anyParams&(1<<0) == 0 {
 		if m.runtime.parameterIndexing.Write.p == moq.ParamIndexByValue {

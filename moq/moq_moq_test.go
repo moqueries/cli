@@ -367,6 +367,7 @@ func (r *moqMoq_Reset_fnRecorder) doReturnResults(fn moqMoq_Reset_doReturnFn) *m
 }
 
 func (r *moqMoq_Reset_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -442,6 +443,7 @@ func (r *moqMoq_Reset_fnRecorder) repeat(repeaters ...moq.Repeater) *moqMoq_Rese
 func (m *moqMoq) prettyParams_Reset(params moqMoq_Reset_params) string { return fmt.Sprintf("Reset()") }
 
 func (m *moqMoq) paramsKey_Reset(params moqMoq_Reset_params, anyParams uint64) moqMoq_Reset_paramsKey {
+	m.scene.T.Helper()
 	return moqMoq_Reset_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -536,6 +538,7 @@ func (r *moqMoq_AssertExpectationsMet_fnRecorder) doReturnResults(fn moqMoq_Asse
 }
 
 func (r *moqMoq_AssertExpectationsMet_fnRecorder) findResults() {
+	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
 		return
@@ -613,6 +616,7 @@ func (m *moqMoq) prettyParams_AssertExpectationsMet(params moqMoq_AssertExpectat
 }
 
 func (m *moqMoq) paramsKey_AssertExpectationsMet(params moqMoq_AssertExpectationsMet_params, anyParams uint64) moqMoq_AssertExpectationsMet_paramsKey {
+	m.scene.T.Helper()
 	return moqMoq_AssertExpectationsMet_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
