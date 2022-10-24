@@ -40,7 +40,7 @@ type GenerateRequest struct {
 }
 
 // ErrNonExported is returned by Generate when ErrorOnNonExported is set to
-// to true and any function or parameter is not exported in any generated code.
+// true and any function or parameter is not exported in any generated code.
 var ErrNonExported = errors.New("non-exported types")
 
 // Generate generates a moq

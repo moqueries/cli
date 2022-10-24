@@ -4,7 +4,9 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/dave/dst"
@@ -13,6 +15,10 @@ import (
 	"github.com/myshkin5/moqueries/logs"
 	"github.com/myshkin5/moqueries/metrics"
 )
+
+// ErrSkipTooManyPackageDirs is returned by Generate when skipPkgDirs requests
+// that more directories should be skipped than directories observed
+var ErrSkipTooManyPackageDirs = errors.New("skipping too many package dirs")
 
 //go:generate moqueries TypeCache
 
@@ -34,6 +40,7 @@ func Generate(
 	mProcessor metrics.Metrics,
 	genFn GenerateWithTypeCacheFn,
 	destDir string,
+	skipPkgDirs int,
 	pkgPatterns []string,
 ) error {
 	start := time.Now()
@@ -49,12 +56,16 @@ func Generate(
 
 	for _, id := range typs {
 		pkgDestDir := filepath.Join(destDir, id.Path)
+		pkgDestDir, err := skipDirs(pkgDestDir, skipPkgDirs)
+		if err != nil {
+			return err
+		}
 		logs.Debugf("Package generating,"+
 			" destination-dir: %s,"+
 			" type: %s",
 			pkgDestDir, id.String())
 
-		err := genFn(cache, generator.GenerateRequest{
+		err = genFn(cache, generator.GenerateRequest{
 			Types:              []string{id.Name},
 			Export:             true,
 			DestinationDir:     pkgDestDir,
@@ -75,4 +86,21 @@ func Generate(
 	mProcessor.Finalize()
 
 	return nil
+}
+
+func skipDirs(dir string, skipDirs int) (string, error) {
+	orig := dir
+	for n := 0; n < skipDirs; n++ {
+		if dir == "." {
+			return "", fmt.Errorf("%w: skipping %d directories on %s path",
+				ErrSkipTooManyPackageDirs, skipDirs, orig)
+		}
+		idx := strings.Index(dir, string(filepath.Separator))
+		if idx == -1 {
+			dir = "."
+		} else {
+			dir = dir[idx+1:]
+		}
+	}
+	return dir, nil
 }

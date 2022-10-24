@@ -12,11 +12,11 @@ import (
 )
 
 // Generate generates mocks for several packages at once
-func Generate(destinationDir string, pkgPatterns ...string) error {
+func Generate(destinationDir string, skipPkgDirs int, pkgPatterns ...string) error {
 	m := metrics.NewMetrics(logs.IsDebug, logs.Debugf)
 	cache := ast.NewCache(packages.Load, m)
 
-	err := internal.Generate(cache, m, generator.GenerateWithTypeCache, destinationDir, pkgPatterns)
+	err := internal.Generate(cache, m, generator.GenerateWithTypeCache, destinationDir, skipPkgDirs, pkgPatterns)
 	if err != nil {
 		return err
 	}

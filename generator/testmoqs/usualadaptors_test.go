@@ -1496,6 +1496,7 @@ func (a *difficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams
 }
 
 func (a *difficultParamNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	//nolint: dupword // not a comment
 	return fmt.Sprintf("DifficultParamNames(%#v, false, %#v, 0, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
@@ -1592,6 +1593,7 @@ func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(
 }
 
 func (a *exportedDifficultParamNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
+	//nolint: dupword // not a comment
 	return fmt.Sprintf("DifficultParamNames(%#v, false, %#v, 0, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
