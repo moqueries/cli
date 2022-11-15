@@ -26,9 +26,8 @@ var ErrInvalidConfig = errors.New("invalid configuration")
 
 // Type describes the type being converted into a mock
 type Type struct {
-	TypeSpec   *dst.TypeSpec
+	TypeInfo   ast.TypeInfo
 	Funcs      []Func
-	InPkgPath  string
 	OutPkgPath string
 }
 
@@ -46,7 +45,7 @@ type NewConverterFunc func(typ Type, export bool) Converterer
 
 // Converterer is the interface used by MoqGenerator to invoke a Converter
 type Converterer interface {
-	BaseStruct() (structDecl *dst.GenDecl)
+	BaseDecls() (baseDecls []dst.Decl)
 	IsolationStruct(suffix string) (structDecl *dst.GenDecl)
 	MethodStructs(fn Func) (structDecls []dst.Decl, err error)
 	NewFunc() (funcDecl *dst.FuncDecl)
@@ -78,6 +77,7 @@ func New(
 	}
 }
 
+// MoqResponse contains the results of generating a mock
 type MoqResponse struct {
 	File       *dst.File
 	DestPath   string
@@ -106,25 +106,36 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 
 	var decls []dst.Decl
 	for _, inType := range req.Types {
-		if req.ErrorOnNonExported && !dst.IsExported(inType) {
-			return MoqResponse{}, fmt.Errorf("%w: %s mocked type is not exported", ErrNonExported, inType)
-		}
-
-		typeSpec, inPkgPath, err := g.typeCache.Type(
-			*ast.IdPath(inType, imp), req.TestImport)
+		id := ast.IdPath(inType, imp)
+		typeInfo, err := g.typeCache.Type(*id, imp, req.TestImport)
 		if err != nil {
 			return MoqResponse{}, err
 		}
 
-		funcs, tErr := g.findFuncs(typeSpec, req.ErrorOnNonExported)
+		if req.ExcludeNonExported && !typeInfo.Exported {
+			return MoqResponse{}, fmt.Errorf("%w: %s mocked type is not exported", ErrNonExported, id.String())
+		}
+
+		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported}
+		tErr := g.findFuncs(typeInfo.Type, fInfo)
 		if tErr != nil {
 			return MoqResponse{}, tErr
 		}
 
+		if req.ExcludeNonExported && fInfo.reduced {
+			if len(fInfo.funcs) == 0 {
+				return MoqResponse{}, fmt.Errorf("%w: type %s only contains non-exported types",
+					ErrNonExported, id.String())
+			}
+
+			logs.Warnf("Mock implementation removed non-exported"+
+				" methods for %s because ExcludeNonExported was set",
+				id.String())
+		}
+
 		typ := Type{
-			TypeSpec:   typeSpec,
-			Funcs:      funcs,
-			InPkgPath:  inPkgPath,
+			TypeInfo:   typeInfo,
+			Funcs:      fInfo.funcs,
 			OutPkgPath: outPkgPath,
 		}
 		converter := g.newConverterFn(typ, req.Export)
@@ -137,7 +148,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 
 		decls = append(decls, converter.NewFunc())
 
-		decls = append(decls, g.methods(converter, typ, funcs)...)
+		decls = append(decls, g.methods(converter, typ, fInfo.funcs)...)
 
 		decls = append(decls, converter.ResetMethod())
 
@@ -219,140 +230,6 @@ func importPath(imp, relPath string) string {
 	return "./" + imp
 }
 
-func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, errorOnNonExported bool) ([]Func, error) {
-	switch typ := typeSpec.Type.(type) {
-	case *dst.InterfaceType:
-		return g.loadNestedInterfaces(typ, errorOnNonExported)
-	case *dst.FuncType:
-		return []Func{
-			{
-				Params:  typ.Params,
-				Results: typ.Results,
-			},
-		}, nil
-	case *dst.Ident:
-		var funcs []Func
-		return g.loadTypeEquivalent(funcs, typ, errorOnNonExported)
-	default:
-		logs.Panicf("Unknown type: %v", typeSpec.Type)
-		panic("unreachable")
-	}
-}
-
-func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, errorOnNonExported bool) ([]Func, error) {
-	var funcs []Func
-
-	for _, method := range iType.Methods.List {
-		switch typ := method.Type.(type) {
-		case *dst.FuncType:
-			if errorOnNonExported && !method.Names[0].IsExported() {
-				return nil, fmt.Errorf(
-					"%w: %s method is not exported", ErrNonExported, method.Names[0].Name)
-			}
-			funcs = append(funcs, Func{
-				Name:    method.Names[0].Name,
-				Params:  typ.Params,
-				Results: typ.Results,
-			})
-		case *dst.Ident:
-			var err error
-			funcs, err = g.loadTypeEquivalent(funcs, typ, errorOnNonExported)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			logs.Panicf("Unknown type in interface method list: %v", method.Type)
-		}
-	}
-
-	return funcs, nil
-}
-
-func (g *MoqGenerator) loadTypeEquivalent(funcs []Func, id *dst.Ident, errorOnNonExported bool) ([]Func, error) {
-	nestedType, _, err := g.typeCache.Type(*id, false)
-	if err != nil {
-		return nil, err
-	}
-
-	isError := nestedType.Name.Name == "error" && nestedType.Name.Path == ""
-	if errorOnNonExported && !nestedType.Name.IsExported() && !isError {
-		return nil, fmt.Errorf("%w: %s embedded type is not exported",
-			ErrNonExported, nestedType.Name.String())
-	}
-
-	newFuncs, err := g.findFuncs(nestedType, errorOnNonExported)
-	if err != nil {
-		return nil, err
-	}
-	funcs = append(funcs, newFuncs...)
-
-	return funcs, nil
-}
-
-func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, error) {
-	decls := []dst.Decl{
-		converter.BaseStruct(),
-		converter.IsolationStruct(mockIdent),
-	}
-
-	_, iOk := typ.TypeSpec.Type.(*dst.InterfaceType)
-	_, aOk := typ.TypeSpec.Type.(*dst.Ident)
-	if iOk || aOk {
-		decls = append(decls, converter.IsolationStruct(recorderIdent))
-	}
-
-	for _, fn := range typ.Funcs {
-		structs, err := converter.MethodStructs(fn)
-		if err != nil {
-			return nil, err
-		}
-		decls = append(decls, structs...)
-	}
-
-	return decls, nil
-}
-
-func (g *MoqGenerator) methods(
-	converter Converterer, typ Type, funcs []Func,
-) []dst.Decl {
-	var decls []dst.Decl
-
-	switch typ.TypeSpec.Type.(type) {
-	case *dst.InterfaceType, *dst.Ident:
-		decls = append(
-			decls, converter.IsolationAccessor(mockIdent, mockFnName))
-
-		for _, fn := range funcs {
-			decls = append(decls, converter.MockMethod(fn))
-		}
-
-		decls = append(
-			decls, converter.IsolationAccessor(recorderIdent, onCallFnName))
-
-		for _, fn := range funcs {
-			decls = append(decls, converter.RecorderMethods(fn)...)
-		}
-	case *dst.FuncType:
-		if len(funcs) != 1 {
-			logs.Panicf("Function moqs should have just one function, found: %d",
-				len(funcs))
-		}
-
-		decls = append(
-			decls, converter.FuncClosure(funcs[0]))
-
-		decls = append(
-			decls, converter.MockMethod(funcs[0]))
-
-		decls = append(
-			decls, converter.RecorderMethods(funcs[0])...)
-	default:
-		logs.Panicf("Unknown type: %v", typ.TypeSpec.Type)
-	}
-
-	return decls
-}
-
 func destinationPath(req GenerateRequest, relPath string) (string, error) {
 	if req.Export && strings.HasSuffix(req.Destination, "_test.go") {
 		logs.Warn("Exported moq in a test file will not be accessible in" +
@@ -389,4 +266,188 @@ func destinationPath(req GenerateRequest, relPath string) (string, error) {
 	}
 
 	return filepath.Join(relPath, req.DestinationDir, destPath), nil
+}
+
+type funcInfo struct {
+	excludeNonExported bool
+	funcs              []Func
+	reduced            bool
+}
+
+func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error {
+	switch typ := typeSpec.Type.(type) {
+	case *dst.InterfaceType:
+		return g.loadNestedInterfaces(typ, typeSpec.Name.Path, fInfo)
+	case *dst.FuncType:
+		fInfo.funcs = append(fInfo.funcs, Func{
+			Params:  typ.Params,
+			Results: typ.Results,
+		})
+		return nil
+	case *dst.Ident:
+		return g.loadTypeEquivalent(typ, typeSpec.Name.Path, fInfo)
+	default:
+		logs.Panicf("Unknown type: %v", typeSpec.Type)
+		panic("unreachable")
+	}
+}
+
+func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg string, fInfo *funcInfo) error {
+	for _, method := range iType.Methods.List {
+		switch typ := method.Type.(type) {
+		case *dst.FuncType:
+			fn := Func{
+				Name:    method.Names[0].Name,
+				Params:  typ.Params,
+				Results: typ.Results,
+			}
+
+			if fInfo.excludeNonExported {
+				fully, err := g.isFnFullyExported(fn, contextPkg)
+				if err != nil {
+					return err
+				}
+
+				if !fully {
+					fInfo.reduced = true
+					continue
+				}
+			}
+
+			fInfo.funcs = append(fInfo.funcs, fn)
+		case *dst.Ident:
+			var err error
+			err = g.loadTypeEquivalent(typ, contextPkg, fInfo)
+			if err != nil {
+				return err
+			}
+		default:
+			logs.Panicf("Unknown type in interface method list: %v", method.Type)
+		}
+	}
+
+	return nil
+}
+
+func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, contextPkg string, fInfo *funcInfo) error {
+	nestedType, err := g.typeCache.Type(*id, contextPkg, false)
+	if err != nil {
+		return err
+	}
+
+	if fInfo.excludeNonExported && !nestedType.Exported {
+		fInfo.reduced = true
+		return nil
+	}
+
+	err = g.findFuncs(nestedType.Type, fInfo)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *MoqGenerator) isFnFullyExported(fn Func, contextPkg string) (bool, error) {
+	if !dst.IsExported(fn.Name) {
+		return false, nil
+	}
+
+	ex, err := g.isFieldListFullyExported(fn.Params, contextPkg)
+	if err != nil || !ex {
+		return ex, err
+	}
+	ex, err = g.isFieldListFullyExported(fn.Results, contextPkg)
+	if err != nil || !ex {
+		return ex, err
+	}
+
+	return true, nil
+}
+
+func (g *MoqGenerator) isFieldListFullyExported(fl *dst.FieldList, contextPkg string) (bool, error) {
+	if fl == nil {
+		return true, nil
+	}
+
+	for _, f := range fl.List {
+		switch typ := f.Type.(type) {
+		case *dst.Ident:
+			if typ.IsExported() {
+				// Quick check if exported. If not exported, need to get the
+				// actual type from the type cache. For instance, IsExported
+				// returns false for primitive types but the cache works around
+				// this.
+				continue
+			}
+			subType, err := g.typeCache.Type(*typ, contextPkg, false)
+			if err != nil || !subType.Exported {
+				return false, err
+			}
+		}
+	}
+
+	return true, nil
+}
+
+func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, error) {
+	decls := converter.BaseDecls()
+	decls = append(decls, converter.IsolationStruct(mockIdent))
+
+	_, iOk := typ.TypeInfo.Type.Type.(*dst.InterfaceType)
+	_, aOk := typ.TypeInfo.Type.Type.(*dst.Ident)
+	if iOk || aOk {
+		decls = append(decls, converter.IsolationStruct(recorderIdent))
+	}
+
+	for _, fn := range typ.Funcs {
+		structs, err := converter.MethodStructs(fn)
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, structs...)
+	}
+
+	return decls, nil
+}
+
+func (g *MoqGenerator) methods(
+	converter Converterer, typ Type, funcs []Func,
+) []dst.Decl {
+	var decls []dst.Decl
+
+	switch typ.TypeInfo.Type.Type.(type) {
+	case *dst.InterfaceType, *dst.Ident:
+		decls = append(
+			decls, converter.IsolationAccessor(mockIdent, mockFnName))
+
+		for _, fn := range funcs {
+			decls = append(decls, converter.MockMethod(fn))
+		}
+
+		decls = append(
+			decls, converter.IsolationAccessor(recorderIdent, onCallFnName))
+
+		for _, fn := range funcs {
+			decls = append(decls, converter.RecorderMethods(fn)...)
+		}
+	case *dst.FuncType:
+		if len(funcs) != 1 {
+			logs.Panicf("Function moqs should have just one function, found: %d",
+				len(funcs))
+		}
+
+		decls = append(
+			decls, converter.FuncClosure(funcs[0]))
+
+		decls = append(
+			decls, converter.MockMethod(funcs[0]))
+
+		decls = append(
+			decls, converter.RecorderMethods(funcs[0])...)
+	default:
+		logs.Panicf("Unknown type: %v", typ.TypeInfo.Type.Type)
+	}
+
+	return decls
 }

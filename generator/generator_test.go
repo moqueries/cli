@@ -73,27 +73,39 @@ func TestGenerating(t *testing.T) {
 	t.Run("dumps the DST of a moq", func(t *testing.T) {
 		t.SkipNow()
 		filePath := "./moq_usual_test.go"
-		outPath := "./moq_usual_test_dst.txt"
+		outPath := "./dst.txt"
 
 		fSet := token.NewFileSet()
+		// inFile, err := parser.ParseDir(fSet, filePath, nil, parser.AllErrors)
 		inFile, err := parser.ParseFile(fSet, filePath, nil, parser.ParseComments)
 		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
+			t.Errorf("got %#v, want no err", err)
 		}
 
+		// pkgs, err := packages.Load(&packages.Config{
+		// 	Mode: packages.NeedName |
+		// 		packages.NeedFiles |
+		// 		packages.NeedCompiledGoFiles |
+		// 		packages.NeedImports |
+		// 		packages.NeedTypes |
+		// 		packages.NeedSyntax |
+		// 		packages.NeedTypesInfo |
+		// 		packages.NeedTypesSizes,
+		// 	Tests: false,
+		// }, filePath)
 		dstFile, err := decorator.DecorateFile(fSet, inFile)
 		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
+			t.Errorf("got %#v, want no err", err)
 		}
 
 		outFile, err := os.Create(outPath)
 		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
+			t.Errorf("got %#v, want no err", err)
 		}
 
 		err = dst.Fprint(outFile, dstFile, dst.NotNilFilter)
 		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
+			t.Errorf("got %#v, want no err", err)
 		}
 	})
 }

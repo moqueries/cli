@@ -19,7 +19,7 @@ type moqConverterer struct {
 	config moq.Config
 	moq    *moqConverterer_mock
 
-	resultsByParams_BaseStruct        []moqConverterer_BaseStruct_resultsByParams
+	resultsByParams_BaseDecls         []moqConverterer_BaseDecls_resultsByParams
 	resultsByParams_IsolationStruct   []moqConverterer_IsolationStruct_resultsByParams
 	resultsByParams_MethodStructs     []moqConverterer_MethodStructs_resultsByParams
 	resultsByParams_NewFunc           []moqConverterer_NewFunc_resultsByParams
@@ -32,7 +32,7 @@ type moqConverterer struct {
 
 	runtime struct {
 		parameterIndexing struct {
-			BaseStruct      struct{}
+			BaseDecls       struct{}
 			IsolationStruct struct {
 				suffix moq.ParamIndexing
 			}
@@ -70,59 +70,59 @@ type moqConverterer_recorder struct {
 	moq *moqConverterer
 }
 
-// moqConverterer_BaseStruct_params holds the params of the Converterer type
-type moqConverterer_BaseStruct_params struct{}
+// moqConverterer_BaseDecls_params holds the params of the Converterer type
+type moqConverterer_BaseDecls_params struct{}
 
-// moqConverterer_BaseStruct_paramsKey holds the map key params of the
+// moqConverterer_BaseDecls_paramsKey holds the map key params of the
 // Converterer type
-type moqConverterer_BaseStruct_paramsKey struct {
+type moqConverterer_BaseDecls_paramsKey struct {
 	params struct{}
 	hashes struct{}
 }
 
-// moqConverterer_BaseStruct_resultsByParams contains the results for a given
+// moqConverterer_BaseDecls_resultsByParams contains the results for a given
 // set of parameters for the Converterer type
-type moqConverterer_BaseStruct_resultsByParams struct {
+type moqConverterer_BaseDecls_resultsByParams struct {
 	anyCount  int
 	anyParams uint64
-	results   map[moqConverterer_BaseStruct_paramsKey]*moqConverterer_BaseStruct_results
+	results   map[moqConverterer_BaseDecls_paramsKey]*moqConverterer_BaseDecls_results
 }
 
-// moqConverterer_BaseStruct_doFn defines the type of function needed when
+// moqConverterer_BaseDecls_doFn defines the type of function needed when
 // calling andDo for the Converterer type
-type moqConverterer_BaseStruct_doFn func()
+type moqConverterer_BaseDecls_doFn func()
 
-// moqConverterer_BaseStruct_doReturnFn defines the type of function needed
-// when calling doReturnResults for the Converterer type
-type moqConverterer_BaseStruct_doReturnFn func() (structDecl *dst.GenDecl)
+// moqConverterer_BaseDecls_doReturnFn defines the type of function needed when
+// calling doReturnResults for the Converterer type
+type moqConverterer_BaseDecls_doReturnFn func() (baseDecls []dst.Decl)
 
-// moqConverterer_BaseStruct_results holds the results of the Converterer type
-type moqConverterer_BaseStruct_results struct {
-	params  moqConverterer_BaseStruct_params
+// moqConverterer_BaseDecls_results holds the results of the Converterer type
+type moqConverterer_BaseDecls_results struct {
+	params  moqConverterer_BaseDecls_params
 	results []struct {
-		values     *struct{ structDecl *dst.GenDecl }
+		values     *struct{ baseDecls []dst.Decl }
 		sequence   uint32
-		doFn       moqConverterer_BaseStruct_doFn
-		doReturnFn moqConverterer_BaseStruct_doReturnFn
+		doFn       moqConverterer_BaseDecls_doFn
+		doReturnFn moqConverterer_BaseDecls_doReturnFn
 	}
 	index  uint32
 	repeat *moq.RepeatVal
 }
 
-// moqConverterer_BaseStruct_fnRecorder routes recorded function calls to the
+// moqConverterer_BaseDecls_fnRecorder routes recorded function calls to the
 // moqConverterer moq
-type moqConverterer_BaseStruct_fnRecorder struct {
-	params    moqConverterer_BaseStruct_params
+type moqConverterer_BaseDecls_fnRecorder struct {
+	params    moqConverterer_BaseDecls_params
 	anyParams uint64
 	sequence  bool
-	results   *moqConverterer_BaseStruct_results
+	results   *moqConverterer_BaseDecls_results
 	moq       *moqConverterer
 }
 
-// moqConverterer_BaseStruct_anyParams isolates the any params functions of the
+// moqConverterer_BaseDecls_anyParams isolates the any params functions of the
 // Converterer type
-type moqConverterer_BaseStruct_anyParams struct {
-	recorder *moqConverterer_BaseStruct_fnRecorder
+type moqConverterer_BaseDecls_anyParams struct {
+	recorder *moqConverterer_BaseDecls_fnRecorder
 }
 
 // moqConverterer_IsolationStruct_params holds the params of the Converterer
@@ -643,7 +643,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 
 		runtime: struct {
 			parameterIndexing struct {
-				BaseStruct      struct{}
+				BaseDecls       struct{}
 				IsolationStruct struct {
 					suffix moq.ParamIndexing
 				}
@@ -668,7 +668,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 				AssertMethod struct{}
 			}
 		}{parameterIndexing: struct {
-			BaseStruct      struct{}
+			BaseDecls       struct{}
 			IsolationStruct struct {
 				suffix moq.ParamIndexing
 			}
@@ -692,7 +692,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 			ResetMethod  struct{}
 			AssertMethod struct{}
 		}{
-			BaseStruct: struct{}{},
+			BaseDecls: struct{}{},
 			IsolationStruct: struct {
 				suffix moq.ParamIndexing
 			}{
@@ -739,12 +739,12 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 // mock returns the mock implementation of the Converterer type
 func (m *moqConverterer) mock() *moqConverterer_mock { return m.moq }
 
-func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
+func (m *moqConverterer_mock) BaseDecls() (baseDecls []dst.Decl) {
 	m.moq.scene.T.Helper()
-	params := moqConverterer_BaseStruct_params{}
-	var results *moqConverterer_BaseStruct_results
-	for _, resultsByParams := range m.moq.resultsByParams_BaseStruct {
-		paramsKey := m.moq.paramsKey_BaseStruct(params, resultsByParams.anyParams)
+	params := moqConverterer_BaseDecls_params{}
+	var results *moqConverterer_BaseDecls_results
+	for _, resultsByParams := range m.moq.resultsByParams_BaseDecls {
+		paramsKey := m.moq.paramsKey_BaseDecls(params, resultsByParams.anyParams)
 		var ok bool
 		results, ok = resultsByParams.results[paramsKey]
 		if ok {
@@ -753,7 +753,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	}
 	if results == nil {
 		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_BaseStruct(params))
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_BaseDecls(params))
 		}
 		return
 	}
@@ -762,7 +762,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	if i >= results.repeat.ResultCount {
 		if !results.repeat.AnyTimes {
 			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_BaseStruct(params))
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_BaseDecls(params))
 			}
 			return
 		}
@@ -773,7 +773,7 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	if result.sequence != 0 {
 		sequence := m.moq.scene.NextMockSequence()
 		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_BaseStruct(params))
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_BaseDecls(params))
 		}
 	}
 
@@ -782,10 +782,10 @@ func (m *moqConverterer_mock) BaseStruct() (structDecl *dst.GenDecl) {
 	}
 
 	if result.values != nil {
-		structDecl = result.values.structDecl
+		baseDecls = result.values.baseDecls
 	}
 	if result.doReturnFn != nil {
-		structDecl = result.doReturnFn()
+		baseDecls = result.doReturnFn()
 	}
 	return
 }
@@ -1270,44 +1270,44 @@ func (m *moqConverterer) onCall() *moqConverterer_recorder {
 	}
 }
 
-func (m *moqConverterer_recorder) BaseStruct() *moqConverterer_BaseStruct_fnRecorder {
-	return &moqConverterer_BaseStruct_fnRecorder{
-		params:   moqConverterer_BaseStruct_params{},
+func (m *moqConverterer_recorder) BaseDecls() *moqConverterer_BaseDecls_fnRecorder {
+	return &moqConverterer_BaseDecls_fnRecorder{
+		params:   moqConverterer_BaseDecls_params{},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
 	}
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) any() *moqConverterer_BaseStruct_anyParams {
+func (r *moqConverterer_BaseDecls_fnRecorder) any() *moqConverterer_BaseDecls_anyParams {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseStruct(r.params))
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseDecls(r.params))
 		return nil
 	}
-	return &moqConverterer_BaseStruct_anyParams{recorder: r}
+	return &moqConverterer_BaseDecls_anyParams{recorder: r}
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) seq() *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) seq() *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseStruct(r.params))
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseDecls(r.params))
 		return nil
 	}
 	r.sequence = true
 	return r
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) noSeq() *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) noSeq() *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseStruct(r.params))
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_BaseDecls(r.params))
 		return nil
 	}
 	r.sequence = false
 	return r
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) returnResults(baseDecls []dst.Decl) *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -1317,20 +1317,20 @@ func (r *moqConverterer_BaseStruct_fnRecorder) returnResults(structDecl *dst.Gen
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ structDecl *dst.GenDecl }
+		values     *struct{ baseDecls []dst.Decl }
 		sequence   uint32
-		doFn       moqConverterer_BaseStruct_doFn
-		doReturnFn moqConverterer_BaseStruct_doReturnFn
+		doFn       moqConverterer_BaseDecls_doFn
+		doReturnFn moqConverterer_BaseDecls_doReturnFn
 	}{
-		values: &struct{ structDecl *dst.GenDecl }{
-			structDecl: structDecl,
+		values: &struct{ baseDecls []dst.Decl }{
+			baseDecls: baseDecls,
 		},
 		sequence: sequence,
 	})
 	return r
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) andDo(fn moqConverterer_BaseStruct_doFn) *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) andDo(fn moqConverterer_BaseDecls_doFn) *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
@@ -1341,7 +1341,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) andDo(fn moqConverterer_BaseStruc
 	return r
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) doReturnResults(fn moqConverterer_BaseStruct_doReturnFn) *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) doReturnResults(fn moqConverterer_BaseDecls_doReturnFn) *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -1351,15 +1351,15 @@ func (r *moqConverterer_BaseStruct_fnRecorder) doReturnResults(fn moqConverterer
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ structDecl *dst.GenDecl }
+		values     *struct{ baseDecls []dst.Decl }
 		sequence   uint32
-		doFn       moqConverterer_BaseStruct_doFn
-		doReturnFn moqConverterer_BaseStruct_doReturnFn
+		doFn       moqConverterer_BaseDecls_doFn
+		doReturnFn moqConverterer_BaseDecls_doReturnFn
 	}{sequence: sequence, doReturnFn: fn})
 	return r
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
+func (r *moqConverterer_BaseDecls_fnRecorder) findResults() {
 	r.moq.scene.T.Helper()
 	if r.results != nil {
 		r.results.repeat.Increment(r.moq.scene.T)
@@ -1368,8 +1368,8 @@ func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
 
 	anyCount := bits.OnesCount64(r.anyParams)
 	insertAt := -1
-	var results *moqConverterer_BaseStruct_resultsByParams
-	for n, res := range r.moq.resultsByParams_BaseStruct {
+	var results *moqConverterer_BaseDecls_resultsByParams
+	for n, res := range r.moq.resultsByParams_BaseDecls {
 		if res.anyParams == r.anyParams {
 			results = &res
 			break
@@ -1379,24 +1379,24 @@ func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
 		}
 	}
 	if results == nil {
-		results = &moqConverterer_BaseStruct_resultsByParams{
+		results = &moqConverterer_BaseDecls_resultsByParams{
 			anyCount:  anyCount,
 			anyParams: r.anyParams,
-			results:   map[moqConverterer_BaseStruct_paramsKey]*moqConverterer_BaseStruct_results{},
+			results:   map[moqConverterer_BaseDecls_paramsKey]*moqConverterer_BaseDecls_results{},
 		}
-		r.moq.resultsByParams_BaseStruct = append(r.moq.resultsByParams_BaseStruct, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_BaseStruct) {
-			copy(r.moq.resultsByParams_BaseStruct[insertAt+1:], r.moq.resultsByParams_BaseStruct[insertAt:0])
-			r.moq.resultsByParams_BaseStruct[insertAt] = *results
+		r.moq.resultsByParams_BaseDecls = append(r.moq.resultsByParams_BaseDecls, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_BaseDecls) {
+			copy(r.moq.resultsByParams_BaseDecls[insertAt+1:], r.moq.resultsByParams_BaseDecls[insertAt:0])
+			r.moq.resultsByParams_BaseDecls[insertAt] = *results
 		}
 	}
 
-	paramsKey := r.moq.paramsKey_BaseStruct(r.params, r.anyParams)
+	paramsKey := r.moq.paramsKey_BaseDecls(r.params, r.anyParams)
 
 	var ok bool
 	r.results, ok = results.results[paramsKey]
 	if !ok {
-		r.results = &moqConverterer_BaseStruct_results{
+		r.results = &moqConverterer_BaseDecls_results{
 			params:  r.params,
 			results: nil,
 			index:   0,
@@ -1408,7 +1408,7 @@ func (r *moqConverterer_BaseStruct_fnRecorder) findResults() {
 	r.results.repeat.Increment(r.moq.scene.T)
 }
 
-func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_BaseStruct_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) repeat(repeaters ...moq.Repeater) *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	if r.results == nil {
 		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
@@ -1419,10 +1419,10 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ structDecl *dst.GenDecl }
+				values     *struct{ baseDecls []dst.Decl }
 				sequence   uint32
-				doFn       moqConverterer_BaseStruct_doFn
-				doReturnFn moqConverterer_BaseStruct_doReturnFn
+				doFn       moqConverterer_BaseDecls_doFn
+				doReturnFn moqConverterer_BaseDecls_doReturnFn
 			}{
 				values:   last.values,
 				sequence: r.moq.scene.NextRecorderSequence(),
@@ -1433,13 +1433,13 @@ func (r *moqConverterer_BaseStruct_fnRecorder) repeat(repeaters ...moq.Repeater)
 	return r
 }
 
-func (m *moqConverterer) prettyParams_BaseStruct(params moqConverterer_BaseStruct_params) string {
-	return fmt.Sprintf("BaseStruct()")
+func (m *moqConverterer) prettyParams_BaseDecls(params moqConverterer_BaseDecls_params) string {
+	return fmt.Sprintf("BaseDecls()")
 }
 
-func (m *moqConverterer) paramsKey_BaseStruct(params moqConverterer_BaseStruct_params, anyParams uint64) moqConverterer_BaseStruct_paramsKey {
+func (m *moqConverterer) paramsKey_BaseDecls(params moqConverterer_BaseDecls_params, anyParams uint64) moqConverterer_BaseDecls_paramsKey {
 	m.scene.T.Helper()
-	return moqConverterer_BaseStruct_paramsKey{
+	return moqConverterer_BaseDecls_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
 	}
@@ -3172,7 +3172,7 @@ func (m *moqConverterer) paramsKey_AssertMethod(params moqConverterer_AssertMeth
 
 // Reset resets the state of the moq
 func (m *moqConverterer) Reset() {
-	m.resultsByParams_BaseStruct = nil
+	m.resultsByParams_BaseDecls = nil
 	m.resultsByParams_IsolationStruct = nil
 	m.resultsByParams_MethodStructs = nil
 	m.resultsByParams_NewFunc = nil
@@ -3187,11 +3187,11 @@ func (m *moqConverterer) Reset() {
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqConverterer) AssertExpectationsMet() {
 	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_BaseStruct {
+	for _, res := range m.resultsByParams_BaseDecls {
 		for _, results := range res.results {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_BaseStruct(results.params))
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_BaseDecls(results.params))
 			}
 		}
 	}

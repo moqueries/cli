@@ -9,6 +9,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/generator"
 	"github.com/myshkin5/moqueries/moq"
 )
@@ -114,7 +115,8 @@ func TestConverter(t *testing.T) {
 		}
 	}
 
-	afterEach := func() {
+	afterEach := func(t *testing.T) {
+		t.Helper()
 		scene.AssertExpectationsMet()
 		scene = nil
 	}
@@ -133,24 +135,31 @@ func TestConverter(t *testing.T) {
 		}
 
 		t.Run(name, func(t *testing.T) {
-			t.Run("BaseStruct", func(t *testing.T) {
+			t.Run("BaseDecls", func(t *testing.T) {
 				t.Run("creates a base moq for an interface", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: iSpec,
-						Funcs:    iSpecFuncs,
+						TypeInfo: ast.TypeInfo{
+							Type:    iSpec,
+							PkgPath: "thatmodule/pkg",
+						},
+						Funcs: iSpecFuncs,
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.BaseStruct()
+					decls := converter.BaseDecls()
 
 					// ASSERT
-					if len(decl.Decs.Start) < 1 {
-						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+					if len(decls) != 1 {
+						t.Fatalf("got %#v, want 1 decl", decls)
+					}
+					decl := decls[0].(*dst.GenDecl)
+					if len(decl.Decs.Start) != 1 {
+						t.Errorf("got len %d, wanted 1", len(decl.Decs.Start))
 					}
 					expectedStart := fmt.Sprintf("// %s holds the state of a moq of the PublicInterface type",
 						exported("moqPublicInterface"))
@@ -162,18 +171,22 @@ func TestConverter(t *testing.T) {
 				t.Run("creates a base moq for a function", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: fnSpec,
+						TypeInfo: ast.TypeInfo{Type: fnSpec},
 						Funcs:    fnSpecFuncs,
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.BaseStruct()
+					decls := converter.BaseDecls()
 
 					// ASSERT
+					if len(decls) != 1 {
+						t.Fatalf("got %#v, want 1 decl", decls)
+					}
+					decl := decls[0].(*dst.GenDecl)
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
@@ -189,12 +202,12 @@ func TestConverter(t *testing.T) {
 				t.Run("creates a struct", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: &dst.TypeSpec{
+						TypeInfo: ast.TypeInfo{Type: &dst.TypeSpec{
 							Name: dst.NewIdent("MyInterface"),
-						},
+						}},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
@@ -217,7 +230,7 @@ func TestConverter(t *testing.T) {
 				t.Run("creates structs for a function", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					expectedParams, ok := dst.Clone(func1Params).(*dst.FieldList)
 					if !ok {
@@ -247,7 +260,7 @@ func TestConverter(t *testing.T) {
 						returnResults(true, nil)
 
 					typ := generator.Type{
-						TypeSpec: iSpec,
+						TypeInfo: ast.TypeInfo{Type: iSpec},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
@@ -399,7 +412,7 @@ func TestConverter(t *testing.T) {
 				t.Run("returns a type cache error", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					fn := generator.Func{
 						Name:    "Func1",
@@ -411,7 +424,7 @@ func TestConverter(t *testing.T) {
 						returnResults(false, expectedErr)
 
 					typ := generator.Type{
-						TypeSpec: iSpec,
+						TypeInfo: ast.TypeInfo{Type: iSpec},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
@@ -432,10 +445,10 @@ func TestConverter(t *testing.T) {
 				t.Run("creates a new moq function for an interface", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: iSpec,
+						TypeInfo: ast.TypeInfo{Type: iSpec},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
@@ -456,10 +469,10 @@ func TestConverter(t *testing.T) {
 				t.Run("creates a new moq function for a function", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: fnSpec,
+						TypeInfo: ast.TypeInfo{Type: fnSpec},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
@@ -482,12 +495,12 @@ func TestConverter(t *testing.T) {
 				t.Run("creates a func", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: &dst.TypeSpec{
+						TypeInfo: ast.TypeInfo{Type: &dst.TypeSpec{
 							Name: dst.NewIdent("MyInterface"),
-						},
+						}},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
@@ -508,12 +521,12 @@ func TestConverter(t *testing.T) {
 				t.Run("creates a closure function for a function type", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
-					defer afterEach()
+					defer afterEach(t)
 
 					typ := generator.Type{
-						TypeSpec: &dst.TypeSpec{
+						TypeInfo: ast.TypeInfo{Type: &dst.TypeSpec{
 							Name: dst.NewIdent("MyFn"),
-						},
+						}},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 

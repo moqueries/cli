@@ -35,7 +35,7 @@ func TestAppend(t *testing.T) {
 			"\"import\":\"\"," +
 			"\"test-import\":false," +
 			"\"working-dir\":\"/my-root-dir\"," +
-			"\"error-on-non-exported\":false" +
+			"\"exclude-non-exported\":false" +
 			"}"
 
 		scene         *moq.Scene

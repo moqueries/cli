@@ -106,6 +106,7 @@ const (
 var invalidNames = map[string]struct{}{
 	blankIdent:            {},
 	iIdent:                {},
+	intType:               {},
 	moqReceiverIdent:      {},
 	recorderReceiverIdent: {},
 	sequenceIdent:         {},
@@ -140,8 +141,9 @@ type Func struct {
 	Results *dst.FieldList
 }
 
-// BaseStruct generates the base structure used to store the moq's state
-func (c *Converter) BaseStruct() *dst.GenDecl {
+// BaseDecls generates the base declarations used to store the moq's state and
+// establish the type
+func (c *Converter) BaseDecls() []dst.Decl {
 	mName := c.moqName()
 	moqName := fmt.Sprintf(double, mName, mockIdent)
 
@@ -152,10 +154,11 @@ func (c *Converter) BaseStruct() *dst.GenDecl {
 			Decs(FieldDecs(dst.None, dst.EmptyLine).Obj).Obj,
 	}
 
+	_, isInterface := c.typ.TypeInfo.Type.Type.(*dst.InterfaceType)
 	for _, fn := range c.typ.Funcs {
 		typePrefix := c.typePrefix(fn)
 		fieldSuffix := ""
-		if _, ok := c.typ.TypeSpec.Type.(*dst.InterfaceType); ok {
+		if isInterface {
 			fieldSuffix = sep + fn.Name
 		}
 		fields = append(fields,
@@ -167,9 +170,25 @@ func (c *Converter) BaseStruct() *dst.GenDecl {
 		Names(c.exportId(runtimeIdent)).
 		Decs(FieldDecs(dst.EmptyLine, dst.None).Obj).Obj)
 
-	return TypeDecl(TypeSpec(mName).Type(Struct(fields...)).Obj).
+	var decls []dst.Decl
+
+	if c.typ.TypeInfo.Fabricated {
+		typeName := c.typ.TypeInfo.Type.Name.Name
+		typ := cloneExpr(c.typ.TypeInfo.Type.Type)
+		msg := "emitted when mocking functions directly and not from a function type"
+		if isInterface {
+			msg = "emitted when mocking a collections of methods directly and not from an interface type"
+		}
+		decls = append(decls, TypeDecl(TypeSpec(typeName).Type(typ).Obj).
+			Decs(genDeclDec("// %s is the fabricated implementation type of this mock (%s)",
+				typeName, msg)).Obj)
+	}
+
+	decls = append(decls, TypeDecl(TypeSpec(mName).Type(Struct(fields...)).Obj).
 		Decs(genDeclDec("// %s holds the state of a moq of the %s type",
-			mName, c.typ.TypeSpec.Name.Name)).Obj
+			mName, c.typ.TypeInfo.Type.Name.Name)).Obj)
+
+	return decls
 }
 
 // IsolationStruct generates a struct used to isolate an interface for the moq
@@ -180,7 +199,7 @@ func (c *Converter) IsolationStruct(suffix string) *dst.GenDecl {
 	return TypeDecl(TypeSpec(iName).Type(Struct(Field(Star(Id(mName))).
 		Names(c.exportId(moqIdent)).Obj)).Obj).
 		Decs(genDeclDec("// %s isolates the %s interface of the %s type",
-			iName, suffix, c.typ.TypeSpec.Name.Name)).Obj
+			iName, suffix, c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 // MethodStructs generates a structure for storing a set of parameters or
@@ -211,7 +230,7 @@ func (c *Converter) MethodStructs(fn Func) ([]dst.Decl, error) {
 
 // NewFunc generates a function for constructing a moq
 func (c *Converter) NewFunc() *dst.FuncDecl {
-	fnName := c.export("newMoq" + c.typ.TypeSpec.Name.Name)
+	fnName := c.export("newMoq" + c.typ.TypeInfo.Type.Name.Name)
 	mName := c.moqName()
 	moqName := fmt.Sprintf(double, mName, mockIdent)
 	return Fn(fnName).
@@ -248,7 +267,7 @@ func (c *Converter) NewFunc() *dst.FuncDecl {
 			Return(Id(moqReceiverIdent)),
 		).
 		Decs(fnDeclDec("// %s creates a new moq of the %s type",
-			fnName, c.typ.TypeSpec.Name.Name)).Obj
+			fnName, c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 // IsolationAccessor generates a function to access an isolation interface
@@ -271,7 +290,7 @@ func (c *Converter) IsolationAccessor(suffix, fnName string) *dst.FuncDecl {
 		Results(Field(Star(Id(iName))).Obj).
 		Body(Return(retVal)).
 		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
-			fnName, suffix, c.typ.TypeSpec.Name.Name)).Obj
+			fnName, suffix, c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 // FuncClosure generates a mock implementation of function type wrapped in a
@@ -287,9 +306,14 @@ func (c *Converter) FuncClosure(fn Func) *dst.FuncDecl {
 		fnLitRetStmt = Expr(fnLitCall).Obj
 	}
 
+	resType := c.idPath(c.typ.TypeInfo.Type.Name.Name, c.typ.TypeInfo.Type.Name.Path)
+	if c.typ.TypeInfo.Fabricated {
+		resType = Id(c.typ.TypeInfo.Type.Name.Name)
+	}
+
 	return Fn(c.export(mockFnName)).
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
-		Results(Field(c.idPath(c.typ.TypeSpec.Name.Name, c.typ.TypeSpec.Name.Path)).Obj).
+		Results(Field(resType).Obj).
 		Body(Return(FnLit(FnType(cloneAndNameUnnamed(paramPrefix, fn.Params)).
 			Results(cloneFieldList(fn.Results, true)).Obj).
 			Body(c.helperCallExpr(Id(moqReceiverIdent)),
@@ -302,7 +326,7 @@ func (c *Converter) FuncClosure(fn Func) *dst.FuncDecl {
 				fnLitRetStmt,
 			).Obj)).
 		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
-			c.export(mockFnName), moqIdent, c.typ.TypeSpec.Name.Name)).Obj
+			c.export(mockFnName), moqIdent, c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 // MockMethod generates a mock implementation of a method
@@ -355,7 +379,7 @@ func (c *Converter) ResetMethod() *dst.FuncDecl {
 	var stmts []dst.Stmt
 	for _, fn := range c.typ.Funcs {
 		fieldSuffix := ""
-		if _, ok := c.typ.TypeSpec.Type.(*dst.InterfaceType); ok {
+		if _, ok := c.typ.TypeInfo.Type.Type.(*dst.InterfaceType); ok {
 			fieldSuffix = sep + fn.Name
 		}
 
@@ -380,7 +404,7 @@ func (c *Converter) AssertMethod() *dst.FuncDecl {
 	}
 	for _, fn := range c.typ.Funcs {
 		fieldSuffix := ""
-		if _, ok := c.typ.TypeSpec.Type.(*dst.InterfaceType); ok {
+		if _, ok := c.typ.TypeInfo.Type.Type.(*dst.InterfaceType); ok {
 			fieldSuffix = sep + fn.Name
 		}
 
@@ -570,7 +594,7 @@ func (c *Converter) paramsStructDecl(
 	structName := fmt.Sprintf(double, prefix, label)
 	return TypeDecl(TypeSpec(structName).Type(mStruct).Obj).
 		Decs(genDeclDec("// %s holds the %s of the %s type",
-			structName, goDocDesc, c.typ.TypeSpec.Name.Name)).Obj, nil
+			structName, goDocDesc, c.typ.TypeInfo.Type.Name.Name)).Obj, nil
 }
 
 func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) (*dst.StructType, error) {
@@ -653,7 +677,7 @@ func (c *Converter) resultByParamsStruct(prefix string) *dst.GenDecl {
 	)).Obj).Decs(genDeclDec(
 		"// %s contains the results for a given set of parameters for the %s type",
 		structName,
-		c.typ.TypeSpec.Name.Name)).Obj
+		c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 func (c *Converter) doFuncType(prefix string, params *dst.FieldList) *dst.GenDecl {
@@ -664,7 +688,7 @@ func (c *Converter) doFuncType(prefix string, params *dst.FieldList) *dst.GenDec
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
 			c.export(andDoFnName),
-			c.typ.TypeSpec.Name.Name)).Obj
+			c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
@@ -676,7 +700,7 @@ func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
 			c.export(doReturnResultsFnName),
-			c.typ.TypeSpec.Name.Name)).Obj
+			c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 func (c *Converter) resultsStruct(prefix string, results *dst.FieldList) *dst.GenDecl {
@@ -691,7 +715,7 @@ func (c *Converter) resultsStruct(prefix string, results *dst.FieldList) *dst.Ge
 		Field(Star(c.idPath(repeatValType, moqPkg))).Names(c.exportId(repeatIdent)).Obj,
 	)).Obj).Decs(genDeclDec("// %s holds the results of the %s type",
 		structName,
-		c.typ.TypeSpec.Name.Name)).Obj
+		c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 func (c *Converter) innerResultsStruct(prefix string, results *dst.FieldList) *dst.StructType {
@@ -732,7 +756,7 @@ func (c *Converter) anyParamsStruct(prefix string) *dst.GenDecl {
 	return TypeDecl(TypeSpec(structName).Type(Struct(Field(Star(Id(recStructName))).
 		Names(c.exportId(recorderIdent)).Obj)).Obj).
 		Decs(genDeclDec("// %s isolates the any params functions of the %s type",
-			structName, c.typ.TypeSpec.Name.Name)).Obj
+			structName, c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
 func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt {
@@ -1358,7 +1382,7 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 	fnName := fmt.Sprintf(double, prettyParamsFnName, fn.Name)
 	sfmt := fn.Name + "("
 	if fn.Name == "" {
-		sfmt = c.typ.TypeSpec.Name.Name + "("
+		sfmt = c.typ.TypeInfo.Type.Name.Name + "("
 		params = fmt.Sprintf(double, mName, paramsIdent)
 		fnName = prettyParamsFnName
 	}
@@ -1716,7 +1740,7 @@ func validName(name, prefix string, count int) string {
 }
 
 func (c *Converter) moqName() string {
-	return c.export(moqIdent + titler.String(c.typ.TypeSpec.Name.Name))
+	return c.export(moqIdent + titler.String(c.typ.TypeInfo.Type.Name.Name))
 }
 
 func (c *Converter) export(name string) string {
@@ -1733,7 +1757,7 @@ func (c *Converter) exportId(name string) *dst.Ident {
 func (c *Converter) idPath(name, path string) *dst.Ident {
 	switch path {
 	case "":
-		return IdPath(name, c.typ.InPkgPath)
+		return IdPath(name, c.typ.TypeInfo.PkgPath)
 	case c.typ.OutPkgPath:
 		return Id(name)
 	default:

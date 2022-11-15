@@ -21,9 +21,10 @@ import (
 
 const (
 	builtinPkg = "builtin"
-	errorType  = "error"
 
-	testPkgSuffix = "_test"
+	genTypeSuffix     = "_genType"
+	starGenTypeSuffix = "_starGenType"
+	testPkgSuffix     = "_test"
 )
 
 // LoadFn is the function type of packages.Load
@@ -38,18 +39,31 @@ var (
 	ErrInvalidType = errors.New("type did not have expected format")
 )
 
-// Cache loads types from the AST and caches the results
+// Cache loads packages from the AST and caches the results
 type Cache struct {
 	load    LoadFn
 	metrics metrics.Metrics
 
-	typesByIdent map[string]*typInfo
-	loadedPkgs   map[string]*pkgInfo
+	typesByIdent       map[string]*typInfo
+	funcDeclsByIdent   map[string]*funcDeclInfo
+	methodDeclsByIdent map[string]*methodDeclInfo
+	loadedPkgs         map[string]*pkgInfo
 }
 
 type typInfo struct {
 	id  dst.Ident
 	typ *dst.TypeSpec
+}
+
+type methodDeclInfo struct {
+	id    dst.Ident
+	recv  *dst.Expr
+	funcs []*funcDeclInfo
+}
+
+type funcDeclInfo struct {
+	id  dst.Ident
+	typ *dst.FuncType
 }
 
 type pkgInfo struct {
@@ -64,23 +78,37 @@ func NewCache(load LoadFn, metrics metrics.Metrics) *Cache {
 		load:    load,
 		metrics: metrics,
 
-		typesByIdent: make(map[string]*typInfo),
-		loadedPkgs:   make(map[string]*pkgInfo),
+		typesByIdent:       make(map[string]*typInfo),
+		funcDeclsByIdent:   make(map[string]*funcDeclInfo),
+		methodDeclsByIdent: make(map[string]*methodDeclInfo),
+		loadedPkgs:         make(map[string]*pkgInfo),
 	}
 }
 
+// TypeInfo returns all the information the cache holds for a type
+type TypeInfo struct {
+	Type       *dst.TypeSpec
+	PkgPath    string
+	Exported   bool
+	Fabricated bool
+}
+
 // Type returns the requested TypeSpec or an error if the type can't be found
-func (c *Cache) Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error) {
-	if strings.HasSuffix(id.Path, testPkgSuffix) {
+func (c *Cache) Type(id dst.Ident, contextPkg string, testImport bool) (TypeInfo, error) {
+	loadPkg := id.Path
+	if loadPkg == "" {
+		loadPkg = contextPkg
+	}
+	if strings.HasSuffix(loadPkg, testPkgSuffix) {
 		// Strip the _test suffix when loading a package but set testImport so
 		// we know to add it back later
-		id.Path = strings.TrimSuffix(id.Path, testPkgSuffix)
+		loadPkg = strings.TrimSuffix(loadPkg, testPkgSuffix)
 		testImport = true
 	}
 
-	pkgPath, err := c.loadPackage(id.Path, testImport)
+	pkgPath, err := c.loadPackage(loadPkg, testImport)
 	if err != nil {
-		return nil, "", err
+		return TypeInfo{}, err
 	}
 
 	if testImport && !strings.HasSuffix(pkgPath, testPkgSuffix) {
@@ -89,27 +117,60 @@ func (c *Cache) Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, erro
 
 	realId := IdPath(id.Name, pkgPath).String()
 	if typ, ok := c.typesByIdent[realId]; ok {
-		return typ.typ, pkgPath, nil
+		return TypeInfo{
+			Type:       typ.typ,
+			PkgPath:    pkgPath,
+			Exported:   isExported(typ.typ.Name.Name, pkgPath),
+			Fabricated: false,
+		}, nil
+	}
+	if funcDecl, ok := c.funcDeclsByIdent[realId]; ok {
+		return TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: &funcDecl.id,
+				Type: funcDecl.typ,
+			},
+			PkgPath:    pkgPath,
+			Exported:   isExported(funcDecl.id.Name, pkgPath),
+			Fabricated: true,
+		}, nil
+	}
+	if methodDecl, ok := c.methodDeclsByIdent[realId]; ok {
+		return TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: &methodDecl.id,
+				Type: c.fabricateInterfaceType(methodDecl.funcs),
+			},
+			PkgPath:    pkgPath,
+			Exported:   isExported(methodDecl.id.Name, pkgPath),
+			Fabricated: true,
+		}, nil
 	}
 
-	if id.Name != errorType {
-		return nil, "", fmt.Errorf(
+	if id.Path != "" {
+		return TypeInfo{}, fmt.Errorf(
 			"%w: %q (original package %q)", ErrTypeNotFound, realId, id.Path)
 	}
 
-	_, err = c.loadPackage(builtinPkg, false)
+	pkgPath, err = c.loadPackage(builtinPkg, false)
 	if err != nil {
-		return nil, "", err
+		return TypeInfo{}, err
 	}
 
-	realId = IdPath(id.Name, "").String()
+	realId = IdPath(id.Name, pkgPath).String()
 	typ, ok := c.typesByIdent[realId]
 	if !ok {
-		return nil, "", fmt.Errorf(
+		return TypeInfo{}, fmt.Errorf(
 			"%w: %q (original package %q)", ErrTypeNotFound, realId, id.Path)
 	}
 
-	return typ.typ, "", nil
+	return TypeInfo{
+		Type: typ.typ,
+		// PkgPath for builtin types is always empty
+		PkgPath:    "",
+		Exported:   isExported(typ.typ.Name.Name, builtinPkg),
+		Fabricated: false,
+	}, nil
 }
 
 // IsComparable determines if an expression is comparable
@@ -153,15 +214,42 @@ func (c *Cache) LoadPackage(pkgPattern string) error {
 
 // MockableTypes returns all the mockable types loaded so far
 func (c *Cache) MockableTypes(onlyExported bool) []dst.Ident {
+	filterOut := func(id dst.Ident) bool {
+		dir := id.Path
+		var file string
+		internal := false
+		vendor := false
+		const (
+			internalPkg = "internal"
+			vendorPkg   = "vendor"
+		)
+		for {
+			dir, file = filepath.Split(dir)
+			dir = filepath.Clean(dir)
+			if dir == internalPkg || file == internalPkg {
+				internal = true
+				break
+			}
+			if dir == vendorPkg || file == vendorPkg {
+				vendor = true
+				break
+			}
+			if dir == "." {
+				break
+			}
+		}
+		if internal || vendor {
+			return true
+		}
+
+		return false
+	}
+
 	var typs []dst.Ident
 	for _, typ := range c.typesByIdent {
 		_, okInterface := typ.typ.Type.(*dst.InterfaceType)
 		_, okFunc := typ.typ.Type.(*dst.FuncType)
 		if !okInterface && !okFunc {
-			continue
-		}
-
-		if strings.HasPrefix(typ.id.Path, "vendor/") {
 			continue
 		}
 
@@ -173,26 +261,35 @@ func (c *Cache) MockableTypes(onlyExported bool) []dst.Ident {
 			continue
 		}
 
-		dir := typ.id.Path
-		var file string
-		internal := false
-		const internalPkg = "internal"
-		for {
-			dir, file = filepath.Split(dir)
-			dir = filepath.Clean(dir)
-			if dir == internalPkg || file == internalPkg {
-				internal = true
-				break
-			}
-			if dir == "." {
-				break
-			}
-		}
-		if internal {
+		if filterOut(typ.id) {
 			continue
 		}
 
 		typs = append(typs, typ.id)
+	}
+
+	for _, funcDecl := range c.funcDeclsByIdent {
+		if funcDecl.id.Path != builtinPkg && onlyExported && !funcDecl.id.IsExported() {
+			continue
+		}
+
+		if filterOut(funcDecl.id) {
+			continue
+		}
+
+		typs = append(typs, funcDecl.id)
+	}
+
+	for _, methodDecl := range c.methodDeclsByIdent {
+		if methodDecl.id.Path != builtinPkg && onlyExported && !methodDecl.id.IsExported() {
+			continue
+		}
+
+		if filterOut(methodDecl.id) {
+			continue
+		}
+
+		typs = append(typs, methodDecl.id)
 	}
 
 	sort.Slice(typs, func(i, j int) bool {
@@ -203,6 +300,17 @@ func (c *Cache) MockableTypes(onlyExported bool) []dst.Ident {
 	})
 
 	return typs
+}
+
+func isExported(name, pkgPath string) bool {
+	if dst.IsExported(name) {
+		return true
+	}
+	if pkgPath == builtinPkg {
+		// builtin types are always exported
+		return true
+	}
+	return false
 }
 
 func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool) (bool, error) {
@@ -240,7 +348,7 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 		if e.Path == "" {
 			// error is the one builtin type that may not be comparable (it's
 			// an interface so return the same result as an interface)
-			if e.Name == errorType {
+			if e.Name == "error" {
 				return interfacePointerDefault, nil
 			}
 
@@ -289,7 +397,15 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 }
 
 func (c *Cache) loadPackage(path string, testImport bool) (string, error) {
-	loadedPkg, ok := c.loadedPkgs[path]
+	indexPath := path
+	if strings.HasPrefix(path, ".") {
+		var err error
+		indexPath, err = filepath.Abs(path)
+		if err != nil {
+			return "", fmt.Errorf("%w: error getting absolute path for %s", err, path)
+		}
+	}
+	loadedPkg, ok := c.loadedPkgs[indexPath]
 	if ok {
 		// If we already loaded the test packages or if the test packages
 		// aren't requested, we're done
@@ -327,30 +443,7 @@ func (c *Cache) loadTypes(loadPkg string, testImport bool) (string, error) {
 			// The first package is the main package (any subsequent packages
 			// are most likely test packages)
 			foundPkg = pkg.pkg.PkgPath
-		}
-		for _, file := range pkg.pkg.Syntax {
-			for _, decl := range file.Decls {
-				if genDecl, ok := decl.(*dst.GenDecl); ok {
-					for _, spec := range genDecl.Specs {
-						if typeSpec, okT := spec.(*dst.TypeSpec); okT {
-							ident := dst.Ident{
-								Name: typeSpec.Name.Name,
-								Path: pkg.pkg.PkgPath,
-							}
-							if typeSpec.Name.Name == errorType && pkg.pkg.PkgPath == builtinPkg {
-								ident = dst.Ident{
-									Name: errorType,
-									Path: "",
-								}
-							}
-							c.typesByIdent[ident.String()] = &typInfo{
-								id:  ident,
-								typ: typeSpec,
-							}
-						}
-					}
-				}
-			}
+			break
 		}
 	}
 
@@ -398,6 +491,18 @@ func (c *Cache) loadAST(loadPkg string, testImport bool) ([]*pkgInfo, error) {
 		if cErr != nil {
 			return nil, cErr
 		}
+
+		for _, file := range p.pkg.Syntax {
+			for _, d := range file.Decls {
+				switch decl := d.(type) {
+				case *dst.GenDecl:
+					c.storeTypeSpecs(decl, p)
+				case *dst.FuncDecl:
+					c.storeFuncDecl(decl, p)
+				}
+			}
+		}
+
 		out = append(out, p)
 	}
 
@@ -419,6 +524,18 @@ func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*
 		},
 	}
 	c.loadedPkgs[pkg.PkgPath] = p
+	absPath, err := findAbsPath(pkg)
+	if err != nil {
+		// If we can't find the absolute path, we swallow the error and don't
+		// add it to the map. This is less efficient but not horrible. In
+		// practice, this seems to only happen with standard library packages
+		// when generating std and unsafe whenever it is referenced.
+		if pkg.PkgPath != "unsafe" {
+			logs.Warnf("Could not find the absolute path of the %s package", pkg.PkgPath)
+		}
+	} else {
+		c.loadedPkgs[absPath] = p
+	}
 	if len(pkg.Syntax) > 0 {
 		// Only decorate files in the GoFiles list. Syntax also has preprocessed cgo files which
 		// break things.
@@ -458,4 +575,96 @@ func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*
 		}
 	}
 	return p, nil
+}
+
+func findAbsPath(pkg *packages.Package) (string, error) {
+	checkList := func(fpaths []string) (string, bool) {
+		if len(fpaths) > 0 {
+			return filepath.Dir(fpaths[0]), true
+		}
+
+		return "", false
+	}
+
+	if absPath, ok := checkList(pkg.GoFiles); ok {
+		return absPath, nil
+	}
+	if absPath, ok := checkList(pkg.CompiledGoFiles); ok {
+		return absPath, nil
+	}
+	if absPath, ok := checkList(pkg.OtherFiles); ok {
+		return absPath, nil
+	}
+
+	return "", fmt.Errorf("could not find absolute path for %s package", pkg.PkgPath)
+}
+
+func (c *Cache) storeTypeSpecs(decl *dst.GenDecl, pkg *pkgInfo) {
+	for _, spec := range decl.Specs {
+		if typeSpec, okT := spec.(*dst.TypeSpec); okT {
+			ident := dst.Ident{
+				Name: typeSpec.Name.Name,
+				Path: pkg.pkg.PkgPath,
+			}
+			c.typesByIdent[ident.String()] = &typInfo{
+				id:  ident,
+				typ: typeSpec,
+			}
+		}
+	}
+}
+
+func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
+	ident := dst.Ident{
+		Name: decl.Name.Name,
+		Path: pkg.pkg.PkgPath,
+	}
+	fnInfo := &funcDeclInfo{
+		id:  ident,
+		typ: decl.Type,
+	}
+	if decl.Recv == nil {
+		fnInfo.id.Name += genTypeSuffix
+		// TODO: error if func seen more than once?
+		c.funcDeclsByIdent[fnInfo.id.String()] = fnInfo
+		return
+	}
+
+	if len(decl.Recv.List) != 1 {
+		logs.Panicf("%s has a receiver list of length %d, expected length of 1",
+			ident.String(), len(decl.Recv.List))
+	}
+	recv := decl.Recv.List[0].Type
+	suffix := genTypeSuffix
+	expr := recv
+	if sExpr, ok := expr.(*dst.StarExpr); ok {
+		suffix = starGenTypeSuffix
+		expr = sExpr.X
+	}
+	exprId, ok := expr.(*dst.Ident)
+	if !ok {
+		logs.Panicf("%s has a non-Ident (or StarExpr/Ident) receiver: %#v",
+			ident.String(), expr)
+	}
+	keyId := dst.Ident{
+		Name: exprId.Name + suffix,
+		Path: pkg.pkg.PkgPath,
+	}
+	declInfo, ok := c.methodDeclsByIdent[keyId.String()]
+	if !ok {
+		declInfo = &methodDeclInfo{id: keyId, recv: &recv}
+		c.methodDeclsByIdent[keyId.String()] = declInfo
+	}
+	declInfo.funcs = append(declInfo.funcs, fnInfo)
+}
+
+func (c *Cache) fabricateInterfaceType(funcs []*funcDeclInfo) *dst.InterfaceType {
+	fl := &dst.FieldList{}
+	for _, fn := range funcs {
+		fl.List = append(fl.List, &dst.Field{
+			Names: []*dst.Ident{dst.NewIdent(fn.id.Name)},
+			Type:  fn.typ,
+		})
+	}
+	return &dst.InterfaceType{Methods: fl}
 }

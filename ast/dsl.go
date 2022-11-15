@@ -569,9 +569,7 @@ func StructFromList(fieldList *dst.FieldList) *dst.StructType {
 }
 
 // TypeSpecDSL translates to a dst.TypeSpec
-type TypeSpecDSL struct {
-	Obj *dst.TypeSpec
-}
+type TypeSpecDSL struct{ Obj *dst.TypeSpec }
 
 // TypeSpec creates a new TypeSpecDSL
 func TypeSpec(name string) TypeSpecDSL {
@@ -584,10 +582,8 @@ func (d TypeSpecDSL) Type(typ dst.Expr) TypeSpecDSL {
 	return d
 }
 
-// TypeDeclDSL translates to various types into a dst.GenDecl
-type TypeDeclDSL struct {
-	Obj *dst.GenDecl
-}
+// TypeDeclDSL translates various types into a dst.GenDecl
+type TypeDeclDSL struct{ Obj *dst.GenDecl }
 
 // TypeDecl creates a new TypeDeclDSL
 func TypeDecl(typeSpec *dst.TypeSpec) TypeDeclDSL {
@@ -618,6 +614,12 @@ func Value(typ dst.Expr) ValueDSL {
 // Names sets the names of a value
 func (d ValueDSL) Names(names ...*dst.Ident) ValueDSL {
 	d.Obj.Names = names
+	return d
+}
+
+// Values sets the values of the spec
+func (d ValueDSL) Values(values ...dst.Expr) ValueDSL {
+	d.Obj.Values = values
 	return d
 }
 
