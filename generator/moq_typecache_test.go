@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 
 	"github.com/dave/dst"
-
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
