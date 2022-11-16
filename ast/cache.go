@@ -596,6 +596,7 @@ func findAbsPath(pkg *packages.Package) (string, error) {
 		return absPath, nil
 	}
 
+	//nolint:goerr113 // Internal error swallowed above
 	return "", fmt.Errorf("could not find absolute path for %s package", pkg.PkgPath)
 }
 
@@ -625,7 +626,8 @@ func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
 	}
 	if decl.Recv == nil {
 		fnInfo.id.Name += genTypeSuffix
-		// TODO: error if func seen more than once?
+		// Might be added twice when loading a package without test types and
+		// then loading again with test types
 		c.funcDeclsByIdent[fnInfo.id.String()] = fnInfo
 		return
 	}

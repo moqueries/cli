@@ -1,3 +1,5 @@
+// Package testmoqs contains multiple test mocks and adaptors for use in unit
+// testing
 package testmoqs
 
 // StandaloneFunc is used to test that standalone functions can be mocked

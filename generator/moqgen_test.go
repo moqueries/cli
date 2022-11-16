@@ -720,7 +720,6 @@ func TestMoqGenerator(t *testing.T) {
 
 			// ACT
 			resp, err := gen.Generate(req)
-
 			// ASSERT
 			if err != nil {
 				t.Fatalf("got %#v, want no error", err)
@@ -1011,7 +1010,6 @@ func TestMoqGenerator(t *testing.T) {
 
 		// ACT
 		_, err := gen.Generate(req)
-
 		// ASSERT
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)
@@ -1443,7 +1441,6 @@ func TestMoqGenerator(t *testing.T) {
 
 		// ACT
 		_, err := gen.Generate(req)
-
 		// ASSERT
 		if err != nil {
 			t.Errorf("got %#v, wanted nil err", err)

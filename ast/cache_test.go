@@ -134,6 +134,7 @@ func TestCache(t *testing.T) {
 				}
 			}
 			validateInterfaceFn := func(t *testing.T, iType *dst.InterfaceType, name1, name2 string) {
+				t.Helper()
 				if iType.Methods == nil {
 					t.Fatalf("got nil, want not nil")
 				}
@@ -229,6 +230,7 @@ func TestCache(t *testing.T) {
 					expectedExported:   false,
 					expectedFabricated: true,
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+						t.Helper()
 						validateInterfaceFn(t, iType, "method1", "method2")
 					},
 				},
@@ -241,6 +243,7 @@ func TestCache(t *testing.T) {
 					expectedExported:   true,
 					expectedFabricated: true,
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+						t.Helper()
 						validateInterfaceFn(t, iType, "Type5", "Type6")
 					},
 				},
@@ -253,6 +256,7 @@ func TestCache(t *testing.T) {
 					expectedExported:   false,
 					expectedFabricated: true,
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+						t.Helper()
 						validateInterfaceFn(t, iType, "test_method1", "test_method2")
 					},
 				},
@@ -265,6 +269,7 @@ func TestCache(t *testing.T) {
 					expectedExported:   false,
 					expectedFabricated: true,
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+						t.Helper()
 						validateInterfaceFn(t, iType, "method3", "method4")
 					},
 				},
@@ -277,6 +282,7 @@ func TestCache(t *testing.T) {
 					expectedExported:   true,
 					expectedFabricated: true,
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+						t.Helper()
 						validateInterfaceFn(t, iType, "Type7", "Type8")
 					},
 				},
@@ -289,6 +295,7 @@ func TestCache(t *testing.T) {
 					expectedExported:   false,
 					expectedFabricated: true,
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+						t.Helper()
 						validateInterfaceFn(t, iType, "test_method3", "test_method4")
 					},
 				},
@@ -375,7 +382,6 @@ func TestCache(t *testing.T) {
 
 			// ACT
 			typ, err := cache.Type(*id, exportPkg, false)
-
 			// ASSERT
 			if err != nil {
 				t.Fatalf("got %#v, want no error", err)
@@ -410,7 +416,6 @@ func TestCache(t *testing.T) {
 
 			// ACT
 			typ, err := cache.Type(*id, replacebuiltinPkg, false)
-
 			// ASSERT
 			if err != nil {
 				t.Fatalf("got %#v, want no error", err)

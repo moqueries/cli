@@ -55,12 +55,21 @@ issues:
   exclude-rules:
   - path: '(.+)_test.go'
     linters:
+    - forcetypeassert
     - goconst
+    - gocritic
     - goerr113
+    - nestif
   # No easy way to break up go:generate lines
   - linters:
     - lll
     source: "^//go:generate "
+  - path: 'testpkg'
+    linters:
+    - deadcode
+    - revive
+    - stylecheck
+    - unused
   include:
   # disable excluding of issues about comments from golint.
   - EXC0002

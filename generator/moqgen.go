@@ -384,6 +384,8 @@ func (g *MoqGenerator) isFieldListFullyExported(fl *dst.FieldList, contextPkg st
 			if err != nil || !subType.Exported {
 				return false, err
 			}
+		default:
+			logs.Panicf("Unknown type in field list: %#v", f.Type)
 		}
 	}
 
