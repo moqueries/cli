@@ -10,6 +10,10 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
+// The following type assertion assures that generator_test.testInterface is
+// mocked completely
+var _ testInterface = (*moqTestInterface_mock)(nil)
+
 // moqTestInterface holds the state of a moq of the testInterface type
 type moqTestInterface struct {
 	scene  *moq.Scene

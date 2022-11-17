@@ -4,12 +4,17 @@ package internal_test
 
 import (
 	"fmt"
+	"io"
 	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
+
+// The following type assertion assures that io.WriteCloser is mocked
+// completely
+var _ io.WriteCloser = (*moqWriteCloser_mock)(nil)
 
 // moqWriteCloser holds the state of a moq of the WriteCloser type
 type moqWriteCloser struct {

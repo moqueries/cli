@@ -5422,6 +5422,10 @@ func (m *moqInterfaceResultFn) AssertExpectationsMet() {
 	}
 }
 
+// The following type assertion assures that testmoqs.Usual is mocked
+// completely
+var _ testmoqs.Usual = (*moqUsual_mock)(nil)
+
 // moqUsual holds the state of a moq of the Usual type
 type moqUsual struct {
 	scene  *moq.Scene

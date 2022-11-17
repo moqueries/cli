@@ -625,7 +625,21 @@ func (d ValueDSL) Values(values ...dst.Expr) ValueDSL {
 
 // Var returns a var dst.DeclStmt
 func Var(specs ...dst.Spec) *dst.DeclStmt {
-	return &dst.DeclStmt{Decl: &dst.GenDecl{Tok: token.VAR, Specs: specs}}
+	return &dst.DeclStmt{Decl: VarDecl(specs...).Obj}
+}
+
+// VarDeclDSL translates variable declaration into a dst.GenDecl
+type VarDeclDSL struct{ Obj *dst.GenDecl }
+
+// VarDecl creates a new VarDeclDSL
+func VarDecl(specs ...dst.Spec) VarDeclDSL {
+	return VarDeclDSL{Obj: &dst.GenDecl{Tok: token.VAR, Specs: specs}}
+}
+
+// Decs adds decorations to a VarDeclDSL
+func (d VarDeclDSL) Decs(decs dst.GenDeclDecorations) VarDeclDSL {
+	d.Obj.Decs = decs
+	return d
 }
 
 // emptyFieldList returns an empty field list (renders as `struct {}` with no

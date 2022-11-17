@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"go/token"
+	"path/filepath"
 
 	"github.com/dave/dst"
 	"golang.org/x/text/cases"
@@ -171,6 +172,18 @@ func (c *Converter) BaseDecls() []dst.Decl {
 		Decs(FieldDecs(dst.EmptyLine, dst.None).Obj).Obj)
 
 	var decls []dst.Decl
+
+	if isInterface {
+		id := IdPath(c.typ.TypeInfo.Type.Name.Name, c.typ.TypeInfo.PkgPath)
+		if c.typ.TypeInfo.Fabricated {
+			id = Id(id.Name)
+		}
+		decls = append(decls, VarDecl(Value(id).Names(Id(blankIdent)).
+			Values(Call(Paren(Star(Id(moqName)))).Args(Id(nilIdent)).Obj).Obj).
+			Decs(genDeclDec("// The following type assertion assures"+
+				" that %s.%s is mocked completely", filepath.Base(id.Path), id.Name)).Obj,
+		)
+	}
 
 	if c.typ.TypeInfo.Fabricated {
 		typeName := c.typ.TypeInfo.Type.Name.Name

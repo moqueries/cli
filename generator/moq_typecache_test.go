@@ -9,9 +9,14 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/myshkin5/moqueries/ast"
+	"github.com/myshkin5/moqueries/generator"
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
+
+// The following type assertion assures that generator.TypeCache is mocked
+// completely
+var _ generator.TypeCache = (*moqTypeCache_mock)(nil)
 
 // moqTypeCache holds the state of a moq of the TypeCache type
 type moqTypeCache struct {

@@ -154,14 +154,23 @@ func TestConverter(t *testing.T) {
 					decls := converter.BaseDecls()
 
 					// ASSERT
-					if len(decls) != 1 {
+					if len(decls) != 2 {
 						t.Fatalf("got %#v, want 1 decl", decls)
 					}
 					decl := decls[0].(*dst.GenDecl)
-					if len(decl.Decs.Start) != 1 {
-						t.Errorf("got len %d, wanted 1", len(decl.Decs.Start))
+					if len(decl.Decs.Start) != 2 {
+						t.Errorf("got len %d, wanted 2", len(decl.Decs.Start))
 					}
-					expectedStart := fmt.Sprintf("// %s holds the state of a moq of the PublicInterface type",
+					expectedStart := "// The following type assertion assures that pkg.PublicInterface is mocked"
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+					expectedStart = "// completely"
+					if decl.Decs.Start[1] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[1], expectedStart)
+					}
+					decl = decls[1].(*dst.GenDecl)
+					expectedStart = fmt.Sprintf("// %s holds the state of a moq of the PublicInterface type",
 						exported("moqPublicInterface"))
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
@@ -216,14 +225,26 @@ func TestConverter(t *testing.T) {
 					decls := converter.BaseDecls()
 
 					// ASSERT
-					if len(decls) != 2 {
-						t.Fatalf("got %#v, want 1 decl", decls)
+					if len(decls) != 3 {
+						t.Fatalf("got %#v, want 3 decl", decls)
 					}
 					decl := decls[0].(*dst.GenDecl)
+					if len(decl.Decs.Start) != 2 {
+						t.Errorf("got len %d, wanted 2", len(decl.Decs.Start))
+					}
+					expectedStart := "// The following type assertion assures that ..PublicInterface is mocked"
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+					expectedStart = "// completely"
+					if decl.Decs.Start[1] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[1], expectedStart)
+					}
+					decl = decls[1].(*dst.GenDecl)
 					if len(decl.Decs.Start) != 3 {
 						t.Errorf("got len %d, wanted 3", len(decl.Decs.Start))
 					}
-					expectedStart := "// PublicInterface is the fabricated implementation type of this mock (emitted"
+					expectedStart = "// PublicInterface is the fabricated implementation type of this mock (emitted"
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
