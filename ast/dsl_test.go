@@ -1287,7 +1287,7 @@ func TestVar(t *testing.T) {
 		}
 	})
 
-	t.Run("simple", func(t *testing.T) {
+	t.Run("complete", func(t *testing.T) {
 		// ASSEMBLE
 		typ1 := &dst.TypeSpec{Name: id1}
 		typ2 := &dst.TypeSpec{Name: id2}
@@ -1298,6 +1298,43 @@ func TestVar(t *testing.T) {
 
 		// ACT
 		actual := ast.Var(typ1, typ2)
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
+func TestVarDecl(t *testing.T) {
+	typ := &dst.TypeSpec{Name: id1}
+
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		expected := &dst.GenDecl{Tok: token.VAR, Specs: []dst.Spec{typ}}
+
+		// ACT
+		actual := ast.VarDecl(typ).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+
+	t.Run("complete", func(t *testing.T) {
+		// ASSEMBLE
+		decs := dst.GenDeclDecorations{
+			NodeDecs: dst.NodeDecs{Before: dst.EmptyLine},
+		}
+		expected := &dst.GenDecl{
+			Tok:   token.VAR,
+			Specs: []dst.Spec{typ},
+			Decs:  decs,
+		}
+
+		// ACT
+		actual := ast.VarDecl(typ).Decs(decs).Obj
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
