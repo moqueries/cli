@@ -73,7 +73,7 @@ func TestGenerate(t *testing.T) {
 					Export:             true,
 					DestinationDir:     tc.destDir1,
 					Import:             "pkg1",
-					ErrorOnNonExported: true,
+					ExcludeNonExported: true,
 				}
 				genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(nil)
 				req2 := generator.GenerateRequest{
@@ -81,7 +81,7 @@ func TestGenerate(t *testing.T) {
 					Export:             true,
 					DestinationDir:     tc.destDir2,
 					Import:             "pkg2",
-					ErrorOnNonExported: true,
+					ExcludeNonExported: true,
 				}
 				genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(nil)
 				metricsMoq.OnCall().TotalProcessingTimeInc(0).Any().D().ReturnResults()
@@ -182,7 +182,7 @@ func TestGenerate(t *testing.T) {
 					Export:             true,
 					DestinationDir:     "that-dir/there/pkg1",
 					Import:             "pkg1",
-					ErrorOnNonExported: true,
+					ExcludeNonExported: true,
 				}
 				genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(firstErr)
 				req2 := generator.GenerateRequest{
@@ -190,7 +190,7 @@ func TestGenerate(t *testing.T) {
 					Export:             true,
 					DestinationDir:     "that-dir/there/pkg2",
 					Import:             "pkg2",
-					ErrorOnNonExported: true,
+					ExcludeNonExported: true,
 				}
 				expectedErr := errors.New("generate-error")
 				genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(expectedErr)

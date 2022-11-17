@@ -32,13 +32,6 @@ jobs:
           go generate ./...
           MOQ_DEBUG=true moqueries bulk-finalize
 
-          # fail if working directory is dirty
-          git status --short
-          if [[ -n $(git status --short) ]]; then
-            echo "Working directory dirty"
-            exit 1
-          fi
-
     - run:
         name: Run tests
 
@@ -49,6 +42,20 @@ jobs:
             -race -covermode=atomic -coverprofile=coverage.out $PACKAGE_NAMES
           go install golang.org/x/vuln/cmd/govulncheck@latest
           govulncheck ./...
+
+    - run:
+        name: Check generated code
+
+        command: |
+          set -ux
+          # fail if working directory is dirty
+          # Note: We check after Generate code *and* Run tests because some
+          #   tests generate mocks too.
+          git status --short
+          if [[ -n $(git status --short) ]]; then
+            echo "Working directory dirty"
+            exit 1
+          fi
 
     - codecov/upload
 

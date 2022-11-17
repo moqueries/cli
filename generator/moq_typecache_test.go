@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/dave/dst"
+	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
@@ -27,6 +28,7 @@ type moqTypeCache struct {
 		parameterIndexing struct {
 			Type struct {
 				id         moq.ParamIndexing
+				contextPkg moq.ParamIndexing
 				testImport moq.ParamIndexing
 			}
 			IsComparable struct {
@@ -55,14 +57,19 @@ type moqTypeCache_recorder struct {
 // moqTypeCache_Type_params holds the params of the TypeCache type
 type moqTypeCache_Type_params struct {
 	id         dst.Ident
+	contextPkg string
 	testImport bool
 }
 
 // moqTypeCache_Type_paramsKey holds the map key params of the TypeCache type
 type moqTypeCache_Type_paramsKey struct {
-	params struct{ testImport bool }
+	params struct {
+		contextPkg string
+		testImport bool
+	}
 	hashes struct {
 		id         hash.Hash
+		contextPkg hash.Hash
 		testImport hash.Hash
 	}
 }
@@ -77,20 +84,19 @@ type moqTypeCache_Type_resultsByParams struct {
 
 // moqTypeCache_Type_doFn defines the type of function needed when calling
 // andDo for the TypeCache type
-type moqTypeCache_Type_doFn func(id dst.Ident, testImport bool)
+type moqTypeCache_Type_doFn func(id dst.Ident, contextPkg string, testImport bool)
 
 // moqTypeCache_Type_doReturnFn defines the type of function needed when
 // calling doReturnResults for the TypeCache type
-type moqTypeCache_Type_doReturnFn func(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
+type moqTypeCache_Type_doReturnFn func(id dst.Ident, contextPkg string, testImport bool) (ast.TypeInfo, error)
 
 // moqTypeCache_Type_results holds the results of the TypeCache type
 type moqTypeCache_Type_results struct {
 	params  moqTypeCache_Type_params
 	results []struct {
 		values *struct {
-			result1 *dst.TypeSpec
-			result2 string
-			result3 error
+			result1 ast.TypeInfo
+			result2 error
 		}
 		sequence   uint32
 		doFn       moqTypeCache_Type_doFn
@@ -306,6 +312,7 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 			parameterIndexing struct {
 				Type struct {
 					id         moq.ParamIndexing
+					contextPkg moq.ParamIndexing
 					testImport moq.ParamIndexing
 				}
 				IsComparable struct {
@@ -321,6 +328,7 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 		}{parameterIndexing: struct {
 			Type struct {
 				id         moq.ParamIndexing
+				contextPkg moq.ParamIndexing
 				testImport moq.ParamIndexing
 			}
 			IsComparable struct {
@@ -335,9 +343,11 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 		}{
 			Type: struct {
 				id         moq.ParamIndexing
+				contextPkg moq.ParamIndexing
 				testImport moq.ParamIndexing
 			}{
 				id:         moq.ParamIndexByHash,
+				contextPkg: moq.ParamIndexByValue,
 				testImport: moq.ParamIndexByValue,
 			},
 			IsComparable: struct {
@@ -366,10 +376,11 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 // mock returns the mock implementation of the TypeCache type
 func (m *moqTypeCache) mock() *moqTypeCache_mock { return m.moq }
 
-func (m *moqTypeCache_mock) Type(id dst.Ident, testImport bool) (result1 *dst.TypeSpec, result2 string, result3 error) {
+func (m *moqTypeCache_mock) Type(id dst.Ident, contextPkg string, testImport bool) (result1 ast.TypeInfo, result2 error) {
 	m.moq.scene.T.Helper()
 	params := moqTypeCache_Type_params{
 		id:         id,
+		contextPkg: contextPkg,
 		testImport: testImport,
 	}
 	var results *moqTypeCache_Type_results
@@ -408,16 +419,15 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, testImport bool) (result1 *dst.Ty
 	}
 
 	if result.doFn != nil {
-		result.doFn(id, testImport)
+		result.doFn(id, contextPkg, testImport)
 	}
 
 	if result.values != nil {
 		result1 = result.values.result1
 		result2 = result.values.result2
-		result3 = result.values.result3
 	}
 	if result.doReturnFn != nil {
-		result1, result2, result3 = result.doReturnFn(id, testImport)
+		result1, result2 = result.doReturnFn(id, contextPkg, testImport)
 	}
 	return
 }
@@ -591,10 +601,11 @@ func (m *moqTypeCache) onCall() *moqTypeCache_recorder {
 	}
 }
 
-func (m *moqTypeCache_recorder) Type(id dst.Ident, testImport bool) *moqTypeCache_Type_fnRecorder {
+func (m *moqTypeCache_recorder) Type(id dst.Ident, contextPkg string, testImport bool) *moqTypeCache_Type_fnRecorder {
 	return &moqTypeCache_Type_fnRecorder{
 		params: moqTypeCache_Type_params{
 			id:         id,
+			contextPkg: contextPkg,
 			testImport: testImport,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
@@ -616,8 +627,13 @@ func (a *moqTypeCache_Type_anyParams) id() *moqTypeCache_Type_fnRecorder {
 	return a.recorder
 }
 
-func (a *moqTypeCache_Type_anyParams) testImport() *moqTypeCache_Type_fnRecorder {
+func (a *moqTypeCache_Type_anyParams) contextPkg() *moqTypeCache_Type_fnRecorder {
 	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (a *moqTypeCache_Type_anyParams) testImport() *moqTypeCache_Type_fnRecorder {
+	a.recorder.anyParams |= 1 << 2
 	return a.recorder
 }
 
@@ -641,7 +657,7 @@ func (r *moqTypeCache_Type_fnRecorder) noSeq() *moqTypeCache_Type_fnRecorder {
 	return r
 }
 
-func (r *moqTypeCache_Type_fnRecorder) returnResults(result1 *dst.TypeSpec, result2 string, result3 error) *moqTypeCache_Type_fnRecorder {
+func (r *moqTypeCache_Type_fnRecorder) returnResults(result1 ast.TypeInfo, result2 error) *moqTypeCache_Type_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -652,22 +668,19 @@ func (r *moqTypeCache_Type_fnRecorder) returnResults(result1 *dst.TypeSpec, resu
 
 	r.results.results = append(r.results.results, struct {
 		values *struct {
-			result1 *dst.TypeSpec
-			result2 string
-			result3 error
+			result1 ast.TypeInfo
+			result2 error
 		}
 		sequence   uint32
 		doFn       moqTypeCache_Type_doFn
 		doReturnFn moqTypeCache_Type_doReturnFn
 	}{
 		values: &struct {
-			result1 *dst.TypeSpec
-			result2 string
-			result3 error
+			result1 ast.TypeInfo
+			result2 error
 		}{
 			result1: result1,
 			result2: result2,
-			result3: result3,
 		},
 		sequence: sequence,
 	})
@@ -696,9 +709,8 @@ func (r *moqTypeCache_Type_fnRecorder) doReturnResults(fn moqTypeCache_Type_doRe
 
 	r.results.results = append(r.results.results, struct {
 		values *struct {
-			result1 *dst.TypeSpec
-			result2 string
-			result3 error
+			result1 ast.TypeInfo
+			result2 error
 		}
 		sequence   uint32
 		doFn       moqTypeCache_Type_doFn
@@ -768,9 +780,8 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 		if r.sequence {
 			last = struct {
 				values *struct {
-					result1 *dst.TypeSpec
-					result2 string
-					result3 error
+					result1 ast.TypeInfo
+					result2 error
 				}
 				sequence   uint32
 				doFn       moqTypeCache_Type_doFn
@@ -786,7 +797,7 @@ func (r *moqTypeCache_Type_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTyp
 }
 
 func (m *moqTypeCache) prettyParams_Type(params moqTypeCache_Type_params) string {
-	return fmt.Sprintf("Type(%#v, %#v)", params.id, params.testImport)
+	return fmt.Sprintf("Type(%#v, %#v, %#v)", params.id, params.contextPkg, params.testImport)
 }
 
 func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams uint64) moqTypeCache_Type_paramsKey {
@@ -798,9 +809,18 @@ func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams
 		}
 		idUsedHash = hash.DeepHash(params.id)
 	}
+	var contextPkgUsed string
+	var contextPkgUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Type.contextPkg == moq.ParamIndexByValue {
+			contextPkgUsed = params.contextPkg
+		} else {
+			contextPkgUsedHash = hash.DeepHash(params.contextPkg)
+		}
+	}
 	var testImportUsed bool
 	var testImportUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
+	if anyParams&(1<<2) == 0 {
 		if m.runtime.parameterIndexing.Type.testImport == moq.ParamIndexByValue {
 			testImportUsed = params.testImport
 		} else {
@@ -808,14 +828,20 @@ func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams
 		}
 	}
 	return moqTypeCache_Type_paramsKey{
-		params: struct{ testImport bool }{
+		params: struct {
+			contextPkg string
+			testImport bool
+		}{
+			contextPkg: contextPkgUsed,
 			testImport: testImportUsed,
 		},
 		hashes: struct {
 			id         hash.Hash
+			contextPkg hash.Hash
 			testImport hash.Hash
 		}{
 			id:         idUsedHash,
+			contextPkg: contextPkgUsedHash,
 			testImport: testImportUsedHash,
 		},
 	}
