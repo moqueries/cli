@@ -1189,6 +1189,7 @@ func TestTypeSpec(t *testing.T) {
 	})
 }
 
+//nolint:dupl // separate tests are preferred here
 func TestTypeDecl(t *testing.T) {
 	typ := &dst.TypeSpec{Name: id1}
 
@@ -1306,6 +1307,7 @@ func TestVar(t *testing.T) {
 	})
 }
 
+//nolint:dupl // separate tests are preferred here
 func TestVarDecl(t *testing.T) {
 	typ := &dst.TypeSpec{Name: id1}
 
