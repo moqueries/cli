@@ -11,6 +11,10 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
+// The following type assertion assures that ..PassByRefSimple_starGenType is
+// mocked completely
+var _ PassByRefSimple_starGenType = (*MoqPassByRefSimple_starGenType_mock)(nil)
+
 // PassByRefSimple_starGenType is the fabricated implementation type of this
 // mock (emitted when mocking a collections of methods directly and not from an
 // interface type)

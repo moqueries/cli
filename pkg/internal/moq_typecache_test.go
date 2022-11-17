@@ -11,7 +11,12 @@ import (
 	"github.com/myshkin5/moqueries/ast"
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
+	"github.com/myshkin5/moqueries/pkg/internal"
 )
+
+// The following type assertion assures that internal.TypeCache is mocked
+// completely
+var _ internal.TypeCache = (*moqTypeCache_mock)(nil)
 
 // moqTypeCache holds the state of a moq of the TypeCache type
 type moqTypeCache struct {

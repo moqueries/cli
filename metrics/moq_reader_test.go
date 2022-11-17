@@ -4,12 +4,16 @@ package metrics_test
 
 import (
 	"fmt"
+	"io"
 	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
+
+// The following type assertion assures that io.Reader is mocked completely
+var _ io.Reader = (*moqReader_mock)(nil)
 
 // moqReader holds the state of a moq of the Reader type
 type moqReader struct {

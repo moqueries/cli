@@ -13,6 +13,10 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
+// The following type assertion assures that generator.Converterer is mocked
+// completely
+var _ generator.Converterer = (*moqConverterer_mock)(nil)
+
 // moqConverterer holds the state of a moq of the Converterer type
 type moqConverterer struct {
 	scene  *moq.Scene

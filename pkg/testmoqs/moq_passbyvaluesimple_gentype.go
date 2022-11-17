@@ -11,6 +11,10 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
+// The following type assertion assures that ..PassByValueSimple_genType is
+// mocked completely
+var _ PassByValueSimple_genType = (*MoqPassByValueSimple_genType_mock)(nil)
+
 // PassByValueSimple_genType is the fabricated implementation type of this mock
 // (emitted when mocking a collections of methods directly and not from an
 // interface type)
