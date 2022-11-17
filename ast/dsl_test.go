@@ -1257,10 +1257,14 @@ func TestValue(t *testing.T) {
 
 	t.Run("complete", func(t *testing.T) {
 		// ASSEMBLE
-		expected := &dst.ValueSpec{Type: id1, Names: []*dst.Ident{id2, id3}}
+		expected := &dst.ValueSpec{
+			Type:   id1,
+			Names:  []*dst.Ident{id2, id3},
+			Values: []dst.Expr{id4, id5},
+		}
 
 		// ACT
-		actual := ast.Value(id1).Names(id2, id3).Obj
+		actual := ast.Value(id1).Names(id2, id3).Values(id4, id5).Obj
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {

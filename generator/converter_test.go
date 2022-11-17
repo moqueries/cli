@@ -196,6 +196,78 @@ func TestConverter(t *testing.T) {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
 				})
+
+				t.Run("includes the interface when mocking a fabricated interface", func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typ := generator.Type{
+						TypeInfo: ast.TypeInfo{
+							Type:       iSpec,
+							PkgPath:    "thatmodule/pkg",
+							Fabricated: true,
+						},
+						Funcs: iSpecFuncs,
+					}
+					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
+
+					// ACT
+					decls := converter.BaseDecls()
+
+					// ASSERT
+					if len(decls) != 2 {
+						t.Fatalf("got %#v, want 1 decl", decls)
+					}
+					decl := decls[0].(*dst.GenDecl)
+					if len(decl.Decs.Start) != 3 {
+						t.Errorf("got len %d, wanted 3", len(decl.Decs.Start))
+					}
+					expectedStart := "// PublicInterface is the fabricated implementation type of this mock (emitted"
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+					expectedStart = "// when mocking a collections of methods directly and not from an interface"
+					if decl.Decs.Start[1] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[1], expectedStart)
+					}
+					expectedStart = "// type)"
+					if decl.Decs.Start[2] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[2], expectedStart)
+					}
+				})
+
+				t.Run("includes the func type when mocking a fabricated func type", func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typ := generator.Type{
+						TypeInfo: ast.TypeInfo{Type: fnSpec, Fabricated: true},
+						Funcs:    fnSpecFuncs,
+					}
+					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
+
+					// ACT
+					decls := converter.BaseDecls()
+
+					// ASSERT
+					if len(decls) != 2 {
+						t.Fatalf("got %#v, want 1 decl", decls)
+					}
+					decl := decls[0].(*dst.GenDecl)
+					if len(decl.Decs.Start) != 2 {
+						t.Errorf("got len %d, wanted 2", len(decl.Decs.Start))
+					}
+					expectedStart := "// PublicFunction is the fabricated implementation type of this mock (emitted"
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+					expectedStart = "// when mocking functions directly and not from a function type)"
+					if decl.Decs.Start[1] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[1], expectedStart)
+					}
+				})
 			})
 
 			t.Run("IsolationStruct", func(t *testing.T) {
