@@ -20,9 +20,14 @@ const (
 	testPkgSuffix = "_test"
 )
 
-// ErrInvalidConfig is returned when configuration values are invalid or
-// conflict with each other
-var ErrInvalidConfig = errors.New("invalid configuration")
+var (
+	// ErrInvalidConfig is returned when configuration values are invalid or
+	// conflict with each other
+	ErrInvalidConfig = errors.New("invalid configuration")
+	// ErrUnknownFieldType is returned when a param or result list has an
+	// unknown expression
+	ErrUnknownFieldType = errors.New("unknown field type")
+)
 
 // Type describes the type being converted into a mock
 type Type struct {
@@ -116,7 +121,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 			return MoqResponse{}, fmt.Errorf("%w: %s mocked type is not exported", ErrNonExported, id.String())
 		}
 
-		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported}
+		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported, fabricated: typeInfo.Fabricated}
 		tErr := g.findFuncs(typeInfo.Type, fInfo)
 		if tErr != nil {
 			return MoqResponse{}, tErr
@@ -272,6 +277,7 @@ type funcInfo struct {
 	excludeNonExported bool
 	funcs              []Func
 	reduced            bool
+	fabricated         bool
 }
 
 func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error {
@@ -293,11 +299,18 @@ func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error 
 }
 
 func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg string, fInfo *funcInfo) error {
+	var finalFuncs []*dst.Field
 	for _, method := range iType.Methods.List {
 		switch typ := method.Type.(type) {
 		case *dst.FuncType:
+			name := method.Names[0].Name
+			if !dst.IsExported(name) && fInfo.excludeNonExported {
+				fInfo.reduced = true
+				continue
+			}
+
 			fn := Func{
-				Name:    method.Names[0].Name,
+				Name:    name,
 				Params:  typ.Params,
 				Results: typ.Results,
 			}
@@ -324,6 +337,11 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 		default:
 			logs.Panicf("Unknown type in interface method list: %v", method.Type)
 		}
+		finalFuncs = append(finalFuncs, method)
+	}
+	if fInfo.fabricated && fInfo.reduced {
+		// Reduces fabricated interface if any methods were removed
+		iType.Methods.List = finalFuncs
 	}
 
 	return nil
@@ -371,25 +389,60 @@ func (g *MoqGenerator) isFieldListFullyExported(fl *dst.FieldList, contextPkg st
 	}
 
 	for _, f := range fl.List {
-		switch typ := f.Type.(type) {
-		case *dst.Ident:
-			if typ.IsExported() {
-				// Quick check if exported. If not exported, need to get the
-				// actual type from the type cache. For instance, IsExported
-				// returns false for primitive types but the cache works around
-				// this.
-				continue
-			}
-			subType, err := g.typeCache.Type(*typ, contextPkg, false)
-			if err != nil || !subType.Exported {
-				return false, err
-			}
-		default:
-			logs.Panicf("Unknown type in field list: %#v", f.Type)
+		exported, err := g.isExprFullyExported(f.Type, contextPkg)
+		if err != nil || !exported {
+			return false, err
 		}
 	}
 
 	return true, nil
+}
+
+func (g *MoqGenerator) isExprFullyExported(expr dst.Expr, contextPkg string) (bool, error) {
+	switch typ := expr.(type) {
+	case *dst.ArrayType:
+		return g.isExprFullyExported(typ.Elt, contextPkg)
+	case *dst.ChanType:
+		return g.isExprFullyExported(typ.Value, contextPkg)
+	case *dst.Ellipsis:
+		return g.isExprFullyExported(typ.Elt, contextPkg)
+	case *dst.FuncType:
+		exported, err := g.isFieldListFullyExported(typ.Params, contextPkg)
+		if err != nil || !exported {
+			return false, err
+		}
+		return g.isFieldListFullyExported(typ.Results, contextPkg)
+	case *dst.Ident:
+		if typ.IsExported() {
+			// Quick check if exported. If not exported, need to get the
+			// actual type from the type cache. For instance, IsExported
+			// returns false for primitive types but the cache works around
+			// this.
+			return true, nil
+		}
+
+		subType, err := g.typeCache.Type(*typ, contextPkg, false)
+		if err != nil {
+			return false, err
+		}
+
+		return subType.Exported, nil
+	case *dst.InterfaceType:
+		return g.isFieldListFullyExported(typ.Methods, contextPkg)
+	case *dst.MapType:
+		exported, err := g.isExprFullyExported(typ.Key, contextPkg)
+		if err != nil || !exported {
+			return false, err
+		}
+		return g.isExprFullyExported(typ.Value, contextPkg)
+	case *dst.StarExpr:
+		return g.isExprFullyExported(typ.X, contextPkg)
+	case *dst.StructType:
+		return g.isFieldListFullyExported(typ.Fields, contextPkg)
+	default:
+		return false, fmt.Errorf("%w: function contains a %#v",
+			ErrUnknownFieldType, typ)
+	}
 }
 
 func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, error) {

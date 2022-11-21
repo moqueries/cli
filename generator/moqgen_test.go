@@ -829,6 +829,140 @@ func TestMoqGenerator(t *testing.T) {
 			}
 		})
 
+		t.Run("one method with unexported param passed by reference, error", func(t *testing.T) {
+			fl := ast.FieldList(ast.Field(ast.Id("string")).Obj)
+			testCases := map[string]dst.Expr{
+				"array type":        &dst.ArrayType{Elt: ast.Id("string")},
+				"chan type":         &dst.ChanType{Value: ast.Id("string")},
+				"ellipsis":          ast.Ellipsis(ast.Id("string")),
+				"func type params":  ast.FnType(fl).Obj,
+				"func type results": ast.FnType(nil).Results(fl).Obj,
+				"interface type":    &dst.InterfaceType{Methods: fl},
+				"star expr":         ast.Star(ast.Id("string")),
+				"struct type":       ast.Struct(ast.Field(ast.Id("string")).Obj),
+				"map key":           ast.MapType(ast.Id("string")).Value(ast.Id("int")).Obj,
+				"map value":         ast.MapType(ast.Id("int")).Value(ast.Id("string")).Obj,
+			}
+
+			for name, tc := range testCases {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typeCacheMoq.onCall().FindPackage(".").
+						returnResults("destdir", nil)
+					getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+					func1Params.List[1].Type = tc
+					typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+						returnResults(ifaceInfo1, nil)
+					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+						returnResults(ast.TypeInfo{Exported: false}, nil)
+					typeCacheMoq.onCall().Type(*ast.IdPath("int", ""), genPkg, false).
+						returnResults(ast.TypeInfo{Exported: true}, nil).
+						// Not used by all test cases
+						repeat(moq.Optional())
+					req := generator.GenerateRequest{
+						Types:              []string{"MyInterface"},
+						Export:             true,
+						Destination:        "file_test.go",
+						Package:            "",
+						Import:             ".",
+						TestImport:         false,
+						WorkingDir:         "/some-nice-path",
+						ExcludeNonExported: true,
+					}
+
+					// ACT
+					resp, err := gen.Generate(req)
+
+					// ASSERT
+					if err == nil {
+						t.Fatal("got no error, wanted error")
+					}
+					expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
+					if err.Error() != expectedMsg {
+						t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+					}
+					if !errors.Is(err, generator.ErrNonExported) {
+						t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+					}
+					if resp.File != nil {
+						t.Errorf("got %#v, wanted nil", resp.File)
+					}
+					if resp.DestPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.DestPath)
+					}
+					if resp.OutPkgPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+					}
+				})
+			}
+		})
+
+		t.Run("unknown fields", func(t *testing.T) {
+			weirdFL := ast.FieldList(ast.Field(ast.LitInt(28)).Obj)
+			testCases := map[string]dst.Expr{
+				"literal": ast.LitInt(45),
+
+				"array type w/ literal":     &dst.ArrayType{Elt: ast.LitInt(19)},
+				"chan type w/ literal":      &dst.ChanType{Value: ast.LitInt(28)},
+				"ellipsis w/ literal":       ast.Ellipsis(ast.LitInt(48)),
+				"func type w/ literal":      ast.FnType(weirdFL).Obj,
+				"interface type w/ literal": &dst.InterfaceType{Methods: weirdFL},
+				"star expr w/ literal":      ast.Star(ast.LitInt(91)),
+				"struct type w/ literal":    ast.Struct(ast.Field(ast.LitInt(65)).Obj),
+				"map type w/ literal":       ast.MapType(ast.LitInt(38)).Value(ast.Id("string")).Obj,
+			}
+
+			for name, tc := range testCases {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typeCacheMoq.onCall().FindPackage(".").
+						returnResults("destdir", nil)
+					getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+					func1Params.List[1].Type = tc
+					typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+						returnResults(ifaceInfo1, nil)
+					req := generator.GenerateRequest{
+						Types:              []string{"MyInterface"},
+						Export:             true,
+						Destination:        "file_test.go",
+						Package:            "",
+						Import:             ".",
+						TestImport:         false,
+						WorkingDir:         "/some-nice-path",
+						ExcludeNonExported: true,
+					}
+
+					// ACT
+					resp, err := gen.Generate(req)
+
+					// ASSERT
+					if err == nil {
+						t.Fatal("got no error, wanted error")
+					}
+					if !errors.Is(err, generator.ErrUnknownFieldType) {
+						t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+					}
+					if resp.File != nil {
+						t.Errorf("got %#v, wanted nil", resp.File)
+					}
+					if resp.DestPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.DestPath)
+					}
+					if resp.OutPkgPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+					}
+				})
+			}
+		})
+
 		t.Run("one method with unexported result, error", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t)
