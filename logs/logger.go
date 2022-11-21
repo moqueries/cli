@@ -48,6 +48,11 @@ func Warn(msg string) {
 	warnLogger.Print(msg)
 }
 
+// Warnf logs a formatted warning message
+func Warnf(format string, args ...interface{}) {
+	warnLogger.Printf(format, args...)
+}
+
 // Error logs an error message with an error
 func Error(msg string, err error) {
 	errLogger.Printf(msg+": %v", err)

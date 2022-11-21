@@ -12,6 +12,10 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
+// The following type assertion assures that metrics.Metrics is mocked
+// completely
+var _ Metrics = (*MoqMetrics_mock)(nil)
+
 // MoqMetrics holds the state of a moq of the Metrics type
 type MoqMetrics struct {
 	Scene  *moq.Scene

@@ -10,6 +10,9 @@ import (
 	"github.com/myshkin5/moqueries/moq"
 )
 
+// The following type assertion assures that moq.Moq is mocked completely
+var _ moq.Moq = (*moqMoq_mock)(nil)
+
 // moqMoq holds the state of a moq of the Moq type
 type moqMoq struct {
 	scene  *moq.Scene

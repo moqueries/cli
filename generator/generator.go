@@ -34,13 +34,14 @@ type GenerateRequest struct {
 	// is used for relative-path imports and relative path destination
 	// files/directories.
 	WorkingDir string `json:"working-dir"`
-	// ErrorOnNonExported causes the generator to return ErrNonExported if any
-	// non-exported type would normally be emitted in generated code.
-	ErrorOnNonExported bool `json:"error-on-non-exported"`
+	// ExcludeNonExported causes the generator to exclude non-exported types
+	// from the generated mock. This includes possibly returning ErrNonExported
+	// if after exclusion, nothing is left to be written as a mock.
+	ExcludeNonExported bool `json:"exclude-non-exported"`
 }
 
-// ErrNonExported is returned by Generate when ErrorOnNonExported is set to
-// true and any function or parameter is not exported in any generated code.
+// ErrNonExported is returned by Generate when ExcludeNonExported is set to
+// true resulting in an empty mock.
 var ErrNonExported = errors.New("non-exported types")
 
 // Generate generates a moq
@@ -63,7 +64,7 @@ func Generate(reqs ...GenerateRequest) error {
 
 // TypeCache defines the interface to the Cache type
 type TypeCache interface {
-	Type(id dst.Ident, testImport bool) (*dst.TypeSpec, string, error)
+	Type(id dst.Ident, contextPkg string, testImport bool) (ast.TypeInfo, error)
 	IsComparable(expr dst.Expr) (bool, error)
 	IsDefaultComparable(expr dst.Expr) (bool, error)
 	FindPackage(dir string) (string, error)

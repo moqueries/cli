@@ -70,7 +70,7 @@ func Generate(
 			Export:             true,
 			DestinationDir:     pkgDestDir,
 			Import:             id.Path,
-			ErrorOnNonExported: true,
+			ExcludeNonExported: true,
 		})
 		if err != nil {
 			if errors.Is(err, generator.ErrNonExported) {

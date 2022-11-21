@@ -12,6 +12,7 @@ import (
 )
 
 func TestMoqGenerator(t *testing.T) {
+	const genPkg = "github.com/myshkin5/moqueries/generator"
 	var (
 		scene             *moq.Scene
 		typeCacheMoq      *moqTypeCache
@@ -22,17 +23,18 @@ func TestMoqGenerator(t *testing.T) {
 
 		gen *generator.MoqGenerator
 
-		ifaceSpec1    *dst.TypeSpec
-		ifaceSpec2    *dst.TypeSpec
+		ifaceInfo1    ast.TypeInfo
+		ifaceInfo2    ast.TypeInfo
 		ifaceMethods1 *dst.FieldList
 		ifaceMethods2 *dst.FieldList
 		func1         *dst.Field
 		func1Params   *dst.FieldList
+		func1Results  *dst.FieldList
 
 		readFnType *dst.FuncType
-		readerSpec *dst.TypeSpec
+		readerInfo ast.TypeInfo
 
-		fnSpec *dst.TypeSpec
+		fnInfo ast.TypeInfo
 	)
 
 	beforeEach := func(t *testing.T) {
@@ -56,32 +58,37 @@ func TestMoqGenerator(t *testing.T) {
 		func1Params = &dst.FieldList{List: []*dst.Field{
 			{
 				Names: []*dst.Ident{dst.NewIdent("firstParm")},
-				Type: &dst.StarExpr{X: &dst.SelectorExpr{
-					X:   dst.NewIdent("cobra"),
-					Sel: dst.NewIdent("Command"),
-				}},
+				Type:  &dst.Ident{Name: "Command", Path: "cobra"},
 			},
 			{Type: dst.NewIdent("string")},
 			{
-				Type: &dst.StarExpr{X: &dst.SelectorExpr{
-					X:   dst.NewIdent("dst"),
-					Sel: dst.NewIdent("InterfaceType"),
-				}},
+				Type: &dst.Ident{Name: "InterfaceType", Path: "dst"},
 			},
+		}}
+		func1Results = &dst.FieldList{List: []*dst.Field{
+			{Type: dst.NewIdent("error")},
 		}}
 		func1 = &dst.Field{
 			Names: []*dst.Ident{dst.NewIdent("Func1")},
 			Type:  &dst.FuncType{Params: func1Params, Results: nil},
 		}
 		ifaceMethods1 = &dst.FieldList{List: []*dst.Field{func1}}
-		ifaceSpec1 = &dst.TypeSpec{
-			Name: dst.NewIdent("PublicInterface"),
-			Type: &dst.InterfaceType{Methods: ifaceMethods1},
+		ifaceInfo1 = ast.TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: ast.IdPath("PublicInterface", genPkg),
+				Type: &dst.InterfaceType{Methods: ifaceMethods1},
+			},
+			PkgPath:  genPkg,
+			Exported: true,
 		}
 		ifaceMethods2 = &dst.FieldList{}
-		ifaceSpec2 = &dst.TypeSpec{
-			Name: dst.NewIdent("privateInterface"),
-			Type: &dst.InterfaceType{Methods: ifaceMethods2},
+		ifaceInfo2 = ast.TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: dst.NewIdent("privateInterface"),
+				Type: &dst.InterfaceType{Methods: ifaceMethods2},
+			},
+			PkgPath:  genPkg,
+			Exported: false,
 		}
 
 		readFnType = &dst.FuncType{
@@ -100,19 +107,27 @@ func TestMoqGenerator(t *testing.T) {
 				},
 			}},
 		}
-		readerSpec = &dst.TypeSpec{
-			Name: &dst.Ident{Name: "Reader", Path: "io"},
-			Type: &dst.InterfaceType{Methods: &dst.FieldList{
-				List: []*dst.Field{{
-					Names: []*dst.Ident{dst.NewIdent("Read")},
-					Type:  readFnType,
+		readerInfo = ast.TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: &dst.Ident{Name: "Reader", Path: "io"},
+				Type: &dst.InterfaceType{Methods: &dst.FieldList{
+					List: []*dst.Field{{
+						Names: []*dst.Ident{dst.NewIdent("Read")},
+						Type:  readFnType,
+					}},
 				}},
-			}},
+			},
+			PkgPath:  "io",
+			Exported: true,
 		}
 
-		fnSpec = &dst.TypeSpec{
-			Name: dst.NewIdent("PublicFn"),
-			Type: &dst.FuncType{Params: func1Params, Results: nil},
+		fnInfo = ast.TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: dst.NewIdent("PublicFn"),
+				Type: &dst.FuncType{Params: func1Params, Results: nil},
+			},
+			PkgPath:  genPkg,
+			Exported: true,
 		}
 	}
 
@@ -476,7 +491,7 @@ func TestMoqGenerator(t *testing.T) {
 				ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 					Type: &dst.Ident{
 						Name: "privateInterface",
-						Path: "github.com/myshkin5/moqueries/generator",
+						Path: genPkg,
 					},
 				})
 				ifaceMethods2.List = append(ifaceMethods2.List, &dst.Field{
@@ -485,16 +500,17 @@ func TestMoqGenerator(t *testing.T) {
 						Path: "io",
 					},
 				})
-				typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", tc.typePath), false).
-					returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "github.com/myshkin5/moqueries/generator"), false).
-					returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), false).
-					returnResults(readerSpec, "", nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", tc.typePath), false).
-					returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), false).
-					returnResults(readerSpec, "", nil)
+				typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", tc.typePath), tc.typePath, false).
+					returnResults(ifaceInfo1, nil)
+				typeCacheMoq.onCall().Type(
+					*ast.IdPath("privateInterface", genPkg), genPkg, false).
+					returnResults(ifaceInfo2, nil)
+				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+					returnResults(readerInfo, nil)
+				typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", tc.typePath), tc.typePath, false).
+					returnResults(ifaceInfo2, nil)
+				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+					returnResults(readerInfo, nil)
 				ifaceFuncs := []generator.Func{
 					{Name: "Func1", Params: func1Params},
 					{
@@ -504,14 +520,17 @@ func TestMoqGenerator(t *testing.T) {
 					},
 				}
 				newConverterFnMoq.onCall(generator.Type{
-					TypeSpec:   ifaceSpec1,
+					TypeInfo: ast.TypeInfo{
+						Type:     ifaceInfo1.Type,
+						PkgPath:  genPkg,
+						Exported: true,
+					},
 					Funcs:      ifaceFuncs,
-					InPkgPath:  "github.com/myshkin5/moqueries/generator",
 					OutPkgPath: tc.outPkgPath,
 				}, tc.request.Export).returnResults(converter1Moq.mock())
-				converter1Moq.onCall().BaseStruct().returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
-					Name: dst.NewIdent("pub-decl"),
-				}}})
+				converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
+					Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
+				}})
 				converter1Moq.onCall().IsolationStruct("mock").
 					returnResults(nil)
 				converter1Moq.onCall().IsolationStruct("recorder").
@@ -544,12 +563,14 @@ func TestMoqGenerator(t *testing.T) {
 					Results: readFnType.Results,
 				}}
 				newConverterFnMoq.onCall(generator.Type{
-					TypeSpec:   ifaceSpec2,
+					TypeInfo: ast.TypeInfo{
+						Type:    ifaceInfo2.Type,
+						PkgPath: genPkg,
+					},
 					Funcs:      iface2Funcs,
-					InPkgPath:  "github.com/myshkin5/moqueries/generator",
 					OutPkgPath: tc.outPkgPath,
 				}, tc.request.Export).returnResults(converter2Moq.mock())
-				converter2Moq.onCall().BaseStruct().returnResults(nil)
+				converter2Moq.onCall().BaseDecls().returnResults(nil)
 				converter2Moq.onCall().IsolationStruct("mock").
 					returnResults(nil)
 				converter2Moq.onCall().IsolationStruct("recorder").
@@ -587,15 +608,17 @@ func TestMoqGenerator(t *testing.T) {
 		}
 	})
 
-	t.Run("ErrNonExported processing", func(t *testing.T) {
+	t.Run("non-exported processing", func(t *testing.T) {
 		t.Run("unexported top-level type", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t)
 			defer afterEach(t)
 
+			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 			typeCacheMoq.onCall().FindPackage(".").
 				returnResults("destdir", nil)
-			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), ".", false).
+				returnResults(ast.TypeInfo{Exported: false}, nil)
 
 			req := generator.GenerateRequest{
 				Types:              []string{"privateInterface"},
@@ -605,7 +628,7 @@ func TestMoqGenerator(t *testing.T) {
 				Import:             ".",
 				TestImport:         false,
 				WorkingDir:         "/some-nice-path",
-				ErrorOnNonExported: true,
+				ExcludeNonExported: true,
 			}
 
 			// ACT
@@ -615,9 +638,12 @@ func TestMoqGenerator(t *testing.T) {
 			if err == nil {
 				t.Fatal("got no error, wanted error")
 			}
-			expectedMsg := "non-exported types: privateInterface mocked type is not exported"
+			expectedMsg := "non-exported types: ..privateInterface mocked type is not exported"
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
 			}
 			if resp.File != nil {
 				t.Errorf("got %#v, wanted nil", resp.File)
@@ -630,7 +656,83 @@ func TestMoqGenerator(t *testing.T) {
 			}
 		})
 
-		t.Run("unexported method", func(t *testing.T) {
+		t.Run("some unexported methods returns partial implementation", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t)
+			defer afterEach(t)
+
+			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+			typeCacheMoq.onCall().FindPackage(".").
+				returnResults("destdir", nil)
+
+			ifaceMethods1 = &dst.FieldList{List: []*dst.Field{func1, dst.Clone(func1).(*dst.Field)}}
+			ifaceInfo1.Type.Type = &dst.InterfaceType{Methods: ifaceMethods1}
+			func1.Names[0].Name = "func1"
+			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+				returnResults(ifaceInfo1, nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+				returnResults(ast.TypeInfo{Exported: true}, nil)
+			ifaceFuncs := []generator.Func{
+				{Name: "Func1", Params: func1Params},
+			}
+			newConverterFnMoq.onCall(generator.Type{
+				TypeInfo: ast.TypeInfo{
+					Type:     ifaceInfo1.Type,
+					PkgPath:  genPkg,
+					Exported: true,
+				},
+				Funcs:      ifaceFuncs,
+				OutPkgPath: "destdir",
+			}, true).returnResults(converter1Moq.mock())
+			converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
+				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
+			}})
+			converter1Moq.onCall().IsolationStruct("mock").
+				returnResults(nil)
+			converter1Moq.onCall().IsolationStruct("recorder").
+				returnResults(nil)
+			converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
+				returnResults(nil, nil)
+			converter1Moq.onCall().NewFunc().
+				returnResults(nil)
+			converter1Moq.onCall().IsolationAccessor("mock", "mock").
+				returnResults(nil)
+			converter1Moq.onCall().MockMethod(ifaceFuncs[0]).
+				returnResults(nil)
+			converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
+				returnResults(nil)
+			converter1Moq.onCall().RecorderMethods(ifaceFuncs[0]).
+				returnResults(nil)
+			converter1Moq.onCall().ResetMethod().
+				returnResults(nil)
+			converter1Moq.onCall().AssertMethod().
+				returnResults(nil)
+			req := generator.GenerateRequest{
+				Types:              []string{"MyInterface"},
+				Export:             true,
+				Destination:        "file_test.go",
+				Package:            "",
+				Import:             ".",
+				TestImport:         false,
+				WorkingDir:         "/some-nice-path",
+				ExcludeNonExported: true,
+			}
+
+			// ACT
+			resp, err := gen.Generate(req)
+			// ASSERT
+			if err != nil {
+				t.Fatalf("got %#v, want no error", err)
+			}
+			if resp.DestPath != "file_test.go" {
+				t.Errorf("got %s, wanted file_test.go", resp.DestPath)
+			}
+			if resp.OutPkgPath != "destdir" {
+				t.Errorf("got %s, wanted destdir", resp.OutPkgPath)
+			}
+		})
+
+		t.Run("only unexported methods, error", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t)
 			defer afterEach(t)
@@ -640,8 +742,8 @@ func TestMoqGenerator(t *testing.T) {
 			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 
 			func1.Names[0].Name = "func1"
-			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), false).
-				returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+				returnResults(ifaceInfo1, nil)
 			req := generator.GenerateRequest{
 				Types:              []string{"MyInterface"},
 				Export:             true,
@@ -650,7 +752,7 @@ func TestMoqGenerator(t *testing.T) {
 				Import:             ".",
 				TestImport:         false,
 				WorkingDir:         "/some-nice-path",
-				ErrorOnNonExported: true,
+				ExcludeNonExported: true,
 			}
 
 			// ACT
@@ -660,9 +762,12 @@ func TestMoqGenerator(t *testing.T) {
 			if err == nil {
 				t.Fatal("got no error, wanted error")
 			}
-			expectedMsg := "non-exported types: func1 method is not exported"
+			expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
 			}
 			if resp.File != nil {
 				t.Errorf("got %#v, wanted nil", resp.File)
@@ -675,7 +780,7 @@ func TestMoqGenerator(t *testing.T) {
 			}
 		})
 
-		t.Run("unexported embedded interface", func(t *testing.T) {
+		t.Run("one method with unexported param, error", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t)
 			defer afterEach(t)
@@ -684,27 +789,19 @@ func TestMoqGenerator(t *testing.T) {
 				returnResults("destdir", nil)
 			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 
-			// PublicInterface embeds privateInterface
-			ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
-				Type: &dst.Ident{
-					Name: "privateInterface",
-					Path: "github.com/myshkin5/moqueries/generator",
-				},
-			})
-			typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
-				returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
-			privateId := ast.IdPath("privateInterface", "github.com/myshkin5/moqueries/generator")
-			typeCacheMoq.onCall().Type(*privateId, false).
-				returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+				returnResults(ifaceInfo1, nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+				returnResults(ast.TypeInfo{Exported: false}, nil)
 			req := generator.GenerateRequest{
-				Types:              []string{"PublicInterface"},
+				Types:              []string{"MyInterface"},
 				Export:             true,
 				Destination:        "file_test.go",
 				Package:            "",
 				Import:             ".",
 				TestImport:         false,
 				WorkingDir:         "/some-nice-path",
-				ErrorOnNonExported: true,
+				ExcludeNonExported: true,
 			}
 
 			// ACT
@@ -714,9 +811,256 @@ func TestMoqGenerator(t *testing.T) {
 			if err == nil {
 				t.Fatal("got no error, wanted error")
 			}
-			expectedMsg := "non-exported types: privateInterface embedded type is not exported"
+			expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+			}
+			if resp.File != nil {
+				t.Errorf("got %#v, wanted nil", resp.File)
+			}
+			if resp.DestPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.DestPath)
+			}
+			if resp.OutPkgPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+			}
+		})
+
+		t.Run("one method with unexported param passed by reference, error", func(t *testing.T) {
+			fl := ast.FieldList(ast.Field(ast.Id("string")).Obj)
+			testCases := map[string]dst.Expr{
+				"array type":        &dst.ArrayType{Elt: ast.Id("string")},
+				"chan type":         &dst.ChanType{Value: ast.Id("string")},
+				"ellipsis":          ast.Ellipsis(ast.Id("string")),
+				"func type params":  ast.FnType(fl).Obj,
+				"func type results": ast.FnType(nil).Results(fl).Obj,
+				"interface type":    &dst.InterfaceType{Methods: fl},
+				"star expr":         ast.Star(ast.Id("string")),
+				"struct type":       ast.Struct(ast.Field(ast.Id("string")).Obj),
+				"map key":           ast.MapType(ast.Id("string")).Value(ast.Id("int")).Obj,
+				"map value":         ast.MapType(ast.Id("int")).Value(ast.Id("string")).Obj,
+			}
+
+			for name, tc := range testCases {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typeCacheMoq.onCall().FindPackage(".").
+						returnResults("destdir", nil)
+					getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+					func1Params.List[1].Type = tc
+					typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+						returnResults(ifaceInfo1, nil)
+					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+						returnResults(ast.TypeInfo{Exported: false}, nil)
+					typeCacheMoq.onCall().Type(*ast.IdPath("int", ""), genPkg, false).
+						returnResults(ast.TypeInfo{Exported: true}, nil).
+						// Not used by all test cases
+						repeat(moq.Optional())
+					req := generator.GenerateRequest{
+						Types:              []string{"MyInterface"},
+						Export:             true,
+						Destination:        "file_test.go",
+						Package:            "",
+						Import:             ".",
+						TestImport:         false,
+						WorkingDir:         "/some-nice-path",
+						ExcludeNonExported: true,
+					}
+
+					// ACT
+					resp, err := gen.Generate(req)
+
+					// ASSERT
+					if err == nil {
+						t.Fatal("got no error, wanted error")
+					}
+					expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
+					if err.Error() != expectedMsg {
+						t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+					}
+					if !errors.Is(err, generator.ErrNonExported) {
+						t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+					}
+					if resp.File != nil {
+						t.Errorf("got %#v, wanted nil", resp.File)
+					}
+					if resp.DestPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.DestPath)
+					}
+					if resp.OutPkgPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+					}
+				})
+			}
+		})
+
+		t.Run("unknown fields", func(t *testing.T) {
+			weirdFL := ast.FieldList(ast.Field(ast.LitInt(28)).Obj)
+			testCases := map[string]dst.Expr{
+				"literal": ast.LitInt(45),
+
+				"array type w/ literal":     &dst.ArrayType{Elt: ast.LitInt(19)},
+				"chan type w/ literal":      &dst.ChanType{Value: ast.LitInt(28)},
+				"ellipsis w/ literal":       ast.Ellipsis(ast.LitInt(48)),
+				"func type w/ literal":      ast.FnType(weirdFL).Obj,
+				"interface type w/ literal": &dst.InterfaceType{Methods: weirdFL},
+				"star expr w/ literal":      ast.Star(ast.LitInt(91)),
+				"struct type w/ literal":    ast.Struct(ast.Field(ast.LitInt(65)).Obj),
+				"map type w/ literal":       ast.MapType(ast.LitInt(38)).Value(ast.Id("string")).Obj,
+			}
+
+			for name, tc := range testCases {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typeCacheMoq.onCall().FindPackage(".").
+						returnResults("destdir", nil)
+					getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+					func1Params.List[1].Type = tc
+					typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+						returnResults(ifaceInfo1, nil)
+					req := generator.GenerateRequest{
+						Types:              []string{"MyInterface"},
+						Export:             true,
+						Destination:        "file_test.go",
+						Package:            "",
+						Import:             ".",
+						TestImport:         false,
+						WorkingDir:         "/some-nice-path",
+						ExcludeNonExported: true,
+					}
+
+					// ACT
+					resp, err := gen.Generate(req)
+
+					// ASSERT
+					if err == nil {
+						t.Fatal("got no error, wanted error")
+					}
+					if !errors.Is(err, generator.ErrUnknownFieldType) {
+						t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+					}
+					if resp.File != nil {
+						t.Errorf("got %#v, wanted nil", resp.File)
+					}
+					if resp.DestPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.DestPath)
+					}
+					if resp.OutPkgPath != "" {
+						t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+					}
+				})
+			}
+		})
+
+		t.Run("one method with unexported result, error", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t)
+			defer afterEach(t)
+
+			typeCacheMoq.onCall().FindPackage(".").
+				returnResults("destdir", nil)
+			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+			func1.Type.(*dst.FuncType).Results = func1Results
+			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
+				returnResults(ifaceInfo1, nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+				returnResults(ast.TypeInfo{Exported: true}, nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("error", ""), genPkg, false).
+				returnResults(ast.TypeInfo{Exported: false}, nil)
+			req := generator.GenerateRequest{
+				Types:              []string{"MyInterface"},
+				Export:             true,
+				Destination:        "file_test.go",
+				Package:            "",
+				Import:             ".",
+				TestImport:         false,
+				WorkingDir:         "/some-nice-path",
+				ExcludeNonExported: true,
+			}
+
+			// ACT
+			resp, err := gen.Generate(req)
+
+			// ASSERT
+			if err == nil {
+				t.Fatal("got no error, wanted error")
+			}
+			expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
+			if err.Error() != expectedMsg {
+				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+			}
+			if resp.File != nil {
+				t.Errorf("got %#v, wanted nil", resp.File)
+			}
+			if resp.DestPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.DestPath)
+			}
+			if resp.OutPkgPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+			}
+		})
+
+		t.Run("only unexported with embedded interface, error", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t)
+			defer afterEach(t)
+
+			func1.Names[0].Name = "func1"
+			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+			typeCacheMoq.onCall().FindPackage(".").
+				returnResults("destdir", nil)
+
+			// PublicInterface embeds privateInterface
+			ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
+				Type: &dst.Ident{
+					Name: "privateInterface",
+					Path: genPkg,
+				},
+			})
+			typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
+				returnResults(ifaceInfo1, nil)
+			privateId := ast.IdPath("privateInterface", genPkg)
+			typeCacheMoq.onCall().Type(*privateId, genPkg, false).
+				returnResults(ifaceInfo2, nil)
+			req := generator.GenerateRequest{
+				Types:              []string{"PublicInterface"},
+				Export:             true,
+				Destination:        "file_test.go",
+				Package:            "",
+				Import:             ".",
+				TestImport:         false,
+				WorkingDir:         "/some-nice-path",
+				ExcludeNonExported: true,
+			}
+
+			// ACT
+			resp, err := gen.Generate(req)
+
+			// ASSERT
+			if err == nil {
+				t.Fatal("got no error, wanted error")
+			}
+			expectedMsg := "non-exported types: type ..PublicInterface only contains non-exported types"
+			if err.Error() != expectedMsg {
+				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
 			}
 			if resp.File != nil {
 				t.Errorf("got %#v, wanted nil", resp.File)
@@ -738,15 +1082,18 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 
-		ifaceSpec := &dst.TypeSpec{
-			Name: dst.NewIdent("AliasType"),
-			Type: ast.IdPath("Reader", "io"),
+		ifaceInfo := ast.TypeInfo{
+			Type: &dst.TypeSpec{
+				Name: ast.IdPath("AliasType", "thatpkg"),
+				Type: ast.IdPath("Reader", "io"),
+			},
+			PkgPath: genPkg,
 		}
 
-		typeCacheMoq.onCall().Type(*ast.IdPath("AliasType", "."), false).
-			returnResults(ifaceSpec, "github.com/myshkin5/moqueries/generator", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), false).
-			returnResults(readerSpec, "", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("AliasType", "."), ".", false).
+			returnResults(ifaceInfo, nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "thatpkg", false).
+			returnResults(readerInfo, nil)
 
 		ifaceFuncs := []generator.Func{
 			{
@@ -756,12 +1103,14 @@ func TestMoqGenerator(t *testing.T) {
 			},
 		}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec:   ifaceSpec,
+			TypeInfo: ast.TypeInfo{
+				Type:    ifaceInfo.Type,
+				PkgPath: genPkg,
+			},
 			Funcs:      ifaceFuncs,
-			InPkgPath:  "github.com/myshkin5/moqueries/generator",
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseStruct().returnResults(nil)
+		converter1Moq.onCall().BaseDecls().returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("mock").
 			returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("recorder").
@@ -893,18 +1242,21 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
-			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
+			returnResults(ifaceInfo1, nil)
 		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec:   ifaceSpec1,
+			TypeInfo: ast.TypeInfo{
+				Type:     ifaceInfo1.Type,
+				PkgPath:  genPkg,
+				Exported: true,
+			},
 			Funcs:      ifaceFuncs,
-			InPkgPath:  "github.com/myshkin5/moqueries/generator",
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseStruct().returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
-			Name: dst.NewIdent("pub-decl"),
-		}}})
+		converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
+			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
+		}})
 		converter1Moq.onCall().IsolationStruct("mock").
 			returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("recorder").
@@ -948,19 +1300,22 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), true).
-			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), true).
-			returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", true).
+			returnResults(ifaceInfo1, nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), ".", true).
+			returnResults(ifaceInfo2, nil)
 
 		iface1Funcs := []generator.Func{{Name: "Func1", Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec:   ifaceSpec1,
+			TypeInfo: ast.TypeInfo{
+				Type:     ifaceInfo1.Type,
+				PkgPath:  genPkg,
+				Exported: true,
+			},
 			Funcs:      iface1Funcs,
-			InPkgPath:  "github.com/myshkin5/moqueries/generator",
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseStruct().returnResults(nil)
+		converter1Moq.onCall().BaseDecls().returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("mock").
 			returnResults(nil)
 		converter1Moq.onCall().IsolationStruct("recorder").
@@ -984,12 +1339,14 @@ func TestMoqGenerator(t *testing.T) {
 
 		var iface2Funcs []generator.Func
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec:   ifaceSpec2,
+			TypeInfo: ast.TypeInfo{
+				Type:    ifaceInfo2.Type,
+				PkgPath: genPkg,
+			},
 			Funcs:      iface2Funcs,
-			InPkgPath:  "github.com/myshkin5/moqueries/generator",
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter2Moq.mock())
-		converter2Moq.onCall().BaseStruct().returnResults(nil)
+		converter2Moq.onCall().BaseDecls().returnResults(nil)
 		converter2Moq.onCall().IsolationStruct("mock").
 			returnResults(nil)
 		converter2Moq.onCall().IsolationStruct("recorder").
@@ -1031,8 +1388,8 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 		expectedErr := errors.New("bad cache")
-		typeCacheMoq.onCall().Type(*ast.IdPath("BadInterface", "."), false).
-			returnResults(nil, "", expectedErr)
+		typeCacheMoq.onCall().Type(*ast.IdPath("BadInterface", "."), ".", false).
+			returnResults(ast.TypeInfo{}, expectedErr)
 
 		req := generator.GenerateRequest{
 			Types:       []string{"BadInterface"},
@@ -1073,14 +1430,14 @@ func TestMoqGenerator(t *testing.T) {
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
 				Name: "privateInterface",
-				Path: "github.com/myshkin5/moqueries/generator",
+				Path: genPkg,
 			},
 		})
-		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
-			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
+			returnResults(ifaceInfo1, nil)
 		expectedErr := errors.New("bad cache")
-		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "github.com/myshkin5/moqueries/generator"), false).
-			returnResults(nil, "", expectedErr)
+		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", genPkg), genPkg, false).
+			returnResults(ast.TypeInfo{}, expectedErr)
 
 		req := generator.GenerateRequest{
 			Types:       []string{"PublicInterface"},
@@ -1122,7 +1479,7 @@ func TestMoqGenerator(t *testing.T) {
 		ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 			Type: &dst.Ident{
 				Name: "privateInterface",
-				Path: "github.com/myshkin5/moqueries/generator",
+				Path: genPkg,
 			},
 		})
 		ifaceMethods2.List = append(ifaceMethods2.List, &dst.Field{
@@ -1131,13 +1488,13 @@ func TestMoqGenerator(t *testing.T) {
 				Path: "io",
 			},
 		})
-		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), false).
-			returnResults(ifaceSpec1, "github.com/myshkin5/moqueries/generator", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "github.com/myshkin5/moqueries/generator"), false).
-			returnResults(ifaceSpec2, "github.com/myshkin5/moqueries/generator", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
+			returnResults(ifaceInfo1, nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", genPkg), genPkg, false).
+			returnResults(ifaceInfo2, nil)
 		expectedErr := errors.New("bad cache")
-		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), false).
-			returnResults(nil, "", expectedErr)
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+			returnResults(ast.TypeInfo{}, expectedErr)
 
 		req := generator.GenerateRequest{
 			Types:       []string{"PublicInterface"},
@@ -1174,18 +1531,21 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), false).
-			returnResults(fnSpec, "github.com/myshkin5/moqueries/generator", nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
+			returnResults(fnInfo, nil)
 		fnFuncs := []generator.Func{{Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeSpec:   fnSpec,
+			TypeInfo: ast.TypeInfo{
+				Type:     fnInfo.Type,
+				PkgPath:  genPkg,
+				Exported: true,
+			},
 			Funcs:      fnFuncs,
-			InPkgPath:  "github.com/myshkin5/moqueries/generator",
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseStruct().returnResults(&dst.GenDecl{Specs: []dst.Spec{&dst.TypeSpec{
-			Name: dst.NewIdent("pub-decl"),
-		}}})
+		converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
+			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
+		}})
 		converter1Moq.onCall().IsolationStruct("mock").
 			returnResults(nil)
 		converter1Moq.onCall().MethodStructs(fnFuncs[0]).

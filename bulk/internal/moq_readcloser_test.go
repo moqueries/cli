@@ -4,12 +4,16 @@ package internal_test
 
 import (
 	"fmt"
+	"io"
 	"math/bits"
 	"sync/atomic"
 
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
+
+// The following type assertion assures that io.ReadCloser is mocked completely
+var _ io.ReadCloser = (*moqReadCloser_mock)(nil)
 
 // moqReadCloser holds the state of a moq of the ReadCloser type
 type moqReadCloser struct {

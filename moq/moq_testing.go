@@ -10,6 +10,9 @@ import (
 	"github.com/myshkin5/moqueries/hash"
 )
 
+// The following type assertion assures that moq.T is mocked completely
+var _ T = (*MoqT_mock)(nil)
+
 // MoqT holds the state of a moq of the T type
 type MoqT struct {
 	Scene  *Scene

@@ -7,9 +7,14 @@ import (
 	"math/bits"
 	"sync/atomic"
 
+	"github.com/myshkin5/moqueries/bulk/internal"
 	"github.com/myshkin5/moqueries/hash"
 	"github.com/myshkin5/moqueries/moq"
 )
+
+// The following type assertion assures that internal.ReadWriteSeekCloser is
+// mocked completely
+var _ internal.ReadWriteSeekCloser = (*moqReadWriteSeekCloser_mock)(nil)
 
 // moqReadWriteSeekCloser holds the state of a moq of the ReadWriteSeekCloser
 // type

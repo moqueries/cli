@@ -569,9 +569,7 @@ func StructFromList(fieldList *dst.FieldList) *dst.StructType {
 }
 
 // TypeSpecDSL translates to a dst.TypeSpec
-type TypeSpecDSL struct {
-	Obj *dst.TypeSpec
-}
+type TypeSpecDSL struct{ Obj *dst.TypeSpec }
 
 // TypeSpec creates a new TypeSpecDSL
 func TypeSpec(name string) TypeSpecDSL {
@@ -584,10 +582,8 @@ func (d TypeSpecDSL) Type(typ dst.Expr) TypeSpecDSL {
 	return d
 }
 
-// TypeDeclDSL translates to various types into a dst.GenDecl
-type TypeDeclDSL struct {
-	Obj *dst.GenDecl
-}
+// TypeDeclDSL translates various types into a dst.GenDecl
+type TypeDeclDSL struct{ Obj *dst.GenDecl }
 
 // TypeDecl creates a new TypeDeclDSL
 func TypeDecl(typeSpec *dst.TypeSpec) TypeDeclDSL {
@@ -621,9 +617,29 @@ func (d ValueDSL) Names(names ...*dst.Ident) ValueDSL {
 	return d
 }
 
+// Values sets the values of the spec
+func (d ValueDSL) Values(values ...dst.Expr) ValueDSL {
+	d.Obj.Values = values
+	return d
+}
+
 // Var returns a var dst.DeclStmt
 func Var(specs ...dst.Spec) *dst.DeclStmt {
-	return &dst.DeclStmt{Decl: &dst.GenDecl{Tok: token.VAR, Specs: specs}}
+	return &dst.DeclStmt{Decl: VarDecl(specs...).Obj}
+}
+
+// VarDeclDSL translates variable declaration into a dst.GenDecl
+type VarDeclDSL struct{ Obj *dst.GenDecl }
+
+// VarDecl creates a new VarDeclDSL
+func VarDecl(specs ...dst.Spec) VarDeclDSL {
+	return VarDeclDSL{Obj: &dst.GenDecl{Tok: token.VAR, Specs: specs}}
+}
+
+// Decs adds decorations to a VarDeclDSL
+func (d VarDeclDSL) Decs(decs dst.GenDeclDecorations) VarDeclDSL {
+	d.Obj.Decs = decs
+	return d
 }
 
 // emptyFieldList returns an empty field list (renders as `struct {}` with no
