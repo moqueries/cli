@@ -232,7 +232,7 @@ func TestConverter(t *testing.T) {
 					if len(decl.Decs.Start) != 2 {
 						t.Errorf("got len %d, wanted 2", len(decl.Decs.Start))
 					}
-					expectedStart := "// The following type assertion assures that ..PublicInterface is mocked"
+					expectedStart := "// The following type assertion assures that pkg.PublicInterface is mocked"
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}

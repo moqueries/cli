@@ -299,7 +299,7 @@ func TestMoqGenerator(t *testing.T) {
 					TestImport:  false,
 					WorkingDir:  "/some-nice-path",
 				},
-				findPkgDir: "exactly-here",
+				findPkgDir: "/exactly-here",
 				findPkgOut: "thispkg",
 				outPkgPath: "thispkg_test",
 				getwdDir:   "/some-nice-path",
@@ -316,7 +316,7 @@ func TestMoqGenerator(t *testing.T) {
 					TestImport:     false,
 					WorkingDir:     "/some-nice-path",
 				},
-				findPkgDir: "exactly-here",
+				findPkgDir: "/exactly-here",
 				findPkgOut: "thispkg",
 				outPkgPath: "thispkg_test",
 				getwdDir:   "/some-nice-path",
@@ -665,16 +665,27 @@ func TestMoqGenerator(t *testing.T) {
 			typeCacheMoq.onCall().FindPackage(".").
 				returnResults("destdir", nil)
 
-			ifaceMethods1 = &dst.FieldList{List: []*dst.Field{func1, dst.Clone(func1).(*dst.Field)}}
-			ifaceInfo1.Type.Type = &dst.InterfaceType{Methods: ifaceMethods1}
-			func1.Names[0].Name = "func1"
+			// Creates two methods but one isn't exported so will be reduced
+			twoMethods := &dst.FieldList{List: []*dst.Field{func1, dst.Clone(func1).(*dst.Field)}}
+			twoMethods.List[1].Names[0].Name = "func1"
+			fullInfo := ast.TypeInfo{
+				Type: &dst.TypeSpec{
+					Name: ast.IdPath("PublicInterface", genPkg),
+					Type: &dst.InterfaceType{Methods: twoMethods},
+				},
+				PkgPath:  genPkg,
+				Exported: true,
+			}
+
 			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
-				returnResults(ifaceInfo1, nil)
+				returnResults(fullInfo, nil)
 			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 				returnResults(ast.TypeInfo{Exported: true}, nil)
 			ifaceFuncs := []generator.Func{
 				{Name: "Func1", Params: func1Params},
 			}
+			// The method list is reduced back to normal by the time we create
+			// the converter
 			newConverterFnMoq.onCall(generator.Type{
 				TypeInfo: ast.TypeInfo{
 					Type:     ifaceInfo1.Type,
@@ -683,6 +694,7 @@ func TestMoqGenerator(t *testing.T) {
 				},
 				Funcs:      ifaceFuncs,
 				OutPkgPath: "destdir",
+				Reduced:    true,
 			}, true).returnResults(converter1Moq.mock())
 			converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
@@ -1058,6 +1070,55 @@ func TestMoqGenerator(t *testing.T) {
 			expectedMsg := "non-exported types: type ..PublicInterface only contains non-exported types"
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+			}
+			if resp.File != nil {
+				t.Errorf("got %#v, wanted nil", resp.File)
+			}
+			if resp.DestPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.DestPath)
+			}
+			if resp.OutPkgPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+			}
+		})
+
+		t.Run("mocking a function", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t)
+			defer afterEach(t)
+
+			typeCacheMoq.onCall().FindPackage(".").
+				returnResults("destdir", nil)
+			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+			typeCacheMoq.onCall().Type(*ast.IdPath("MyFunc", "."), ".", false).
+				returnResults(fnInfo, nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "", false).
+				returnResults(ast.TypeInfo{Exported: false}, nil)
+			req := generator.GenerateRequest{
+				Types:              []string{"MyFunc"},
+				Export:             true,
+				Destination:        "file_test.go",
+				Package:            "",
+				Import:             ".",
+				TestImport:         false,
+				WorkingDir:         "/some-nice-path",
+				ExcludeNonExported: true,
+			}
+
+			// ACT
+			resp, err := gen.Generate(req)
+
+			// ASSERT
+			if err == nil {
+				t.Fatal("got no error, wanted error")
+			}
+			expectedMsg := "non-exported types: PublicFn mocked type is not exported"
+			if err.Error() != expectedMsg {
+				t.Errorf("got %s, want %s", err.Error(), expectedMsg)
 			}
 			if !errors.Is(err, generator.ErrNonExported) {
 				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
@@ -1531,8 +1592,11 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+		fnInfo.Type.Name.Path = "where-the-fn-lives"
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
 			returnResults(fnInfo, nil)
+		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "where-the-fn-lives", false).
+			returnResults(ast.TypeInfo{Exported: true}, nil)
 		fnFuncs := []generator.Func{{Params: func1Params}}
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{

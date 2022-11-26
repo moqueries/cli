@@ -34,6 +34,7 @@ type Type struct {
 	TypeInfo   ast.TypeInfo
 	Funcs      []Func
 	OutPkgPath string
+	Reduced    bool
 }
 
 //go:generate moqueries GetwdFunc
@@ -142,6 +143,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 			TypeInfo:   typeInfo,
 			Funcs:      fInfo.funcs,
 			OutPkgPath: outPkgPath,
+			Reduced:    fInfo.reduced,
 		}
 		converter := g.newConverterFn(typ, req.Export)
 
@@ -188,7 +190,15 @@ func (g *MoqGenerator) relativePath(workingDir string) (string, error) {
 }
 
 func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (string, error) {
-	destDir := filepath.Join(relPath, req.DestinationDir, req.Destination)
+	destDir := req.DestinationDir
+	if !filepath.IsAbs(destDir) {
+		destDir = filepath.Join(relPath, destDir)
+	}
+	if filepath.IsAbs(req.Destination) {
+		destDir = req.Destination
+	} else {
+		destDir = filepath.Join(destDir, req.Destination)
+	}
 	if strings.HasSuffix(destDir, ".go") {
 		destDir = filepath.Dir(destDir)
 	}
@@ -285,10 +295,21 @@ func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error 
 	case *dst.InterfaceType:
 		return g.loadNestedInterfaces(typ, typeSpec.Name.Path, fInfo)
 	case *dst.FuncType:
-		fInfo.funcs = append(fInfo.funcs, Func{
+		fn := Func{
 			Params:  typ.Params,
 			Results: typ.Results,
-		})
+		}
+		fully, err := g.isFnFullyExported(fn, typeSpec.Name.Path)
+		if err != nil {
+			return err
+		}
+
+		if fInfo.excludeNonExported && !fully {
+			return fmt.Errorf("%w: %s mocked type is not exported",
+				ErrNonExported, typeSpec.Name.String())
+		}
+
+		fInfo.funcs = append(fInfo.funcs, fn)
 		return nil
 	case *dst.Ident:
 		return g.loadTypeEquivalent(typ, typeSpec.Name.Path, fInfo)
@@ -339,7 +360,7 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 		}
 		finalFuncs = append(finalFuncs, method)
 	}
-	if fInfo.fabricated && fInfo.reduced {
+	if fInfo.reduced {
 		// Reduces fabricated interface if any methods were removed
 		iType.Methods.List = finalFuncs
 	}
@@ -367,7 +388,7 @@ func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, contextPkg string, fInf
 }
 
 func (g *MoqGenerator) isFnFullyExported(fn Func, contextPkg string) (bool, error) {
-	if !dst.IsExported(fn.Name) {
+	if fn.Name != "" && !dst.IsExported(fn.Name) {
 		return false, nil
 	}
 

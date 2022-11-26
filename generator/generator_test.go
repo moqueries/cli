@@ -10,6 +10,7 @@ import (
 	"github.com/dave/dst/decorator"
 
 	"github.com/myshkin5/moqueries/generator"
+	"github.com/myshkin5/moqueries/pkg"
 )
 
 //go:generate moqueries --test-import testInterface
@@ -21,6 +22,8 @@ type testInterface interface {
 }
 
 func TestGenerating(t *testing.T) {
+	const imp = "github.com/myshkin5/moqueries/generator/testmoqs"
+
 	t.Run("generates lots of different types of moqs which are then tested by testmoqs", func(t *testing.T) {
 		if testing.Short() {
 			t.Skip("skipping generate test in short mode.")
@@ -49,7 +52,6 @@ func TestGenerating(t *testing.T) {
 			"Usual",
 		}
 
-		imp := "github.com/myshkin5/moqueries/generator/testmoqs"
 		err := generator.Generate(
 			generator.GenerateRequest{
 				Destination: "testmoqs/moq_testmoqs_test.go",
@@ -63,6 +65,32 @@ func TestGenerating(t *testing.T) {
 				Import:      imp,
 			},
 		)
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+	})
+
+	t.Run("can created reduced interface mocks", func(t *testing.T) {
+		// Since this mock is only created here (there is no associated
+		// go:generate line because ExcludeNonExported is not exposed to the
+		// command line), any changes to the mock might require the test to be
+		// run twice -- once for this test to update the mock and again for
+		// generator/testmoqs/testmoqs_test.go to compile the mock's changes.
+		err := generator.Generate(generator.GenerateRequest{
+			Destination:        "testmoqs/exported/moq_reduced.go",
+			Export:             true,
+			Types:              []string{"Reduced"},
+			Import:             imp,
+			ExcludeNonExported: true,
+		})
+		if err != nil {
+			t.Errorf("got %#v, wanted no err", err)
+		}
+	})
+
+	t.Run("manual package test", func(t *testing.T) {
+		t.Skip("manual test")
+		err := pkg.Generate("../../std", 0, "std")
 		if err != nil {
 			t.Errorf("got %#v, wanted no err", err)
 		}

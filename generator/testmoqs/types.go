@@ -94,3 +94,10 @@ type Usual interface {
 	InterfaceParam(w io.Writer) (sResult string, err error)
 	InterfaceResult(sParam string, bParam bool) (r io.Reader)
 }
+
+// Reduced creates a mock with an embedded reduced interface with only the
+// exported methods mocked when using the ExcludeNonExported flag
+type Reduced interface {
+	Usual(sParam string, bParam bool) (sResult string, err error)
+	notSoUsual()
+}

@@ -173,24 +173,34 @@ func (c *Converter) BaseDecls() []dst.Decl {
 
 	var decls []dst.Decl
 
+	typeName := c.typ.TypeInfo.Type.Name.Name
+	id := IdPath(typeName, c.typ.TypeInfo.PkgPath)
+	idStr := fmt.Sprintf("%s.%s", filepath.Base(id.Path), id.Name)
+	if c.typ.Reduced && !c.typ.TypeInfo.Fabricated {
+		typeName = fmt.Sprintf(double, typeName, "reduced")
+		id = Id(typeName)
+		idStr = typeName
+	}
+
 	if isInterface {
-		id := IdPath(c.typ.TypeInfo.Type.Name.Name, c.typ.TypeInfo.PkgPath)
 		if c.typ.TypeInfo.Fabricated {
 			id = Id(id.Name)
 		}
 		decls = append(decls, VarDecl(Value(id).Names(Id(blankIdent)).
 			Values(Call(Paren(Star(Id(moqName)))).Args(Id(nilIdent)).Obj).Obj).
 			Decs(genDeclDec("// The following type assertion assures"+
-				" that %s.%s is mocked completely", filepath.Base(id.Path), id.Name)).Obj,
+				" that %s is mocked completely", idStr)).Obj,
 		)
 	}
 
-	if c.typ.TypeInfo.Fabricated {
-		typeName := c.typ.TypeInfo.Type.Name.Name
+	if c.typ.TypeInfo.Fabricated || c.typ.Reduced {
 		typ := cloneExpr(c.typ.TypeInfo.Type.Type)
 		msg := "emitted when mocking functions directly and not from a function type"
 		if isInterface {
 			msg = "emitted when mocking a collections of methods directly and not from an interface type"
+		}
+		if !c.typ.TypeInfo.Fabricated {
+			msg = "emitted when the original interface contains non-exported methods"
 		}
 		decls = append(decls, TypeDecl(TypeSpec(typeName).Type(typ).Obj).
 			Decs(genDeclDec("// %s is the fabricated implementation type of this mock (%s)",
@@ -199,7 +209,7 @@ func (c *Converter) BaseDecls() []dst.Decl {
 
 	decls = append(decls, TypeDecl(TypeSpec(mName).Type(Struct(fields...)).Obj).
 		Decs(genDeclDec("// %s holds the state of a moq of the %s type",
-			mName, c.typ.TypeInfo.Type.Name.Name)).Obj)
+			mName, typeName)).Obj)
 
 	return decls
 }
