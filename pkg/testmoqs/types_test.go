@@ -45,7 +45,7 @@ func TestPackageGeneration(t *testing.T) {
 
 		moqs[e.Name()] = struct{}{}
 	}
-	if len(moqs) != 3 {
+	if len(moqs) != 4 {
 		t.Errorf("got %#v mocks, want 3", moqs)
 	}
 	if _, ok := moqs["moq_passbyrefsimple_stargentype.go"]; !ok {
@@ -55,6 +55,9 @@ func TestPackageGeneration(t *testing.T) {
 		t.Errorf("got %#v, want to contain moq_passbyvaluesimple_gentype.go", moqs)
 	}
 	if _, ok := moqs["moq_standalonefunc_gentype.go"]; !ok {
+		t.Errorf("got %#v, want to contain moq_standalonefunc_gentype.go", moqs)
+	}
+	if _, ok := moqs["moq_reduced.go"]; !ok {
 		t.Errorf("got %#v, want to contain moq_standalonefunc_gentype.go", moqs)
 	}
 	// Minimal testing here just to make sure the right types were found (full

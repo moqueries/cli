@@ -1496,7 +1496,7 @@ func (a *difficultParamNamesAdaptor) invokeMockAndExpectResults(_ moq.T, sParams
 }
 
 func (a *difficultParamNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
-	//nolint: dupword // not a comment
+	// nolint: dupword // not a comment
 	return fmt.Sprintf("DifficultParamNames(%#v, false, %#v, 0, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
@@ -1593,7 +1593,7 @@ func (a *exportedDifficultParamNamesAdaptor) invokeMockAndExpectResults(
 }
 
 func (a *exportedDifficultParamNamesAdaptor) prettyParams(sParams []string, bParam bool) string {
-	//nolint: dupword // not a comment
+	// nolint: dupword // not a comment
 	return fmt.Sprintf("DifficultParamNames(%#v, false, %#v, 0, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
@@ -2523,104 +2523,5 @@ func (r *exportedInterfaceResultRecorder) repeat(repeaters ...moq.Repeater) {
 }
 
 func (r *exportedInterfaceResultRecorder) isNil() bool {
-	return r.r == nil
-}
-
-type exportedReducedAdaptor struct {
-	m *exported.MoqReduced
-}
-
-func (a *exportedReducedAdaptor) config() adaptorConfig {
-	return adaptorConfig{exported: true}
-}
-
-func (a *exportedReducedAdaptor) mock() interface{} { return a.m.Mock() }
-
-func (a *exportedReducedAdaptor) newRecorder(sParams []string, bParam bool) recorder {
-	return &exportedReducedRecorder{r: a.m.OnCall().Usual(sParams[0], bParam)}
-}
-
-func (a *exportedReducedAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
-	sResult, err := a.m.Mock().Usual(sParams[0], bParam)
-	if sResult != res.sResults[0] {
-		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
-	}
-	if err != res.err {
-		t.Errorf("wanted %#v, got %#v", res.err, err)
-	}
-}
-
-func (a *exportedReducedAdaptor) prettyParams(sParams []string, bParam bool) string {
-	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
-}
-
-func (a *exportedReducedAdaptor) sceneMoq() moq.Moq {
-	return a.m
-}
-
-type exportedReducedRecorder struct {
-	r *exported.MoqReduced_Usual_fnRecorder
-}
-
-func (r *exportedReducedRecorder) anySParam() {
-	if a := r.r.Any(); a == nil {
-		r.r = nil
-	} else {
-		r.r = a.SParam()
-	}
-}
-
-func (r *exportedReducedRecorder) anyBParam() {
-	if a := r.r.Any(); a == nil {
-		r.r = nil
-	} else {
-		r.r = a.BParam()
-	}
-}
-
-func (r *exportedReducedRecorder) seq() {
-	r.r = r.r.Seq()
-}
-
-func (r *exportedReducedRecorder) noSeq() {
-	r.r = r.r.NoSeq()
-}
-
-func (r *exportedReducedRecorder) returnResults(sResults []string, err error) {
-	r.r = r.r.ReturnResults(sResults[0], err)
-}
-
-func (r *exportedReducedRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
-	r.r = r.r.AndDo(func(sParam string, bParam bool) {
-		fn()
-		if sParam != expectedSParams[0] {
-			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
-		}
-		if bParam != expectedBParam {
-			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
-		}
-	})
-}
-
-func (r *exportedReducedRecorder) doReturnResults(
-	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
-) {
-	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (string, error) {
-		fn()
-		if sParam != expectedSParams[0] {
-			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
-		}
-		if bParam != expectedBParam {
-			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
-		}
-		return sResults[0], err
-	})
-}
-
-func (r *exportedReducedRecorder) repeat(repeaters ...moq.Repeater) {
-	r.r = r.r.Repeat(repeaters...)
-}
-
-func (r *exportedReducedRecorder) isNil() bool {
 	return r.r == nil
 }

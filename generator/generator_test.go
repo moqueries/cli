@@ -70,24 +70,6 @@ func TestGenerating(t *testing.T) {
 		}
 	})
 
-	t.Run("can created reduced interface mocks", func(t *testing.T) {
-		// Since this mock is only created here (there is no associated
-		// go:generate line because ExcludeNonExported is not exposed to the
-		// command line), any changes to the mock might require the test to be
-		// run twice -- once for this test to update the mock and again for
-		// generator/testmoqs/testmoqs_test.go to compile the mock's changes.
-		err := generator.Generate(generator.GenerateRequest{
-			Destination:        "testmoqs/exported/moq_reduced.go",
-			Export:             true,
-			Types:              []string{"Reduced"},
-			Import:             imp,
-			ExcludeNonExported: true,
-		})
-		if err != nil {
-			t.Errorf("got %#v, wanted no err", err)
-		}
-	})
-
 	t.Run("manual package test", func(t *testing.T) {
 		t.Skip("manual test")
 		err := pkg.Generate("../../std", 0, "std")
