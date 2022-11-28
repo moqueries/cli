@@ -129,7 +129,6 @@ func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 		"exported interface param":        &exportedInterfaceParamAdaptor{m: exportUsualMoq},
 		"interface result":                &interfaceResultAdaptor{m: usualMoq},
 		"exported interface result param": &exportedInterfaceResultAdaptor{m: exportUsualMoq},
-		"exported reduced":                &exportedReducedAdaptor{m: exported.NewMoqReduced(moqScene, &c)},
 	}
 
 	return entries
