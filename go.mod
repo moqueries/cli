@@ -1,4 +1,4 @@
-module github.com/myshkin5/moqueries
+module moqueries.org/cli
 
 go 1.15
 

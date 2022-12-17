@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/moq"
 )
 
 func TestRepeat(t *testing.T) {

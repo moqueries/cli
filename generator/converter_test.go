@@ -9,9 +9,9 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/myshkin5/moqueries/ast"
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/ast"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/moq"
 )
 
 func TestConverter(t *testing.T) {
@@ -331,11 +331,11 @@ func TestConverter(t *testing.T) {
 					}
 					// Non-comparables are represented as a deep hash
 					expectedParams.List[0].Type = &dst.Ident{
-						Path: "github.com/myshkin5/moqueries/hash",
+						Path: "moqueries.org/cli/hash",
 						Name: "Hash",
 					}
 					expectedParams.List[3].Type = &dst.Ident{
-						Path: "github.com/myshkin5/moqueries/hash",
+						Path: "moqueries.org/cli/hash",
 						Name: "Hash",
 					}
 					fn := generator.Func{

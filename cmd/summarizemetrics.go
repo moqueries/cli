@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/logs"
-	"github.com/myshkin5/moqueries/metrics"
+	"moqueries.org/cli/logs"
+	"moqueries.org/cli/metrics"
 )
 
 var summarizeMetricsCmd = &cobra.Command{

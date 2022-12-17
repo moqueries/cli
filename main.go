@@ -1,6 +1,6 @@
 package main
 
-import "github.com/myshkin5/moqueries/cmd"
+import "moqueries.org/cli/cmd"
 
 func main() {
 	cmd.Execute()

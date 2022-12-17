@@ -15,13 +15,13 @@ import (
 	"github.com/dave/dst/decorator"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/myshkin5/moqueries/ast"
-	"github.com/myshkin5/moqueries/metrics"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/ast"
+	"moqueries.org/cli/metrics"
+	"moqueries.org/cli/moq"
 )
 
 const (
-	testPkgs          = "github.com/myshkin5/moqueries/ast/testpkgs/"
+	testPkgs          = "moqueries.org/cli/ast/testpkgs/"
 	noExportPkg       = testPkgs + "noexport"
 	noExportTestPkg   = noExportPkg + "_test"
 	exportPkg         = testPkgs + "export"
@@ -1112,7 +1112,7 @@ type e struct {
 		metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
 			ReturnResults().Repeat(moq.AnyTimes())
 
-		pkg := "github.com/myshkin5/moqueries/generator"
+		pkg := "moqueries.org/cli/generator"
 		typ, err := c.Type(*ast.IdPath("TypeCache", pkg), pkg, false)
 		if err != nil {
 			t.Fatalf("got %#v, want no error", err)
@@ -1208,8 +1208,8 @@ type e struct {
 				t.Fatalf("got %#v, want no error", err)
 			}
 
-			if pkgPath != "github.com/myshkin5/moqueries/ast" {
-				t.Errorf("got %s, want github.com/myshkin5/moqueries/ast", pkgPath)
+			if pkgPath != "moqueries.org/cli/ast" {
+				t.Errorf("got %s, want moqueries.org/cli/ast", pkgPath)
 			}
 		})
 	})

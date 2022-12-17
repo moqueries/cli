@@ -9,12 +9,12 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	. "github.com/myshkin5/moqueries/ast"
-	"github.com/myshkin5/moqueries/logs"
+	. "moqueries.org/cli/ast"
+	"moqueries.org/cli/logs"
 )
 
 const (
-	moqueriesPkg  = "github.com/myshkin5/moqueries"
+	moqueriesPkg  = "moqueries.org/cli"
 	hashPkg       = moqueriesPkg + "/hash"
 	moqPkg        = moqueriesPkg + "/moq"
 	syncAtomicPkg = "sync/atomic"

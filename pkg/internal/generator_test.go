@@ -7,10 +7,10 @@ import (
 
 	"github.com/dave/dst"
 
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/metrics"
-	"github.com/myshkin5/moqueries/moq"
-	"github.com/myshkin5/moqueries/pkg/internal"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/metrics"
+	"moqueries.org/cli/moq"
+	"moqueries.org/cli/pkg/internal"
 )
 
 func TestGenerate(t *testing.T) {

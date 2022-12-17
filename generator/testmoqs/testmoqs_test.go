@@ -9,9 +9,9 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/myshkin5/moqueries/generator/testmoqs"
-	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/generator/testmoqs"
+	"moqueries.org/cli/generator/testmoqs/exported"
+	"moqueries.org/cli/moq"
 )
 
 type results struct {

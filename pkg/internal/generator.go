@@ -11,9 +11,9 @@ import (
 
 	"github.com/dave/dst"
 
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/logs"
-	"github.com/myshkin5/moqueries/metrics"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/logs"
+	"moqueries.org/cli/metrics"
 )
 
 // ErrSkipTooManyPackageDirs is returned by Generate when skipPkgDirs requests

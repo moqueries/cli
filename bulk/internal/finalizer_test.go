@@ -7,9 +7,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/myshkin5/moqueries/bulk/internal"
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/bulk/internal"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/moq"
 )
 
 func TestFinalize(t *testing.T) {

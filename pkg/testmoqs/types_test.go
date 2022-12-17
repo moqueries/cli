@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/myshkin5/moqueries/pkg"
+	"moqueries.org/cli/pkg"
 )
 
 func TestPackageGeneration(t *testing.T) {
@@ -26,7 +26,7 @@ func TestPackageGeneration(t *testing.T) {
 	}
 
 	// ACT
-	err = pkg.Generate(".", 5, "github.com/myshkin5/moqueries/pkg/testmoqs")
+	err = pkg.Generate(".", 4, "moqueries.org/cli/pkg/testmoqs")
 
 	// ASSERT
 	if err != nil {

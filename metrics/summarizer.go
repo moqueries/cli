@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/logs"
 )
 
 //go:generate moqueries --import io Reader

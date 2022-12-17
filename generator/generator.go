@@ -14,9 +14,9 @@ import (
 	"github.com/dave/dst/decorator/resolver/gopackages"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/myshkin5/moqueries/ast"
-	"github.com/myshkin5/moqueries/logs"
-	"github.com/myshkin5/moqueries/metrics"
+	"moqueries.org/cli/ast"
+	"moqueries.org/cli/logs"
+	"moqueries.org/cli/metrics"
 )
 
 // GenerateRequest contains all the parameters needed to call Generate

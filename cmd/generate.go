@@ -3,9 +3,9 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/bulk"
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/bulk"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/logs"
 )
 
 const (

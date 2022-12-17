@@ -7,7 +7,7 @@ import (
 
 	"github.com/dave/dst"
 
-	"github.com/myshkin5/moqueries/ast"
+	"moqueries.org/cli/ast"
 )
 
 var (

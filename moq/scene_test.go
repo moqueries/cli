@@ -3,7 +3,7 @@ package moq_test
 import (
 	"testing"
 
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/moq"
 )
 
 func TestScene(t *testing.T) {

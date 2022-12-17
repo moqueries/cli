@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/logs"
 )
 
 const (

@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/myshkin5/moqueries/bulk/internal"
-	"github.com/myshkin5/moqueries/generator"
+	"moqueries.org/cli/bulk/internal"
+	"moqueries.org/cli/generator"
 )
 
 // Initialize initializes bulk processing and creates the bulk processing state

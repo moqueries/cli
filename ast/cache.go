@@ -13,8 +13,8 @@ import (
 	"github.com/dave/dst/decorator"
 	"golang.org/x/tools/go/packages"
 
-	"github.com/myshkin5/moqueries/logs"
-	"github.com/myshkin5/moqueries/metrics"
+	"moqueries.org/cli/logs"
+	"moqueries.org/cli/metrics"
 )
 
 //go:generate moqueries LoadFn

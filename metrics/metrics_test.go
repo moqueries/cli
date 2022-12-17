@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/myshkin5/moqueries/metrics"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/metrics"
+	"moqueries.org/cli/moq"
 )
 
 func TestMetrics(t *testing.T) {

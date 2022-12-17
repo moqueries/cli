@@ -3,8 +3,8 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/logs"
-	"github.com/myshkin5/moqueries/pkg"
+	"moqueries.org/cli/logs"
+	"moqueries.org/cli/pkg"
 )
 
 const skipPkgDirsFlag = "skip-pkg-dirs"

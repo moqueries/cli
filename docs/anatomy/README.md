@@ -117,7 +117,7 @@ paramsKey := moqStore_LightGadgetsByWidgetId_paramsKey{
 }
 ```
 
-Note that the first parameter will always be represented by a zero value because it is an "any" parameter (even if a real value was supplied, it is ignored). The second value is not specified in the `params` section but does have a hash in the `hashes` section. Deep hashes are represented by the `github.com/myshkin5/moqueries/hash.Hash` type (which is just a `uint64`).
+Note that the first parameter will always be represented by a zero value because it is an "any" parameter (even if a real value was supplied, it is ignored). The second value is not specified in the `params` section but does have a hash in the `hashes` section. Deep hashes are represented by the `moqueries.org/cli/hash.Hash` type (which is just a `uint64`).
 
 ### Storing results
 The last step in storing expectations is building the results structure. As [mentioned above](#results), this includes the parameters, repeat information, a results index (initialized to `0`), and a slice of result values. Over the course of setting multiple expectations, the same parameters used for the same mock function call can "grow" the results structure. When all expectations are set, the slice of result values will contain an entry for each expected invocation (up to the defined max) plus one set of result values if repeating with the `AnyTimes` function.

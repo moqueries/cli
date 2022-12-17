@@ -9,8 +9,8 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/pkg"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/pkg"
 )
 
 //go:generate moqueries --test-import testInterface
@@ -22,7 +22,7 @@ type testInterface interface {
 }
 
 func TestGenerating(t *testing.T) {
-	const imp = "github.com/myshkin5/moqueries/generator/testmoqs"
+	const imp = "moqueries.org/cli/generator/testmoqs"
 
 	t.Run("generates lots of different types of moqs which are then tested by testmoqs", func(t *testing.T) {
 		if testing.Short() {

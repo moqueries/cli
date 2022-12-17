@@ -3,7 +3,7 @@ package hash_test
 import (
 	"testing"
 
-	"github.com/myshkin5/moqueries/hash"
+	"moqueries.org/cli/hash"
 )
 
 func TestNil(t *testing.T) {

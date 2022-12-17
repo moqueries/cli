@@ -5,9 +5,9 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/myshkin5/moqueries/generator/testmoqs"
-	"github.com/myshkin5/moqueries/generator/testmoqs/exported"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/generator/testmoqs"
+	"moqueries.org/cli/generator/testmoqs/exported"
+	"moqueries.org/cli/moq"
 )
 
 type usualFnAdaptor struct {
@@ -1495,7 +1495,7 @@ func (a *difficultParamNamesFnAdaptor) invokeMockAndExpectResults(_ moq.T, sPara
 }
 
 func (a *difficultParamNamesFnAdaptor) prettyParams(sParams []string, bParam bool) string {
-	//nolint: dupword // not a comment
+	// nolint: dupword // not a comment
 	return fmt.Sprintf("DifficultParamNamesFn(%#v, false, %#v, 0, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 
@@ -1592,7 +1592,7 @@ func (a *exportedDifficultParamNamesFnAdaptor) invokeMockAndExpectResults(
 }
 
 func (a *exportedDifficultParamNamesFnAdaptor) prettyParams(sParams []string, bParam bool) string {
-	//nolint: dupword // not a comment
+	// nolint: dupword // not a comment
 	return fmt.Sprintf("DifficultParamNamesFn(%#v, false, %#v, 0, 0, 0, 0, 0, 0)", bParam, sParams[0])
 }
 

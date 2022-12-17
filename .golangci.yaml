@@ -38,7 +38,7 @@ linters-settings:
     sections:
     - standard
     - default
-    - prefix(github.com/myshkin5/moqueries)
+    - prefix(moqueries.org/cli)
   revive:
     rules:
     - name: var-naming
@@ -46,7 +46,7 @@ linters-settings:
       - ["ID"]
   stylecheck:
     dot-import-whitelist:
-    - "github.com/myshkin5/moqueries/ast"
+    - "moqueries.org/cli/ast"
     initialisms:
     - "-ID"
 

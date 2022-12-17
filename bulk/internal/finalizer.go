@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/logs"
 )
 
 //go:generate moqueries OpenFn

@@ -5,8 +5,8 @@ import (
 	"go/build"
 	"testing"
 
-	"github.com/myshkin5/moqueries/bulk/internal"
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/bulk/internal"
+	"moqueries.org/cli/moq"
 )
 
 var goodInitLine = "{\"root-dir\":\"/my-root-dir\",\"go-path\":\"" + build.Default.GOPATH + "\"}"

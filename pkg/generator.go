@@ -4,11 +4,11 @@ package pkg
 import (
 	"golang.org/x/tools/go/packages"
 
-	"github.com/myshkin5/moqueries/ast"
-	"github.com/myshkin5/moqueries/generator"
-	"github.com/myshkin5/moqueries/logs"
-	"github.com/myshkin5/moqueries/metrics"
-	"github.com/myshkin5/moqueries/pkg/internal"
+	"moqueries.org/cli/ast"
+	"moqueries.org/cli/generator"
+	"moqueries.org/cli/logs"
+	"moqueries.org/cli/metrics"
+	"moqueries.org/cli/pkg/internal"
 )
 
 // Generate generates mocks for several packages at once

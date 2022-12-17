@@ -1,7 +1,7 @@
 package moq
 
 import (
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/logs"
 )
 
 // Repeater is implemented by all repeaters

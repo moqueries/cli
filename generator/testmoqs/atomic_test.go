@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/myshkin5/moqueries/moq"
+	"moqueries.org/cli/moq"
 )
 
 const (

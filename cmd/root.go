@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/logs"
 )
 
 const (

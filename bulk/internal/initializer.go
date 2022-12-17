@@ -8,7 +8,7 @@ import (
 	"go/build"
 	"io"
 
-	"github.com/myshkin5/moqueries/logs"
+	"moqueries.org/cli/logs"
 )
 
 //go:generate moqueries CreateFn
