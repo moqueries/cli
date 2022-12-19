@@ -26,7 +26,7 @@ jobs:
         command: |
           set -ux
           find . -name moq_\*.go -delete
-          go build -o $GOPATH/bin/moqueries moqueries.org/cli
+          go build -o $GOPATH/bin/moqueries moqueries.org/cli/moqueries
           export MOQ_BULK_STATE_FILE=$(mktemp --tmpdir= moq-XXXXXX)
           moqueries bulk-initialize
           go generate ./...

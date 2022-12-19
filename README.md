@@ -15,7 +15,7 @@ These mocks are also true to the interface and function types they mock &mdash; 
 
 ## Installing moqueries
 ```shell
-go install moqueries.org/cli@latest
+go install moqueries.org/cli/moqueries@latest
 ```
 
 ## Generating mocks
