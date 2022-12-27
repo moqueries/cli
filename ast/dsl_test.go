@@ -22,7 +22,6 @@ var (
 	field2 = &dst.Field{Type: id2}
 
 	params  = &dst.FieldList{List: []*dst.Field{{Type: id3}, {Type: id4}}}
-
 	results = &dst.FieldList{List: []*dst.Field{{Type: id5}, {Type: id6}}}
 
 	assign1 = &dst.AssignStmt{Lhs: []dst.Expr{id1}}
