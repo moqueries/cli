@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 
 	"moqueries.org/cli/generator/testmoqs"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // MoqUsualFn holds the state of a moq of the UsualFn type

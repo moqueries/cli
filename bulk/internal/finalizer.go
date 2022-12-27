@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io"
 
+	"moqueries.org/runtime/logs"
+
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/logs"
 )
 
 //go:generate moqueries OpenFn

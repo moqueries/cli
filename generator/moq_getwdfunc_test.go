@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/moq"
 )
 
 // moqGetwdFunc holds the state of a moq of the GetwdFunc type

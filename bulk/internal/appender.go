@@ -11,8 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"moqueries.org/runtime/logs"
+
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/logs"
 )
 
 var (

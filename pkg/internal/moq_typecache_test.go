@@ -9,9 +9,9 @@ import (
 
 	"github.com/dave/dst"
 	"moqueries.org/cli/ast"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
 	"moqueries.org/cli/pkg/internal"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // The following type assertion assures that internal.TypeCache is mocked

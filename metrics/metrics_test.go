@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"moqueries.org/runtime/moq"
+
 	"moqueries.org/cli/metrics"
-	"moqueries.org/cli/moq"
 )
 
 func TestMetrics(t *testing.T) {

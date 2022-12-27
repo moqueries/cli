@@ -10,8 +10,8 @@ import (
 	"github.com/dave/dst"
 	"moqueries.org/cli/ast"
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // The following type assertion assures that generator.TypeCache is mocked

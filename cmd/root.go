@@ -6,8 +6,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-
-	"moqueries.org/cli/logs"
+	"moqueries.org/runtime/logs"
 )
 
 const (

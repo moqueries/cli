@@ -6,8 +6,9 @@ import (
 	"reflect"
 	"testing"
 
+	"moqueries.org/runtime/moq"
+
 	"moqueries.org/cli/metrics"
-	"moqueries.org/cli/moq"
 )
 
 func TestSummarize(t *testing.T) {

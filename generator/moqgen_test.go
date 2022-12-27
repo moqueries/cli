@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/dave/dst"
+	"moqueries.org/runtime/moq"
 
 	"moqueries.org/cli/ast"
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/moq"
 )
 
 func TestMoqGenerator(t *testing.T) {

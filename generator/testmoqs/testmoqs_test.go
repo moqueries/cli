@@ -8,11 +8,13 @@ import (
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"moqueries.org/runtime/moq"
 
 	"moqueries.org/cli/generator/testmoqs"
 	"moqueries.org/cli/generator/testmoqs/exported"
-	"moqueries.org/cli/moq"
 )
+
+//go:generate moqueries --import moqueries.org/runtime/moq T
 
 type results struct {
 	sResults []string
@@ -60,7 +62,7 @@ func expectCall(a adaptor, sParams []string, bParam bool, results ...results) {
 
 var (
 	scene    *moq.Scene
-	tMoq     *moq.MoqT
+	tMoq     *moqT
 	moqScene *moq.Scene
 
 	titler = cases.Title(language.Und, cases.NoLower)
@@ -69,8 +71,8 @@ var (
 func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 	t.Helper()
 	scene = moq.NewScene(t)
-	tMoq = moq.NewMoqT(scene, nil)
-	moqScene = moq.NewScene(tMoq.Mock())
+	tMoq = newMoqT(scene, nil)
+	moqScene = moq.NewScene(tMoq.mock())
 
 	usualMoq := newMoqUsual(moqScene, &c)
 	exportUsualMoq := exported.NewMoqUsual(moqScene, &c)
@@ -142,7 +144,7 @@ func TestMoqs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				config := entry.config()
 				if !config.noParams {
@@ -186,7 +188,7 @@ func TestMoqs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"green", "purple"}, err: nil})
@@ -216,12 +218,11 @@ func TestExpectations(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				msg := "Unexpected call to %s"
 				params := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Fatalf(msg, params).
-					ReturnResults()
+				tMoq.onCall().Fatalf(msg, params).returnResults()
 				fmtMsg := fmt.Sprintf(msg, params)
 
 				// ACT
@@ -248,7 +249,7 @@ func TestExpectations(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
@@ -270,7 +271,7 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				config := entry.config()
 				if !config.noParams {
@@ -319,7 +320,7 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				config := entry.config()
 				if !config.noParams {
@@ -368,15 +369,14 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				msg := fmt.Sprintf("%s or %s must be called before calling %s",
 					export("returnResults", entry),
 					export("doReturnResults", entry),
 					export("repeat", entry))
 
-				tMoq.OnCall().Fatalf(msg).
-					ReturnResults()
+				tMoq.onCall().Fatalf(msg).returnResults()
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 
@@ -397,7 +397,7 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil},
@@ -409,9 +409,9 @@ func TestRepeaters(t *testing.T) {
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 					results{sResults: []string{"green", "purple"}, err: io.EOF})
 
-				tMoq.OnCall().Fatalf(
+				tMoq.onCall().Fatalf(
 					"Too many calls to %s",
-					entry.prettyParams([]string{"Hi", "you"}, true)).ReturnResults()
+					entry.prettyParams([]string{"Hi", "you"}, true)).returnResults()
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
@@ -431,7 +431,7 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				expectCall(entry, []string{"Hi", "you"}, true,
 					results{sResults: []string{"blue", "orange"}, err: nil},
@@ -461,7 +461,7 @@ func TestRepeaters(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.doReturnResults(t, func() {}, nil, false, nil, nil)
@@ -487,7 +487,7 @@ func TestReset(t *testing.T) {
 			scene.Reset()
 			moqScene.Reset()
 
-			tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+			tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 			expectCall(entry, []string{"Hi", "you"}, true,
 				results{sResults: []string{"green", "purple"}, err: nil})
@@ -515,7 +515,7 @@ func TestAnyValues(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				config := entry.config()
 				if !config.noParams {
@@ -566,7 +566,7 @@ func TestAnyValues(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
@@ -584,8 +584,7 @@ func TestAnyValues(t *testing.T) {
 					"Any functions must be called before %s or %s calls, recording %%s",
 					rrFn, drrFn)
 				bParams := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Fatalf(msg, bParams).
-					ReturnResults()
+				tMoq.onCall().Fatalf(msg, bParams).returnResults()
 				fmtMsg := fmt.Sprintf(msg, bParams)
 
 				// ACT
@@ -615,7 +614,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				// ACT
 				entry.sceneMoq().AssertExpectationsMet()
@@ -634,7 +633,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				config := entry.config()
 				if !config.noParams {
@@ -676,7 +675,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				// ASSEMBLE
 				config := entry.config()
@@ -702,8 +701,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 
 				msg := "Expected %d additional call(s) to %s"
 				params := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Errorf(msg, 1, params).
-					ReturnResults()
+				tMoq.onCall().Errorf(msg, 1, params).returnResults()
 				fmtMsg := fmt.Sprintf(msg, 1, params)
 
 				// ACT
@@ -730,7 +728,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
@@ -753,7 +751,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
@@ -779,7 +777,7 @@ func TestAssertExpectationsMet(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				// ASSEMBLE
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
@@ -810,7 +808,7 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				config := entry.config()
 				if !config.noParams {
@@ -859,7 +857,7 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				expectCall(entry, []string{"Hello", "there"}, false,
 					results{sResults: []string{"red", "yellow"}, err: io.EOF})
@@ -868,12 +866,11 @@ func TestSequences(t *testing.T) {
 
 				msg := "Call sequence does not match call to %s"
 				params1 := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Fatalf(msg, params1).
-					ReturnResults()
+				tMoq.onCall().Fatalf(msg, params1).returnResults()
 				fmtMsg := fmt.Sprintf(msg, params1)
 				params2 := entry.prettyParams([]string{"Hello", "there"}, false)
-				tMoq.OnCall().Errorf("Expected %d additional call(s) to %s", 1, params2).
-					ReturnResults()
+				tMoq.onCall().Errorf("Expected %d additional call(s) to %s", 1, params2).
+					returnResults()
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
@@ -902,7 +899,7 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				expectCall(entry, []string{"Eh", "you"}, true, results{
 					sResults: []string{"grey", "brown"}, err: nil,
@@ -948,7 +945,7 @@ func TestSequences(t *testing.T) {
 						scene.Reset()
 						moqScene.Reset()
 
-						tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+						tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 						result := results{sResults: []string{"red", "yellow"}, err: io.EOF}
 						rec := entry.newRecorder([]string{"Hello", "there"}, false)
@@ -959,8 +956,7 @@ func TestSequences(t *testing.T) {
 							export("returnResults", entry),
 							export("doReturnResults", entry))
 						bParams := entry.prettyParams([]string{"Hello", "there"}, false)
-						tMoq.OnCall().Fatalf(msg, bParams).
-							ReturnResults()
+						tMoq.onCall().Fatalf(msg, bParams).returnResults()
 						fmtMsg := fmt.Sprintf(msg, bParams)
 
 						// ACT
@@ -1003,7 +999,7 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Eh", "you"}, true)
 				rec.noSeq()
@@ -1050,7 +1046,7 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.returnResults([]string{"red", "yellow"}, io.EOF)
@@ -1076,7 +1072,7 @@ func TestSequences(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.returnResults([]string{"red", "yellow"}, io.EOF)
@@ -1106,7 +1102,7 @@ func TestDoFuncs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
@@ -1149,12 +1145,11 @@ func TestDoFuncs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				msg := fmt.Sprintf("%s must be called before calling %s",
 					export("returnResults", entry), export("andDo", entry))
-				tMoq.OnCall().Fatalf(msg).
-					ReturnResults()
+				tMoq.onCall().Fatalf(msg).returnResults()
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 
@@ -1178,7 +1173,7 @@ func TestDoFuncs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				var firstCall bool
@@ -1223,7 +1218,7 @@ func TestDoFuncs(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hello", "there"}, false)
 				rec.doReturnResults(
@@ -1234,12 +1229,11 @@ func TestDoFuncs(t *testing.T) {
 
 				msg := "Call sequence does not match call to %s"
 				params1 := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Fatalf(msg, params1).
-					ReturnResults()
+				tMoq.onCall().Fatalf(msg, params1).returnResults()
 				fmtMsg := fmt.Sprintf(msg, params1)
 				params2 := entry.prettyParams([]string{"Hello", "there"}, false)
-				tMoq.OnCall().Errorf("Expected %d additional call(s) to %s", 1, params2).
-					ReturnResults()
+				tMoq.onCall().Errorf("Expected %d additional call(s) to %s", 1, params2).
+					returnResults()
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
@@ -1273,7 +1267,7 @@ func TestOptionalInvocations(t *testing.T) {
 					scene.Reset()
 					moqScene.Reset()
 
-					tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+					tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 					rec := entry.newRecorder([]string{"Hi", "you"}, true)
 					rec.returnResults([]string{"blue", "orange"}, nil)
@@ -1300,7 +1294,7 @@ func TestOptionalInvocations(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
@@ -1311,8 +1305,7 @@ func TestOptionalInvocations(t *testing.T) {
 
 				msg := "Expected %d additional call(s) to %s"
 				params := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.OnCall().Errorf(msg, 1, params).
-					ReturnResults()
+				tMoq.onCall().Errorf(msg, 1, params).returnResults()
 				fmtMsg := fmt.Sprintf(msg, 1, params)
 
 				// ACT
@@ -1338,7 +1331,7 @@ func TestOptionalInvocations(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 				rec.returnResults([]string{"blue", "orange"}, nil)
@@ -1369,7 +1362,7 @@ func TestOptionalInvocations(t *testing.T) {
 					scene.Reset()
 					moqScene.Reset()
 
-					tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+					tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 					rec := entry.newRecorder([]string{"Hi", "you"}, true)
 					rec.returnResults([]string{"blue", "orange"}, nil)
@@ -1386,8 +1379,7 @@ func TestOptionalInvocations(t *testing.T) {
 
 					msg := "Expected %d additional call(s) to %s"
 					params := entry.prettyParams([]string{"Hi", "you"}, true)
-					tMoq.OnCall().Errorf(msg, 1, params).
-						ReturnResults()
+					tMoq.onCall().Errorf(msg, 1, params).returnResults()
 					fmtMsg := fmt.Sprintf(msg, 1, params)
 
 					// ACT
@@ -1557,8 +1549,8 @@ func (a *exportedPassByReferenceParamIndexingAdaptor) prettyParams(params *testm
 func paramIndexingTestCases(t *testing.T, c moq.Config) map[string]paramIndexingAdaptor {
 	t.Helper()
 	scene = moq.NewScene(t)
-	tMoq = moq.NewMoqT(scene, nil)
-	moqScene = moq.NewScene(tMoq.Mock())
+	tMoq = newMoqT(scene, nil)
+	moqScene = moq.NewScene(tMoq.mock())
 
 	usualMoq := newMoqUsual(moqScene, &c)
 	exportUsualMoq := exported.NewMoqUsual(moqScene, &c)
@@ -1591,7 +1583,7 @@ func TestParamIndexing(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				p := testmoqs.PassByReferenceParams{
 					SParam: "Hi",
@@ -1622,7 +1614,7 @@ func TestParamIndexing(t *testing.T) {
 				scene.Reset()
 				moqScene.Reset()
 
-				tMoq.OnCall().Helper().ReturnResults().Repeat(moq.AnyTimes())
+				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
 				p1 := testmoqs.PassByReferenceParams{
 					SParam: "Hi",
@@ -1637,7 +1629,7 @@ func TestParamIndexing(t *testing.T) {
 				entry.onCall(&p1, "Hello", nil)
 
 				params := entry.prettyParams(&p1)
-				tMoq.OnCall().Fatalf("Unexpected call to %s", params).ReturnResults()
+				tMoq.onCall().Fatalf("Unexpected call to %s", params).returnResults()
 
 				// ACT
 				entry.invokeMockAndExpectResults(t, &p2, "", nil)

@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 
 	"moqueries.org/cli/bulk/internal"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // moqOpenFn holds the state of a moq of the OpenFn type

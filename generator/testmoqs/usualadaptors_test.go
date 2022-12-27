@@ -5,9 +5,10 @@ import (
 	"io"
 	"reflect"
 
+	"moqueries.org/runtime/moq"
+
 	"moqueries.org/cli/generator/testmoqs"
 	"moqueries.org/cli/generator/testmoqs/exported"
-	"moqueries.org/cli/moq"
 )
 
 type usualAdaptor struct {

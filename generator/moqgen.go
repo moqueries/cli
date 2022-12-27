@@ -10,9 +10,9 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/goast"
+	"moqueries.org/runtime/logs"
 
 	"moqueries.org/cli/ast"
-	"moqueries.org/cli/logs"
 )
 
 const (

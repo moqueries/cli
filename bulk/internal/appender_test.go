@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"moqueries.org/runtime/moq"
+
 	"moqueries.org/cli/bulk/internal"
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/moq"
 )
 
 var badGoPathInitLine = "{\"root-dir\":\"/my-root-dir\",\"go-path\":\"not-the-right-gopath\"}"

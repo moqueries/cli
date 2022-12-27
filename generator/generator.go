@@ -13,9 +13,9 @@ import (
 	"github.com/dave/dst/decorator"
 	"github.com/dave/dst/decorator/resolver/gopackages"
 	"golang.org/x/tools/go/packages"
+	"moqueries.org/runtime/logs"
 
 	"moqueries.org/cli/ast"
-	"moqueries.org/cli/logs"
 	"moqueries.org/cli/metrics"
 )
 

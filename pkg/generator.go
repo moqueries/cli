@@ -3,10 +3,10 @@ package pkg
 
 import (
 	"golang.org/x/tools/go/packages"
+	"moqueries.org/runtime/logs"
 
 	"moqueries.org/cli/ast"
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/logs"
 	"moqueries.org/cli/metrics"
 	"moqueries.org/cli/pkg/internal"
 )

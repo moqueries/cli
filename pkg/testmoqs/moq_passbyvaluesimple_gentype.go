@@ -7,8 +7,8 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // The following type assertion assures that testmoqs.PassByValueSimple_genType

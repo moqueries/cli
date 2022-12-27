@@ -7,7 +7,7 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/moq"
 )
 
 // The following type assertion assures that generator_test.testInterface is

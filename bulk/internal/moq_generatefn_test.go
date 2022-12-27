@@ -9,8 +9,8 @@ import (
 
 	"moqueries.org/cli/bulk/internal"
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // moqGenerateFn holds the state of a moq of the GenerateFn type

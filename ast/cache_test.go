@@ -14,10 +14,10 @@ import (
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
 	"golang.org/x/tools/go/packages"
+	"moqueries.org/runtime/moq"
 
 	"moqueries.org/cli/ast"
 	"moqueries.org/cli/metrics"
-	"moqueries.org/cli/moq"
 )
 
 const (
