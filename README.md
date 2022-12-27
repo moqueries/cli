@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/moqueries/cli)](https://goreportcard.com/report/moqueries/cli)
 [![License](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://github.com/moqueries/cli/blob/main/LICENSE)
 
-# Moqueries - Lock-free interface and function mocks for Go for fun
+# Moqueries - Lock-free interface and function mocks for Go
 Moqueries makes mocks, but not just interface mocks &mdash; `moqueries` builds mocks for functions too. And these aren't your typical mocks!
 
 Moqueries mocks are, as mentioned above, lock free. Why would that matter? A single lock per mock shouldn't slow down your unit tests that much, right? The problem isn't speed but semantics. Having all interactions in your tests synchronized by locking just to protect mock state changes the nature of the test. That lock in your old mock could be hiding subtle bugs from Go's race detector!
