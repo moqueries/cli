@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/tools/go/packages"
 	"moqueries.org/cli/ast"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // moqLoadFn holds the state of a moq of the LoadFn type

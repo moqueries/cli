@@ -8,13 +8,13 @@ import (
 	"github.com/dave/dst"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"moqueries.org/runtime/logs"
 
 	. "moqueries.org/cli/ast"
-	"moqueries.org/cli/logs"
 )
 
 const (
-	moqueriesPkg  = "moqueries.org/cli"
+	moqueriesPkg  = "moqueries.org/runtime"
 	hashPkg       = moqueriesPkg + "/hash"
 	moqPkg        = moqueriesPkg + "/moq"
 	syncAtomicPkg = "sync/atomic"

@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/moq"
 )
 
 const (

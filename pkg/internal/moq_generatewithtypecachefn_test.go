@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
 	"moqueries.org/cli/pkg/internal"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // moqGenerateWithTypeCacheFn holds the state of a moq of the

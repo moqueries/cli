@@ -7,9 +7,9 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"moqueries.org/cli/hash"
 	"moqueries.org/cli/metrics"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // moqLoggingfFn holds the state of a moq of the LoggingfFn type

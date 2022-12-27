@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
+
 	"moqueries.org/cli/demo"
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
 )
 
 func TestOnlyWriteFavoriteNumbers(t *testing.T) {

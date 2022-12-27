@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/dave/dst"
+	"moqueries.org/runtime/moq"
 
 	"moqueries.org/cli/generator"
 	"moqueries.org/cli/metrics"
-	"moqueries.org/cli/moq"
 	"moqueries.org/cli/pkg/internal"
 )
 

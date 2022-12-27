@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 
 	"moqueries.org/cli/metrics"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/moq"
 )
 
 // moqIsLoggingFn holds the state of a moq of the IsLoggingFn type

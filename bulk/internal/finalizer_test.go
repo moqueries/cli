@@ -7,9 +7,10 @@ import (
 	"io"
 	"testing"
 
+	"moqueries.org/runtime/moq"
+
 	"moqueries.org/cli/bulk/internal"
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/moq"
 )
 
 func TestFinalize(t *testing.T) {

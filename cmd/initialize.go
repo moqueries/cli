@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"moqueries.org/runtime/logs"
 
 	"moqueries.org/cli/bulk"
-	"moqueries.org/cli/logs"
 )
 
 var initializeCmd = &cobra.Command{

@@ -7,8 +7,8 @@ import (
 	"math/bits"
 	"sync/atomic"
 
-	"moqueries.org/cli/hash"
-	"moqueries.org/cli/moq"
+	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/moq"
 )
 
 // StandaloneFunc_genType is the fabricated implementation type of this mock

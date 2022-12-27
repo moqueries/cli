@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"moqueries.org/runtime/logs"
 
-	"moqueries.org/cli/logs"
 	"moqueries.org/cli/pkg"
 )
 

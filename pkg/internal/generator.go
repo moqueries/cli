@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/dave/dst"
+	"moqueries.org/runtime/logs"
 
 	"moqueries.org/cli/generator"
-	"moqueries.org/cli/logs"
 	"moqueries.org/cli/metrics"
 )
 

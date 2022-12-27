@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"moqueries.org/cli/logs"
+	"moqueries.org/runtime/logs"
 )
 
 //go:generate moqueries --import io Reader
