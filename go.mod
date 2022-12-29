@@ -11,5 +11,5 @@ require (
 
 require (
 	github.com/stretchr/testify v1.8.0 // indirect
-	moqueries.org/runtime v0.0.0-20221220171332-50abd7df5c93
+	moqueries.org/runtime v0.1.0
 )

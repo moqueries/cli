@@ -88,5 +88,5 @@ gopkg.in/src-d/go-billy.v4 v4.3.0/go.mod h1:tm33zBoOwxjYHZIE+OV8bxTWFMJLrconzFMd
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-moqueries.org/runtime v0.0.0-20221220171332-50abd7df5c93 h1:BAVqka5JVughHKihbxD8XroLoCXbc7om3pWShAwvKrQ=
-moqueries.org/runtime v0.0.0-20221220171332-50abd7df5c93/go.mod h1:sVzS1LDG0bCn3vvtZrahBbutdrq68ZXka2q1Xzn3bz4=
+moqueries.org/runtime v0.1.0 h1:/7E6xpDDNSjpS8/GxbVdEIxEiJZbYLd8LJf0t8aKuh4=
+moqueries.org/runtime v0.1.0/go.mod h1:sVzS1LDG0bCn3vvtZrahBbutdrq68ZXka2q1Xzn3bz4=
