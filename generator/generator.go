@@ -47,7 +47,7 @@ var ErrNonExported = errors.New("non-exported types")
 // Generate generates a moq
 func Generate(reqs ...GenerateRequest) error {
 	m := metrics.NewMetrics(logs.IsDebug, logs.Debugf)
-	cache := ast.NewCache(packages.Load, m)
+	cache := ast.NewCache(packages.Load, os.Stat, os.ReadFile, m)
 	start := time.Now()
 	for _, req := range reqs {
 		err := GenerateWithTypeCache(cache, req)

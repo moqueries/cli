@@ -6,6 +6,7 @@ import (
 	goAst "go/ast"
 	"go/token"
 	"go/types"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -83,9 +84,11 @@ func TestMain(m *testing.M) {
 
 func TestCache(t *testing.T) {
 	var (
-		scene      *moq.Scene
-		loadFnMoq  *moqLoadFn
-		metricsMoq *metrics.MoqMetrics
+		scene         *moq.Scene
+		loadFnMoq     *moqLoadFn
+		statFnMoq     *moqStatFn
+		readFileFnMoq *moqReadFileFn
+		metricsMoq    *metrics.MoqMetrics
 
 		cache *ast.Cache
 
@@ -99,9 +102,11 @@ func TestCache(t *testing.T) {
 		}
 		scene = moq.NewScene(t)
 		loadFnMoq = newMoqLoadFn(scene, nil)
+		statFnMoq = newMoqStatFn(scene, nil)
+		readFileFnMoq = newMoqReadFileFn(scene, nil)
 		metricsMoq = metrics.NewMoqMetrics(scene, nil)
 
-		cache = ast.NewCache(loadFnMoq.mock(), metricsMoq.Mock())
+		cache = ast.NewCache(loadFnMoq.mock(), statFnMoq.mock(), readFileFnMoq.mock(), metricsMoq.Mock())
 
 		loadCfg = &packages.Config{
 			Mode: packages.NeedName |
@@ -1103,7 +1108,7 @@ type e struct {
 		beforeEach(t, false)
 		defer afterEach(t)
 
-		c := ast.NewCache(packages.Load, metricsMoq.Mock())
+		c := ast.NewCache(packages.Load, os.Stat, os.ReadFile, metricsMoq.Mock())
 
 		metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().Repeat(moq.AnyTimes())
 		metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults().Repeat(moq.AnyTimes())
@@ -1139,7 +1144,7 @@ type e struct {
 	})
 
 	t.Run("FindPackage", func(t *testing.T) {
-		t.Run("relative dir", func(t *testing.T) {
+		t.Run("uses cached package if it exists", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t, false)
 			defer afterEach(t)
@@ -1149,6 +1154,11 @@ type e struct {
 			loadFnMoq.onCall(loadCfg, "./testpkgs/noexport").returnResults(noExportPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
+
+			err := cache.LoadPackage("./testpkgs/noexport")
+			if err != nil {
+				t.Fatalf("got %#v, want no error", err)
+			}
 
 			// ACT
 			pkgPath, err := cache.FindPackage("testpkgs/noexport")
@@ -1162,54 +1172,92 @@ type e struct {
 			}
 		})
 
-		t.Run("abs dir", func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t, false)
-			defer afterEach(t)
+		t.Run("reads the go.mod file from a parent directory", func(t *testing.T) {
+			goodModFile := "module moqueries.org/cli"
+			statError := errors.New("bad stat call")
+			readError := errors.New("bad read file call")
+			for name, tc := range map[string]struct {
+				modFile   string
+				statError error
+				readError error
+				isError   error
+				errString string
+			}{
+				"happy path": {modFile: goodModFile},
+				"stat error": {
+					statError: statError,
+					isError:   statError,
+					errString: "bad stat call: error stat-ing %s",
+				},
+				"read error": {
+					readError: readError,
+					isError:   readError,
+					errString: "bad read file call: error reading %s",
+				},
+				"bad mod file": {
+					modFile:   "module",
+					errString: "%s:1: usage: module module/path: error parsing",
+				},
+				"missing module directive": {
+					modFile:   "something not sure what but not a mod file",
+					isError:   ast.ErrMissingModuleDirective,
+					errString: "missing module directive: error parsing %s",
+				},
+			} {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t, false)
+					defer afterEach(t)
 
-			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			dir, err := os.Getwd()
-			if err != nil {
-				t.Fatalf("got %#v, want no error", err)
-			}
-			absDir := filepath.Join(dir, "testpkgs/noexport")
-			loadFnMoq.onCall(loadCfg, absDir).returnResults(noExportPkgs, nil)
-			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
-			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
+					dir, err := os.Getwd()
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
+					absDir := filepath.Join(dir, "testpkgs/noexport")
+					var modPath string
+					for {
+						statFnMoq.onCall(filepath.Join(absDir, "go.mod")).
+							returnResults(nil, fs.ErrNotExist)
+						absDir = filepath.Dir(absDir)
+						if filepath.Base(absDir) == "cli" {
+							modPath = filepath.Join(absDir, "go.mod")
+							statFnMoq.onCall(modPath).returnResults(nil, tc.statError)
+							break
+						}
+					}
+					if tc.statError == nil {
+						readFileFnMoq.onCall(modPath).
+							returnResults([]byte(tc.modFile), tc.readError)
+					}
 
-			// ACT
-			pkgPath, err := cache.FindPackage(absDir)
-			// ASSERT
-			if err != nil {
-				t.Fatalf("got %#v, want no error", err)
-			}
+					// ACT
+					pkgPath, err := cache.FindPackage("testpkgs/noexport")
+					// ASSERT
+					if tc.errString == "" {
+						if err != nil {
+							t.Fatalf("got %#v, want no error", err)
+						}
 
-			if pkgPath != noExportPkg {
-				t.Errorf("got %s, want %s", pkgPath, noExportPkg)
-			}
-		})
+						if pkgPath != noExportPkg {
+							t.Errorf("got %s, want %s", pkgPath, noExportPkg)
+						}
+					} else {
+						if err == nil {
+							t.Fatalf("got no error, want error")
+						}
+						if tc.isError != nil && !errors.Is(err, tc.isError) {
+							t.Errorf("got %#v, want is %#v", err, tc.isError)
+						}
+						errString := fmt.Sprintf(tc.errString, modPath)
+						if err.Error() != errString {
+							t.Errorf("got %s, want %s", err.Error(), errString)
+						}
 
-		t.Run("current dir", func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t, false)
-			defer afterEach(t)
-
-			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, ".").doReturnResults(packages.Load)
-			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
-			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
-
-			// ACT
-			pkgPath, err := cache.FindPackage(".")
-			// ASSERT
-			if err != nil {
-				t.Fatalf("got %#v, want no error", err)
-			}
-
-			if pkgPath != "moqueries.org/cli/ast" {
-				t.Errorf("got %s, want moqueries.org/cli/ast", pkgPath)
+						if pkgPath != "" {
+							t.Errorf("got %s, want empty path", pkgPath)
+						}
+					}
+				})
 			}
 		})
 	})

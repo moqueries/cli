@@ -2,6 +2,8 @@
 package pkg
 
 import (
+	"os"
+
 	"golang.org/x/tools/go/packages"
 	"moqueries.org/runtime/logs"
 
@@ -14,7 +16,7 @@ import (
 // Generate generates mocks for several packages at once
 func Generate(destinationDir string, skipPkgDirs int, pkgPatterns ...string) error {
 	m := metrics.NewMetrics(logs.IsDebug, logs.Debugf)
-	cache := ast.NewCache(packages.Load, m)
+	cache := ast.NewCache(packages.Load, os.Stat, os.ReadFile, m)
 
 	err := internal.Generate(cache, m, generator.GenerateWithTypeCache, destinationDir, skipPkgDirs, pkgPatterns)
 	if err != nil {
