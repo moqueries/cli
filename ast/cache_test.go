@@ -1213,13 +1213,14 @@ type e struct {
 					if err != nil {
 						t.Fatalf("got %#v, want no error", err)
 					}
+					rootDir := filepath.Dir(dir)
 					absDir := filepath.Join(dir, "testpkgs/noexport")
 					var modPath string
 					for {
 						statFnMoq.onCall(filepath.Join(absDir, "go.mod")).
 							returnResults(nil, fs.ErrNotExist)
 						absDir = filepath.Dir(absDir)
-						if filepath.Base(absDir) == "cli" {
+						if absDir == rootDir {
 							modPath = filepath.Join(absDir, "go.mod")
 							statFnMoq.onCall(modPath).returnResults(nil, tc.statError)
 							break
