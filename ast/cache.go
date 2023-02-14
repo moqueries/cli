@@ -4,6 +4,8 @@ package ast
 import (
 	"errors"
 	"fmt"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -11,13 +13,12 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
+	"golang.org/x/mod/modfile"
 	"golang.org/x/tools/go/packages"
 	"moqueries.org/runtime/logs"
 
 	"moqueries.org/cli/metrics"
 )
-
-//go:generate moqueries LoadFn
 
 const (
 	builtinPkg = "builtin"
@@ -27,8 +28,20 @@ const (
 	testPkgSuffix     = "_test"
 )
 
+//go:generate moqueries LoadFn
+
 // LoadFn is the function type of packages.Load
 type LoadFn func(cfg *packages.Config, patterns ...string) ([]*packages.Package, error)
+
+//go:generate moqueries StatFn
+
+// StatFn is the function type of os.Stat
+type StatFn func(name string) (os.FileInfo, error)
+
+//go:generate moqueries ReadFileFn
+
+// ReadFileFn is the function type of os.ReadFile
+type ReadFileFn func(name string) ([]byte, error)
 
 var (
 	// ErrTypeNotFound is returned when a type isn't in the cache and can't be
@@ -37,12 +50,17 @@ var (
 	// ErrInvalidType is returned when the type doesn't have the expected
 	// structure
 	ErrInvalidType = errors.New("type did not have expected format")
+	// ErrMissingModuleDirective is returned when the go.mod file is missing
+	// its module directive
+	ErrMissingModuleDirective = errors.New("missing module directive")
 )
 
 // Cache loads packages from the AST and caches the results
 type Cache struct {
-	load    LoadFn
-	metrics metrics.Metrics
+	load     LoadFn
+	stat     StatFn
+	readFile ReadFileFn
+	metrics  metrics.Metrics
 
 	typesByIdent       map[string]*typInfo
 	funcDeclsByIdent   map[string]*funcDeclInfo
@@ -69,14 +87,17 @@ type funcDeclInfo struct {
 type pkgInfo struct {
 	directLoaded bool
 	loadTestPkgs bool
+	pkgPath      string
 	pkg          *decorator.Package
 }
 
 // NewCache returns a new empty Caches
-func NewCache(load LoadFn, metrics metrics.Metrics) *Cache {
+func NewCache(load LoadFn, stat StatFn, readFile ReadFileFn, metrics metrics.Metrics) *Cache {
 	return &Cache{
-		load:    load,
-		metrics: metrics,
+		load:     load,
+		stat:     stat,
+		readFile: readFile,
+		metrics:  metrics,
 
 		typesByIdent:       make(map[string]*typInfo),
 		funcDeclsByIdent:   make(map[string]*funcDeclInfo),
@@ -189,16 +210,45 @@ func (c *Cache) IsDefaultComparable(expr dst.Expr) (bool, error) {
 
 // FindPackage finds the package for a given directory
 func (c *Cache) FindPackage(dir string) (string, error) {
-	if !filepath.IsAbs(dir) && !strings.HasPrefix(dir, ".") {
-		// go list (which is called by packages.Load) requires that relative
-		// paths start with a ./
-		dir = "./" + dir
-	}
-	pkgPath, err := c.loadPackage(dir, false)
+	indexPath, err := filepath.Abs(dir)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: error getting absolute path for %s", err, dir)
 	}
-	return pkgPath, nil
+	loadedPkg, ok := c.loadedPkgs[indexPath]
+	if ok {
+		return loadedPkg.pkgPath, nil
+	}
+
+	modPath := filepath.Join(indexPath, "go.mod")
+	_, err = c.stat(modPath)
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return "", fmt.Errorf("%w: error stat-ing %s", err, modPath)
+		}
+
+		parent, err := c.FindPackage(filepath.Dir(indexPath))
+		if err != nil {
+			return "", err
+		}
+		pkg := filepath.Join(parent, filepath.Base(indexPath))
+		c.loadedPkgs[indexPath] = &pkgInfo{pkgPath: pkg}
+
+		return pkg, nil
+	}
+
+	data, err := c.readFile(modPath)
+	if err != nil {
+		return "", fmt.Errorf("%w: error reading %s", err, modPath)
+	}
+	f, err := modfile.ParseLax(modPath, data, nil)
+	if err != nil {
+		return "", fmt.Errorf("%w: error parsing", err)
+	}
+	if f.Module == nil {
+		return "", fmt.Errorf("%w: error parsing %s", ErrMissingModuleDirective, modPath)
+	}
+
+	return f.Module.Mod.Path, nil
 }
 
 // LoadPackage loads the specified pattern of package(s) and returns a list of
@@ -518,6 +568,7 @@ func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*
 	p = &pkgInfo{
 		directLoaded: directLoaded,
 		loadTestPkgs: testImport,
+		pkgPath:      pkg.PkgPath,
 		pkg: &decorator.Package{
 			Package: pkg,
 			Imports: map[string]*decorator.Package{},

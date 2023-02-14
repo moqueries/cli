@@ -31,19 +31,19 @@ type Metrics interface {
 }
 
 type metricsState struct {
-	ASTPkgCacheHits    int
-	ASTPkgCacheMisses  int
-	ASTTypeCacheHits   int
-	ASTTypeCacheMisses int
+	ASTPkgCacheHits    int `json:"ast-pkg-cache-hits"`
+	ASTPkgCacheMisses  int `json:"ast-pkg-cache-misses"`
+	ASTTypeCacheHits   int `json:"ast-type-cache-hits"`
+	ASTTypeCacheMisses int `json:"ast-type-cache-misses"`
 
-	ASTTotalLoadTime    time.Duration
-	ASTTotalLoadTimeStr string
+	ASTTotalLoadTime    time.Duration `json:"ast-total-load-time"`
+	ASTTotalLoadTimeStr string        `json:"ast-total-load-time-str"`
 
-	ASTTotalDecorationTime    time.Duration
-	ASTTotalDecorationTimeStr string
+	ASTTotalDecorationTime    time.Duration `json:"ast-total-decoration-time"`
+	ASTTotalDecorationTimeStr string        `json:"ast-total-decoration-time-str"`
 
-	TotalProcessingTime    time.Duration
-	TotalProcessingTimeStr string
+	TotalProcessingTime    time.Duration `json:"total-processing-time"`
+	TotalProcessingTimeStr string        `json:"total-processing-time-str"`
 }
 
 func add(m1, m2 metricsState) metricsState {
