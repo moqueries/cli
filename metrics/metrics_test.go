@@ -60,10 +60,10 @@ func TestMetrics(t *testing.T) {
 
 	t.Run("single int increment", func(t *testing.T) {
 		incFuncs := map[string]func(m *metrics.Processor){
-			"ASTPkgCacheHits":    func(m *metrics.Processor) { m.ASTPkgCacheHitsInc() },
-			"ASTPkgCacheMisses":  func(m *metrics.Processor) { m.ASTPkgCacheMissesInc() },
-			"ASTTypeCacheHits":   func(m *metrics.Processor) { m.ASTTypeCacheHitsInc() },
-			"ASTTypeCacheMisses": func(m *metrics.Processor) { m.ASTTypeCacheMissesInc() },
+			"ast-pkg-cache-hits":    func(m *metrics.Processor) { m.ASTPkgCacheHitsInc() },
+			"ast-pkg-cache-misses":  func(m *metrics.Processor) { m.ASTPkgCacheMissesInc() },
+			"ast-type-cache-hits":   func(m *metrics.Processor) { m.ASTTypeCacheHitsInc() },
+			"ast-type-cache-misses": func(m *metrics.Processor) { m.ASTTypeCacheMissesInc() },
 		}
 
 		for name, incFunc := range incFuncs {
@@ -130,13 +130,13 @@ func TestMetrics(t *testing.T) {
 
 	t.Run("single duration increment", func(t *testing.T) {
 		incFuncs := map[string]func(m *metrics.Processor, d time.Duration){
-			"ASTTotalLoadTime": func(m *metrics.Processor, d time.Duration) {
+			"ast-total-load-time": func(m *metrics.Processor, d time.Duration) {
 				m.ASTTotalLoadTimeInc(d)
 			},
-			"ASTTotalDecorationTime": func(m *metrics.Processor, d time.Duration) {
+			"ast-total-decoration-time": func(m *metrics.Processor, d time.Duration) {
 				m.ASTTotalDecorationTimeInc(d)
 			},
-			"TotalProcessingTime": func(m *metrics.Processor, d time.Duration) {
+			"total-processing-time": func(m *metrics.Processor, d time.Duration) {
 				m.TotalProcessingTimeInc(d)
 			},
 		}
@@ -183,7 +183,7 @@ func TestMetrics(t *testing.T) {
 							t.Errorf("got %#v, wanted %f", v, lTime)
 						}
 					}
-					if k == name+"Str" {
+					if k == name+"-str" {
 						foundStr = true
 						lTime := "123ms"
 						if v != lTime {
