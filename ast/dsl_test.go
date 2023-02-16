@@ -914,6 +914,27 @@ func TestNodeDecsf(t *testing.T) {
 			t.Errorf("got %#v, want %#v", actual, expected)
 		}
 	})
+
+	t.Run("long first word", func(t *testing.T) {
+		// ASSEMBLE
+		lWord := "A0123456789012345678901234567890123456789012345678901234567890123456789012345"
+		expected := dst.NodeDecs{
+			Before: dst.NewLine,
+			Start: dst.Decorations{
+				"// " + lWord,
+				"// more stuff here",
+				"// " + lWord,
+			},
+		}
+
+		// ACT
+		actual := ast.NodeDecsf("// " + lWord + " more stuff here " + lWord)
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
 }
 
 func TestParen(t *testing.T) {
