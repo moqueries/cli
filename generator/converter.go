@@ -1414,15 +1414,17 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 	for _, param := range fn.Params.List {
 		if len(param.Names) == 0 {
 			sfmt += "%#v, "
-			pExprs = append(pExprs, Sel(Id(paramsIdent)).
-				Dot(c.exportId(fmt.Sprintf(unnamed, paramPrefix, count+1))).Obj)
+			pExpr := Sel(Id(paramsIdent)).
+				Dot(c.exportId(fmt.Sprintf(unnamed, paramPrefix, count+1))).Obj
+			pExprs = append(pExprs, c.prettyParam(param, pExpr))
 			count++
 		}
 
 		for _, name := range param.Names {
 			sfmt += "%#v, "
 			vName := validName(name.Name, paramPrefix, count)
-			pExprs = append(pExprs, Sel(Id(paramsIdent)).Dot(c.exportId(vName)).Obj)
+			pExpr := Sel(Id(paramsIdent)).Dot(c.exportId(vName)).Obj
+			pExprs = append(pExprs, c.prettyParam(param, pExpr))
 			count++
 		}
 	}
@@ -1439,6 +1441,14 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 			Call(IdPath("Sprintf", "fmt")).
 				Args(pExprs...).Obj)).
 		Decs(stdFuncDec()).Obj
+}
+
+func (c *Converter) prettyParam(param *dst.Field, expr *dst.SelectorExpr) dst.Expr {
+	if _, ok := param.Type.(*dst.FuncType); !ok {
+		return expr
+	}
+
+	return Call(IdPath("FnString", moqPkg)).Args(expr).Obj
 }
 
 func (c *Converter) paramsKeyFn(fn Func) *dst.FuncDecl {
