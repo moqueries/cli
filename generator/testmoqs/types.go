@@ -93,4 +93,5 @@ type Usual interface {
 	PassByReference(p *PassByReferenceParams) (sResult string, err error)
 	InterfaceParam(w io.Writer) (sResult string, err error)
 	InterfaceResult(sParam string, bParam bool) (r io.Reader)
+	FnParam(fn func())
 }
