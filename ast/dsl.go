@@ -442,7 +442,9 @@ func (d MapTypeDSL) Value(value dst.Expr) MapTypeDSL {
 }
 
 // NodeDecsf formats a string into a standard node decoration, chopping down
-// the line as necessary
+// the line as necessary. The format param should be a single long line
+// starting with a line comment (//). The format line is broken into multiple
+// lines each with at least one word.
 func NodeDecsf(format string, a ...interface{}) dst.NodeDecs {
 	const (
 		sep     = " "
@@ -450,15 +452,18 @@ func NodeDecsf(format string, a ...interface{}) dst.NodeDecs {
 	)
 	full := fmt.Sprintf(format, a...)
 	words := strings.Split(full, sep)
-	first := words[0]
-	line := first
+	comment := words[0]
 	start := dst.Decorations{}
+	line := comment
+	curWords := 0
 	for _, w := range words[1:] {
-		if len(line)+len(sep)+len(w) > maxLine {
+		if len(line)+len(sep)+len(w) > maxLine && curWords > 0 {
 			start = append(start, line)
-			line = first
+			line = comment
+			curWords = 0
 		}
 		line += sep + w
+		curWords++
 	}
 	if len(line) > 0 {
 		start = append(start, line)
