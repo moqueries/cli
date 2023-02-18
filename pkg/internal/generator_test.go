@@ -41,23 +41,42 @@ func TestGenerate(t *testing.T) {
 	}
 
 	t.Run("happy path", func(t *testing.T) {
-		testCases := map[string]struct {
-			skipPkgDirs int
-			destDir1    string
-			destDir2    string
+		for name, tc := range map[string]struct {
+			skipPkgDirs      int
+			destDir1         string
+			destDir2         string
+			excludePkg2Regex string
 		}{
 			"no skips": {
-				skipPkgDirs: 0,
-				destDir1:    "that-dir/there/pkg1",
-				destDir2:    "that-dir/there/pkg2",
+				destDir1: "that-dir/there/pkg1",
+				destDir2: "that-dir/there/pkg2",
 			},
 			"skips": {
 				skipPkgDirs: 3,
 				destDir1:    ".",
 				destDir2:    ".",
 			},
-		}
-		for name, tc := range testCases {
+			"exclude prefix": {
+				destDir1:         "that-dir/there/pkg1",
+				destDir2:         "that-dir/there/pkg2",
+				excludePkg2Regex: "pkg2",
+			},
+			"exclude suffix wildcard": {
+				destDir1:         "that-dir/there/pkg1",
+				destDir2:         "that-dir/there/pkg2",
+				excludePkg2Regex: "pkg2.*",
+			},
+			"exclude full wildcard": {
+				destDir1:         "that-dir/there/pkg1",
+				destDir2:         "that-dir/there/pkg2",
+				excludePkg2Regex: ".*2.*",
+			},
+			"exclude exact": {
+				destDir1:         "that-dir/there/pkg1",
+				destDir2:         "that-dir/there/pkg2",
+				excludePkg2Regex: "^pkg2$",
+			},
+		} {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
 				beforeEach(t)
@@ -76,14 +95,16 @@ func TestGenerate(t *testing.T) {
 					ExcludeNonExported: true,
 				}
 				genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(nil)
-				req2 := generator.GenerateRequest{
-					Types:              []string{"Typ2"},
-					Export:             true,
-					DestinationDir:     tc.destDir2,
-					Import:             "pkg2",
-					ExcludeNonExported: true,
+				if tc.excludePkg2Regex == "" {
+					req2 := generator.GenerateRequest{
+						Types:              []string{"Typ2"},
+						Export:             true,
+						DestinationDir:     tc.destDir2,
+						Import:             "pkg2",
+						ExcludeNonExported: true,
+					}
+					genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(nil)
 				}
-				genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(nil)
 				metricsMoq.OnCall().TotalProcessingTimeInc(0).Any().D().ReturnResults()
 				metricsMoq.OnCall().Finalize().ReturnResults()
 
@@ -92,9 +113,12 @@ func TestGenerate(t *testing.T) {
 					cacheMoq.mock(),
 					metricsMoq.Mock(),
 					genFnMoq.mock(),
-					"./that-dir/there",
-					tc.skipPkgDirs,
-					[]string{"pkg1", "pkg2"})
+					internal.PackageGenerateRequest{
+						DestinationDir:      "./that-dir/there",
+						SkipPkgDirs:         tc.skipPkgDirs,
+						PkgPatterns:         []string{"pkg1", "pkg2"},
+						ExcludePkgPathRegex: tc.excludePkg2Regex,
+					})
 				// ASSERT
 				if err != nil {
 					t.Fatalf("got %#v, want no error", err)
@@ -119,9 +143,11 @@ func TestGenerate(t *testing.T) {
 			cacheMoq.mock(),
 			metricsMoq.Mock(),
 			genFnMoq.mock(),
-			"./that-dir/there",
-			4,
-			[]string{"pkg1", "pkg2"})
+			internal.PackageGenerateRequest{
+				DestinationDir: "./that-dir/there",
+				SkipPkgDirs:    4,
+				PkgPatterns:    []string{"pkg1", "pkg2"},
+			})
 		// ASSERT
 		if err == nil {
 			t.Fatalf("got no error, want error")
@@ -151,9 +177,10 @@ func TestGenerate(t *testing.T) {
 			cacheMoq.mock(),
 			metricsMoq.Mock(),
 			genFnMoq.mock(),
-			"./that-dir/there",
-			0,
-			[]string{"pkg1", "pkg2"})
+			internal.PackageGenerateRequest{
+				DestinationDir: "./that-dir/there",
+				PkgPatterns:    []string{"pkg1", "pkg2"},
+			})
 		// ASSERT
 		if err != expectedErr {
 			t.Fatalf("got no error, want %#v", expectedErr)
@@ -200,14 +227,41 @@ func TestGenerate(t *testing.T) {
 					cacheMoq.mock(),
 					metricsMoq.Mock(),
 					genFnMoq.mock(),
-					"./that-dir/there",
-					0,
-					[]string{"pkg1", "pkg2"})
+					internal.PackageGenerateRequest{
+						DestinationDir: "./that-dir/there",
+						PkgPatterns:    []string{"pkg1", "pkg2"},
+					})
 				// ASSERT
 				if err != expectedErr {
 					t.Fatalf("got %#v, want %#v", err, expectedErr)
 				}
 			})
+		}
+	})
+
+	t.Run("exclude package regex compile error", func(t *testing.T) {
+		// ASSEMBLE
+		beforeEach(t)
+		defer afterEach(t)
+
+		// ACT
+		err := internal.Generate(
+			cacheMoq.mock(),
+			metricsMoq.Mock(),
+			genFnMoq.mock(),
+			internal.PackageGenerateRequest{
+				DestinationDir:      "./that-dir/there",
+				PkgPatterns:         []string{"pkg1", "pkg2"},
+				ExcludePkgPathRegex: "bad-regex[",
+			})
+		// ASSERT
+		if err == nil {
+			t.Fatalf("got no error, want error")
+		}
+		expectedMsg := "error parsing regexp: missing closing ]: `[`: could" +
+			" not compile exclude package regex \"bad-regex[\""
+		if err.Error() != expectedMsg {
+			t.Errorf("got %s, want %s", err.Error(), expectedMsg)
 		}
 	})
 }

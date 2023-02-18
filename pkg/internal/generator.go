@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -34,17 +35,33 @@ type TypeCache interface {
 // GenerateWithTypeCacheFn is the function type for generator.GenerateWithTypeCache
 type GenerateWithTypeCacheFn func(cache generator.TypeCache, req generator.GenerateRequest) error
 
+type PackageGenerateRequest struct {
+	DestinationDir      string
+	SkipPkgDirs         int
+	PkgPatterns         []string
+	ExcludePkgPathRegex string
+}
+
 // Generate generates mocks for several packages at once
 func Generate(
 	cache TypeCache,
 	mProcessor metrics.Metrics,
 	genFn GenerateWithTypeCacheFn,
-	destDir string,
-	skipPkgDirs int,
-	pkgPatterns []string,
+	req PackageGenerateRequest,
 ) error {
 	start := time.Now()
-	for _, pkgPattern := range pkgPatterns {
+
+	var reg *regexp.Regexp
+	if req.ExcludePkgPathRegex != "" {
+		var err error
+		reg, err = regexp.Compile(req.ExcludePkgPathRegex)
+		if err != nil {
+			return fmt.Errorf("%w: could not compile exclude package regex \"%s\"",
+				err, req.ExcludePkgPathRegex)
+		}
+	}
+
+	for _, pkgPattern := range req.PkgPatterns {
 		err := cache.LoadPackage(pkgPattern)
 		if err != nil {
 			return err
@@ -55,8 +72,14 @@ func Generate(
 	logs.Debugf("Mocking %d types", len(typs))
 
 	for _, id := range typs {
-		pkgDestDir := filepath.Join(destDir, id.Path)
-		pkgDestDir, err := skipDirs(pkgDestDir, skipPkgDirs)
+		if reg != nil && reg.MatchString(id.Path) {
+			logs.Warnf("Skipping %s because of package exclusion %s",
+				id.String(), req.ExcludePkgPathRegex)
+			continue
+		}
+
+		pkgDestDir := filepath.Join(req.DestinationDir, id.Path)
+		pkgDestDir, err := skipDirs(pkgDestDir, req.SkipPkgDirs)
 		if err != nil {
 			return err
 		}

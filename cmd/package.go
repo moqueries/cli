@@ -7,7 +7,10 @@ import (
 	"moqueries.org/cli/pkg"
 )
 
-const skipPkgDirsFlag = "skip-pkg-dirs"
+const (
+	skipPkgDirsFlag         = "skip-pkg-dirs"
+	excludePkgPathRegexFlag = "exclude-pkg-path-regex"
+)
 
 func packageCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -34,8 +37,17 @@ func pkgGen(cmd *cobra.Command, pkgPatterns []string) {
 	if err != nil {
 		logs.Panic("Error getting the skip package dirs flag", err)
 	}
+	excludePkgPathRegex, err := cmd.Flags().GetString(excludePkgPathRegexFlag)
+	if err != nil {
+		logs.Panic("Error getting the skip package dirs flag", err)
+	}
 
-	err = pkg.Generate(destDir, skipPkgDirs, pkgPatterns...)
+	err = pkg.Generate(pkg.PackageGenerateRequest{
+		DestinationDir:      destDir,
+		SkipPkgDirs:         skipPkgDirs,
+		PkgPatterns:         pkgPatterns,
+		ExcludePkgPathRegex: excludePkgPathRegex,
+	})
 	if err != nil {
 		logs.Panicf("Error generating mocks for %s packages: %#v", pkgPatterns, err)
 	}
