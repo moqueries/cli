@@ -13,12 +13,14 @@ import (
 	"moqueries.org/cli/pkg/internal"
 )
 
+type PackageGenerateRequest = internal.PackageGenerateRequest
+
 // Generate generates mocks for several packages at once
-func Generate(destinationDir string, skipPkgDirs int, pkgPatterns ...string) error {
+func Generate(req PackageGenerateRequest) error {
 	m := metrics.NewMetrics(logs.IsDebug, logs.Debugf)
 	cache := ast.NewCache(packages.Load, os.Stat, os.ReadFile, m)
 
-	err := internal.Generate(cache, m, generator.GenerateWithTypeCache, destinationDir, skipPkgDirs, pkgPatterns)
+	err := internal.Generate(cache, m, generator.GenerateWithTypeCache, req)
 	if err != nil {
 		return err
 	}

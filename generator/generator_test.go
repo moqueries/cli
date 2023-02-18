@@ -72,7 +72,9 @@ func TestGenerating(t *testing.T) {
 
 	t.Run("manual package test", func(t *testing.T) {
 		t.Skip("manual test")
-		err := pkg.Generate("../../std", 0, "std")
+		err := pkg.Generate(pkg.PackageGenerateRequest{
+			DestinationDir: "../../std", PkgPatterns: []string{"std"},
+		})
 		if err != nil {
 			t.Errorf("got %#v, wanted no err", err)
 		}

@@ -26,7 +26,11 @@ func TestPackageGeneration(t *testing.T) {
 	}
 
 	// ACT
-	err = pkg.Generate(".", 4, "moqueries.org/cli/pkg/testmoqs")
+	err = pkg.Generate(pkg.PackageGenerateRequest{
+		DestinationDir: ".",
+		SkipPkgDirs:    4,
+		PkgPatterns:    []string{"moqueries.org/cli/pkg/testmoqs"},
+	})
 
 	// ASSERT
 	if err != nil {
