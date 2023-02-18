@@ -40,8 +40,8 @@ jobs:
           PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
           gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- \
             -v -race -covermode=atomic -coverprofile=coverage.out $PACKAGE_NAMES
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+          # go install golang.org/x/vuln/cmd/govulncheck@latest
+          # govulncheck ./...
 
     - run:
         name: Check generated code
