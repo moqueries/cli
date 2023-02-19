@@ -24,6 +24,8 @@ func packageCmd() *cobra.Command {
 	cmd.PersistentFlags().Int(skipPkgDirsFlag, 0,
 		"Skips specified number of directories in the package path when "+
 			"determining the destination directory (defaults to 0)")
+	cmd.PersistentFlags().String(excludePkgPathRegexFlag, "",
+		"Specifies a regular expression used to exclude package paths")
 
 	return cmd
 }
