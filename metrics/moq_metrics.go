@@ -24,8 +24,6 @@ type MoqMetrics struct {
 
 	ResultsByParams_ASTPkgCacheHitsInc        []MoqMetrics_ASTPkgCacheHitsInc_resultsByParams
 	ResultsByParams_ASTPkgCacheMissesInc      []MoqMetrics_ASTPkgCacheMissesInc_resultsByParams
-	ResultsByParams_ASTTypeCacheHitsInc       []MoqMetrics_ASTTypeCacheHitsInc_resultsByParams
-	ResultsByParams_ASTTypeCacheMissesInc     []MoqMetrics_ASTTypeCacheMissesInc_resultsByParams
 	ResultsByParams_ASTTotalLoadTimeInc       []MoqMetrics_ASTTotalLoadTimeInc_resultsByParams
 	ResultsByParams_ASTTotalDecorationTimeInc []MoqMetrics_ASTTotalDecorationTimeInc_resultsByParams
 	ResultsByParams_TotalProcessingTimeInc    []MoqMetrics_TotalProcessingTimeInc_resultsByParams
@@ -33,11 +31,9 @@ type MoqMetrics struct {
 
 	Runtime struct {
 		ParameterIndexing struct {
-			ASTPkgCacheHitsInc    struct{}
-			ASTPkgCacheMissesInc  struct{}
-			ASTTypeCacheHitsInc   struct{}
-			ASTTypeCacheMissesInc struct{}
-			ASTTotalLoadTimeInc   struct {
+			ASTPkgCacheHitsInc   struct{}
+			ASTPkgCacheMissesInc struct{}
+			ASTTotalLoadTimeInc  struct {
 				D moq.ParamIndexing
 			}
 			ASTTotalDecorationTimeInc struct {
@@ -170,117 +166,6 @@ type MoqMetrics_ASTPkgCacheMissesInc_fnRecorder struct {
 // of the Metrics type
 type MoqMetrics_ASTPkgCacheMissesInc_anyParams struct {
 	Recorder *MoqMetrics_ASTPkgCacheMissesInc_fnRecorder
-}
-
-// MoqMetrics_ASTTypeCacheHitsInc_params holds the params of the Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_params struct{}
-
-// MoqMetrics_ASTTypeCacheHitsInc_paramsKey holds the map key params of the
-// Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_paramsKey struct {
-	Params struct{}
-	Hashes struct{}
-}
-
-// MoqMetrics_ASTTypeCacheHitsInc_resultsByParams contains the results for a
-// given set of parameters for the Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqMetrics_ASTTypeCacheHitsInc_paramsKey]*MoqMetrics_ASTTypeCacheHitsInc_results
-}
-
-// MoqMetrics_ASTTypeCacheHitsInc_doFn defines the type of function needed when
-// calling AndDo for the Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_doFn func()
-
-// MoqMetrics_ASTTypeCacheHitsInc_doReturnFn defines the type of function
-// needed when calling DoReturnResults for the Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_doReturnFn func()
-
-// MoqMetrics_ASTTypeCacheHitsInc_results holds the results of the Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_results struct {
-	Params  MoqMetrics_ASTTypeCacheHitsInc_params
-	Results []struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqMetrics_ASTTypeCacheHitsInc_doFn
-		DoReturnFn MoqMetrics_ASTTypeCacheHitsInc_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqMetrics_ASTTypeCacheHitsInc_fnRecorder routes recorded function calls to
-// the MoqMetrics moq
-type MoqMetrics_ASTTypeCacheHitsInc_fnRecorder struct {
-	Params    MoqMetrics_ASTTypeCacheHitsInc_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqMetrics_ASTTypeCacheHitsInc_results
-	Moq       *MoqMetrics
-}
-
-// MoqMetrics_ASTTypeCacheHitsInc_anyParams isolates the any params functions
-// of the Metrics type
-type MoqMetrics_ASTTypeCacheHitsInc_anyParams struct {
-	Recorder *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder
-}
-
-// MoqMetrics_ASTTypeCacheMissesInc_params holds the params of the Metrics type
-type MoqMetrics_ASTTypeCacheMissesInc_params struct{}
-
-// MoqMetrics_ASTTypeCacheMissesInc_paramsKey holds the map key params of the
-// Metrics type
-type MoqMetrics_ASTTypeCacheMissesInc_paramsKey struct {
-	Params struct{}
-	Hashes struct{}
-}
-
-// MoqMetrics_ASTTypeCacheMissesInc_resultsByParams contains the results for a
-// given set of parameters for the Metrics type
-type MoqMetrics_ASTTypeCacheMissesInc_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqMetrics_ASTTypeCacheMissesInc_paramsKey]*MoqMetrics_ASTTypeCacheMissesInc_results
-}
-
-// MoqMetrics_ASTTypeCacheMissesInc_doFn defines the type of function needed
-// when calling AndDo for the Metrics type
-type MoqMetrics_ASTTypeCacheMissesInc_doFn func()
-
-// MoqMetrics_ASTTypeCacheMissesInc_doReturnFn defines the type of function
-// needed when calling DoReturnResults for the Metrics type
-type MoqMetrics_ASTTypeCacheMissesInc_doReturnFn func()
-
-// MoqMetrics_ASTTypeCacheMissesInc_results holds the results of the Metrics
-// type
-type MoqMetrics_ASTTypeCacheMissesInc_results struct {
-	Params  MoqMetrics_ASTTypeCacheMissesInc_params
-	Results []struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqMetrics_ASTTypeCacheMissesInc_doFn
-		DoReturnFn MoqMetrics_ASTTypeCacheMissesInc_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqMetrics_ASTTypeCacheMissesInc_fnRecorder routes recorded function calls
-// to the MoqMetrics moq
-type MoqMetrics_ASTTypeCacheMissesInc_fnRecorder struct {
-	Params    MoqMetrics_ASTTypeCacheMissesInc_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqMetrics_ASTTypeCacheMissesInc_results
-	Moq       *MoqMetrics
-}
-
-// MoqMetrics_ASTTypeCacheMissesInc_anyParams isolates the any params functions
-// of the Metrics type
-type MoqMetrics_ASTTypeCacheMissesInc_anyParams struct {
-	Recorder *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder
 }
 
 // MoqMetrics_ASTTotalLoadTimeInc_params holds the params of the Metrics type
@@ -518,11 +403,9 @@ func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 
 		Runtime: struct {
 			ParameterIndexing struct {
-				ASTPkgCacheHitsInc    struct{}
-				ASTPkgCacheMissesInc  struct{}
-				ASTTypeCacheHitsInc   struct{}
-				ASTTypeCacheMissesInc struct{}
-				ASTTotalLoadTimeInc   struct {
+				ASTPkgCacheHitsInc   struct{}
+				ASTPkgCacheMissesInc struct{}
+				ASTTotalLoadTimeInc  struct {
 					D moq.ParamIndexing
 				}
 				ASTTotalDecorationTimeInc struct {
@@ -534,11 +417,9 @@ func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 				Finalize struct{}
 			}
 		}{ParameterIndexing: struct {
-			ASTPkgCacheHitsInc    struct{}
-			ASTPkgCacheMissesInc  struct{}
-			ASTTypeCacheHitsInc   struct{}
-			ASTTypeCacheMissesInc struct{}
-			ASTTotalLoadTimeInc   struct {
+			ASTPkgCacheHitsInc   struct{}
+			ASTPkgCacheMissesInc struct{}
+			ASTTotalLoadTimeInc  struct {
 				D moq.ParamIndexing
 			}
 			ASTTotalDecorationTimeInc struct {
@@ -549,10 +430,8 @@ func NewMoqMetrics(scene *moq.Scene, config *moq.Config) *MoqMetrics {
 			}
 			Finalize struct{}
 		}{
-			ASTPkgCacheHitsInc:    struct{}{},
-			ASTPkgCacheMissesInc:  struct{}{},
-			ASTTypeCacheHitsInc:   struct{}{},
-			ASTTypeCacheMissesInc: struct{}{},
+			ASTPkgCacheHitsInc:   struct{}{},
+			ASTPkgCacheMissesInc: struct{}{},
 			ASTTotalLoadTimeInc: struct {
 				D moq.ParamIndexing
 			}{
@@ -663,102 +542,6 @@ func (m *MoqMetrics_mock) ASTPkgCacheMissesInc() {
 		sequence := m.Moq.Scene.NextMockSequence()
 		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
 			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_ASTPkgCacheMissesInc(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn()
-	}
-
-	if result.DoReturnFn != nil {
-		result.DoReturnFn()
-	}
-	return
-}
-
-func (m *MoqMetrics_mock) ASTTypeCacheHitsInc() {
-	m.Moq.Scene.T.Helper()
-	params := MoqMetrics_ASTTypeCacheHitsInc_params{}
-	var results *MoqMetrics_ASTTypeCacheHitsInc_results
-	for _, resultsByParams := range m.Moq.ResultsByParams_ASTTypeCacheHitsInc {
-		paramsKey := m.Moq.ParamsKey_ASTTypeCacheHitsInc(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_ASTTypeCacheHitsInc(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_ASTTypeCacheHitsInc(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
-	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_ASTTypeCacheHitsInc(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn()
-	}
-
-	if result.DoReturnFn != nil {
-		result.DoReturnFn()
-	}
-	return
-}
-
-func (m *MoqMetrics_mock) ASTTypeCacheMissesInc() {
-	m.Moq.Scene.T.Helper()
-	params := MoqMetrics_ASTTypeCacheMissesInc_params{}
-	var results *MoqMetrics_ASTTypeCacheMissesInc_results
-	for _, resultsByParams := range m.Moq.ResultsByParams_ASTTypeCacheMissesInc {
-		paramsKey := m.Moq.ParamsKey_ASTTypeCacheMissesInc(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_ASTTypeCacheMissesInc(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_ASTTypeCacheMissesInc(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
-	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_ASTTypeCacheMissesInc(params))
 		}
 	}
 
@@ -1318,352 +1101,6 @@ func (m *MoqMetrics) PrettyParams_ASTPkgCacheMissesInc(params MoqMetrics_ASTPkgC
 func (m *MoqMetrics) ParamsKey_ASTPkgCacheMissesInc(params MoqMetrics_ASTPkgCacheMissesInc_params, anyParams uint64) MoqMetrics_ASTPkgCacheMissesInc_paramsKey {
 	m.Scene.T.Helper()
 	return MoqMetrics_ASTPkgCacheMissesInc_paramsKey{
-		Params: struct{}{},
-		Hashes: struct{}{},
-	}
-}
-
-func (m *MoqMetrics_recorder) ASTTypeCacheHitsInc() *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	return &MoqMetrics_ASTTypeCacheHitsInc_fnRecorder{
-		Params:   MoqMetrics_ASTTypeCacheHitsInc_params{},
-		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m.Moq,
-	}
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) Any() *MoqMetrics_ASTTypeCacheHitsInc_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTypeCacheHitsInc(r.Params))
-		return nil
-	}
-	return &MoqMetrics_ASTTypeCacheHitsInc_anyParams{Recorder: r}
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) Seq() *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTypeCacheHitsInc(r.Params))
-		return nil
-	}
-	r.Sequence = true
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) NoSeq() *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTypeCacheHitsInc(r.Params))
-		return nil
-	}
-	r.Sequence = false
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) ReturnResults() *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqMetrics_ASTTypeCacheHitsInc_doFn
-		DoReturnFn MoqMetrics_ASTTypeCacheHitsInc_doReturnFn
-	}{
-		Values:   &struct{}{},
-		Sequence: sequence,
-	})
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) AndDo(fn MoqMetrics_ASTTypeCacheHitsInc_doFn) *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
-		return nil
-	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) DoReturnResults(fn MoqMetrics_ASTTypeCacheHitsInc_doReturnFn) *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqMetrics_ASTTypeCacheHitsInc_doFn
-		DoReturnFn MoqMetrics_ASTTypeCacheHitsInc_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqMetrics_ASTTypeCacheHitsInc_resultsByParams
-	for n, res := range r.Moq.ResultsByParams_ASTTypeCacheHitsInc {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqMetrics_ASTTypeCacheHitsInc_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqMetrics_ASTTypeCacheHitsInc_paramsKey]*MoqMetrics_ASTTypeCacheHitsInc_results{},
-		}
-		r.Moq.ResultsByParams_ASTTypeCacheHitsInc = append(r.Moq.ResultsByParams_ASTTypeCacheHitsInc, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_ASTTypeCacheHitsInc) {
-			copy(r.Moq.ResultsByParams_ASTTypeCacheHitsInc[insertAt+1:], r.Moq.ResultsByParams_ASTTypeCacheHitsInc[insertAt:0])
-			r.Moq.ResultsByParams_ASTTypeCacheHitsInc[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey_ASTTypeCacheHitsInc(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqMetrics_ASTTypeCacheHitsInc_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqMetrics_ASTTypeCacheHitsInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
-		return nil
-	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values     *struct{}
-				Sequence   uint32
-				DoFn       MoqMetrics_ASTTypeCacheHitsInc_doFn
-				DoReturnFn MoqMetrics_ASTTypeCacheHitsInc_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
-	return r
-}
-
-func (m *MoqMetrics) PrettyParams_ASTTypeCacheHitsInc(params MoqMetrics_ASTTypeCacheHitsInc_params) string {
-	return fmt.Sprintf("ASTTypeCacheHitsInc()")
-}
-
-func (m *MoqMetrics) ParamsKey_ASTTypeCacheHitsInc(params MoqMetrics_ASTTypeCacheHitsInc_params, anyParams uint64) MoqMetrics_ASTTypeCacheHitsInc_paramsKey {
-	m.Scene.T.Helper()
-	return MoqMetrics_ASTTypeCacheHitsInc_paramsKey{
-		Params: struct{}{},
-		Hashes: struct{}{},
-	}
-}
-
-func (m *MoqMetrics_recorder) ASTTypeCacheMissesInc() *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	return &MoqMetrics_ASTTypeCacheMissesInc_fnRecorder{
-		Params:   MoqMetrics_ASTTypeCacheMissesInc_params{},
-		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m.Moq,
-	}
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) Any() *MoqMetrics_ASTTypeCacheMissesInc_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTypeCacheMissesInc(r.Params))
-		return nil
-	}
-	return &MoqMetrics_ASTTypeCacheMissesInc_anyParams{Recorder: r}
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) Seq() *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTypeCacheMissesInc(r.Params))
-		return nil
-	}
-	r.Sequence = true
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) NoSeq() *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ASTTypeCacheMissesInc(r.Params))
-		return nil
-	}
-	r.Sequence = false
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) ReturnResults() *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqMetrics_ASTTypeCacheMissesInc_doFn
-		DoReturnFn MoqMetrics_ASTTypeCacheMissesInc_doReturnFn
-	}{
-		Values:   &struct{}{},
-		Sequence: sequence,
-	})
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) AndDo(fn MoqMetrics_ASTTypeCacheMissesInc_doFn) *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
-		return nil
-	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) DoReturnResults(fn MoqMetrics_ASTTypeCacheMissesInc_doReturnFn) *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqMetrics_ASTTypeCacheMissesInc_doFn
-		DoReturnFn MoqMetrics_ASTTypeCacheMissesInc_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
-	return r
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqMetrics_ASTTypeCacheMissesInc_resultsByParams
-	for n, res := range r.Moq.ResultsByParams_ASTTypeCacheMissesInc {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqMetrics_ASTTypeCacheMissesInc_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqMetrics_ASTTypeCacheMissesInc_paramsKey]*MoqMetrics_ASTTypeCacheMissesInc_results{},
-		}
-		r.Moq.ResultsByParams_ASTTypeCacheMissesInc = append(r.Moq.ResultsByParams_ASTTypeCacheMissesInc, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_ASTTypeCacheMissesInc) {
-			copy(r.Moq.ResultsByParams_ASTTypeCacheMissesInc[insertAt+1:], r.Moq.ResultsByParams_ASTTypeCacheMissesInc[insertAt:0])
-			r.Moq.ResultsByParams_ASTTypeCacheMissesInc[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey_ASTTypeCacheMissesInc(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqMetrics_ASTTypeCacheMissesInc_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqMetrics_ASTTypeCacheMissesInc_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
-		return nil
-	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values     *struct{}
-				Sequence   uint32
-				DoFn       MoqMetrics_ASTTypeCacheMissesInc_doFn
-				DoReturnFn MoqMetrics_ASTTypeCacheMissesInc_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
-	return r
-}
-
-func (m *MoqMetrics) PrettyParams_ASTTypeCacheMissesInc(params MoqMetrics_ASTTypeCacheMissesInc_params) string {
-	return fmt.Sprintf("ASTTypeCacheMissesInc()")
-}
-
-func (m *MoqMetrics) ParamsKey_ASTTypeCacheMissesInc(params MoqMetrics_ASTTypeCacheMissesInc_params, anyParams uint64) MoqMetrics_ASTTypeCacheMissesInc_paramsKey {
-	m.Scene.T.Helper()
-	return MoqMetrics_ASTTypeCacheMissesInc_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},
 	}
@@ -2425,8 +1862,6 @@ func (m *MoqMetrics) ParamsKey_Finalize(params MoqMetrics_Finalize_params, anyPa
 func (m *MoqMetrics) Reset() {
 	m.ResultsByParams_ASTPkgCacheHitsInc = nil
 	m.ResultsByParams_ASTPkgCacheMissesInc = nil
-	m.ResultsByParams_ASTTypeCacheHitsInc = nil
-	m.ResultsByParams_ASTTypeCacheMissesInc = nil
 	m.ResultsByParams_ASTTotalLoadTimeInc = nil
 	m.ResultsByParams_ASTTotalDecorationTimeInc = nil
 	m.ResultsByParams_TotalProcessingTimeInc = nil
@@ -2449,22 +1884,6 @@ func (m *MoqMetrics) AssertExpectationsMet() {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_ASTPkgCacheMissesInc(results.Params))
-			}
-		}
-	}
-	for _, res := range m.ResultsByParams_ASTTypeCacheHitsInc {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_ASTTypeCacheHitsInc(results.Params))
-			}
-		}
-	}
-	for _, res := range m.ResultsByParams_ASTTypeCacheMissesInc {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_ASTTypeCacheMissesInc(results.Params))
 			}
 		}
 	}

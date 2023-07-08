@@ -19,10 +19,10 @@ func TestConverter(t *testing.T) {
 		scene        *moq.Scene
 		typeCacheMoq *moqTypeCache
 
-		func1Param1  dst.Expr
-		func1Param2  dst.Expr
-		func1Param3  dst.Expr
-		func1Param4  dst.Expr
+		func1Param1  *dst.Ident
+		func1Param2  *dst.Ident
+		func1Param3  *dst.Ident
+		func1Param4  *dst.Ident
 		func1Params  *dst.FieldList
 		func1Results *dst.FieldList
 
@@ -90,13 +90,17 @@ func TestConverter(t *testing.T) {
 		}
 		iSpecFuncs = []generator.Func{
 			{
-				Name:    "Func1",
-				Params:  func1Params,
-				Results: func1Results,
+				Name: "Func1",
+				FuncType: &dst.FuncType{
+					Params:  func1Params,
+					Results: func1Results,
+				},
 			},
 			{
-				Name:   "func2",
-				Params: &dst.FieldList{List: nil},
+				Name: "func2",
+				FuncType: &dst.FuncType{
+					Params: &dst.FieldList{List: nil},
+				},
 			},
 		}
 
@@ -109,8 +113,10 @@ func TestConverter(t *testing.T) {
 		}
 		fnSpecFuncs = []generator.Func{
 			{
-				Params:  func1Params,
-				Results: func1Results,
+				FuncType: &dst.FuncType{
+					Params:  func1Params,
+					Results: func1Results,
+				},
 			},
 		}
 	}
@@ -151,9 +157,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decls := converter.BaseDecls()
-
+					decls, err := converter.BaseDecls()
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
 					if len(decls) != 2 {
 						t.Fatalf("got %#v, want 1 decl", decls)
 					}
@@ -189,9 +197,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decls := converter.BaseDecls()
-
+					decls, err := converter.BaseDecls()
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
 					if len(decls) != 1 {
 						t.Fatalf("got %#v, want 1 decl", decls)
 					}
@@ -222,9 +232,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decls := converter.BaseDecls()
-
+					decls, err := converter.BaseDecls()
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
 					if len(decls) != 3 {
 						t.Fatalf("got %#v, want 3 decl", decls)
 					}
@@ -270,9 +282,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decls := converter.BaseDecls()
-
+					decls, err := converter.BaseDecls()
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
 					if len(decls) != 2 {
 						t.Fatalf("got %#v, want 1 decl", decls)
 					}
@@ -305,9 +319,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.IsolationStruct("mock")
-
+					decl, err := converter.IsolationStruct("mock")
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
@@ -339,18 +355,47 @@ func TestConverter(t *testing.T) {
 						Name: "Hash",
 					}
 					fn := generator.Func{
-						Name:    "Func1",
-						Params:  func1Params,
-						Results: func1Results,
+						Name: "Func1",
+						FuncType: &dst.FuncType{
+							Params:  func1Params,
+							Results: func1Results,
+						},
 					}
-					typeCacheMoq.onCall().IsComparable(func1Param1).
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param1},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param2, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param2},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param3, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param3},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param4, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param4},
+						}, nil).repeat(moq.AnyTimes())
+					tInfo := ast.TypeInfo{Type: iSpec}
+					typeCacheMoq.onCall().IsComparable(func1Param1, tInfo).
 						returnResults(false, nil)
-					typeCacheMoq.onCall().IsComparable(func1Param2).
+					typeCacheMoq.onCall().IsComparable(func1Param2, tInfo).
 						returnResults(true, nil)
-					typeCacheMoq.onCall().IsComparable(func1Param3).
+					typeCacheMoq.onCall().IsComparable(func1Param3, tInfo).
 						returnResults(false, nil)
-					typeCacheMoq.onCall().IsComparable(func1Param4).
+					typeCacheMoq.onCall().IsComparable(func1Param4, tInfo).
 						returnResults(true, nil)
+					id := ast.Id("string")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
+					id = ast.Id("error")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
 
 					typ := generator.Type{
 						TypeInfo: ast.TypeInfo{Type: iSpec},
@@ -508,13 +553,22 @@ func TestConverter(t *testing.T) {
 					defer afterEach(t)
 
 					fn := generator.Func{
-						Name:    "Func1",
-						Params:  func1Params,
-						Results: func1Results,
+						Name: "Func1",
+						FuncType: &dst.FuncType{
+							Params:  func1Params,
+							Results: func1Results,
+						},
 					}
 					expectedErr := errors.New("type error")
-					typeCacheMoq.onCall().IsComparable(func1Param1).
-						returnResults(false, expectedErr)
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{}, expectedErr).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(dst.Ident{}, "", false).any().id().
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param1},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().IsComparable(nil, ast.TypeInfo{}).
+						any().expr().any().parentType().
+						returnResults(false, nil).repeat(moq.AnyTimes())
 
 					typ := generator.Type{
 						TypeInfo: ast.TypeInfo{Type: iSpec},
@@ -546,9 +600,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.NewFunc()
-
+					decl, err := converter.NewFunc()
 					// ASSERT
+					if err != nil {
+						t.Errorf("got error %#v, want no error", err)
+					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
@@ -570,9 +626,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.NewFunc()
-
+					decl, err := converter.NewFunc()
 					// ASSERT
+					if err != nil {
+						t.Errorf("got error %#v, want no error", err)
+					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
@@ -598,9 +656,11 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl := converter.IsolationAccessor("recorder", "onCall")
-
+					decl, err := converter.IsolationAccessor("recorder", "onCall")
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got error %#v, want no error", err)
+					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted > 0", len(decl.Decs.Start))
 					}
@@ -623,10 +683,39 @@ func TestConverter(t *testing.T) {
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
-					// ACT
-					decl := converter.FuncClosure(fnSpecFuncs[0])
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param1},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param2, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param2},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param3, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param3},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param4, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param4},
+						}, nil).repeat(moq.AnyTimes())
+					id := ast.Id("string")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
+					id = ast.Id("error")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
 
+					// ACT
+					decl, err := converter.FuncClosure(fnSpecFuncs[0])
 					// ASSERT
+					if err != nil {
+						t.Fatalf("got %#v, want no error", err)
+					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted > 0", len(decl.Decs.Start))
 					}
