@@ -231,6 +231,11 @@ func (d FnDSL) Results(fields ...*dst.Field) FnDSL {
 	return d
 }
 
+func (d FnDSL) TypeParams(fieldList *dst.FieldList) FnDSL {
+	d.Obj.Type.TypeParams = fieldList
+	return d
+}
+
 // Body specifies the body for a function
 func (d FnDSL) Body(list ...dst.Stmt) FnDSL {
 	d.Obj.Body = Block(list...).Obj
@@ -312,25 +317,6 @@ func IdPath(name, path string) *dst.Ident {
 	return &dst.Ident{Name: name, Path: path}
 }
 
-// IncStmt creates a dst.IncDecStmt for incrementing an expression
-func IncStmt(x dst.Expr) *dst.IncDecStmt {
-	return &dst.IncDecStmt{X: x, Tok: token.INC}
-}
-
-// IndexDSL translates to a dst.IndexExpr
-type IndexDSL struct{ Obj *dst.IndexExpr }
-
-// Index creates a new IndexDSL
-func Index(x dst.Expr) IndexDSL {
-	return IndexDSL{Obj: &dst.IndexExpr{X: x}}
-}
-
-// Sub specifies the sub-expression
-func (d IndexDSL) Sub(index dst.Expr) IndexDSL {
-	d.Obj.Index = index
-	return d
-}
-
 // IfDSL translates to a dst.IfStmt
 type IfDSL struct{ Obj *dst.IfStmt }
 
@@ -369,6 +355,25 @@ func IfDecs(after dst.SpaceType) IfDecsDSL {
 	return IfDecsDSL{Obj: dst.IfStmtDecorations{
 		NodeDecs: dst.NodeDecs{After: after},
 	}}
+}
+
+// IncStmt creates a dst.IncDecStmt for incrementing an expression
+func IncStmt(x dst.Expr) *dst.IncDecStmt {
+	return &dst.IncDecStmt{X: x, Tok: token.INC}
+}
+
+// IndexDSL translates to a dst.IndexListExpr
+type IndexDSL struct{ Obj *dst.IndexListExpr }
+
+// Index creates a new IndexDSL
+func Index(x dst.Expr) IndexDSL {
+	return IndexDSL{Obj: &dst.IndexListExpr{X: x}}
+}
+
+// Sub specifies the sub-expression
+func (d IndexDSL) Sub(index ...dst.Expr) IndexDSL {
+	d.Obj.Indices = index
+	return d
 }
 
 // KeyValueDSL translates to a dst.KeyValueExpr
@@ -582,6 +587,12 @@ func TypeSpec(name string) TypeSpecDSL {
 // Type creates a new TypeSpecDSL
 func (d TypeSpecDSL) Type(typ dst.Expr) TypeSpecDSL {
 	d.Obj.Type = typ
+	return d
+}
+
+// TypeParams adds type parameters to TypeDeclDSL
+func (d TypeSpecDSL) TypeParams(typeParams *dst.FieldList) TypeSpecDSL {
+	d.Obj.TypeParams = typeParams
 	return d
 }
 

@@ -24,7 +24,16 @@ func (*PassByRefSimple) Usual(string, bool) (string, error) {
 type Reduced interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
 	notSoUsual()
-	//nolint:inamedparam // Testing interface method with unnamed param
 	ReallyUnusualParams(struct{ a string })
 	ReallyUnusualResults() struct{ a string }
 }
+
+type Generic[T any, V any] struct{}
+
+func (g *Generic[T, V]) DoSomethingPtr() {}
+
+func (g *Generic[X, Y]) DoSomethingElsePtr() {}
+
+func (g Generic[T, V]) DoSomething() {}
+
+func (g Generic[X, Y]) DoSomethingElse() {}

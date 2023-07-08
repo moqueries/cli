@@ -18,6 +18,5 @@ type Results struct {
 }
 
 type Another interface {
-	//nolint:inamedparam // Testing interface method with unnamed param
 	Other(Params) Results
 }

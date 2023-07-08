@@ -219,6 +219,7 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (stri
 		destDir = filepath.Join(destDir, req.Destination)
 	}
 	if strings.HasSuffix(destDir, ".go") {
+		// TODO: maybe should be more definitive as in always call filepath.Dir if Destination is defined
 		destDir = filepath.Dir(destDir)
 	}
 	outPkgPath, err := g.typeCache.FindPackage(destDir)
@@ -227,6 +228,13 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (stri
 	}
 	if req.Package == "" || req.Package == "." {
 		if !req.Export {
+			// TODO: Just because the package wasn't specified and the mock
+			//   isn't going to be exported, we assume the mock is going in
+			//   the test package? What if someone is putting their tests in
+			//   the regular package? Maybe they should specify the package
+			//   instead of leaving it blank and maybe this is a non-issue.
+			//   Make sure this is documented properly at least (and maybe
+			//   leave an explanatory comment here in place of this TODO).
 			outPkgPath += testPkgSuffix
 		}
 	} else {
@@ -321,8 +329,8 @@ func (g *MoqGenerator) findFuncs(tInfo ast.TypeInfo, fInfo *funcInfo) error {
 		}
 
 		if fInfo.excludeNonExported && !fully {
-			return fmt.Errorf("%w: %s mocked type is not exported",
-				ErrNonExported, tInfo.Type.Name.String())
+			return fmt.Errorf("%w: %s (%s) mocked type is not exported",
+				ErrNonExported, tInfo.Type.Name.String(), tInfo.PkgPath)
 		}
 
 		fInfo.funcs = append(fInfo.funcs, fn)
