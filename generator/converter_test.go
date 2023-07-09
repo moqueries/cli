@@ -520,7 +520,7 @@ func TestConverter(t *testing.T) {
 					}
 				})
 
-				t.Run("returns a type cache error", func(t *testing.T) {
+				t.Run("returns errors", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
 					defer afterEach(t)
@@ -606,6 +606,35 @@ func TestConverter(t *testing.T) {
 						exported("newMoqPublicFunction"))
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+				})
+
+				t.Run("returns errors", func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
+
+					typ := generator.Type{
+						TypeInfo: ast.TypeInfo{Type: iSpec},
+						Funcs:    iSpecFuncs,
+					}
+					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
+
+					expectedErr := errors.New("type error")
+					typeCacheMoq.onCall().IsDefaultComparable(func1Param1).
+						returnResults(false, expectedErr)
+					typeCacheMoq.onCall().IsDefaultComparable(nil).any().expr().
+						returnResults(false, nil).repeat(moq.AnyTimes())
+
+					// ACT
+					decl, err := converter.NewFunc()
+
+					// ASSERT
+					if err != expectedErr {
+						t.Errorf("got %#v, wanted %#v", err, expectedErr)
+					}
+					if decl != nil {
+						t.Errorf("got %#v, wanted nil", decl)
 					}
 				})
 			})
