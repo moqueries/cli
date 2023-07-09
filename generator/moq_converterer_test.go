@@ -98,13 +98,16 @@ type moqConverterer_BaseDecls_doFn func()
 
 // moqConverterer_BaseDecls_doReturnFn defines the type of function needed when
 // calling doReturnResults for the Converterer type
-type moqConverterer_BaseDecls_doReturnFn func() (baseDecls []dst.Decl)
+type moqConverterer_BaseDecls_doReturnFn func() (baseDecls []dst.Decl, err error)
 
 // moqConverterer_BaseDecls_results holds the results of the Converterer type
 type moqConverterer_BaseDecls_results struct {
 	params  moqConverterer_BaseDecls_params
 	results []struct {
-		values     *struct{ baseDecls []dst.Decl }
+		values *struct {
+			baseDecls []dst.Decl
+			err       error
+		}
 		sequence   uint32
 		doFn       moqConverterer_BaseDecls_doFn
 		doReturnFn moqConverterer_BaseDecls_doReturnFn
@@ -154,14 +157,17 @@ type moqConverterer_IsolationStruct_doFn func(suffix string)
 
 // moqConverterer_IsolationStruct_doReturnFn defines the type of function
 // needed when calling doReturnResults for the Converterer type
-type moqConverterer_IsolationStruct_doReturnFn func(suffix string) (structDecl *dst.GenDecl)
+type moqConverterer_IsolationStruct_doReturnFn func(suffix string) (structDecl *dst.GenDecl, err error)
 
 // moqConverterer_IsolationStruct_results holds the results of the Converterer
 // type
 type moqConverterer_IsolationStruct_results struct {
 	params  moqConverterer_IsolationStruct_params
 	results []struct {
-		values     *struct{ structDecl *dst.GenDecl }
+		values *struct {
+			structDecl *dst.GenDecl
+			err        error
+		}
 		sequence   uint32
 		doFn       moqConverterer_IsolationStruct_doFn
 		doReturnFn moqConverterer_IsolationStruct_doReturnFn
@@ -269,13 +275,16 @@ type moqConverterer_NewFunc_doFn func()
 
 // moqConverterer_NewFunc_doReturnFn defines the type of function needed when
 // calling doReturnResults for the Converterer type
-type moqConverterer_NewFunc_doReturnFn func() (funcDecl *dst.FuncDecl)
+type moqConverterer_NewFunc_doReturnFn func() (funcDecl *dst.FuncDecl, err error)
 
 // moqConverterer_NewFunc_results holds the results of the Converterer type
 type moqConverterer_NewFunc_results struct {
 	params  moqConverterer_NewFunc_params
 	results []struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_NewFunc_doFn
 		doReturnFn moqConverterer_NewFunc_doReturnFn
@@ -325,14 +334,17 @@ type moqConverterer_IsolationAccessor_doFn func(suffix, fnName string)
 
 // moqConverterer_IsolationAccessor_doReturnFn defines the type of function
 // needed when calling doReturnResults for the Converterer type
-type moqConverterer_IsolationAccessor_doReturnFn func(suffix, fnName string) (funcDecl *dst.FuncDecl)
+type moqConverterer_IsolationAccessor_doReturnFn func(suffix, fnName string) (funcDecl *dst.FuncDecl, err error)
 
 // moqConverterer_IsolationAccessor_results holds the results of the
 // Converterer type
 type moqConverterer_IsolationAccessor_results struct {
 	params  moqConverterer_IsolationAccessor_params
 	results []struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_IsolationAccessor_doFn
 		doReturnFn moqConverterer_IsolationAccessor_doReturnFn
@@ -381,13 +393,16 @@ type moqConverterer_FuncClosure_doFn func(fn generator.Func)
 
 // moqConverterer_FuncClosure_doReturnFn defines the type of function needed
 // when calling doReturnResults for the Converterer type
-type moqConverterer_FuncClosure_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_FuncClosure_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl, err error)
 
 // moqConverterer_FuncClosure_results holds the results of the Converterer type
 type moqConverterer_FuncClosure_results struct {
 	params  moqConverterer_FuncClosure_params
 	results []struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_FuncClosure_doFn
 		doReturnFn moqConverterer_FuncClosure_doReturnFn
@@ -436,13 +451,16 @@ type moqConverterer_MockMethod_doFn func(fn generator.Func)
 
 // moqConverterer_MockMethod_doReturnFn defines the type of function needed
 // when calling doReturnResults for the Converterer type
-type moqConverterer_MockMethod_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl)
+type moqConverterer_MockMethod_doReturnFn func(fn generator.Func) (funcDecl *dst.FuncDecl, err error)
 
 // moqConverterer_MockMethod_results holds the results of the Converterer type
 type moqConverterer_MockMethod_results struct {
 	params  moqConverterer_MockMethod_params
 	results []struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_MockMethod_doFn
 		doReturnFn moqConverterer_MockMethod_doReturnFn
@@ -492,14 +510,17 @@ type moqConverterer_RecorderMethods_doFn func(fn generator.Func)
 
 // moqConverterer_RecorderMethods_doReturnFn defines the type of function
 // needed when calling doReturnResults for the Converterer type
-type moqConverterer_RecorderMethods_doReturnFn func(fn generator.Func) (funcDecls []dst.Decl)
+type moqConverterer_RecorderMethods_doReturnFn func(fn generator.Func) (funcDecls []dst.Decl, err error)
 
 // moqConverterer_RecorderMethods_results holds the results of the Converterer
 // type
 type moqConverterer_RecorderMethods_results struct {
 	params  moqConverterer_RecorderMethods_params
 	results []struct {
-		values     *struct{ funcDecls []dst.Decl }
+		values *struct {
+			funcDecls []dst.Decl
+			err       error
+		}
 		sequence   uint32
 		doFn       moqConverterer_RecorderMethods_doFn
 		doReturnFn moqConverterer_RecorderMethods_doReturnFn
@@ -548,13 +569,16 @@ type moqConverterer_ResetMethod_doFn func()
 
 // moqConverterer_ResetMethod_doReturnFn defines the type of function needed
 // when calling doReturnResults for the Converterer type
-type moqConverterer_ResetMethod_doReturnFn func() (funcDecl *dst.FuncDecl)
+type moqConverterer_ResetMethod_doReturnFn func() (funcDecl *dst.FuncDecl, err error)
 
 // moqConverterer_ResetMethod_results holds the results of the Converterer type
 type moqConverterer_ResetMethod_results struct {
 	params  moqConverterer_ResetMethod_params
 	results []struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_ResetMethod_doFn
 		doReturnFn moqConverterer_ResetMethod_doReturnFn
@@ -603,14 +627,17 @@ type moqConverterer_AssertMethod_doFn func()
 
 // moqConverterer_AssertMethod_doReturnFn defines the type of function needed
 // when calling doReturnResults for the Converterer type
-type moqConverterer_AssertMethod_doReturnFn func() (funcDecl *dst.FuncDecl)
+type moqConverterer_AssertMethod_doReturnFn func() (funcDecl *dst.FuncDecl, err error)
 
 // moqConverterer_AssertMethod_results holds the results of the Converterer
 // type
 type moqConverterer_AssertMethod_results struct {
 	params  moqConverterer_AssertMethod_params
 	results []struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_AssertMethod_doFn
 		doReturnFn moqConverterer_AssertMethod_doReturnFn
@@ -743,7 +770,7 @@ func newMoqConverterer(scene *moq.Scene, config *moq.Config) *moqConverterer {
 // mock returns the mock implementation of the Converterer type
 func (m *moqConverterer) mock() *moqConverterer_mock { return m.moq }
 
-func (m *moqConverterer_mock) BaseDecls() (baseDecls []dst.Decl) {
+func (m *moqConverterer_mock) BaseDecls() (baseDecls []dst.Decl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_BaseDecls_params{}
 	var results *moqConverterer_BaseDecls_results
@@ -787,14 +814,15 @@ func (m *moqConverterer_mock) BaseDecls() (baseDecls []dst.Decl) {
 
 	if result.values != nil {
 		baseDecls = result.values.baseDecls
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		baseDecls = result.doReturnFn()
+		baseDecls, err = result.doReturnFn()
 	}
 	return
 }
 
-func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.GenDecl) {
+func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.GenDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_IsolationStruct_params{
 		suffix: suffix,
@@ -840,9 +868,10 @@ func (m *moqConverterer_mock) IsolationStruct(suffix string) (structDecl *dst.Ge
 
 	if result.values != nil {
 		structDecl = result.values.structDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		structDecl = result.doReturnFn(suffix)
+		structDecl, err = result.doReturnFn(suffix)
 	}
 	return
 }
@@ -901,7 +930,7 @@ func (m *moqConverterer_mock) MethodStructs(fn generator.Func) (structDecls []ds
 	return
 }
 
-func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_NewFunc_params{}
 	var results *moqConverterer_NewFunc_results
@@ -945,14 +974,15 @@ func (m *moqConverterer_mock) NewFunc() (funcDecl *dst.FuncDecl) {
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn()
+		funcDecl, err = result.doReturnFn()
 	}
 	return
 }
 
-func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_IsolationAccessor_params{
 		suffix: suffix,
@@ -999,14 +1029,15 @@ func (m *moqConverterer_mock) IsolationAccessor(suffix, fnName string) (funcDecl
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(suffix, fnName)
+		funcDecl, err = result.doReturnFn(suffix, fnName)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.FuncDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_FuncClosure_params{
 		fn: fn,
@@ -1052,14 +1083,15 @@ func (m *moqConverterer_mock) FuncClosure(fn generator.Func) (funcDecl *dst.Func
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(fn)
+		funcDecl, err = result.doReturnFn(fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_MockMethod_params{
 		fn: fn,
@@ -1105,14 +1137,15 @@ func (m *moqConverterer_mock) MockMethod(fn generator.Func) (funcDecl *dst.FuncD
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn(fn)
+		funcDecl, err = result.doReturnFn(fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []dst.Decl) {
+func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []dst.Decl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_RecorderMethods_params{
 		fn: fn,
@@ -1158,14 +1191,15 @@ func (m *moqConverterer_mock) RecorderMethods(fn generator.Func) (funcDecls []ds
 
 	if result.values != nil {
 		funcDecls = result.values.funcDecls
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecls = result.doReturnFn(fn)
+		funcDecls, err = result.doReturnFn(fn)
 	}
 	return
 }
 
-func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_ResetMethod_params{}
 	var results *moqConverterer_ResetMethod_results
@@ -1209,14 +1243,15 @@ func (m *moqConverterer_mock) ResetMethod() (funcDecl *dst.FuncDecl) {
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn()
+		funcDecl, err = result.doReturnFn()
 	}
 	return
 }
 
-func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
+func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl, err error) {
 	m.moq.scene.T.Helper()
 	params := moqConverterer_AssertMethod_params{}
 	var results *moqConverterer_AssertMethod_results
@@ -1260,9 +1295,10 @@ func (m *moqConverterer_mock) AssertMethod() (funcDecl *dst.FuncDecl) {
 
 	if result.values != nil {
 		funcDecl = result.values.funcDecl
+		err = result.values.err
 	}
 	if result.doReturnFn != nil {
-		funcDecl = result.doReturnFn()
+		funcDecl, err = result.doReturnFn()
 	}
 	return
 }
@@ -1311,7 +1347,7 @@ func (r *moqConverterer_BaseDecls_fnRecorder) noSeq() *moqConverterer_BaseDecls_
 	return r
 }
 
-func (r *moqConverterer_BaseDecls_fnRecorder) returnResults(baseDecls []dst.Decl) *moqConverterer_BaseDecls_fnRecorder {
+func (r *moqConverterer_BaseDecls_fnRecorder) returnResults(baseDecls []dst.Decl, err error) *moqConverterer_BaseDecls_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -1321,13 +1357,20 @@ func (r *moqConverterer_BaseDecls_fnRecorder) returnResults(baseDecls []dst.Decl
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ baseDecls []dst.Decl }
+		values *struct {
+			baseDecls []dst.Decl
+			err       error
+		}
 		sequence   uint32
 		doFn       moqConverterer_BaseDecls_doFn
 		doReturnFn moqConverterer_BaseDecls_doReturnFn
 	}{
-		values: &struct{ baseDecls []dst.Decl }{
+		values: &struct {
+			baseDecls []dst.Decl
+			err       error
+		}{
 			baseDecls: baseDecls,
+			err:       err,
 		},
 		sequence: sequence,
 	})
@@ -1355,7 +1398,10 @@ func (r *moqConverterer_BaseDecls_fnRecorder) doReturnResults(fn moqConverterer_
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ baseDecls []dst.Decl }
+		values *struct {
+			baseDecls []dst.Decl
+			err       error
+		}
 		sequence   uint32
 		doFn       moqConverterer_BaseDecls_doFn
 		doReturnFn moqConverterer_BaseDecls_doReturnFn
@@ -1423,7 +1469,10 @@ func (r *moqConverterer_BaseDecls_fnRecorder) repeat(repeaters ...moq.Repeater) 
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ baseDecls []dst.Decl }
+				values *struct {
+					baseDecls []dst.Decl
+					err       error
+				}
 				sequence   uint32
 				doFn       moqConverterer_BaseDecls_doFn
 				doReturnFn moqConverterer_BaseDecls_doReturnFn
@@ -1493,7 +1542,7 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) noSeq() *moqConverterer_Isol
 	return r
 }
 
-func (r *moqConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *dst.GenDecl) *moqConverterer_IsolationStruct_fnRecorder {
+func (r *moqConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *dst.GenDecl, err error) *moqConverterer_IsolationStruct_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -1503,13 +1552,20 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) returnResults(structDecl *ds
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ structDecl *dst.GenDecl }
+		values *struct {
+			structDecl *dst.GenDecl
+			err        error
+		}
 		sequence   uint32
 		doFn       moqConverterer_IsolationStruct_doFn
 		doReturnFn moqConverterer_IsolationStruct_doReturnFn
 	}{
-		values: &struct{ structDecl *dst.GenDecl }{
+		values: &struct {
+			structDecl *dst.GenDecl
+			err        error
+		}{
 			structDecl: structDecl,
+			err:        err,
 		},
 		sequence: sequence,
 	})
@@ -1537,7 +1593,10 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) doReturnResults(fn moqConver
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ structDecl *dst.GenDecl }
+		values *struct {
+			structDecl *dst.GenDecl
+			err        error
+		}
 		sequence   uint32
 		doFn       moqConverterer_IsolationStruct_doFn
 		doReturnFn moqConverterer_IsolationStruct_doReturnFn
@@ -1605,7 +1664,10 @@ func (r *moqConverterer_IsolationStruct_fnRecorder) repeat(repeaters ...moq.Repe
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ structDecl *dst.GenDecl }
+				values *struct {
+					structDecl *dst.GenDecl
+					err        error
+				}
 				sequence   uint32
 				doFn       moqConverterer_IsolationStruct_doFn
 				doReturnFn moqConverterer_IsolationStruct_doReturnFn
@@ -1889,7 +1951,7 @@ func (r *moqConverterer_NewFunc_fnRecorder) noSeq() *moqConverterer_NewFunc_fnRe
 	return r
 }
 
-func (r *moqConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_NewFunc_fnRecorder {
+func (r *moqConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl, err error) *moqConverterer_NewFunc_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -1899,13 +1961,20 @@ func (r *moqConverterer_NewFunc_fnRecorder) returnResults(funcDecl *dst.FuncDecl
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_NewFunc_doFn
 		doReturnFn moqConverterer_NewFunc_doReturnFn
 	}{
-		values: &struct{ funcDecl *dst.FuncDecl }{
+		values: &struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}{
 			funcDecl: funcDecl,
+			err:      err,
 		},
 		sequence: sequence,
 	})
@@ -1933,7 +2002,10 @@ func (r *moqConverterer_NewFunc_fnRecorder) doReturnResults(fn moqConverterer_Ne
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_NewFunc_doFn
 		doReturnFn moqConverterer_NewFunc_doReturnFn
@@ -2001,7 +2073,10 @@ func (r *moqConverterer_NewFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *m
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecl *dst.FuncDecl }
+				values *struct {
+					funcDecl *dst.FuncDecl
+					err      error
+				}
 				sequence   uint32
 				doFn       moqConverterer_NewFunc_doFn
 				doReturnFn moqConverterer_NewFunc_doReturnFn
@@ -2077,7 +2152,7 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) noSeq() *moqConverterer_Is
 	return r
 }
 
-func (r *moqConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_IsolationAccessor_fnRecorder {
+func (r *moqConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *dst.FuncDecl, err error) *moqConverterer_IsolationAccessor_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -2087,13 +2162,20 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) returnResults(funcDecl *ds
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_IsolationAccessor_doFn
 		doReturnFn moqConverterer_IsolationAccessor_doReturnFn
 	}{
-		values: &struct{ funcDecl *dst.FuncDecl }{
+		values: &struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}{
 			funcDecl: funcDecl,
+			err:      err,
 		},
 		sequence: sequence,
 	})
@@ -2121,7 +2203,10 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) doReturnResults(fn moqConv
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_IsolationAccessor_doFn
 		doReturnFn moqConverterer_IsolationAccessor_doReturnFn
@@ -2189,7 +2274,10 @@ func (r *moqConverterer_IsolationAccessor_fnRecorder) repeat(repeaters ...moq.Re
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecl *dst.FuncDecl }
+				values *struct {
+					funcDecl *dst.FuncDecl
+					err      error
+				}
 				sequence   uint32
 				doFn       moqConverterer_IsolationAccessor_doFn
 				doReturnFn moqConverterer_IsolationAccessor_doReturnFn
@@ -2283,7 +2371,7 @@ func (r *moqConverterer_FuncClosure_fnRecorder) noSeq() *moqConverterer_FuncClos
 	return r
 }
 
-func (r *moqConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_FuncClosure_fnRecorder {
+func (r *moqConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.FuncDecl, err error) *moqConverterer_FuncClosure_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -2293,13 +2381,20 @@ func (r *moqConverterer_FuncClosure_fnRecorder) returnResults(funcDecl *dst.Func
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_FuncClosure_doFn
 		doReturnFn moqConverterer_FuncClosure_doReturnFn
 	}{
-		values: &struct{ funcDecl *dst.FuncDecl }{
+		values: &struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}{
 			funcDecl: funcDecl,
+			err:      err,
 		},
 		sequence: sequence,
 	})
@@ -2327,7 +2422,10 @@ func (r *moqConverterer_FuncClosure_fnRecorder) doReturnResults(fn moqConvertere
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_FuncClosure_doFn
 		doReturnFn moqConverterer_FuncClosure_doReturnFn
@@ -2395,7 +2493,10 @@ func (r *moqConverterer_FuncClosure_fnRecorder) repeat(repeaters ...moq.Repeater
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecl *dst.FuncDecl }
+				values *struct {
+					funcDecl *dst.FuncDecl
+					err      error
+				}
 				sequence   uint32
 				doFn       moqConverterer_FuncClosure_doFn
 				doReturnFn moqConverterer_FuncClosure_doReturnFn
@@ -2478,7 +2579,7 @@ func (r *moqConverterer_MockMethod_fnRecorder) noSeq() *moqConverterer_MockMetho
 	return r
 }
 
-func (r *moqConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_MockMethod_fnRecorder {
+func (r *moqConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl, err error) *moqConverterer_MockMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -2488,13 +2589,20 @@ func (r *moqConverterer_MockMethod_fnRecorder) returnResults(funcDecl *dst.FuncD
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_MockMethod_doFn
 		doReturnFn moqConverterer_MockMethod_doReturnFn
 	}{
-		values: &struct{ funcDecl *dst.FuncDecl }{
+		values: &struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}{
 			funcDecl: funcDecl,
+			err:      err,
 		},
 		sequence: sequence,
 	})
@@ -2522,7 +2630,10 @@ func (r *moqConverterer_MockMethod_fnRecorder) doReturnResults(fn moqConverterer
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_MockMethod_doFn
 		doReturnFn moqConverterer_MockMethod_doReturnFn
@@ -2590,7 +2701,10 @@ func (r *moqConverterer_MockMethod_fnRecorder) repeat(repeaters ...moq.Repeater)
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecl *dst.FuncDecl }
+				values *struct {
+					funcDecl *dst.FuncDecl
+					err      error
+				}
 				sequence   uint32
 				doFn       moqConverterer_MockMethod_doFn
 				doReturnFn moqConverterer_MockMethod_doReturnFn
@@ -2673,7 +2787,7 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) noSeq() *moqConverterer_Reco
 	return r
 }
 
-func (r *moqConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []dst.Decl) *moqConverterer_RecorderMethods_fnRecorder {
+func (r *moqConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []dst.Decl, err error) *moqConverterer_RecorderMethods_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -2683,13 +2797,20 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) returnResults(funcDecls []ds
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecls []dst.Decl }
+		values *struct {
+			funcDecls []dst.Decl
+			err       error
+		}
 		sequence   uint32
 		doFn       moqConverterer_RecorderMethods_doFn
 		doReturnFn moqConverterer_RecorderMethods_doReturnFn
 	}{
-		values: &struct{ funcDecls []dst.Decl }{
+		values: &struct {
+			funcDecls []dst.Decl
+			err       error
+		}{
 			funcDecls: funcDecls,
+			err:       err,
 		},
 		sequence: sequence,
 	})
@@ -2717,7 +2838,10 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) doReturnResults(fn moqConver
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecls []dst.Decl }
+		values *struct {
+			funcDecls []dst.Decl
+			err       error
+		}
 		sequence   uint32
 		doFn       moqConverterer_RecorderMethods_doFn
 		doReturnFn moqConverterer_RecorderMethods_doReturnFn
@@ -2785,7 +2909,10 @@ func (r *moqConverterer_RecorderMethods_fnRecorder) repeat(repeaters ...moq.Repe
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecls []dst.Decl }
+				values *struct {
+					funcDecls []dst.Decl
+					err       error
+				}
 				sequence   uint32
 				doFn       moqConverterer_RecorderMethods_doFn
 				doReturnFn moqConverterer_RecorderMethods_doReturnFn
@@ -2861,7 +2988,7 @@ func (r *moqConverterer_ResetMethod_fnRecorder) noSeq() *moqConverterer_ResetMet
 	return r
 }
 
-func (r *moqConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_ResetMethod_fnRecorder {
+func (r *moqConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl, err error) *moqConverterer_ResetMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -2871,13 +2998,20 @@ func (r *moqConverterer_ResetMethod_fnRecorder) returnResults(funcDecl *dst.Func
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_ResetMethod_doFn
 		doReturnFn moqConverterer_ResetMethod_doReturnFn
 	}{
-		values: &struct{ funcDecl *dst.FuncDecl }{
+		values: &struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}{
 			funcDecl: funcDecl,
+			err:      err,
 		},
 		sequence: sequence,
 	})
@@ -2905,7 +3039,10 @@ func (r *moqConverterer_ResetMethod_fnRecorder) doReturnResults(fn moqConvertere
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_ResetMethod_doFn
 		doReturnFn moqConverterer_ResetMethod_doReturnFn
@@ -2973,7 +3110,10 @@ func (r *moqConverterer_ResetMethod_fnRecorder) repeat(repeaters ...moq.Repeater
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecl *dst.FuncDecl }
+				values *struct {
+					funcDecl *dst.FuncDecl
+					err      error
+				}
 				sequence   uint32
 				doFn       moqConverterer_ResetMethod_doFn
 				doReturnFn moqConverterer_ResetMethod_doReturnFn
@@ -3036,7 +3176,7 @@ func (r *moqConverterer_AssertMethod_fnRecorder) noSeq() *moqConverterer_AssertM
 	return r
 }
 
-func (r *moqConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl) *moqConverterer_AssertMethod_fnRecorder {
+func (r *moqConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.FuncDecl, err error) *moqConverterer_AssertMethod_fnRecorder {
 	r.moq.scene.T.Helper()
 	r.findResults()
 
@@ -3046,13 +3186,20 @@ func (r *moqConverterer_AssertMethod_fnRecorder) returnResults(funcDecl *dst.Fun
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_AssertMethod_doFn
 		doReturnFn moqConverterer_AssertMethod_doReturnFn
 	}{
-		values: &struct{ funcDecl *dst.FuncDecl }{
+		values: &struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}{
 			funcDecl: funcDecl,
+			err:      err,
 		},
 		sequence: sequence,
 	})
@@ -3080,7 +3227,10 @@ func (r *moqConverterer_AssertMethod_fnRecorder) doReturnResults(fn moqConverter
 	}
 
 	r.results.results = append(r.results.results, struct {
-		values     *struct{ funcDecl *dst.FuncDecl }
+		values *struct {
+			funcDecl *dst.FuncDecl
+			err      error
+		}
 		sequence   uint32
 		doFn       moqConverterer_AssertMethod_doFn
 		doReturnFn moqConverterer_AssertMethod_doReturnFn
@@ -3148,7 +3298,10 @@ func (r *moqConverterer_AssertMethod_fnRecorder) repeat(repeaters ...moq.Repeate
 	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
 		if r.sequence {
 			last = struct {
-				values     *struct{ funcDecl *dst.FuncDecl }
+				values *struct {
+					funcDecl *dst.FuncDecl
+					err      error
+				}
 				sequence   uint32
 				doFn       moqConverterer_AssertMethod_doFn
 				doReturnFn moqConverterer_AssertMethod_doReturnFn

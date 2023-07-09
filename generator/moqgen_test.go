@@ -512,11 +512,13 @@ func TestMoqGenerator(t *testing.T) {
 				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
 					returnResults(readerInfo, nil)
 				ifaceFuncs := []generator.Func{
-					{Name: "Func1", Params: func1Params},
+					{Name: "Func1", FuncType: &dst.FuncType{Params: func1Params}},
 					{
-						Name:    "Read",
-						Params:  readFnType.Params,
-						Results: readFnType.Results,
+						Name: "Read",
+						FuncType: &dst.FuncType{
+							Params:  readFnType.Params,
+							Results: readFnType.Results,
+						},
 					},
 				}
 				newConverterFnMoq.onCall(generator.Type{
@@ -530,37 +532,39 @@ func TestMoqGenerator(t *testing.T) {
 				}, tc.request.Export).returnResults(converter1Moq.mock())
 				converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 					Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
-				}})
+				}}, nil)
 				converter1Moq.onCall().IsolationStruct("mock").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().IsolationStruct("recorder").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 					returnResults(nil, nil)
 				converter1Moq.onCall().MethodStructs(ifaceFuncs[1]).
 					returnResults(nil, nil)
 				converter1Moq.onCall().NewFunc().
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().IsolationAccessor("mock", "mock").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().MockMethod(ifaceFuncs[0]).
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().MockMethod(ifaceFuncs[1]).
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().RecorderMethods(ifaceFuncs[0]).
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().RecorderMethods(ifaceFuncs[1]).
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().ResetMethod().
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter1Moq.onCall().AssertMethod().
-					returnResults(nil)
+					returnResults(nil, nil)
 				iface2Funcs := []generator.Func{{
-					Name:    "Read",
-					Params:  readFnType.Params,
-					Results: readFnType.Results,
+					Name: "Read",
+					FuncType: &dst.FuncType{
+						Params:  readFnType.Params,
+						Results: readFnType.Results,
+					},
 				}}
 				newConverterFnMoq.onCall(generator.Type{
 					TypeInfo: ast.TypeInfo{
@@ -570,27 +574,27 @@ func TestMoqGenerator(t *testing.T) {
 					Funcs:      iface2Funcs,
 					OutPkgPath: tc.outPkgPath,
 				}, tc.request.Export).returnResults(converter2Moq.mock())
-				converter2Moq.onCall().BaseDecls().returnResults(nil)
+				converter2Moq.onCall().BaseDecls().returnResults(nil, nil)
 				converter2Moq.onCall().IsolationStruct("mock").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().IsolationStruct("recorder").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().MethodStructs(iface2Funcs[0]).
 					returnResults(nil, nil)
 				converter2Moq.onCall().NewFunc().
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().IsolationAccessor("mock", "mock").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().MockMethod(iface2Funcs[0]).
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().IsolationAccessor("recorder", "onCall").
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().RecorderMethods(iface2Funcs[0]).
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().ResetMethod().
-					returnResults(nil)
+					returnResults(nil, nil)
 				converter2Moq.onCall().AssertMethod().
-					returnResults(nil)
+					returnResults(nil, nil)
 
 				// ACT
 				resp, err := gen.Generate(tc.request)
@@ -682,7 +686,7 @@ func TestMoqGenerator(t *testing.T) {
 			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 				returnResults(ast.TypeInfo{Exported: true}, nil)
 			ifaceFuncs := []generator.Func{
-				{Name: "Func1", Params: func1Params},
+				{Name: "Func1", FuncType: &dst.FuncType{Params: func1Params}},
 			}
 			// The method list is reduced back to normal by the time we create
 			// the converter
@@ -698,27 +702,27 @@ func TestMoqGenerator(t *testing.T) {
 			}, true).returnResults(converter1Moq.mock())
 			converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
-			}})
+			}}, nil)
 			converter1Moq.onCall().IsolationStruct("mock").
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().IsolationStruct("recorder").
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 				returnResults(nil, nil)
 			converter1Moq.onCall().NewFunc().
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().IsolationAccessor("mock", "mock").
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().MockMethod(ifaceFuncs[0]).
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().RecorderMethods(ifaceFuncs[0]).
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().ResetMethod().
-				returnResults(nil)
+				returnResults(nil, nil)
 			converter1Moq.onCall().AssertMethod().
-				returnResults(nil)
+				returnResults(nil, nil)
 			req := generator.GenerateRequest{
 				Types:              []string{"MyInterface"},
 				Export:             true,
@@ -1158,9 +1162,11 @@ func TestMoqGenerator(t *testing.T) {
 
 		ifaceFuncs := []generator.Func{
 			{
-				Name:    "Read",
-				Params:  readFnType.Params,
-				Results: readFnType.Results,
+				Name: "Read",
+				FuncType: &dst.FuncType{
+					Params:  readFnType.Params,
+					Results: readFnType.Results,
+				},
 			},
 		}
 		newConverterFnMoq.onCall(generator.Type{
@@ -1171,27 +1177,27 @@ func TestMoqGenerator(t *testing.T) {
 			Funcs:      ifaceFuncs,
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseDecls().returnResults(nil)
+		converter1Moq.onCall().BaseDecls().returnResults(nil, nil)
 		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationStruct("recorder").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 			returnResults(nil, nil)
 		converter1Moq.onCall().NewFunc().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationAccessor("mock", "mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().MockMethod(ifaceFuncs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().RecorderMethods(ifaceFuncs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().ResetMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().AssertMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 
 		req := generator.GenerateRequest{
 			Types:       []string{"AliasType"},
@@ -1305,7 +1311,9 @@ func TestMoqGenerator(t *testing.T) {
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
 			returnResults(ifaceInfo1, nil)
-		ifaceFuncs := []generator.Func{{Name: "Func1", Params: func1Params}}
+		ifaceFuncs := []generator.Func{{
+			Name: "Func1", FuncType: &dst.FuncType{Params: func1Params},
+		}}
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
 				Type:     ifaceInfo1.Type,
@@ -1317,11 +1325,11 @@ func TestMoqGenerator(t *testing.T) {
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
-		}})
+		}}, nil)
 		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationStruct("recorder").
-			returnResults(nil)
+			returnResults(nil, nil)
 		expectedErr := errors.New("bad convertor")
 		converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 			returnResults(nil, expectedErr)
@@ -1366,7 +1374,9 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", "."), ".", true).
 			returnResults(ifaceInfo2, nil)
 
-		iface1Funcs := []generator.Func{{Name: "Func1", Params: func1Params}}
+		iface1Funcs := []generator.Func{{
+			Name: "Func1", FuncType: &dst.FuncType{Params: func1Params},
+		}}
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
 				Type:     ifaceInfo1.Type,
@@ -1376,27 +1386,27 @@ func TestMoqGenerator(t *testing.T) {
 			Funcs:      iface1Funcs,
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseDecls().returnResults(nil)
+		converter1Moq.onCall().BaseDecls().returnResults(nil, nil)
 		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationStruct("recorder").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().MethodStructs(iface1Funcs[0]).
 			returnResults(nil, nil)
 		converter1Moq.onCall().NewFunc().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationAccessor("mock", "mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().MockMethod(iface1Funcs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().RecorderMethods(iface1Funcs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().ResetMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().AssertMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 
 		var iface2Funcs []generator.Func
 		newConverterFnMoq.onCall(generator.Type{
@@ -1407,21 +1417,21 @@ func TestMoqGenerator(t *testing.T) {
 			Funcs:      iface2Funcs,
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter2Moq.mock())
-		converter2Moq.onCall().BaseDecls().returnResults(nil)
+		converter2Moq.onCall().BaseDecls().returnResults(nil, nil)
 		converter2Moq.onCall().IsolationStruct("mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter2Moq.onCall().IsolationStruct("recorder").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter2Moq.onCall().NewFunc().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter2Moq.onCall().IsolationAccessor("mock", "mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter2Moq.onCall().IsolationAccessor("recorder", "onCall").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter2Moq.onCall().ResetMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter2Moq.onCall().AssertMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 
 		req := generator.GenerateRequest{
 			Types:       []string{"PublicInterface", "privateInterface"},
@@ -1597,7 +1607,7 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(fnInfo, nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "where-the-fn-lives", false).
 			returnResults(ast.TypeInfo{Exported: true}, nil)
-		fnFuncs := []generator.Func{{Params: func1Params}}
+		fnFuncs := []generator.Func{{FuncType: &dst.FuncType{Params: func1Params}}}
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
 				Type:     fnInfo.Type,
@@ -1609,23 +1619,23 @@ func TestMoqGenerator(t *testing.T) {
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
-		}})
+		}}, nil)
 		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().MethodStructs(fnFuncs[0]).
 			returnResults(nil, nil)
 		converter1Moq.onCall().NewFunc().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().FuncClosure(fnFuncs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().MockMethod(fnFuncs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().RecorderMethods(fnFuncs[0]).
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().ResetMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 		converter1Moq.onCall().AssertMethod().
-			returnResults(nil)
+			returnResults(nil, nil)
 
 		req := generator.GenerateRequest{
 			Types:       []string{"PublicFn"},

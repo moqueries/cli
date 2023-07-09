@@ -2,7 +2,7 @@ linters:
   enable-all: true
   disable:
   - cyclop
-  - gocognit
+  - depguard
   - dogsled
   - errorlint
   - exhaustivestruct
@@ -13,6 +13,7 @@ linters:
   - ireturn
   - gochecknoglobals
   - gochecknoinits
+  - gocognit
   - godot
   - maintidx
   - maligned

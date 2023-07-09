@@ -12,5 +12,5 @@ require (
 require (
 	github.com/stretchr/testify v1.8.0 // indirect
 	golang.org/x/mod v0.8.0
-	moqueries.org/runtime v0.2.0
+	moqueries.org/runtime v0.2.1-0.20230514231133-79eabd1bc852
 )
