@@ -51,16 +51,16 @@ type NewConverterFunc func(typ Type, export bool) Converterer
 
 // Converterer is the interface used by MoqGenerator to invoke a Converter
 type Converterer interface {
-	BaseDecls() (baseDecls []dst.Decl)
-	IsolationStruct(suffix string) (structDecl *dst.GenDecl)
+	BaseDecls() (baseDecls []dst.Decl, err error)
+	IsolationStruct(suffix string) (structDecl *dst.GenDecl, err error)
 	MethodStructs(fn Func) (structDecls []dst.Decl, err error)
-	NewFunc() (funcDecl *dst.FuncDecl)
-	IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl)
-	FuncClosure(fn Func) (funcDecl *dst.FuncDecl)
-	MockMethod(fn Func) (funcDecl *dst.FuncDecl)
-	RecorderMethods(fn Func) (funcDecls []dst.Decl)
-	ResetMethod() (funcDecl *dst.FuncDecl)
-	AssertMethod() (funcDecl *dst.FuncDecl)
+	NewFunc() (funcDecl *dst.FuncDecl, err error)
+	IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl, err error)
+	FuncClosure(fn Func) (funcDecl *dst.FuncDecl, err error)
+	MockMethod(fn Func) (funcDecl *dst.FuncDecl, err error)
+	RecorderMethods(fn Func) (funcDecls []dst.Decl, err error)
+	ResetMethod() (funcDecl *dst.FuncDecl, err error)
+	AssertMethod() (funcDecl *dst.FuncDecl, err error)
 }
 
 // MoqGenerator generates moqs
@@ -153,13 +153,29 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 		}
 		decls = append(decls, structs...)
 
-		decls = append(decls, converter.NewFunc())
+		decl, err := converter.NewFunc()
+		if err != nil {
+			return MoqResponse{}, err
+		}
+		decls = append(decls, decl)
 
-		decls = append(decls, g.methods(converter, typ, fInfo.funcs)...)
+		meths, err := g.methods(converter, typ, fInfo.funcs)
+		if err != nil {
+			return MoqResponse{}, err
+		}
+		decls = append(decls, meths...)
 
-		decls = append(decls, converter.ResetMethod())
+		decl, err = converter.ResetMethod()
+		if err != nil {
+			return MoqResponse{}, err
+		}
+		decls = append(decls, decl)
 
-		decls = append(decls, converter.AssertMethod())
+		decl, err = converter.AssertMethod()
+		if err != nil {
+			return MoqResponse{}, err
+		}
+		decls = append(decls, decl)
 	}
 	file.Decls = decls
 
@@ -295,10 +311,7 @@ func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error 
 	case *dst.InterfaceType:
 		return g.loadNestedInterfaces(typ, typeSpec.Name.Path, fInfo)
 	case *dst.FuncType:
-		fn := Func{
-			Params:  typ.Params,
-			Results: typ.Results,
-		}
+		fn := Func{FuncType: typ}
 		fully, err := g.isFnFullyExported(fn, typeSpec.Name.Path)
 		if err != nil {
 			return err
@@ -331,9 +344,8 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 			}
 
 			fn := Func{
-				Name:    name,
-				Params:  typ.Params,
-				Results: typ.Results,
+				Name:     name,
+				FuncType: typ,
 			}
 
 			if fInfo.excludeNonExported {
@@ -392,11 +404,11 @@ func (g *MoqGenerator) isFnFullyExported(fn Func, contextPkg string) (bool, erro
 		return false, nil
 	}
 
-	ex, err := g.isFieldListFullyExported(fn.Params, contextPkg)
+	ex, err := g.isFieldListFullyExported(fn.FuncType.Params, contextPkg)
 	if err != nil || !ex {
 		return ex, err
 	}
-	ex, err = g.isFieldListFullyExported(fn.Results, contextPkg)
+	ex, err = g.isFieldListFullyExported(fn.FuncType.Results, contextPkg)
 	if err != nil || !ex {
 		return ex, err
 	}
@@ -467,13 +479,24 @@ func (g *MoqGenerator) isExprFullyExported(expr dst.Expr, contextPkg string) (bo
 }
 
 func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, error) {
-	decls := converter.BaseDecls()
-	decls = append(decls, converter.IsolationStruct(mockIdent))
+	decls, err := converter.BaseDecls()
+	if err != nil {
+		return nil, err
+	}
+	mockIsolStruct, err := converter.IsolationStruct(mockIdent)
+	if err != nil {
+		return nil, err
+	}
+	decls = append(decls, mockIsolStruct)
 
 	_, iOk := typ.TypeInfo.Type.Type.(*dst.InterfaceType)
 	_, aOk := typ.TypeInfo.Type.Type.(*dst.Ident)
 	if iOk || aOk {
-		decls = append(decls, converter.IsolationStruct(recorderIdent))
+		recIsolStruct, err := converter.IsolationStruct(recorderIdent)
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, recIsolStruct)
 	}
 
 	for _, fn := range typ.Funcs {
@@ -489,23 +512,37 @@ func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, err
 
 func (g *MoqGenerator) methods(
 	converter Converterer, typ Type, funcs []Func,
-) []dst.Decl {
+) ([]dst.Decl, error) {
 	var decls []dst.Decl
 
 	switch typ.TypeInfo.Type.Type.(type) {
 	case *dst.InterfaceType, *dst.Ident:
-		decls = append(
-			decls, converter.IsolationAccessor(mockIdent, mockFnName))
+		decl, err := converter.IsolationAccessor(mockIdent, mockFnName)
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, decl)
 
 		for _, fn := range funcs {
-			decls = append(decls, converter.MockMethod(fn))
+			meth, err := converter.MockMethod(fn)
+			if err != nil {
+				return nil, err
+			}
+			decls = append(decls, meth)
 		}
 
-		decls = append(
-			decls, converter.IsolationAccessor(recorderIdent, onCallFnName))
+		decl, err = converter.IsolationAccessor(recorderIdent, onCallFnName)
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, decl)
 
 		for _, fn := range funcs {
-			decls = append(decls, converter.RecorderMethods(fn)...)
+			meths, err := converter.RecorderMethods(fn)
+			if err != nil {
+				return nil, err
+			}
+			decls = append(decls, meths...)
 		}
 	case *dst.FuncType:
 		if len(funcs) != 1 {
@@ -513,17 +550,26 @@ func (g *MoqGenerator) methods(
 				len(funcs))
 		}
 
-		decls = append(
-			decls, converter.FuncClosure(funcs[0]))
+		fnClos, err := converter.FuncClosure(funcs[0])
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, fnClos)
 
-		decls = append(
-			decls, converter.MockMethod(funcs[0]))
+		meth, err := converter.MockMethod(funcs[0])
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, meth)
 
-		decls = append(
-			decls, converter.RecorderMethods(funcs[0])...)
+		meths, err := converter.RecorderMethods(funcs[0])
+		if err != nil {
+			return nil, err
+		}
+		decls = append(decls, meths...)
 	default:
 		logs.Panicf("Unknown type: %v", typ.TypeInfo.Type.Type)
 	}
 
-	return decls
+	return decls, nil
 }
