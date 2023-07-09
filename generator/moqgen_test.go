@@ -2,6 +2,7 @@ package generator_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/dave/dst"
@@ -213,16 +214,13 @@ func TestMoqGenerator(t *testing.T) {
 	})
 
 	t.Run("package naming based on current directory and export flag", func(t *testing.T) {
-		type testCase struct {
+		for name, tc := range map[string]struct {
 			export bool
 			pkg    string
-		}
-		testCases := map[string]testCase{
+		}{
 			"test package when not exported": {export: false, pkg: "thispkg_test"},
 			"non-test package when exported": {export: true, pkg: "thispkg"},
-		}
-
-		for name, tc := range testCases {
+		} {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
 				beforeEach(t)
@@ -262,7 +260,7 @@ func TestMoqGenerator(t *testing.T) {
 
 	t.Run("recursively looks up nested interfaces", func(t *testing.T) {
 		types := []string{"PublicInterface", "privateInterface"}
-		type testCase struct {
+		for name, tc := range map[string]struct {
 			request    generator.GenerateRequest
 			findPkgDir string
 			findPkgOut string
@@ -270,8 +268,7 @@ func TestMoqGenerator(t *testing.T) {
 			getwdDir   string
 			typePath   string
 			destPath   string
-		}
-		testCases := map[string]testCase{
+		}{
 			"current working dir same as req working dir": {
 				request: generator.GenerateRequest{
 					Types:       types,
@@ -475,9 +472,7 @@ func TestMoqGenerator(t *testing.T) {
 				typePath:   "./subdir1",
 				destPath:   "subdir1/destpkg3/moq_publicinterface_privateinterface.go",
 			},
-		}
-
-		for name, tc := range testCases {
+		} {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
 				beforeEach(t)
@@ -1302,63 +1297,173 @@ func TestMoqGenerator(t *testing.T) {
 		}
 	})
 
-	t.Run("returns a convertor error", func(t *testing.T) {
-		// ASSEMBLE
-		beforeEach(t)
-		defer afterEach(t)
+	t.Run("returns a converter error", func(t *testing.T) {
+		for n := 1; n < 20; n++ {
+			t.Run(fmt.Sprintf("%d calls", n), func(t *testing.T) {
+				// ASSEMBLE
+				beforeEach(t)
+				defer afterEach(t)
 
-		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
-		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
-			returnResults(ifaceInfo1, nil)
-		ifaceFuncs := []generator.Func{{
-			Name: "Func1", FuncType: &dst.FuncType{Params: func1Params},
-		}}
-		newConverterFnMoq.onCall(generator.Type{
-			TypeInfo: ast.TypeInfo{
-				Type:     ifaceInfo1.Type,
-				PkgPath:  genPkg,
-				Exported: true,
-			},
-			Funcs:      ifaceFuncs,
-			OutPkgPath: "thispkg_test",
-		}, false).returnResults(converter1Moq.mock())
-		converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
-			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
-		}}, nil)
-		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil, nil)
-		converter1Moq.onCall().IsolationStruct("recorder").
-			returnResults(nil, nil)
-		expectedErr := errors.New("bad convertor")
-		converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
-			returnResults(nil, expectedErr)
+				typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
+				getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+				typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
+					returnResults(ifaceInfo1, nil)
+				ifaceFuncs := []generator.Func{{
+					Name: "Func1", FuncType: &dst.FuncType{Params: func1Params},
+				}}
+				newConverterFnMoq.onCall(generator.Type{
+					TypeInfo: ast.TypeInfo{
+						Type:     ifaceInfo1.Type,
+						PkgPath:  genPkg,
+						Exported: true,
+					},
+					Funcs:      ifaceFuncs,
+					OutPkgPath: "thispkg_test",
+				}, false).returnResults(converter1Moq.mock())
 
-		req := generator.GenerateRequest{
-			Types:       []string{"PublicInterface"},
-			Export:      false,
-			Destination: "file_test.go",
-			Package:     "",
-			Import:      ".",
-			TestImport:  false,
-			WorkingDir:  "/some-nice-path",
-		}
+				expectedErr := errors.New("bad convertor")
+				count := n
+				done := func() bool {
+					count--
+					if count < 0 {
+						return true
+					}
 
-		// ACT
-		resp, err := gen.Generate(req)
+					return false
+				}
+				retError := func() error {
+					if count <= 0 {
+						return expectedErr
+					}
 
-		// ASSERT
-		if err != expectedErr {
-			t.Errorf("got %#v, wanted %#v", err, expectedErr)
-		}
-		if resp.File != nil {
-			t.Errorf("got %#v, wanted nil", resp.File)
-		}
-		if resp.DestPath != "" {
-			t.Errorf("got %s, wanted nothing", resp.DestPath)
-		}
-		if resp.OutPkgPath != "" {
-			t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+					return nil
+				}
+
+				if !done() {
+					converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
+						Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
+					}}, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().IsolationStruct("mock").
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().IsolationStruct("recorder").
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().NewFunc().
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().IsolationAccessor("mock", "mock").
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().MockMethod(ifaceFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().RecorderMethods(ifaceFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().ResetMethod().
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter1Moq.onCall().AssertMethod().
+						returnResults(nil, retError())
+				}
+				fnFuncs := []generator.Func{{FuncType: &dst.FuncType{Params: func1Params}}}
+				if !done() {
+					typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
+						returnResults(fnInfo, nil)
+					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "", false).
+						returnResults(ast.TypeInfo{Exported: true}, nil)
+					newConverterFnMoq.onCall(generator.Type{
+						TypeInfo: ast.TypeInfo{
+							Type:     fnInfo.Type,
+							PkgPath:  genPkg,
+							Exported: true,
+						},
+						Funcs:      fnFuncs,
+						OutPkgPath: "thispkg_test",
+					}, false).returnResults(converter2Moq.mock())
+
+					converter2Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
+						Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
+					}}, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().IsolationStruct("mock").
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().MethodStructs(fnFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().NewFunc().
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().FuncClosure(fnFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().MockMethod(fnFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().RecorderMethods(fnFuncs[0]).
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().ResetMethod().
+						returnResults(nil, retError())
+				}
+				if !done() {
+					converter2Moq.onCall().AssertMethod().
+						returnResults(nil, retError())
+				}
+
+				req := generator.GenerateRequest{
+					Types:       []string{"PublicInterface", "PublicFn"},
+					Export:      false,
+					Destination: "file_test.go",
+					Package:     "",
+					Import:      ".",
+					TestImport:  false,
+					WorkingDir:  "/some-nice-path",
+				}
+
+				// ACT
+				resp, err := gen.Generate(req)
+
+				// ASSERT
+				if err != expectedErr {
+					t.Errorf("got %#v, wanted %#v", err, expectedErr)
+				}
+				if resp.File != nil {
+					t.Errorf("got %#v, wanted nil", resp.File)
+				}
+				if resp.DestPath != "" {
+					t.Errorf("got %s, wanted nothing", resp.DestPath)
+				}
+				if resp.OutPkgPath != "" {
+					t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+				}
+			})
 		}
 	})
 
