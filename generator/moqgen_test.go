@@ -1325,11 +1325,7 @@ func TestMoqGenerator(t *testing.T) {
 				count := n
 				done := func() bool {
 					count--
-					if count < 0 {
-						return true
-					}
-
-					return false
+					return count < 0
 				}
 				retError := func() error {
 					if count <= 0 {
