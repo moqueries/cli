@@ -49,7 +49,15 @@ func TestMoqGenerator(t *testing.T) {
 		getwdFnMoq = newMoqGetwdFunc(scene, nil)
 		newConverterFnMoq = newMoqNewConverterFunc(scene, nil)
 		converter1Moq = newMoqConverterer(scene, nil)
+		converter1Moq.runtime.parameterIndexing.MethodStructs.fn = moq.ParamIndexByHash
+		converter1Moq.runtime.parameterIndexing.MockMethod.fn = moq.ParamIndexByHash
+		converter1Moq.runtime.parameterIndexing.RecorderMethods.fn = moq.ParamIndexByHash
+		converter1Moq.runtime.parameterIndexing.FuncClosure.fn = moq.ParamIndexByHash
 		converter2Moq = newMoqConverterer(scene, nil)
+		converter2Moq.runtime.parameterIndexing.MethodStructs.fn = moq.ParamIndexByHash
+		converter2Moq.runtime.parameterIndexing.MockMethod.fn = moq.ParamIndexByHash
+		converter2Moq.runtime.parameterIndexing.RecorderMethods.fn = moq.ParamIndexByHash
+		converter2Moq.runtime.parameterIndexing.FuncClosure.fn = moq.ParamIndexByHash
 
 		gen = generator.New(
 			typeCacheMoq.mock(),
@@ -500,11 +508,11 @@ func TestMoqGenerator(t *testing.T) {
 				typeCacheMoq.onCall().Type(
 					*ast.IdPath("privateInterface", genPkg), genPkg, false).
 					returnResults(ifaceInfo2, nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 					returnResults(readerInfo, nil)
 				typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", tc.typePath), tc.typePath, false).
 					returnResults(ifaceInfo2, nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 					returnResults(readerInfo, nil)
 				ifaceFuncs := []generator.Func{
 					{Name: "Func1", FuncType: &dst.FuncType{Params: func1Params}},
@@ -1095,7 +1103,7 @@ func TestMoqGenerator(t *testing.T) {
 
 			typeCacheMoq.onCall().Type(*ast.IdPath("MyFunc", "."), ".", false).
 				returnResults(fnInfo, nil)
-			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "", false).
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 				returnResults(ast.TypeInfo{Exported: false}, nil)
 			req := generator.GenerateRequest{
 				Types:              []string{"MyFunc"},
@@ -1115,7 +1123,8 @@ func TestMoqGenerator(t *testing.T) {
 			if err == nil {
 				t.Fatal("got no error, wanted error")
 			}
-			expectedMsg := "non-exported types: PublicFn mocked type is not exported"
+			expectedMsg := fmt.Sprintf("non-exported types: PublicFn (%s) mocked type is not exported",
+				genPkg)
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, want %s", err.Error(), expectedMsg)
 			}
@@ -1152,7 +1161,7 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().Type(*ast.IdPath("AliasType", "."), ".", false).
 			returnResults(ifaceInfo, nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "thatpkg", false).
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 			returnResults(readerInfo, nil)
 
 		ifaceFuncs := []generator.Func{
@@ -1336,55 +1345,67 @@ func TestMoqGenerator(t *testing.T) {
 				}
 
 				if !done() {
+					// 1
 					converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 						Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
 					}}, retError())
 				}
 				if !done() {
+					// 2
 					converter1Moq.onCall().IsolationStruct("mock").
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 3
 					converter1Moq.onCall().IsolationStruct("recorder").
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 4
 					converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 5
 					converter1Moq.onCall().NewFunc().
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 6
 					converter1Moq.onCall().IsolationAccessor("mock", "mock").
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 7
 					converter1Moq.onCall().MockMethod(ifaceFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 8
 					converter1Moq.onCall().IsolationAccessor("recorder", "onCall").
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 9
 					converter1Moq.onCall().RecorderMethods(ifaceFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 10
 					converter1Moq.onCall().ResetMethod().
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 11
 					converter1Moq.onCall().AssertMethod().
 						returnResults(nil, retError())
 				}
 				fnFuncs := []generator.Func{{FuncType: &dst.FuncType{Params: func1Params}}}
 				if !done() {
+					// 12
 					typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
 						returnResults(fnInfo, nil)
-					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "", false).
+					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 						returnResults(ast.TypeInfo{Exported: true}, nil)
 					newConverterFnMoq.onCall(generator.Type{
 						TypeInfo: ast.TypeInfo{
@@ -1401,34 +1422,42 @@ func TestMoqGenerator(t *testing.T) {
 					}}, retError())
 				}
 				if !done() {
+					// 13
 					converter2Moq.onCall().IsolationStruct("mock").
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 14
 					converter2Moq.onCall().MethodStructs(fnFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 15
 					converter2Moq.onCall().NewFunc().
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 16
 					converter2Moq.onCall().FuncClosure(fnFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 17
 					converter2Moq.onCall().MockMethod(fnFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 18
 					converter2Moq.onCall().RecorderMethods(fnFuncs[0]).
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 19
 					converter2Moq.onCall().ResetMethod().
 						returnResults(nil, retError())
 				}
 				if !done() {
+					// 20
 					converter2Moq.onCall().AssertMethod().
 						returnResults(nil, retError())
 				}
@@ -1665,7 +1694,7 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", genPkg), genPkg, false).
 			returnResults(ifaceInfo2, nil)
 		expectedErr := errors.New("bad cache")
-		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 			returnResults(ast.TypeInfo{}, expectedErr)
 
 		req := generator.GenerateRequest{
@@ -1703,7 +1732,7 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-		fnInfo.Type.Name.Path = "where-the-fn-lives"
+		fnInfo.PkgPath = "where-the-fn-lives"
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
 			returnResults(fnInfo, nil)
 		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "where-the-fn-lives", false).
@@ -1712,7 +1741,7 @@ func TestMoqGenerator(t *testing.T) {
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
 				Type:     fnInfo.Type,
-				PkgPath:  genPkg,
+				PkgPath:  "where-the-fn-lives",
 				Exported: true,
 			},
 			Funcs:      fnFuncs,

@@ -49,7 +49,19 @@ func TestGenerating(t *testing.T) {
 			"PassByReferenceFn",
 			"InterfaceParamFn",
 			"InterfaceResultFn",
+			"GenericParamsFn",
+			"PartialGenericParamsFn",
+			"GenericResultsFn",
+			"PartialGenericResultsFn",
+			"GenericInterfaceParamFn",
+			"GenericInterfaceResultFn",
 			"Usual",
+			"GenericParams",
+			"PartialGenericParams",
+			"GenericResults",
+			"PartialGenericResults",
+			"GenericInterfaceParam",
+			"GenericInterfaceResult",
 		}
 
 		err := generator.Generate(

@@ -361,14 +361,41 @@ func TestConverter(t *testing.T) {
 							Results: func1Results,
 						},
 					}
-					typeCacheMoq.onCall().IsComparable(func1Param1).
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param1},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param2, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param2},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param3, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param3},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param4, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param4},
+						}, nil).repeat(moq.AnyTimes())
+					tInfo := ast.TypeInfo{Type: iSpec}
+					typeCacheMoq.onCall().IsComparable(func1Param1, tInfo).
 						returnResults(false, nil)
-					typeCacheMoq.onCall().IsComparable(func1Param2).
+					typeCacheMoq.onCall().IsComparable(func1Param2, tInfo).
 						returnResults(true, nil)
-					typeCacheMoq.onCall().IsComparable(func1Param3).
+					typeCacheMoq.onCall().IsComparable(func1Param3, tInfo).
 						returnResults(false, nil)
-					typeCacheMoq.onCall().IsComparable(func1Param4).
+					typeCacheMoq.onCall().IsComparable(func1Param4, tInfo).
 						returnResults(true, nil)
+					id := ast.Id("string")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
+					id = ast.Id("error")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
 
 					typ := generator.Type{
 						TypeInfo: ast.TypeInfo{Type: iSpec},
@@ -533,9 +560,14 @@ func TestConverter(t *testing.T) {
 						},
 					}
 					expectedErr := errors.New("type error")
-					typeCacheMoq.onCall().IsComparable(func1Param1).
-						returnResults(false, expectedErr)
-					typeCacheMoq.onCall().IsComparable(nil).any().expr().
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{}, expectedErr).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(dst.Ident{}, "", false).any().id().
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param1},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().IsComparable(nil, ast.TypeInfo{}).
+						any().expr().any().parentType().
 						returnResults(false, nil).repeat(moq.AnyTimes())
 
 					typ := generator.Type{
@@ -621,9 +653,12 @@ func TestConverter(t *testing.T) {
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					expectedErr := errors.New("type error")
-					typeCacheMoq.onCall().IsDefaultComparable(func1Param1).
-						returnResults(false, expectedErr)
-					typeCacheMoq.onCall().IsDefaultComparable(nil).any().expr().
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{}, expectedErr)
+					typeCacheMoq.onCall().Type(dst.Ident{}, "", false).any().id().
+						returnResults(ast.TypeInfo{}, expectedErr).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().IsDefaultComparable(nil, ast.TypeInfo{}).
+						any().expr().any().parentType().
 						returnResults(false, nil).repeat(moq.AnyTimes())
 
 					// ACT
@@ -679,6 +714,33 @@ func TestConverter(t *testing.T) {
 						}},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
+
+					typeCacheMoq.onCall().Type(*func1Param1, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param1},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param2, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param2},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param3, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param3},
+						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().Type(*func1Param4, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: func1Param4},
+						}, nil).repeat(moq.AnyTimes())
+					id := ast.Id("string")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
+					id = ast.Id("error")
+					typeCacheMoq.onCall().Type(*id, "", false).
+						returnResults(ast.TypeInfo{
+							Type: &dst.TypeSpec{Name: id},
+						}, nil).repeat(moq.AnyTimes())
 
 					// ACT
 					decl, err := converter.FuncClosure(fnSpecFuncs[0])

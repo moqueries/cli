@@ -123,7 +123,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 		}
 
 		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported, fabricated: typeInfo.Fabricated}
-		tErr := g.findFuncs(typeInfo.Type, fInfo)
+		tErr := g.findFuncs(typeInfo, fInfo)
 		if tErr != nil {
 			return MoqResponse{}, tErr
 		}
@@ -216,6 +216,7 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (stri
 		destDir = filepath.Join(destDir, req.Destination)
 	}
 	if strings.HasSuffix(destDir, ".go") {
+		// TODO: maybe should be more definitive as in always call filepath.Dir if Destination is defined
 		destDir = filepath.Dir(destDir)
 	}
 	outPkgPath, err := g.typeCache.FindPackage(destDir)
@@ -224,6 +225,13 @@ func (g *MoqGenerator) outPackagePath(req GenerateRequest, relPath string) (stri
 	}
 	if req.Package == "" || req.Package == "." {
 		if !req.Export {
+			// TODO: Just because the package wasn't specified and the mock
+			//   isn't going to be exported, we assume the mock is going in
+			//   the test package? What if someone is putting their tests in
+			//   the regular package? Maybe they should specify the package
+			//   instead of leaving it blank and maybe this is a non-issue.
+			//   Make sure this is documented properly at least (and maybe
+			//   leave an explanatory comment here in place of this TODO).
 			outPkgPath += testPkgSuffix
 		}
 	} else {
@@ -306,28 +314,28 @@ type funcInfo struct {
 	fabricated         bool
 }
 
-func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error {
-	switch typ := typeSpec.Type.(type) {
+func (g *MoqGenerator) findFuncs(typeInfo ast.TypeInfo, fInfo *funcInfo) error {
+	switch typ := typeInfo.Type.Type.(type) {
 	case *dst.InterfaceType:
-		return g.loadNestedInterfaces(typ, typeSpec.Name.Path, fInfo)
+		return g.loadNestedInterfaces(typ, typeInfo.PkgPath, fInfo)
 	case *dst.FuncType:
 		fn := Func{FuncType: typ}
-		fully, err := g.isFnFullyExported(fn, typeSpec.Name.Path)
+		fully, err := g.isFnFullyExported(fn, typeInfo.PkgPath)
 		if err != nil {
 			return err
 		}
 
 		if fInfo.excludeNonExported && !fully {
-			return fmt.Errorf("%w: %s mocked type is not exported",
-				ErrNonExported, typeSpec.Name.String())
+			return fmt.Errorf("%w: %s (%s) mocked type is not exported",
+				ErrNonExported, typeInfo.Type.Name.String(), typeInfo.PkgPath)
 		}
 
 		fInfo.funcs = append(fInfo.funcs, fn)
 		return nil
 	case *dst.Ident:
-		return g.loadTypeEquivalent(typ, typeSpec.Name.Path, fInfo)
+		return g.loadTypeEquivalent(typ, typeInfo.PkgPath, fInfo)
 	default:
-		logs.Panicf("Unknown type: %v", typeSpec.Type)
+		logs.Panicf("Unknown type: %v", typeInfo)
 		panic("unreachable")
 	}
 }
@@ -391,7 +399,7 @@ func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, contextPkg string, fInf
 		return nil
 	}
 
-	err = g.findFuncs(nestedType.Type, fInfo)
+	err = g.findFuncs(nestedType, fInfo)
 	if err != nil {
 		return err
 	}

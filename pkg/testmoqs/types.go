@@ -25,3 +25,13 @@ type Reduced interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
 	notSoUsual()
 }
+
+type Generic[T any, V any] struct{}
+
+func (g *Generic[T, V]) DoSomethingPtr() {}
+
+func (g *Generic[X, Y]) DoSomethingElsePtr() {}
+
+func (g Generic[T, V]) DoSomething() {}
+
+func (g Generic[X, Y]) DoSomethingElse() {}

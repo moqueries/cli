@@ -2524,3 +2524,837 @@ func (r *exportedInterfaceResultRecorder) repeat(repeaters ...moq.Repeater) {
 func (r *exportedInterfaceResultRecorder) isNil() bool {
 	return r.r == nil
 }
+
+type genericParamsAdaptor[S, B any] struct {
+	//nolint:structcheck // definitely used
+	m *moqGenericParams[S, B]
+}
+
+func (a *genericParamsAdaptor[S, B]) config() adaptorConfig { return adaptorConfig{} }
+
+func (a *genericParamsAdaptor[S, B]) mock() interface{} { return a.m.mock() }
+
+func (a *genericParamsAdaptor[S, B]) newRecorder(sParams []S, bParam B) recorder {
+	return &genericParamsRecorder[S, B]{r: a.m.onCall().Usual(sParams[0], bParam)}
+}
+
+func (a *genericParamsAdaptor[S, B]) invokeMockAndExpectResults(t moq.T, sParams []S, bParam B, res results) {
+	sResult, err := a.m.mock().Usual(sParams[0], bParam)
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *genericParamsAdaptor[S, B]) prettyParams(sParams []S, bParam B) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *genericParamsAdaptor[S, B]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type genericParamsRecorder[S, B any] struct {
+	//nolint:structcheck // definitely used
+	r *moqGenericParams_Usual_fnRecorder[S, B]
+}
+
+func (r *genericParamsRecorder[S, B]) anySParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param1()
+	}
+}
+
+func (r *genericParamsRecorder[S, B]) anyBParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param2()
+	}
+}
+
+func (r *genericParamsRecorder[S, B]) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *genericParamsRecorder[S, B]) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *genericParamsRecorder[S, B]) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *genericParamsRecorder[S, B]) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam S, bParam B) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if !reflect.DeepEqual(bParam, expectedBParam) {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *genericParamsRecorder[S, B]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.doReturnResults(func(sParam S, bParam B) (string, error) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if !reflect.DeepEqual(bParam, expectedBParam) {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *genericParamsRecorder[S, B]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *genericParamsRecorder[S, B]) isNil() bool {
+	return r.r == nil
+}
+
+type exportedGenericParamsAdaptor[S, B any] struct {
+	//nolint:structcheck // definitely used
+	m *exported.MoqGenericParams[S, B]
+}
+
+func (a *exportedGenericParamsAdaptor[S, B]) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
+
+func (a *exportedGenericParamsAdaptor[S, B]) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedGenericParamsAdaptor[S, B]) newRecorder(sParams []S, bParam B) recorder {
+	return &exportedGenericParamsRecorder[S, B]{r: a.m.OnCall().Usual(sParams[0], bParam)}
+}
+
+func (a *exportedGenericParamsAdaptor[S, B]) invokeMockAndExpectResults(t moq.T, sParams []S, bParam B, res results) {
+	sResult, err := a.m.Mock().Usual(sParams[0], bParam)
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *exportedGenericParamsAdaptor[S, B]) prettyParams(sParams []S, bParam B) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *exportedGenericParamsAdaptor[S, B]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedGenericParamsRecorder[S, B any] struct {
+	//nolint:structcheck // definitely used
+	r *exported.MoqGenericParams_Usual_fnRecorder[S, B]
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) anySParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param1()
+	}
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) anyBParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param2()
+	}
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) andDo(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
+) {
+	r.r = r.r.AndDo(func(sParam S, bParam B) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if !reflect.DeepEqual(bParam, expectedBParam) {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.DoReturnResults(func(sParam S, bParam B) (string, error) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if !reflect.DeepEqual(bParam, expectedBParam) {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedGenericParamsRecorder[S, B]) isNil() bool {
+	return r.r == nil
+}
+
+type partialGenericParamsAdaptor[S any] struct {
+	//nolint:structcheck // definitely used
+	m *moqPartialGenericParams[S]
+}
+
+func (a *partialGenericParamsAdaptor[S]) config() adaptorConfig { return adaptorConfig{} }
+
+func (a *partialGenericParamsAdaptor[S]) mock() interface{} { return a.m.mock() }
+
+func (a *partialGenericParamsAdaptor[S]) newRecorder(sParams []S, bParam bool) recorder {
+	return &partialGenericParamsRecorder[S]{r: a.m.onCall().Usual(sParams[0], bParam)}
+}
+
+func (a *partialGenericParamsAdaptor[S]) invokeMockAndExpectResults(t moq.T, sParams []S, bParam bool, res results) {
+	sResult, err := a.m.mock().Usual(sParams[0], bParam)
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *partialGenericParamsAdaptor[S]) prettyParams(sParams []S, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *partialGenericParamsAdaptor[S]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type partialGenericParamsRecorder[S any] struct {
+	//nolint:structcheck // definitely used
+	r *moqPartialGenericParams_Usual_fnRecorder[S]
+}
+
+func (r *partialGenericParamsRecorder[S]) anySParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param1()
+	}
+}
+
+func (r *partialGenericParamsRecorder[S]) anyBParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param2()
+	}
+}
+
+func (r *partialGenericParamsRecorder[S]) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *partialGenericParamsRecorder[S]) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *partialGenericParamsRecorder[S]) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(sResults[0], err)
+}
+
+func (r *partialGenericParamsRecorder[S]) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam S, bParam bool) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *partialGenericParamsRecorder[S]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.doReturnResults(func(sParam S, bParam bool) (string, error) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *partialGenericParamsRecorder[S]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *partialGenericParamsRecorder[S]) isNil() bool {
+	return r.r == nil
+}
+
+type exportedPartialGenericParamsAdaptor[S any] struct {
+	//nolint:structcheck // definitely used
+	m *exported.MoqPartialGenericParams[S]
+}
+
+func (a *exportedPartialGenericParamsAdaptor[S]) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
+
+func (a *exportedPartialGenericParamsAdaptor[S]) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedPartialGenericParamsAdaptor[S]) newRecorder(sParams []S, bParam bool) recorder {
+	return &exportedPartialGenericParamsRecorder[S]{r: a.m.OnCall().Usual(sParams[0], bParam)}
+}
+
+func (a *exportedPartialGenericParamsAdaptor[S]) invokeMockAndExpectResults(
+	t moq.T, sParams []S, bParam bool, res results,
+) {
+	sResult, err := a.m.Mock().Usual(sParams[0], bParam)
+	if sResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *exportedPartialGenericParamsAdaptor[S]) prettyParams(sParams []S, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *exportedPartialGenericParamsAdaptor[S]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedPartialGenericParamsRecorder[S any] struct {
+	//nolint:structcheck // definitely used
+	r *exported.MoqPartialGenericParams_Usual_fnRecorder[S]
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) anySParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param1()
+	}
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) anyBParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param2()
+	}
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(sResults[0], err)
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) andDo(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
+) {
+	r.r = r.r.AndDo(func(sParam S, bParam bool) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.DoReturnResults(func(sParam S, bParam bool) (string, error) {
+		fn()
+		if !reflect.DeepEqual(sParam, expectedSParams[0]) {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if !reflect.DeepEqual(bParam, expectedBParam) {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return sResults[0], err
+	})
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedPartialGenericParamsRecorder[S]) isNil() bool {
+	return r.r == nil
+}
+
+type genericResultsAdaptor[S ~string, E error] struct {
+	//nolint:structcheck // definitely used
+	m *moqGenericResults[S, E]
+}
+
+func (a *genericResultsAdaptor[S, E]) config() adaptorConfig { return adaptorConfig{} }
+
+func (a *genericResultsAdaptor[S, E]) mock() interface{} { return a.m.mock() }
+
+func (a *genericResultsAdaptor[S, E]) newRecorder(sParams []string, bParam bool) recorder {
+	return &genericResultsRecorder[S, E]{r: a.m.onCall().Usual(sParams[0], bParam)}
+}
+
+func (a *genericResultsAdaptor[S, E]) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results,
+) {
+	sResult, err := a.m.mock().Usual(sParams[0], bParam)
+	if !reflect.DeepEqual(sResult, res.sResults[0]) {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if !reflect.DeepEqual(err, res.err) {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *genericResultsAdaptor[S, E]) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *genericResultsAdaptor[S, E]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type genericResultsRecorder[S ~string, E error] struct {
+	//nolint:structcheck // definitely used
+	r *moqGenericResults_Usual_fnRecorder[S, E]
+}
+
+func (r *genericResultsRecorder[S, E]) anySParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param1()
+	}
+}
+
+func (r *genericResultsRecorder[S, E]) anyBParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param2()
+	}
+}
+
+func (r *genericResultsRecorder[S, E]) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *genericResultsRecorder[S, E]) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *genericResultsRecorder[S, E]) returnResults(sResults []string, err error) {
+	var e E
+	if err != nil {
+		e = err.(E)
+	}
+	r.r = r.r.returnResults(S(sResults[0]), e)
+}
+
+func (r *genericResultsRecorder[S, E]) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *genericResultsRecorder[S, E]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (S, E) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		var e E
+		if err != nil {
+			e = err.(E)
+		}
+		return S(sResults[0]), e
+	})
+}
+
+func (r *genericResultsRecorder[S, E]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *genericResultsRecorder[S, E]) isNil() bool {
+	return r.r == nil
+}
+
+type exportedGenericResultsAdaptor[S ~string, E error] struct {
+	//nolint:structcheck // definitely used
+	m *exported.MoqGenericResults[S, E]
+}
+
+func (a *exportedGenericResultsAdaptor[S, E]) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
+
+func (a *exportedGenericResultsAdaptor[S, E]) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedGenericResultsAdaptor[S, E]) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedGenericResultsRecorder[S, E]{r: a.m.OnCall().Usual(sParams[0], bParam)}
+}
+
+func (a *exportedGenericResultsAdaptor[S, E]) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results,
+) {
+	sResult, err := a.m.Mock().Usual(sParams[0], bParam)
+	if !reflect.DeepEqual(sResult, res.sResults[0]) {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if !reflect.DeepEqual(err, res.err) {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *exportedGenericResultsAdaptor[S, E]) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *exportedGenericResultsAdaptor[S, E]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedGenericResultsRecorder[S ~string, E error] struct {
+	//nolint:structcheck // definitely used
+	r *exported.MoqGenericResults_Usual_fnRecorder[S, E]
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) anySParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param1()
+	}
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) anyBParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param2()
+	}
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) returnResults(sResults []string, err error) {
+	var e E
+	if err != nil {
+		e = err.(E)
+	}
+	r.r = r.r.ReturnResults(S(sResults[0]), e)
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) andDo(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
+) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (S, E) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		var e E
+		if err != nil {
+			e = err.(E)
+		}
+		return S(sResults[0]), e
+	})
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedGenericResultsRecorder[S, E]) isNil() bool {
+	return r.r == nil
+}
+
+type partialGenericResultsAdaptor[S ~string] struct {
+	//nolint:structcheck // definitely used
+	m *moqPartialGenericResults[S]
+}
+
+func (a *partialGenericResultsAdaptor[S]) config() adaptorConfig { return adaptorConfig{} }
+
+func (a *partialGenericResultsAdaptor[S]) mock() interface{} { return a.m.mock() }
+
+func (a *partialGenericResultsAdaptor[S]) newRecorder(sParams []string, bParam bool) recorder {
+	return &partialGenericResultsRecorder[S]{r: a.m.onCall().Usual(sParams[0], bParam)}
+}
+
+func (a *partialGenericResultsAdaptor[S]) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results,
+) {
+	sResult, err := a.m.mock().Usual(sParams[0], bParam)
+	if !reflect.DeepEqual(sResult, res.sResults[0]) {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if !reflect.DeepEqual(err, res.err) {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *partialGenericResultsAdaptor[S]) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *partialGenericResultsAdaptor[S]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type partialGenericResultsRecorder[S ~string] struct {
+	//nolint:structcheck // definitely used
+	r *moqPartialGenericResults_Usual_fnRecorder[S]
+}
+
+func (r *partialGenericResultsRecorder[S]) anySParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param1()
+	}
+}
+
+func (r *partialGenericResultsRecorder[S]) anyBParam() {
+	if a := r.r.any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.param2()
+	}
+}
+
+func (r *partialGenericResultsRecorder[S]) seq() {
+	r.r = r.r.seq()
+}
+
+func (r *partialGenericResultsRecorder[S]) noSeq() {
+	r.r = r.r.noSeq()
+}
+
+func (r *partialGenericResultsRecorder[S]) returnResults(sResults []string, err error) {
+	r.r = r.r.returnResults(S(sResults[0]), err)
+}
+
+func (r *partialGenericResultsRecorder[S]) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
+	r.r = r.r.andDo(func(sParam string, bParam bool) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *partialGenericResultsRecorder[S]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.doReturnResults(func(sParam string, bParam bool) (S, error) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return S(sResults[0]), err
+	})
+}
+
+func (r *partialGenericResultsRecorder[S]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.repeat(repeaters...)
+}
+
+func (r *partialGenericResultsRecorder[S]) isNil() bool {
+	return r.r == nil
+}
+
+type exportedPartialGenericResultsAdaptor[S ~string] struct {
+	//nolint:structcheck // definitely used
+	m *exported.MoqPartialGenericResults[S]
+}
+
+func (a *exportedPartialGenericResultsAdaptor[S]) config() adaptorConfig {
+	return adaptorConfig{exported: true}
+}
+
+func (a *exportedPartialGenericResultsAdaptor[S]) mock() interface{} { return a.m.Mock() }
+
+func (a *exportedPartialGenericResultsAdaptor[S]) newRecorder(sParams []string, bParam bool) recorder {
+	return &exportedPartialGenericResultsRecorder[S]{r: a.m.OnCall().Usual(sParams[0], bParam)}
+}
+
+func (a *exportedPartialGenericResultsAdaptor[S]) invokeMockAndExpectResults(
+	t moq.T, sParams []string, bParam bool, res results,
+) {
+	sResult, err := a.m.Mock().Usual(sParams[0], bParam)
+	if !reflect.DeepEqual(sResult, res.sResults[0]) {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	}
+	if !reflect.DeepEqual(err, res.err) {
+		t.Errorf("wanted %#v, got %#v", res.err, err)
+	}
+}
+
+func (a *exportedPartialGenericResultsAdaptor[S]) prettyParams(sParams []string, bParam bool) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", sParams[0], bParam)
+}
+
+func (a *exportedPartialGenericResultsAdaptor[S]) sceneMoq() moq.Moq {
+	return a.m
+}
+
+type exportedPartialGenericResultsRecorder[S ~string] struct {
+	//nolint:structcheck // definitely used
+	r *exported.MoqPartialGenericResults_Usual_fnRecorder[S]
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) anySParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param1()
+	}
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) anyBParam() {
+	if a := r.r.Any(); a == nil {
+		r.r = nil
+	} else {
+		r.r = a.Param2()
+	}
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) seq() {
+	r.r = r.r.Seq()
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) noSeq() {
+	r.r = r.r.NoSeq()
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) returnResults(sResults []string, err error) {
+	r.r = r.r.ReturnResults(S(sResults[0]), err)
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) andDo(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool,
+) {
+	r.r = r.r.AndDo(func(sParam string, bParam bool) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+	})
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) doReturnResults(
+	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
+) {
+	r.r = r.r.DoReturnResults(func(sParam string, bParam bool) (S, error) {
+		fn()
+		if sParam != expectedSParams[0] {
+			t.Errorf("wanted %#v, got %#v", expectedSParams[0], sParam)
+		}
+		if bParam != expectedBParam {
+			t.Errorf("wanted %t, got %#v", expectedBParam, bParam)
+		}
+		return S(sResults[0]), err
+	})
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) repeat(repeaters ...moq.Repeater) {
+	r.r = r.r.Repeat(repeaters...)
+}
+
+func (r *exportedPartialGenericResultsRecorder[S]) isNil() bool {
+	return r.r == nil
+}
