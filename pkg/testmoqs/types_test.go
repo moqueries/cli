@@ -31,7 +31,6 @@ func TestPackageGeneration(t *testing.T) {
 		SkipPkgDirs:    4,
 		PkgPatterns:    []string{"moqueries.org/cli/pkg/testmoqs"},
 	})
-
 	// ASSERT
 	if err != nil {
 		t.Fatalf("got %#v, want no error", err)

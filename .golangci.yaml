@@ -43,8 +43,7 @@ linters-settings:
   revive:
     rules:
     - name: var-naming
-      arguments:
-      - ["ID"]
+      disabled: true
   stylecheck:
     dot-import-whitelist:
     - "moqueries.org/cli/ast"

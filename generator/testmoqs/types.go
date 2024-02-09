@@ -81,6 +81,7 @@ type InterfaceResultFn func(sParam string, bParam bool) (r io.Reader)
 //nolint:interfacebloat // Test interface with one of every method type
 type Usual interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
+	//nolint:inamedparam // Testing interface method with unnamed param for type string
 	NoNames(string, bool) (string, error)
 	NoResults(sParam string, bParam bool)
 	NoParams() (sResult string, err error)
