@@ -24,8 +24,6 @@ func (d AssignDSL) Tok(tok token.Token) AssignDSL {
 }
 
 // Rhs specifies the right-hand expressions in the assignment
-//
-//nolint:revive // Rhs is the capitalization from dst (which this wraps)
 func (d AssignDSL) Rhs(rhs ...dst.Expr) AssignDSL {
 	d.Obj.Rhs = append(d.Obj.Rhs, rhs...)
 	return d
