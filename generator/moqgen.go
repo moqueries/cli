@@ -123,7 +123,9 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 		}
 
 		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported, fabricated: typeInfo.Fabricated}
-		tErr := g.findFuncs(typeInfo.Type, fInfo)
+		// Clone the type because findFuncs may reduce the interface
+		typeInfo.Type = dst.Clone(typeInfo.Type).(*dst.TypeSpec)
+		tErr := g.findFuncs(typeInfo, fInfo)
 		if tErr != nil {
 			return MoqResponse{}, tErr
 		}
@@ -306,33 +308,33 @@ type funcInfo struct {
 	fabricated         bool
 }
 
-func (g *MoqGenerator) findFuncs(typeSpec *dst.TypeSpec, fInfo *funcInfo) error {
-	switch typ := typeSpec.Type.(type) {
+func (g *MoqGenerator) findFuncs(tInfo ast.TypeInfo, fInfo *funcInfo) error {
+	switch typ := tInfo.Type.Type.(type) {
 	case *dst.InterfaceType:
-		return g.loadNestedInterfaces(typ, typeSpec.Name.Path, fInfo)
+		return g.loadNestedInterfaces(typ, tInfo, fInfo)
 	case *dst.FuncType:
-		fn := Func{FuncType: typ}
-		fully, err := g.isFnFullyExported(fn, typeSpec.Name.Path)
+		fn := Func{FuncType: typ, ParentType: tInfo}
+		fully, err := g.isFnFullyExported(fn)
 		if err != nil {
 			return err
 		}
 
 		if fInfo.excludeNonExported && !fully {
 			return fmt.Errorf("%w: %s mocked type is not exported",
-				ErrNonExported, typeSpec.Name.String())
+				ErrNonExported, tInfo.Type.Name.String())
 		}
 
 		fInfo.funcs = append(fInfo.funcs, fn)
 		return nil
 	case *dst.Ident:
-		return g.loadTypeEquivalent(typ, typeSpec.Name.Path, fInfo)
+		return g.loadTypeEquivalent(typ, tInfo, fInfo)
 	default:
-		logs.Panicf("Unknown type: %v", typeSpec.Type)
+		logs.Panicf("Unknown type: %v", tInfo.Type.Type)
 		panic("unreachable")
 	}
 }
 
-func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg string, fInfo *funcInfo) error {
+func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, tInfo ast.TypeInfo, fInfo *funcInfo) error {
 	var finalFuncs []*dst.Field
 	for _, method := range iType.Methods.List {
 		switch typ := method.Type.(type) {
@@ -344,12 +346,13 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 			}
 
 			fn := Func{
-				Name:     name,
-				FuncType: typ,
+				Name:       name,
+				ParentType: tInfo,
+				FuncType:   typ,
 			}
 
 			if fInfo.excludeNonExported {
-				fully, err := g.isFnFullyExported(fn, contextPkg)
+				fully, err := g.isFnFullyExported(fn)
 				if err != nil {
 					return err
 				}
@@ -363,7 +366,7 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 			fInfo.funcs = append(fInfo.funcs, fn)
 		case *dst.Ident:
 			var err error
-			err = g.loadTypeEquivalent(typ, contextPkg, fInfo)
+			err = g.loadTypeEquivalent(typ, tInfo, fInfo)
 			if err != nil {
 				return err
 			}
@@ -372,7 +375,7 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 		}
 		finalFuncs = append(finalFuncs, method)
 	}
-	if fInfo.reduced {
+	if fInfo.reduced && (tInfo.Fabricated || fInfo.excludeNonExported) {
 		// Reduces fabricated interface if any methods were removed
 		iType.Methods.List = finalFuncs
 	}
@@ -380,8 +383,8 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, contextPkg
 	return nil
 }
 
-func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, contextPkg string, fInfo *funcInfo) error {
-	nestedType, err := g.typeCache.Type(*id, contextPkg, false)
+func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, tInfo ast.TypeInfo, fInfo *funcInfo) error {
+	nestedType, err := g.typeCache.Type(*id, tInfo.PkgPath, false)
 	if err != nil {
 		return err
 	}
@@ -391,7 +394,7 @@ func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, contextPkg string, fInf
 		return nil
 	}
 
-	err = g.findFuncs(nestedType.Type, fInfo)
+	err = g.findFuncs(nestedType, fInfo)
 	if err != nil {
 		return err
 	}
@@ -399,16 +402,16 @@ func (g *MoqGenerator) loadTypeEquivalent(id *dst.Ident, contextPkg string, fInf
 	return nil
 }
 
-func (g *MoqGenerator) isFnFullyExported(fn Func, contextPkg string) (bool, error) {
+func (g *MoqGenerator) isFnFullyExported(fn Func) (bool, error) {
 	if fn.Name != "" && !dst.IsExported(fn.Name) {
 		return false, nil
 	}
 
-	ex, err := g.isFieldListFullyExported(fn.FuncType.Params, contextPkg)
+	ex, err := g.isFieldListFullyExported(fn.FuncType.Params, fn.ParentType.PkgPath)
 	if err != nil || !ex {
 		return ex, err
 	}
-	ex, err = g.isFieldListFullyExported(fn.FuncType.Results, contextPkg)
+	ex, err = g.isFieldListFullyExported(fn.FuncType.Results, fn.ParentType.PkgPath)
 	if err != nil || !ex {
 		return ex, err
 	}

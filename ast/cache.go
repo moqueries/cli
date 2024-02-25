@@ -194,9 +194,10 @@ func (c *Cache) Type(id dst.Ident, contextPkg string, testImport bool) (TypeInfo
 	}, nil
 }
 
-// IsComparable determines if an expression is comparable
-func (c *Cache) IsComparable(expr dst.Expr) (bool, error) {
-	return c.isDefaultComparable(expr, true)
+// IsComparable determines if an expression is comparable. The optional
+// parentType can be used to supply type parameters.
+func (c *Cache) IsComparable(expr dst.Expr, parentType TypeInfo) (bool, error) {
+	return c.isDefaultComparable(expr, &parentType, true)
 }
 
 // IsDefaultComparable determines if an expression is comparable. Returns the
@@ -204,8 +205,8 @@ func (c *Cache) IsComparable(expr dst.Expr) (bool, error) {
 // by default (interface implementations that are not comparable and put into a
 // map key will panic at runtime and by default pointers use a deep hash to be
 // comparable).
-func (c *Cache) IsDefaultComparable(expr dst.Expr) (bool, error) {
-	return c.isDefaultComparable(expr, false)
+func (c *Cache) IsDefaultComparable(expr dst.Expr, parentType TypeInfo) (bool, error) {
+	return c.isDefaultComparable(expr, &parentType, false)
 }
 
 // FindPackage finds the package for a given directory
@@ -363,17 +364,21 @@ func isExported(name, pkgPath string) bool {
 	return false
 }
 
-func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool) (bool, error) {
+func (c *Cache) isDefaultComparable(
+	expr dst.Expr,
+	parentType *TypeInfo,
+	interfacePointerDefault bool,
+) (bool, error) {
 	switch e := expr.(type) {
 	case *dst.ArrayType:
 		if e.Len == nil {
 			return false, nil
 		}
-		return c.isDefaultComparable(e.Elt, interfacePointerDefault)
-	case *dst.MapType, *dst.Ellipsis, *dst.FuncType:
+		return c.isDefaultComparable(e.Elt, parentType, interfacePointerDefault)
+	case *dst.Ellipsis:
 		return false, nil
-	case *dst.StarExpr:
-		return interfacePointerDefault, nil
+	case *dst.FuncType:
+		return false, nil
 	case *dst.InterfaceType:
 		return interfacePointerDefault, nil
 	case *dst.Ident:
@@ -387,11 +392,22 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 				return true, nil
 			}
 
-			return c.isDefaultComparable(typ.Type, interfacePointerDefault)
+			return c.isDefaultComparable(typ.Type, parentType, interfacePointerDefault)
 		}
+		pkgPath := e.Path
 		typ, ok := c.typesByIdent[e.String()]
+		if !ok && e.Path == "" && parentType != nil {
+			pkgPath = parentType.PkgPath
+			typ, ok = c.typesByIdent[IdPath(e.Name, parentType.PkgPath).String()]
+		}
 		if ok {
-			return c.isDefaultComparable(typ.typ.Type, interfacePointerDefault)
+			tInfo := &TypeInfo{
+				Type:       typ.typ,
+				PkgPath:    pkgPath,
+				Exported:   isExported(e.Name, pkgPath),
+				Fabricated: false,
+			}
+			return c.isDefaultComparable(typ.typ.Type, tInfo, interfacePointerDefault)
 		}
 
 		// Builtin type?
@@ -412,10 +428,18 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 
 		typ, ok = c.typesByIdent[e.String()]
 		if ok {
-			return c.isDefaultComparable(typ.typ.Type, interfacePointerDefault)
+			tInfo := &TypeInfo{
+				Type:       typ.typ,
+				PkgPath:    e.Path,
+				Exported:   isExported(e.Name, e.Path),
+				Fabricated: false,
+			}
+			return c.isDefaultComparable(typ.typ.Type, tInfo, interfacePointerDefault)
 		}
 
 		return true, nil
+	case *dst.MapType:
+		return false, nil
 	case *dst.SelectorExpr:
 		ex, ok := e.X.(*dst.Ident)
 		if !ok {
@@ -429,14 +453,16 @@ func (c *Cache) isDefaultComparable(expr dst.Expr, interfacePointerDefault bool)
 
 		typ, ok := c.typesByIdent[IdPath(e.Sel.Name, path).String()]
 		if ok {
-			return c.isDefaultComparable(typ.typ.Type, interfacePointerDefault)
+			return c.isDefaultComparable(typ.typ.Type, parentType, interfacePointerDefault)
 		}
 
 		// Builtin type?
 		return true, nil
+	case *dst.StarExpr:
+		return interfacePointerDefault, nil
 	case *dst.StructType:
 		for _, f := range e.Fields.List {
-			comp, err := c.isDefaultComparable(f.Type, interfacePointerDefault)
+			comp, err := c.isDefaultComparable(f.Type, parentType, interfacePointerDefault)
 			if err != nil || !comp {
 				return false, err
 			}
@@ -501,19 +527,6 @@ func (c *Cache) loadTypes(loadPkg string, testImport bool) (string, error) {
 }
 
 func (c *Cache) loadAST(loadPkg string, testImport bool) ([]*pkgInfo, error) {
-	if dp, ok := c.loadedPkgs[loadPkg]; ok {
-		// If we already loaded the test types or if the test types aren't
-		// requested, we're done
-		if dp.loadTestPkgs || !testImport {
-			// If we direct loaded, we're done
-			if dp.directLoaded {
-				c.metrics.ASTTypeCacheHitsInc()
-				return []*pkgInfo{dp}, nil
-			}
-		}
-	}
-	c.metrics.ASTTypeCacheMissesInc()
-
 	start := time.Now()
 	pkgs, err := c.load(&packages.Config{
 		Mode: packages.NeedName |
@@ -597,7 +610,6 @@ func (c *Cache) convert(pkg *packages.Package, testImport, directLoaded bool) (*
 
 		start := time.Now()
 		p.pkg.Decorator = decorator.NewDecoratorFromPackage(pkg)
-		p.pkg.Decorator.ResolveLocalPath = true
 		for _, f := range pkg.Syntax {
 			fpath := pkg.Fset.File(f.Pos()).Name()
 			if !goFiles[fpath] {

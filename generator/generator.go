@@ -4,7 +4,6 @@ package generator
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -65,8 +64,8 @@ func Generate(reqs ...GenerateRequest) error {
 // TypeCache defines the interface to the Cache type
 type TypeCache interface {
 	Type(id dst.Ident, contextPkg string, testImport bool) (ast.TypeInfo, error)
-	IsComparable(expr dst.Expr) (bool, error)
-	IsDefaultComparable(expr dst.Expr) (bool, error)
+	IsComparable(expr dst.Expr, parentType ast.TypeInfo) (bool, error)
+	IsDefaultComparable(expr dst.Expr, parentType ast.TypeInfo) (bool, error)
 	FindPackage(dir string) (string, error)
 }
 
@@ -94,7 +93,7 @@ func GenerateWithTypeCache(cache TypeCache, req GenerateRequest) error {
 		}
 	}
 
-	tempFile, err := ioutil.TempFile(destDir, "*.go-gen")
+	tempFile, err := os.CreateTemp(destDir, "*.go-gen")
 	if err != nil {
 		return fmt.Errorf("error creating temp file: %w", err)
 	}

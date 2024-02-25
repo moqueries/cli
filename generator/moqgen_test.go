@@ -500,16 +500,21 @@ func TestMoqGenerator(t *testing.T) {
 				typeCacheMoq.onCall().Type(
 					*ast.IdPath("privateInterface", genPkg), genPkg, false).
 					returnResults(ifaceInfo2, nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 					returnResults(readerInfo, nil)
 				typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", tc.typePath), tc.typePath, false).
 					returnResults(ifaceInfo2, nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 					returnResults(readerInfo, nil)
 				ifaceFuncs := []generator.Func{
-					{Name: "Func1", FuncType: &dst.FuncType{Params: func1Params}},
 					{
-						Name: "Read",
+						Name:       "Func1",
+						ParentType: ifaceInfo1,
+						FuncType:   &dst.FuncType{Params: func1Params},
+					},
+					{
+						Name:       "Read",
+						ParentType: readerInfo,
 						FuncType: &dst.FuncType{
 							Params:  readFnType.Params,
 							Results: readFnType.Results,
@@ -555,7 +560,8 @@ func TestMoqGenerator(t *testing.T) {
 				converter1Moq.onCall().AssertMethod().
 					returnResults(nil, nil)
 				iface2Funcs := []generator.Func{{
-					Name: "Read",
+					Name:       "Read",
+					ParentType: readerInfo,
 					FuncType: &dst.FuncType{
 						Params:  readFnType.Params,
 						Results: readFnType.Results,
@@ -681,16 +687,25 @@ func TestMoqGenerator(t *testing.T) {
 			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 				returnResults(ast.TypeInfo{Exported: true}, nil)
 			ifaceFuncs := []generator.Func{
-				{Name: "Func1", FuncType: &dst.FuncType{Params: func1Params}},
-			}
-			// The method list is reduced back to normal by the time we create
-			// the converter
-			newConverterFnMoq.onCall(generator.Type{
-				TypeInfo: ast.TypeInfo{
-					Type:     ifaceInfo1.Type,
-					PkgPath:  genPkg,
-					Exported: true,
+				{
+					Name:       "Func1",
+					ParentType: fullInfo,
+					FuncType:   &dst.FuncType{Params: func1Params},
 				},
+			}
+			// The method list is reduced by the time we create the converter
+			// the type info is altered so a new interface can be fabricated
+			reducedInfo := ast.TypeInfo{
+				Type: &dst.TypeSpec{
+					Name: ast.IdPath("PublicInterface", genPkg),
+					Type: &dst.InterfaceType{Methods: &dst.FieldList{List: []*dst.Field{func1}}},
+				},
+				PkgPath:  genPkg,
+				Exported: true,
+			}
+			ifaceFuncs[0].ParentType = reducedInfo
+			newConverterFnMoq.onCall(generator.Type{
+				TypeInfo:   reducedInfo,
 				Funcs:      ifaceFuncs,
 				OutPkgPath: "destdir",
 				Reduced:    true,
@@ -1095,7 +1110,7 @@ func TestMoqGenerator(t *testing.T) {
 
 			typeCacheMoq.onCall().Type(*ast.IdPath("MyFunc", "."), ".", false).
 				returnResults(fnInfo, nil)
-			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "", false).
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 				returnResults(ast.TypeInfo{Exported: false}, nil)
 			req := generator.GenerateRequest{
 				Types:              []string{"MyFunc"},
@@ -1152,7 +1167,7 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().Type(*ast.IdPath("AliasType", "."), ".", false).
 			returnResults(ifaceInfo, nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "thatpkg", false).
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 			returnResults(readerInfo, nil)
 
 		ifaceFuncs := []generator.Func{
@@ -1162,13 +1177,11 @@ func TestMoqGenerator(t *testing.T) {
 					Params:  readFnType.Params,
 					Results: readFnType.Results,
 				},
+				ParentType: readerInfo,
 			},
 		}
 		newConverterFnMoq.onCall(generator.Type{
-			TypeInfo: ast.TypeInfo{
-				Type:    ifaceInfo.Type,
-				PkgPath: genPkg,
-			},
+			TypeInfo:   ifaceInfo,
 			Funcs:      ifaceFuncs,
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
@@ -1309,7 +1322,9 @@ func TestMoqGenerator(t *testing.T) {
 				typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", "."), ".", false).
 					returnResults(ifaceInfo1, nil)
 				ifaceFuncs := []generator.Func{{
-					Name: "Func1", FuncType: &dst.FuncType{Params: func1Params},
+					Name:       "Func1",
+					FuncType:   &dst.FuncType{Params: func1Params},
+					ParentType: ifaceInfo1,
 				}}
 				newConverterFnMoq.onCall(generator.Type{
 					TypeInfo: ast.TypeInfo{
@@ -1380,11 +1395,14 @@ func TestMoqGenerator(t *testing.T) {
 					converter1Moq.onCall().AssertMethod().
 						returnResults(nil, retError())
 				}
-				fnFuncs := []generator.Func{{FuncType: &dst.FuncType{Params: func1Params}}}
+				fnFuncs := []generator.Func{{
+					FuncType:   &dst.FuncType{Params: func1Params},
+					ParentType: fnInfo,
+				}}
 				if !done() {
 					typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
 						returnResults(fnInfo, nil)
-					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "", false).
+					typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 						returnResults(ast.TypeInfo{Exported: true}, nil)
 					newConverterFnMoq.onCall(generator.Type{
 						TypeInfo: ast.TypeInfo{
@@ -1476,7 +1494,9 @@ func TestMoqGenerator(t *testing.T) {
 			returnResults(ifaceInfo2, nil)
 
 		iface1Funcs := []generator.Func{{
-			Name: "Func1", FuncType: &dst.FuncType{Params: func1Params},
+			Name:       "Func1",
+			FuncType:   &dst.FuncType{Params: func1Params},
+			ParentType: ifaceInfo1,
 		}}
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
@@ -1665,7 +1685,7 @@ func TestMoqGenerator(t *testing.T) {
 		typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", genPkg), genPkg, false).
 			returnResults(ifaceInfo2, nil)
 		expectedErr := errors.New("bad cache")
-		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), "", false).
+		typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 			returnResults(ast.TypeInfo{}, expectedErr)
 
 		req := generator.GenerateRequest{
@@ -1706,9 +1726,12 @@ func TestMoqGenerator(t *testing.T) {
 		fnInfo.Type.Name.Path = "where-the-fn-lives"
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
 			returnResults(fnInfo, nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "where-the-fn-lives", false).
+		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
 			returnResults(ast.TypeInfo{Exported: true}, nil)
-		fnFuncs := []generator.Func{{FuncType: &dst.FuncType{Params: func1Params}}}
+		fnFuncs := []generator.Func{{
+			FuncType:   &dst.FuncType{Params: func1Params},
+			ParentType: fnInfo,
+		}}
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
 				Type:     fnInfo.Type,

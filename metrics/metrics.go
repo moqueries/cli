@@ -20,8 +20,6 @@ const (
 type Metrics interface {
 	ASTPkgCacheHitsInc()
 	ASTPkgCacheMissesInc()
-	ASTTypeCacheHitsInc()
-	ASTTypeCacheMissesInc()
 	ASTTotalLoadTimeInc(d time.Duration)
 	ASTTotalDecorationTimeInc(d time.Duration)
 
@@ -101,16 +99,6 @@ func (m *Processor) ASTPkgCacheHitsInc() {
 // ASTPkgCacheMissesInc increments the ASTPkgCacheMisses metric
 func (m *Processor) ASTPkgCacheMissesInc() {
 	m.state.ASTPkgCacheMisses++
-}
-
-// ASTTypeCacheHitsInc increments the ASTTypeCacheHits metric
-func (m *Processor) ASTTypeCacheHitsInc() {
-	m.state.ASTTypeCacheHits++
-}
-
-// ASTTypeCacheMissesInc increments the ASTTypeCacheMisses metric
-func (m *Processor) ASTTypeCacheMissesInc() {
-	m.state.ASTTypeCacheMisses++
 }
 
 // ASTTotalLoadTimeInc increments the ASTTotalLoadTime duration metric by the

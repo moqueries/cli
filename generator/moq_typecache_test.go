@@ -37,10 +37,12 @@ type moqTypeCache struct {
 				testImport moq.ParamIndexing
 			}
 			IsComparable struct {
-				expr moq.ParamIndexing
+				expr       moq.ParamIndexing
+				parentType moq.ParamIndexing
 			}
 			IsDefaultComparable struct {
-				expr moq.ParamIndexing
+				expr       moq.ParamIndexing
+				parentType moq.ParamIndexing
 			}
 			FindPackage struct {
 				dir moq.ParamIndexing
@@ -128,13 +130,22 @@ type moqTypeCache_Type_anyParams struct {
 }
 
 // moqTypeCache_IsComparable_params holds the params of the TypeCache type
-type moqTypeCache_IsComparable_params struct{ expr dst.Expr }
+type moqTypeCache_IsComparable_params struct {
+	expr       dst.Expr
+	parentType ast.TypeInfo
+}
 
 // moqTypeCache_IsComparable_paramsKey holds the map key params of the
 // TypeCache type
 type moqTypeCache_IsComparable_paramsKey struct {
-	params struct{ expr dst.Expr }
-	hashes struct{ expr hash.Hash }
+	params struct {
+		expr       dst.Expr
+		parentType ast.TypeInfo
+	}
+	hashes struct {
+		expr       hash.Hash
+		parentType hash.Hash
+	}
 }
 
 // moqTypeCache_IsComparable_resultsByParams contains the results for a given
@@ -147,11 +158,11 @@ type moqTypeCache_IsComparable_resultsByParams struct {
 
 // moqTypeCache_IsComparable_doFn defines the type of function needed when
 // calling andDo for the TypeCache type
-type moqTypeCache_IsComparable_doFn func(expr dst.Expr)
+type moqTypeCache_IsComparable_doFn func(expr dst.Expr, parentType ast.TypeInfo)
 
 // moqTypeCache_IsComparable_doReturnFn defines the type of function needed
 // when calling doReturnResults for the TypeCache type
-type moqTypeCache_IsComparable_doReturnFn func(expr dst.Expr) (bool, error)
+type moqTypeCache_IsComparable_doReturnFn func(expr dst.Expr, parentType ast.TypeInfo) (bool, error)
 
 // moqTypeCache_IsComparable_results holds the results of the TypeCache type
 type moqTypeCache_IsComparable_results struct {
@@ -187,13 +198,22 @@ type moqTypeCache_IsComparable_anyParams struct {
 
 // moqTypeCache_IsDefaultComparable_params holds the params of the TypeCache
 // type
-type moqTypeCache_IsDefaultComparable_params struct{ expr dst.Expr }
+type moqTypeCache_IsDefaultComparable_params struct {
+	expr       dst.Expr
+	parentType ast.TypeInfo
+}
 
 // moqTypeCache_IsDefaultComparable_paramsKey holds the map key params of the
 // TypeCache type
 type moqTypeCache_IsDefaultComparable_paramsKey struct {
-	params struct{ expr dst.Expr }
-	hashes struct{ expr hash.Hash }
+	params struct {
+		expr       dst.Expr
+		parentType ast.TypeInfo
+	}
+	hashes struct {
+		expr       hash.Hash
+		parentType hash.Hash
+	}
 }
 
 // moqTypeCache_IsDefaultComparable_resultsByParams contains the results for a
@@ -206,11 +226,11 @@ type moqTypeCache_IsDefaultComparable_resultsByParams struct {
 
 // moqTypeCache_IsDefaultComparable_doFn defines the type of function needed
 // when calling andDo for the TypeCache type
-type moqTypeCache_IsDefaultComparable_doFn func(expr dst.Expr)
+type moqTypeCache_IsDefaultComparable_doFn func(expr dst.Expr, parentType ast.TypeInfo)
 
 // moqTypeCache_IsDefaultComparable_doReturnFn defines the type of function
 // needed when calling doReturnResults for the TypeCache type
-type moqTypeCache_IsDefaultComparable_doReturnFn func(expr dst.Expr) (bool, error)
+type moqTypeCache_IsDefaultComparable_doReturnFn func(expr dst.Expr, parentType ast.TypeInfo) (bool, error)
 
 // moqTypeCache_IsDefaultComparable_results holds the results of the TypeCache
 // type
@@ -321,10 +341,12 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 					testImport moq.ParamIndexing
 				}
 				IsComparable struct {
-					expr moq.ParamIndexing
+					expr       moq.ParamIndexing
+					parentType moq.ParamIndexing
 				}
 				IsDefaultComparable struct {
-					expr moq.ParamIndexing
+					expr       moq.ParamIndexing
+					parentType moq.ParamIndexing
 				}
 				FindPackage struct {
 					dir moq.ParamIndexing
@@ -337,10 +359,12 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 				testImport moq.ParamIndexing
 			}
 			IsComparable struct {
-				expr moq.ParamIndexing
+				expr       moq.ParamIndexing
+				parentType moq.ParamIndexing
 			}
 			IsDefaultComparable struct {
-				expr moq.ParamIndexing
+				expr       moq.ParamIndexing
+				parentType moq.ParamIndexing
 			}
 			FindPackage struct {
 				dir moq.ParamIndexing
@@ -356,14 +380,18 @@ func newMoqTypeCache(scene *moq.Scene, config *moq.Config) *moqTypeCache {
 				testImport: moq.ParamIndexByValue,
 			},
 			IsComparable: struct {
-				expr moq.ParamIndexing
+				expr       moq.ParamIndexing
+				parentType moq.ParamIndexing
 			}{
-				expr: moq.ParamIndexByHash,
+				expr:       moq.ParamIndexByHash,
+				parentType: moq.ParamIndexByHash,
 			},
 			IsDefaultComparable: struct {
-				expr moq.ParamIndexing
+				expr       moq.ParamIndexing
+				parentType moq.ParamIndexing
 			}{
-				expr: moq.ParamIndexByHash,
+				expr:       moq.ParamIndexByHash,
+				parentType: moq.ParamIndexByHash,
 			},
 			FindPackage: struct {
 				dir moq.ParamIndexing
@@ -437,10 +465,11 @@ func (m *moqTypeCache_mock) Type(id dst.Ident, contextPkg string, testImport boo
 	return
 }
 
-func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 error) {
+func (m *moqTypeCache_mock) IsComparable(expr dst.Expr, parentType ast.TypeInfo) (result1 bool, result2 error) {
 	m.moq.scene.T.Helper()
 	params := moqTypeCache_IsComparable_params{
-		expr: expr,
+		expr:       expr,
+		parentType: parentType,
 	}
 	var results *moqTypeCache_IsComparable_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsComparable {
@@ -478,7 +507,7 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 	}
 
 	if result.doFn != nil {
-		result.doFn(expr)
+		result.doFn(expr, parentType)
 	}
 
 	if result.values != nil {
@@ -486,15 +515,16 @@ func (m *moqTypeCache_mock) IsComparable(expr dst.Expr) (result1 bool, result2 e
 		result2 = result.values.result2
 	}
 	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(expr)
+		result1, result2 = result.doReturnFn(expr, parentType)
 	}
 	return
 }
 
-func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, result2 error) {
+func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr, parentType ast.TypeInfo) (result1 bool, result2 error) {
 	m.moq.scene.T.Helper()
 	params := moqTypeCache_IsDefaultComparable_params{
-		expr: expr,
+		expr:       expr,
+		parentType: parentType,
 	}
 	var results *moqTypeCache_IsDefaultComparable_results
 	for _, resultsByParams := range m.moq.resultsByParams_IsDefaultComparable {
@@ -532,7 +562,7 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 	}
 
 	if result.doFn != nil {
-		result.doFn(expr)
+		result.doFn(expr, parentType)
 	}
 
 	if result.values != nil {
@@ -540,7 +570,7 @@ func (m *moqTypeCache_mock) IsDefaultComparable(expr dst.Expr) (result1 bool, re
 		result2 = result.values.result2
 	}
 	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(expr)
+		result1, result2 = result.doReturnFn(expr, parentType)
 	}
 	return
 }
@@ -852,10 +882,11 @@ func (m *moqTypeCache) paramsKey_Type(params moqTypeCache_Type_params, anyParams
 	}
 }
 
-func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr) *moqTypeCache_IsComparable_fnRecorder {
+func (m *moqTypeCache_recorder) IsComparable(expr dst.Expr, parentType ast.TypeInfo) *moqTypeCache_IsComparable_fnRecorder {
 	return &moqTypeCache_IsComparable_fnRecorder{
 		params: moqTypeCache_IsComparable_params{
-			expr: expr,
+			expr:       expr,
+			parentType: parentType,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -873,6 +904,11 @@ func (r *moqTypeCache_IsComparable_fnRecorder) any() *moqTypeCache_IsComparable_
 
 func (a *moqTypeCache_IsComparable_anyParams) expr() *moqTypeCache_IsComparable_fnRecorder {
 	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqTypeCache_IsComparable_anyParams) parentType() *moqTypeCache_IsComparable_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
 
@@ -1036,7 +1072,7 @@ func (r *moqTypeCache_IsComparable_fnRecorder) repeat(repeaters ...moq.Repeater)
 }
 
 func (m *moqTypeCache) prettyParams_IsComparable(params moqTypeCache_IsComparable_params) string {
-	return fmt.Sprintf("IsComparable(%#v)", params.expr)
+	return fmt.Sprintf("IsComparable(%#v, %#v)", params.expr, params.parentType)
 }
 
 func (m *moqTypeCache) paramsKey_IsComparable(params moqTypeCache_IsComparable_params, anyParams uint64) moqTypeCache_IsComparable_paramsKey {
@@ -1050,20 +1086,38 @@ func (m *moqTypeCache) paramsKey_IsComparable(params moqTypeCache_IsComparable_p
 			exprUsedHash = hash.DeepHash(params.expr)
 		}
 	}
+	var parentTypeUsed ast.TypeInfo
+	var parentTypeUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.IsComparable.parentType == moq.ParamIndexByValue {
+			parentTypeUsed = params.parentType
+		} else {
+			parentTypeUsedHash = hash.DeepHash(params.parentType)
+		}
+	}
 	return moqTypeCache_IsComparable_paramsKey{
-		params: struct{ expr dst.Expr }{
-			expr: exprUsed,
+		params: struct {
+			expr       dst.Expr
+			parentType ast.TypeInfo
+		}{
+			expr:       exprUsed,
+			parentType: parentTypeUsed,
 		},
-		hashes: struct{ expr hash.Hash }{
-			expr: exprUsedHash,
+		hashes: struct {
+			expr       hash.Hash
+			parentType hash.Hash
+		}{
+			expr:       exprUsedHash,
+			parentType: parentTypeUsedHash,
 		},
 	}
 }
 
-func (m *moqTypeCache_recorder) IsDefaultComparable(expr dst.Expr) *moqTypeCache_IsDefaultComparable_fnRecorder {
+func (m *moqTypeCache_recorder) IsDefaultComparable(expr dst.Expr, parentType ast.TypeInfo) *moqTypeCache_IsDefaultComparable_fnRecorder {
 	return &moqTypeCache_IsDefaultComparable_fnRecorder{
 		params: moqTypeCache_IsDefaultComparable_params{
-			expr: expr,
+			expr:       expr,
+			parentType: parentType,
 		},
 		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
 		moq:      m.moq,
@@ -1081,6 +1135,11 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) any() *moqTypeCache_IsDefa
 
 func (a *moqTypeCache_IsDefaultComparable_anyParams) expr() *moqTypeCache_IsDefaultComparable_fnRecorder {
 	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqTypeCache_IsDefaultComparable_anyParams) parentType() *moqTypeCache_IsDefaultComparable_fnRecorder {
+	a.recorder.anyParams |= 1 << 1
 	return a.recorder
 }
 
@@ -1244,7 +1303,7 @@ func (r *moqTypeCache_IsDefaultComparable_fnRecorder) repeat(repeaters ...moq.Re
 }
 
 func (m *moqTypeCache) prettyParams_IsDefaultComparable(params moqTypeCache_IsDefaultComparable_params) string {
-	return fmt.Sprintf("IsDefaultComparable(%#v)", params.expr)
+	return fmt.Sprintf("IsDefaultComparable(%#v, %#v)", params.expr, params.parentType)
 }
 
 func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefaultComparable_params, anyParams uint64) moqTypeCache_IsDefaultComparable_paramsKey {
@@ -1258,12 +1317,29 @@ func (m *moqTypeCache) paramsKey_IsDefaultComparable(params moqTypeCache_IsDefau
 			exprUsedHash = hash.DeepHash(params.expr)
 		}
 	}
+	var parentTypeUsed ast.TypeInfo
+	var parentTypeUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.IsDefaultComparable.parentType == moq.ParamIndexByValue {
+			parentTypeUsed = params.parentType
+		} else {
+			parentTypeUsedHash = hash.DeepHash(params.parentType)
+		}
+	}
 	return moqTypeCache_IsDefaultComparable_paramsKey{
-		params: struct{ expr dst.Expr }{
-			expr: exprUsed,
+		params: struct {
+			expr       dst.Expr
+			parentType ast.TypeInfo
+		}{
+			expr:       exprUsed,
+			parentType: parentTypeUsed,
 		},
-		hashes: struct{ expr hash.Hash }{
-			expr: exprUsedHash,
+		hashes: struct {
+			expr       hash.Hash
+			parentType hash.Hash
+		}{
+			expr:       exprUsedHash,
+			parentType: parentTypeUsedHash,
 		},
 	}
 }

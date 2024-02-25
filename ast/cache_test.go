@@ -313,7 +313,6 @@ func TestCache(t *testing.T) {
 					defer afterEach(t)
 
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 					loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(tc.pkgs, nil)
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 					metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
@@ -372,13 +371,11 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, exportPkg).returnResults(exportPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, "builtin").returnResults(builtinPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -412,7 +409,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, replacebuiltinPkg).returnResults(replacebuiltinPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -446,7 +442,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportWTestsPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
@@ -481,7 +476,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			err := errors.New("load error")
 			loadFnMoq.onCall(loadCfg, ".").returnResults(nil, err)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
@@ -511,7 +505,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -583,7 +576,6 @@ func TestCache(t *testing.T) {
 					defer afterEach(t)
 
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 					loadCfg.Tests = tc.initialTestImport
 					loadFnMoq.onCall(loadCfg, tc.pkgName).returnResults(noExportWTestsPkgs, nil)
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
@@ -620,7 +612,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
@@ -631,7 +622,6 @@ func TestCache(t *testing.T) {
 			loadCfg.Tests = true
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportWTestsPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 
@@ -660,8 +650,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().
-				ReturnResults().Repeat(moq.Times(2))
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().
 				ReturnResults().Repeat(moq.Times(2))
 			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportPkgs, nil)
 			loadFnMoq.onCall(loadCfg, "builtin").returnResults(builtinPkgs, nil)
@@ -712,7 +700,6 @@ func TestCache(t *testing.T) {
 					defer afterEach(t)
 
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 					loadFnMoq.onCall(loadCfg, tc.firstPath).returnResults(noExportPkgs, nil)
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 					metricsMoq.OnCall().ASTPkgCacheHitsInc().ReturnResults()
@@ -755,7 +742,6 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, ".").returnResults(noExportWTestsPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTPkgCacheHitsInc().ReturnResults()
@@ -850,7 +836,7 @@ func TestCache(t *testing.T) {
 			"func()": {
 				comparable:        false,
 				defaultComparable: false,
-				structable:        false,
+				structable:        true,
 			},
 		}
 
@@ -861,6 +847,49 @@ func TestCache(t *testing.T) {
 				t.Errorf("got err: %#v, want no error", err)
 			}
 			return f
+		}
+
+		loadPackages := func(t *testing.T, code map[string]string) []*packages.Package {
+			t.Helper()
+			dir, err := os.MkdirTemp("", "cache-test-*")
+			if err != nil {
+				t.Fatalf("got os.MkdirTemp err: %#v, want no error", err)
+			}
+			defer func() {
+				err := os.RemoveAll(dir)
+				if err != nil {
+					t.Errorf("got os.RemoveAll err: %#v, want no error", err)
+				}
+			}()
+
+			for srcPath, src := range code {
+				fPath := filepath.Join(dir, srcPath)
+				fDir, _ := filepath.Split(fPath)
+				if err := os.Mkdir(fDir, fs.ModePerm); err != nil && !errors.Is(err, fs.ErrExist) {
+					t.Fatalf("got os.Mkdir err: %#v, want no error", err)
+				}
+				err := os.WriteFile(fPath, []byte(src), fs.ModePerm)
+				if err != nil {
+					t.Fatalf("got os.WriteFile err: %#v, want no error", err)
+				}
+			}
+
+			pkgs, err := packages.Load(&packages.Config{
+				Mode: packages.NeedName |
+					packages.NeedFiles |
+					packages.NeedCompiledGoFiles |
+					packages.NeedImports |
+					packages.NeedTypes |
+					packages.NeedSyntax |
+					packages.NeedTypesInfo |
+					packages.NeedTypesSizes,
+				Dir:   dir,
+				Tests: false,
+			}, "a")
+			if err != nil {
+				t.Fatalf("got packages.Load err: %#v, want no error", err)
+			}
+			return pkgs
 		}
 
 		simpleExpr := func(t *testing.T, paramType string) dst.Expr {
@@ -917,18 +946,19 @@ func b(c %s) {}
 			return p
 		}
 
+		isComparable := func(c *ast.Cache, expr dst.Expr, parentType ast.TypeInfo) (bool, error) {
+			return c.IsComparable(expr, parentType)
+		}
+		isDefaultComparable := func(c *ast.Cache, expr dst.Expr, parentType ast.TypeInfo) (bool, error) {
+			return c.IsDefaultComparable(expr, parentType)
+		}
+		type compFn func(c *ast.Cache, expr dst.Expr, parentType ast.TypeInfo) (bool, error)
+
 		t.Run("simple exprs", func(t *testing.T) {
 			for paramType, tc := range testCases {
 				t.Run(paramType, func(t *testing.T) {
-					isComparable := func(c *ast.Cache, expr dst.Expr) (bool, error) {
-						return c.IsComparable(expr)
-					}
-					isDefaultComparable := func(c *ast.Cache, expr dst.Expr) (bool, error) {
-						return c.IsDefaultComparable(expr)
-					}
-
-					subTestCases := map[string]struct {
-						compFn     func(c *ast.Cache, expr dst.Expr) (bool, error)
+					for name, stc := range map[string]struct {
+						compFn     compFn
 						comparable bool
 					}{
 						"IsComparable": {
@@ -939,16 +969,13 @@ func b(c %s) {}
 							compFn:     isDefaultComparable,
 							comparable: tc.defaultComparable,
 						},
-					}
-
-					for name, stc := range subTestCases {
+					} {
 						t.Run(name, func(t *testing.T) {
 							// ASSEMBLE
 							beforeEach(t, false)
 							defer afterEach(t)
 
 							metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().Repeat(moq.Optional())
-							metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults().Repeat(moq.Optional())
 							loadFnMoq.onCall(loadCfg, "io").
 								returnResults(ioPkgs, nil).repeat(moq.AnyTimes())
 							metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults().Repeat(moq.Optional())
@@ -958,7 +985,7 @@ func b(c %s) {}
 							expr := simpleExpr(t, paramType)
 
 							// ACT
-							is, err := stc.compFn(cache, expr)
+							is, err := stc.compFn(cache, expr, ast.TypeInfo{})
 							// ASSERT
 							if err != nil {
 								t.Errorf("got %#v, want no error", err)
@@ -972,21 +999,8 @@ func b(c %s) {}
 			}
 		})
 
-		comparableStructCases := map[string]struct {
-			code    string
-			declIdx int
-		}{
-			"inline": {
-				code: `package a
-
-import _ "io"
-
-func a(b struct{ c %s }) {}
-`,
-				declIdx: 1,
-			},
-			"standard": {
-				code: `package a
+		t.Run("IsComparable - struct exprs", func(t *testing.T) {
+			code := `package a
 
 import _ "io"
 
@@ -995,49 +1009,42 @@ type b struct {
 }
 
 func d(e b) {}
-`,
-				declIdx: 2,
-			},
-		}
+`
 
-		t.Run("IsComparable - struct exprs", func(t *testing.T) {
-			for name, stc := range comparableStructCases {
-				t.Run(name, func(t *testing.T) {
-					for paramType, tc := range testCases {
-						t.Run(paramType, func(t *testing.T) {
-							// ASSEMBLE
-							if !tc.structable {
-								t.Skipf("%s can't be put into a struct, skipping", paramType)
-							}
+			for paramType, tc := range testCases {
+				t.Run(paramType, func(t *testing.T) {
+					// ASSEMBLE
+					if !tc.structable {
+						t.Skipf("%s can't be put into a struct, skipping", paramType)
+					}
 
-							beforeEach(t, false)
-							defer afterEach(t)
+					beforeEach(t, false)
+					defer afterEach(t)
 
-							f := parse(t, fmt.Sprintf(stc.code, paramType))
-							fn, ok := f.Decls[stc.declIdx].(*dst.FuncDecl)
-							if !ok {
-								t.Fatalf("got %#v, want a function declaration", f.Decls[stc.declIdx])
-							}
-							expr := fn.Type.Params.List[0].Type
+					pkgs := loadPackages(t, map[string]string{
+						"code.go": fmt.Sprintf(code, paramType),
+						"go.mod":  "module a",
+					})
 
-							metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().Repeat(moq.Optional())
-							metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults().Repeat(moq.Optional())
-							loadFnMoq.onCall(loadCfg, "io").
-								returnResults(ioPkgs, nil).repeat(moq.AnyTimes())
-							metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults().Repeat(moq.Optional())
-							metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
-								ReturnResults().Repeat(moq.AnyTimes())
+					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().
+						Repeat(moq.MinTimes(1), moq.MaxTimes(2))
+					loadFnMoq.onCall(loadCfg, "a").
+						returnResults(pkgs, nil)
+					loadFnMoq.onCall(loadCfg, "io").
+						returnResults(ioPkgs, nil).repeat(moq.Optional())
+					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults().
+						Repeat(moq.MinTimes(1), moq.MaxTimes(2))
+					metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
+						ReturnResults().Repeat(moq.AnyTimes())
 
-							// ACT
-							isComparable, err := cache.IsComparable(expr)
-							// ASSERT
-							if err != nil {
-								t.Errorf("got %#v, want no error", err)
-							}
-							if isComparable != tc.comparable {
-								t.Errorf("got %t, want %t", isComparable, tc.comparable)
-							}
-						})
+					// ACT
+					isComparable, err := cache.IsComparable(ast.IdPath("b", "a"), ast.TypeInfo{})
+					// ASSERT
+					if err != nil {
+						t.Errorf("got %#v, want no error", err)
+					}
+					if isComparable != tc.comparable {
+						t.Errorf("got %t, want %t", isComparable, tc.comparable)
 					}
 				})
 			}
@@ -1077,12 +1084,10 @@ type e struct {
 `
 					bPkg := parseASTPackage(t, fmt.Sprintf(code2, paramType), "b")
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().Repeat(moq.Optional())
-					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults().Repeat(moq.Optional())
 					loadFnMoq.onCall(loadCfg, "b").returnResults(bPkg, nil)
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults().Repeat(moq.Optional())
 
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().Repeat(moq.Optional())
-					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults().Repeat(moq.Optional())
 					loadFnMoq.onCall(loadCfg, "io").
 						returnResults(ioPkgs, nil).repeat(moq.AnyTimes())
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults().Repeat(moq.Optional())
@@ -1090,7 +1095,7 @@ type e struct {
 						ReturnResults().Repeat(moq.AnyTimes())
 
 					// ACT
-					isComparable, err := cache.IsComparable(expr)
+					isComparable, err := cache.IsComparable(expr, ast.TypeInfo{})
 					// ASSERT
 					if err != nil {
 						t.Errorf("got %#v, want no error", err)
@@ -1111,7 +1116,6 @@ type e struct {
 		c := ast.NewCache(packages.Load, os.Stat, os.ReadFile, metricsMoq.Mock())
 
 		metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults().Repeat(moq.AnyTimes())
-		metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults().Repeat(moq.AnyTimes())
 		metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().
 			ReturnResults().Repeat(moq.AnyTimes())
 		metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
@@ -1133,7 +1137,7 @@ type e struct {
 		expr := fType.Params.List[0].Type
 
 		// ACT
-		isComparable, err := c.IsComparable(expr)
+		isComparable, err := c.IsComparable(expr, ast.TypeInfo{})
 		// ASSERT
 		if err != nil {
 			t.Errorf("got %#v, want no error", err)
@@ -1150,7 +1154,6 @@ type e struct {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, "./testpkgs/noexport").returnResults(noExportPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -1270,7 +1273,6 @@ type e struct {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, ".").doReturnResults(packages.Load)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -1289,7 +1291,6 @@ type e struct {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			err := errors.New("load error")
 			loadFnMoq.onCall(loadCfg, ".").returnResults(nil, err)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
@@ -1305,9 +1306,9 @@ type e struct {
 
 	t.Run("MockableTypes", func(t *testing.T) {
 		pkg := func(pkgPath string) *packages.Package {
-			fs := token.NewFileSet()
-			fs.AddFile("file1", 1, 0)
-			fs.AddFile("file2", 2, 0)
+			fset := token.NewFileSet()
+			fset.AddFile("file1", 1, 0)
+			fset.AddFile("file2", 2, 0)
 
 			return &packages.Package{
 				Syntax: []*goAst.File{
@@ -1346,7 +1347,7 @@ type e struct {
 					},
 				},
 				TypesInfo: &types.Info{},
-				Fset:      fs,
+				Fset:      fset,
 				GoFiles:   []string{"file1", "file2"},
 				PkgPath:   pkgPath,
 			}
@@ -1383,7 +1384,6 @@ type e struct {
 					defer afterEach(t)
 
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-					metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 					loadFnMoq.onCall(loadCfg, tc.pkg).returnResults(tc.pkgs, nil)
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 					metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -1432,7 +1432,6 @@ type e struct {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
@@ -1459,7 +1458,6 @@ type e struct {
 			pkgs := append(exportPkgs, pkg("vendor/other-pkgs"))
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, exportPkg).returnResults(pkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults().Repeat(moq.AnyTimes())
@@ -1489,7 +1487,6 @@ type e struct {
 				pkg("internal"))
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			metricsMoq.OnCall().ASTTypeCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, exportPkg).returnResults(pkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults().Repeat(moq.AnyTimes())

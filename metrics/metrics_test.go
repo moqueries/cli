@@ -44,8 +44,6 @@ func TestMetrics(t *testing.T) {
 
 		m.ASTPkgCacheHitsInc()
 		m.ASTPkgCacheMissesInc()
-		m.ASTTypeCacheHitsInc()
-		m.ASTTypeCacheMissesInc()
 		m.ASTTotalLoadTimeInc(1234 * time.Millisecond)
 		m.ASTTotalDecorationTimeInc(9999 * time.Millisecond)
 		m.TotalProcessingTimeInc(4321 * time.Millisecond)
@@ -60,10 +58,8 @@ func TestMetrics(t *testing.T) {
 
 	t.Run("single int increment", func(t *testing.T) {
 		incFuncs := map[string]func(m *metrics.Processor){
-			"ast-pkg-cache-hits":    func(m *metrics.Processor) { m.ASTPkgCacheHitsInc() },
-			"ast-pkg-cache-misses":  func(m *metrics.Processor) { m.ASTPkgCacheMissesInc() },
-			"ast-type-cache-hits":   func(m *metrics.Processor) { m.ASTTypeCacheHitsInc() },
-			"ast-type-cache-misses": func(m *metrics.Processor) { m.ASTTypeCacheMissesInc() },
+			"ast-pkg-cache-hits":   func(m *metrics.Processor) { m.ASTPkgCacheHitsInc() },
+			"ast-pkg-cache-misses": func(m *metrics.Processor) { m.ASTPkgCacheMissesInc() },
 		}
 
 		for name, incFunc := range incFuncs {

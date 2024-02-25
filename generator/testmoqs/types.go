@@ -2,12 +2,16 @@
 // testing
 package testmoqs
 
-import "io"
+import (
+	"io"
+
+	"moqueries.org/cli/generator/testmoqs/other"
+)
 
 // NB: Keep in sync with ../generator_test.go TestGenerating
 
-//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByReferenceFn InterfaceParamFn InterfaceResultFn Usual
-//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByReferenceFn InterfaceParamFn InterfaceResultFn Usual
+//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn Usual
+//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn Usual
 
 // UsualFn is a typical function type
 type UsualFn func(sParam string, bParam bool) (sResult string, err error)
@@ -39,15 +43,38 @@ type DifficultParamNamesFn func(m, r bool, sequence string, param, params, i int
 // DifficultResultNamesFn has parameters with names that have been problematic
 type DifficultResultNamesFn func() (m, r string, sequence error, param, params, i int, result, results, _ float32)
 
-// PassByReferenceParams encapsulates the parameters for passing by reference
-// tests
-type PassByReferenceParams struct {
+// Params encapsulates the parameters for use in various test types
+type Params struct {
 	SParam string
 	BParam bool
 }
 
-// PassByReferenceFn tests passing parameters by reference
-type PassByReferenceFn func(p *PassByReferenceParams) (sResult string, err error)
+// Results encapsulates the results for use in various test types
+type Results struct {
+	SResult string
+	Err     error
+}
+
+// PassByArrayFn tests passing parameters and results by array
+type PassByArrayFn func(p [3]Params) [3]Results
+
+// PassByChanFn tests passing parameters and results by channel
+type PassByChanFn func(p chan Params) chan Results
+
+// PassByEllipsisFn tests passing parameters by ellipsis
+type PassByEllipsisFn func(p ...Params) (string, error)
+
+// PassByMapFn tests passing parameters and results by map
+type PassByMapFn func(p map[string]Params) map[string]Results
+
+// PassByReferenceFn tests passing parameters and results by reference
+type PassByReferenceFn func(p *Params) *Results
+
+// PassBySliceFn tests passing parameters and results by slice
+type PassBySliceFn func(p []Params) []Results
+
+// PassByValueFn tests passing parameters and results by reference
+type PassByValueFn func(p Params) Results
 
 // InterfaceParamWriter is used for testing functions that take an interface as
 // a parameter
@@ -91,8 +118,15 @@ type Usual interface {
 	Times(sParam string, times bool) (sResult string, err error)
 	DifficultParamNames(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 	DifficultResultNames() (m, r string, sequence error, param, params, i int, result, results, _ float32)
-	PassByReference(p *PassByReferenceParams) (sResult string, err error)
+	PassByArray(p [3]Params) [3]Results
+	PassByChan(p chan Params) chan Results
+	PassByEllipsis(p ...Params) (string, error)
+	PassByMap(p map[string]Params) map[string]Results
+	PassByReference(p *Params) *Results
+	PassBySlice(p []Params) []Results
+	PassByValue(p Params) Results
 	InterfaceParam(w io.Writer) (sResult string, err error)
 	InterfaceResult(sParam string, bParam bool) (r io.Reader)
 	FnParam(fn func())
+	other.Other
 }

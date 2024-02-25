@@ -24,4 +24,6 @@ func (*PassByRefSimple) Usual(string, bool) (string, error) {
 type Reduced interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
 	notSoUsual()
+	ReallyUnusualParams(struct{ a string })
+	ReallyUnusualResults() struct{ a string }
 }
