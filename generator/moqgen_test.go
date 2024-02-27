@@ -758,100 +758,92 @@ func TestMoqGenerator(t *testing.T) {
 			}
 		})
 
-		t.Run("only unexported methods, error", func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t)
-			defer afterEach(t)
+		t.Run("various ErrNonExported", func(t *testing.T) {
+			for name, tc := range map[string]struct {
+				typeInfo             *ast.TypeInfo
+				overrideFunc1Name    string
+				overrideFunc1Results *dst.FieldList
+				errorMsg             string
+			}{
+				"only unexported methods, error": {
+					typeInfo:          &ifaceInfo1,
+					overrideFunc1Name: "func1",
+					errorMsg:          "type ..MyType only contains non-exported types",
+				},
+				"one method with unexported param, error": {
+					typeInfo: &ifaceInfo1,
+					errorMsg: "type ..MyType only contains non-exported types",
+				},
+				"one method with unexported result, error": {
+					typeInfo:             &ifaceInfo1,
+					overrideFunc1Results: func1Results,
+					errorMsg:             "type ..MyType only contains non-exported types",
+				},
+				"mocking a function": {
+					typeInfo: &fnInfo,
+					errorMsg: "PublicFn mocked type is not exported",
+				},
+			} {
+				t.Run(name, func(t *testing.T) {
+					// ASSEMBLE
+					beforeEach(t)
+					defer afterEach(t)
 
-			typeCacheMoq.onCall().FindPackage(".").
-				returnResults("destdir", nil)
-			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+					typeCacheMoq.onCall().FindPackage(".").
+						returnResults("destdir", nil)
+					getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
 
-			func1.Names[0].Name = "func1"
-			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
-				returnResults(ifaceInfo1, nil)
-			req := generator.GenerateRequest{
-				Types:              []string{"MyInterface"},
-				Export:             true,
-				Destination:        "file_test.go",
-				Package:            "",
-				Import:             ".",
-				TestImport:         false,
-				WorkingDir:         "/some-nice-path",
-				ExcludeNonExported: true,
-			}
+					if tc.overrideFunc1Name != "" {
+						func1.Names[0].Name = tc.overrideFunc1Name
+					}
+					if tc.overrideFunc1Results != nil {
+						func1.Type.(*dst.FuncType).Results = tc.overrideFunc1Results
+					}
+					typeCacheMoq.onCall().Type(*ast.IdPath("MyType", "."), ".", false).
+						returnResults(*tc.typeInfo, nil)
+					if tc.overrideFunc1Name == "" {
+						typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+							returnResults(ast.TypeInfo{Exported: false}, nil)
+					}
+					if tc.overrideFunc1Results != nil {
+						typeCacheMoq.onCall().Type(*ast.IdPath("error", ""), genPkg, false).
+							returnResults(ast.TypeInfo{Exported: false}, nil)
+					}
+					req := generator.GenerateRequest{
+						Types:              []string{"MyType"},
+						Export:             true,
+						Destination:        "file_test.go",
+						Package:            "",
+						Import:             ".",
+						TestImport:         false,
+						WorkingDir:         "/some-nice-path",
+						ExcludeNonExported: true,
+					}
 
-			// ACT
-			resp, err := gen.Generate(req)
+					// ACT
+					resp, err := gen.Generate(req)
 
-			// ASSERT
-			if err == nil {
-				t.Fatal("got no error, wanted error")
-			}
-			expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
-			if err.Error() != expectedMsg {
-				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
-			}
-			if !errors.Is(err, generator.ErrNonExported) {
-				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
-			}
-			if resp.File != nil {
-				t.Errorf("got %#v, wanted nil", resp.File)
-			}
-			if resp.DestPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.DestPath)
-			}
-			if resp.OutPkgPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
-			}
-		})
-
-		t.Run("one method with unexported param, error", func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t)
-			defer afterEach(t)
-
-			typeCacheMoq.onCall().FindPackage(".").
-				returnResults("destdir", nil)
-			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-
-			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
-				returnResults(ifaceInfo1, nil)
-			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
-				returnResults(ast.TypeInfo{Exported: false}, nil)
-			req := generator.GenerateRequest{
-				Types:              []string{"MyInterface"},
-				Export:             true,
-				Destination:        "file_test.go",
-				Package:            "",
-				Import:             ".",
-				TestImport:         false,
-				WorkingDir:         "/some-nice-path",
-				ExcludeNonExported: true,
-			}
-
-			// ACT
-			resp, err := gen.Generate(req)
-
-			// ASSERT
-			if err == nil {
-				t.Fatal("got no error, wanted error")
-			}
-			expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
-			if err.Error() != expectedMsg {
-				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
-			}
-			if !errors.Is(err, generator.ErrNonExported) {
-				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
-			}
-			if resp.File != nil {
-				t.Errorf("got %#v, wanted nil", resp.File)
-			}
-			if resp.DestPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.DestPath)
-			}
-			if resp.OutPkgPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+					// ASSERT
+					if err == nil {
+						t.Fatal("got no error, want error")
+					}
+					expectedMsg := "non-exported types: " + tc.errorMsg
+					if err.Error() != expectedMsg {
+						t.Errorf("got %s, want %s", err.Error(), expectedMsg)
+					}
+					if !errors.Is(err, generator.ErrNonExported) {
+						t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+					}
+					if resp.File != nil {
+						t.Errorf("got %#v, want nil", resp.File)
+					}
+					if resp.DestPath != "" {
+						t.Errorf("got %s, want nothing", resp.DestPath)
+					}
+					if resp.OutPkgPath != "" {
+						t.Errorf("got %s, want nothing", resp.OutPkgPath)
+					}
+				})
 			}
 		})
 
@@ -989,58 +981,6 @@ func TestMoqGenerator(t *testing.T) {
 			}
 		})
 
-		t.Run("one method with unexported result, error", func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t)
-			defer afterEach(t)
-
-			typeCacheMoq.onCall().FindPackage(".").
-				returnResults("destdir", nil)
-			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-
-			func1.Type.(*dst.FuncType).Results = func1Results
-			typeCacheMoq.onCall().Type(*ast.IdPath("MyInterface", "."), ".", false).
-				returnResults(ifaceInfo1, nil)
-			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
-				returnResults(ast.TypeInfo{Exported: true}, nil)
-			typeCacheMoq.onCall().Type(*ast.IdPath("error", ""), genPkg, false).
-				returnResults(ast.TypeInfo{Exported: false}, nil)
-			req := generator.GenerateRequest{
-				Types:              []string{"MyInterface"},
-				Export:             true,
-				Destination:        "file_test.go",
-				Package:            "",
-				Import:             ".",
-				TestImport:         false,
-				WorkingDir:         "/some-nice-path",
-				ExcludeNonExported: true,
-			}
-
-			// ACT
-			resp, err := gen.Generate(req)
-
-			// ASSERT
-			if err == nil {
-				t.Fatal("got no error, wanted error")
-			}
-			expectedMsg := "non-exported types: type ..MyInterface only contains non-exported types"
-			if err.Error() != expectedMsg {
-				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
-			}
-			if !errors.Is(err, generator.ErrNonExported) {
-				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
-			}
-			if resp.File != nil {
-				t.Errorf("got %#v, wanted nil", resp.File)
-			}
-			if resp.DestPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.DestPath)
-			}
-			if resp.OutPkgPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
-			}
-		})
-
 		t.Run("only unexported with embedded interface, error", func(t *testing.T) {
 			// ASSEMBLE
 			beforeEach(t)
@@ -1084,55 +1024,6 @@ func TestMoqGenerator(t *testing.T) {
 			expectedMsg := "non-exported types: type ..PublicInterface only contains non-exported types"
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
-			}
-			if !errors.Is(err, generator.ErrNonExported) {
-				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
-			}
-			if resp.File != nil {
-				t.Errorf("got %#v, wanted nil", resp.File)
-			}
-			if resp.DestPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.DestPath)
-			}
-			if resp.OutPkgPath != "" {
-				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
-			}
-		})
-
-		t.Run("mocking a function", func(t *testing.T) {
-			// ASSEMBLE
-			beforeEach(t)
-			defer afterEach(t)
-
-			typeCacheMoq.onCall().FindPackage(".").
-				returnResults("destdir", nil)
-			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-
-			typeCacheMoq.onCall().Type(*ast.IdPath("MyFunc", "."), ".", false).
-				returnResults(fnInfo, nil)
-			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
-				returnResults(ast.TypeInfo{Exported: false}, nil)
-			req := generator.GenerateRequest{
-				Types:              []string{"MyFunc"},
-				Export:             true,
-				Destination:        "file_test.go",
-				Package:            "",
-				Import:             ".",
-				TestImport:         false,
-				WorkingDir:         "/some-nice-path",
-				ExcludeNonExported: true,
-			}
-
-			// ACT
-			resp, err := gen.Generate(req)
-
-			// ASSERT
-			if err == nil {
-				t.Fatal("got no error, wanted error")
-			}
-			expectedMsg := "non-exported types: PublicFn mocked type is not exported"
-			if err.Error() != expectedMsg {
-				t.Errorf("got %s, want %s", err.Error(), expectedMsg)
 			}
 			if !errors.Is(err, generator.ErrNonExported) {
 				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
