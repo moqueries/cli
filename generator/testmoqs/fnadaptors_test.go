@@ -1838,27 +1838,33 @@ func (a *passByReferenceFnAdaptor) config() adaptorConfig {
 func (a *passByReferenceFnAdaptor) mock() interface{} { return a.m.mock() }
 
 func (a *passByReferenceFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
-	return &passByReferenceFnRecorder{r: a.m.onCall(&testmoqs.PassByReferenceParams{
+	return &passByReferenceFnRecorder{r: a.m.onCall(&testmoqs.Params{
 		SParam: sParams[0],
 		BParam: bParam,
 	})}
 }
 
 func (a *passByReferenceFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results) {
-	sResult, err := a.m.mock()(&testmoqs.PassByReferenceParams{
+	r := a.m.mock()(&testmoqs.Params{
 		SParam: sParams[0],
 		BParam: bParam,
 	})
-	if sResult != res.sResults[0] {
-		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	if r == nil {
+		if res.sResults[0] != "" || res.err != nil {
+			t.Fatalf("got nil, want real results")
+		}
+		return
 	}
-	if err != res.err {
-		t.Errorf("wanted %#v, got %#v", res.err, err)
+	if r.SResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], r.SResult)
+	}
+	if r.Err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, r.Err)
 	}
 }
 
 func (a *passByReferenceFnAdaptor) prettyParams(sParams []string, bParam bool) string {
-	return fmt.Sprintf("PassByReferenceFn(%#v)", &testmoqs.PassByReferenceParams{
+	return fmt.Sprintf("PassByReferenceFn(%#v)", &testmoqs.Params{
 		SParam: sParams[0],
 		BParam: bParam,
 	})
@@ -1897,11 +1903,11 @@ func (r *passByReferenceFnRecorder) noSeq() {
 }
 
 func (r *passByReferenceFnRecorder) returnResults(sResults []string, err error) {
-	r.r = r.r.returnResults(sResults[0], err)
+	r.r = r.r.returnResults(&testmoqs.Results{SResult: sResults[0], Err: err})
 }
 
 func (r *passByReferenceFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
-	r.r = r.r.andDo(func(p *testmoqs.PassByReferenceParams) {
+	r.r = r.r.andDo(func(p *testmoqs.Params) {
 		fn()
 		if p.SParam != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
@@ -1915,7 +1921,7 @@ func (r *passByReferenceFnRecorder) andDo(t moq.T, fn func(), expectedSParams []
 func (r *passByReferenceFnRecorder) doReturnResults(
 	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
 ) {
-	r.r = r.r.doReturnResults(func(p *testmoqs.PassByReferenceParams) (string, error) {
+	r.r = r.r.doReturnResults(func(p *testmoqs.Params) *testmoqs.Results {
 		fn()
 		if p.SParam != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
@@ -1923,7 +1929,7 @@ func (r *passByReferenceFnRecorder) doReturnResults(
 		if p.BParam != expectedBParam {
 			t.Errorf("wanted %t, got %#v", expectedBParam, p.BParam)
 		}
-		return sResults[0], err
+		return &testmoqs.Results{SResult: sResults[0], Err: err}
 	})
 }
 
@@ -1949,7 +1955,7 @@ func (a *exportedPassByReferenceFnAdaptor) config() adaptorConfig {
 func (a *exportedPassByReferenceFnAdaptor) mock() interface{} { return a.m.Mock() }
 
 func (a *exportedPassByReferenceFnAdaptor) newRecorder(sParams []string, bParam bool) recorder {
-	return &exportedPassByReferenceFnRecorder{r: a.m.OnCall(&testmoqs.PassByReferenceParams{
+	return &exportedPassByReferenceFnRecorder{r: a.m.OnCall(&testmoqs.Params{
 		SParam: sParams[0],
 		BParam: bParam,
 	})}
@@ -1958,20 +1964,26 @@ func (a *exportedPassByReferenceFnAdaptor) newRecorder(sParams []string, bParam 
 func (a *exportedPassByReferenceFnAdaptor) invokeMockAndExpectResults(
 	t moq.T, sParams []string, bParam bool, res results,
 ) {
-	sResult, err := a.m.Mock()(&testmoqs.PassByReferenceParams{
+	r := a.m.Mock()(&testmoqs.Params{
 		SParam: sParams[0],
 		BParam: bParam,
 	})
-	if sResult != res.sResults[0] {
-		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
+	if r == nil {
+		if res.sResults[0] != "" || res.err != nil {
+			t.Fatalf("got nil, want real results")
+		}
+		return
 	}
-	if err != res.err {
-		t.Errorf("wanted %#v, got %#v", res.err, err)
+	if r.SResult != res.sResults[0] {
+		t.Errorf("wanted %#v, got %#v", res.sResults[0], r.SResult)
+	}
+	if r.Err != res.err {
+		t.Errorf("wanted %#v, got %#v", res.err, r.Err)
 	}
 }
 
 func (a *exportedPassByReferenceFnAdaptor) prettyParams(sParams []string, bParam bool) string {
-	return fmt.Sprintf("PassByReferenceFn(%#v)", &testmoqs.PassByReferenceParams{
+	return fmt.Sprintf("PassByReferenceFn(%#v)", &testmoqs.Params{
 		SParam: sParams[0],
 		BParam: bParam,
 	})
@@ -2010,11 +2022,11 @@ func (r *exportedPassByReferenceFnRecorder) noSeq() {
 }
 
 func (r *exportedPassByReferenceFnRecorder) returnResults(sResults []string, err error) {
-	r.r = r.r.ReturnResults(sResults[0], err)
+	r.r = r.r.ReturnResults(&testmoqs.Results{SResult: sResults[0], Err: err})
 }
 
 func (r *exportedPassByReferenceFnRecorder) andDo(t moq.T, fn func(), expectedSParams []string, expectedBParam bool) {
-	r.r = r.r.AndDo(func(p *testmoqs.PassByReferenceParams) {
+	r.r = r.r.AndDo(func(p *testmoqs.Params) {
 		fn()
 		if p.SParam != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
@@ -2028,7 +2040,7 @@ func (r *exportedPassByReferenceFnRecorder) andDo(t moq.T, fn func(), expectedSP
 func (r *exportedPassByReferenceFnRecorder) doReturnResults(
 	t moq.T, fn func(), expectedSParams []string, expectedBParam bool, sResults []string, err error,
 ) {
-	r.r = r.r.DoReturnResults(func(p *testmoqs.PassByReferenceParams) (string, error) {
+	r.r = r.r.DoReturnResults(func(p *testmoqs.Params) *testmoqs.Results {
 		fn()
 		if p.SParam != expectedSParams[0] {
 			t.Errorf("wanted %#v, got %#v", expectedSParams[0], p.SParam)
@@ -2036,7 +2048,7 @@ func (r *exportedPassByReferenceFnRecorder) doReturnResults(
 		if p.BParam != expectedBParam {
 			t.Errorf("wanted %t, got %#v", expectedBParam, p.BParam)
 		}
-		return sResults[0], err
+		return &testmoqs.Results{SResult: sResults[0], Err: err}
 	})
 }
 

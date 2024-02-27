@@ -1,0 +1,23 @@
+// Package other contains multiple test types for use in unit testing
+package other
+
+type Other interface {
+	Another
+}
+
+// Params encapsulates the parameters for use in various test types
+type Params struct {
+	SParam string
+	BParam bool
+}
+
+// Results encapsulates the results for use in various test types
+type Results struct {
+	SResult string
+	Err     error
+}
+
+type Another interface {
+	//nolint:inamedparam // Testing interface method with unnamed param
+	Other(Params) Results
+}

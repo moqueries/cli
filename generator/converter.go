@@ -139,8 +139,9 @@ func NewConverter(typ Type, isExported bool, typeCache TypeCache) *Converter {
 
 // Func holds on to function related data
 type Func struct {
-	Name     string
-	FuncType *dst.FuncType
+	Name       string
+	ParentType TypeInfo
+	FuncType   *dst.FuncType
 }
 
 // BaseDecls generates the base declarations used to store the moq's state and
@@ -242,12 +243,12 @@ func (c *Converter) MethodStructs(fn Func) ([]dst.Decl, error) {
 	prefix := c.typePrefix(fn)
 
 	decls := []dst.Decl{
-		c.paramsStructDecl(prefix, false, fn.FuncType.Params),
-		c.paramsStructDecl(prefix, true, fn.FuncType.Params),
+		c.paramsStructDecl(prefix, false, fn.FuncType.Params, fn.ParentType),
+		c.paramsStructDecl(prefix, true, fn.FuncType.Params, fn.ParentType),
 		c.resultByParamsStruct(prefix),
-		c.doFuncType(prefix, fn.FuncType.Params),
+		c.doFuncType(prefix, fn.FuncType.Params, fn.ParentType),
 		c.doReturnFuncType(prefix, fn),
-		c.resultsStruct(prefix, fn.FuncType.Results),
+		c.resultsStruct(prefix, fn.FuncType.Results, fn.ParentType),
 		c.fnRecorderStruct(prefix),
 		c.anyParamsStruct(prefix),
 	}
@@ -357,8 +358,8 @@ func (c *Converter) FuncClosure(fn Func) (*dst.FuncDecl, error) {
 	decl := Fn(c.export(mockFnName)).
 		Recv(Field(Star(Id(mName))).Names(Id(moqReceiverIdent)).Obj).
 		Results(Field(resType).Obj).
-		Body(Return(FnLit(FnType(cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params)).
-			Results(cloneFieldList(fn.FuncType.Results, true)).Obj).
+		Body(Return(FnLit(FnType(c.cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params, fn.ParentType)).
+			Results(c.cloneFieldList(fn.FuncType.Results, true, fn.ParentType)).Obj).
 			Body(c.helperCallExpr(Id(moqReceiverIdent)),
 				Assign(Id(moqIdent)).Tok(token.DEFINE).Rhs(Un(
 					token.AND,
@@ -392,8 +393,8 @@ func (c *Converter) MockMethod(fn Func) (*dst.FuncDecl, error) {
 
 	decl := Fn(fnName).
 		Recv(Field(Star(Id(fmt.Sprintf(double, mName, mockIdent)))).Names(Id(moqReceiverIdent)).Obj).
-		ParamList(cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params)).
-		ResultList(cloneAndNameUnnamed(resultPrefix, fn.FuncType.Results)).
+		ParamList(c.cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params, fn.ParentType)).
+		ResultList(c.cloneAndNameUnnamed(resultPrefix, fn.FuncType.Results, fn.ParentType)).
 		Body(c.mockFunc(typePrefix, fieldSuffix, fn)...).
 		Decs(stdFuncDec()).Obj
 
@@ -587,16 +588,18 @@ func (c *Converter) paramIndexingFnValues(fn Func) []dst.Expr {
 	kvDec := dst.NewLine
 	count := 0
 	for _, f := range fn.FuncType.Params.List {
+		typ := c.resolveExpr(f.Type, fn.ParentType)
+
 		if len(f.Names) == 0 {
 			vals = append(vals, c.paramIndexingValue(
-				f.Type, fmt.Sprintf(unnamed, paramPrefix, count+1), kvDec))
+				typ, fmt.Sprintf(unnamed, paramPrefix, count+1), kvDec))
 			count++
 			kvDec = dst.None
 		}
 
 		for _, name := range f.Names {
 			vals = append(vals, c.paramIndexingValue(
-				f.Type, validName(name.Name, paramPrefix, count), kvDec))
+				typ, validName(name.Name, paramPrefix, count), kvDec))
 			count++
 			kvDec = dst.None
 		}
@@ -606,7 +609,7 @@ func (c *Converter) paramIndexingFnValues(fn Func) []dst.Expr {
 }
 
 func (c *Converter) paramIndexingValue(typ dst.Expr, name string, kvDec dst.SpaceType) *dst.KeyValueExpr {
-	comp, err := c.typeCache.IsDefaultComparable(typ)
+	comp, err := c.typeCache.IsDefaultComparable(typ, c.typ.TypeInfo)
 	if err != nil {
 		if c.err == nil {
 			c.err = err
@@ -623,7 +626,7 @@ func (c *Converter) paramIndexingValue(typ dst.Expr, name string, kvDec dst.Spac
 }
 
 func (c *Converter) paramsStructDecl(
-	prefix string, paramsKey bool, fieldList *dst.FieldList,
+	prefix string, paramsKey bool, fieldList *dst.FieldList, parentType TypeInfo,
 ) *dst.GenDecl {
 	var mStruct *dst.StructType
 	var label, goDocDesc string
@@ -631,15 +634,15 @@ func (c *Converter) paramsStructDecl(
 		label = paramsKeyIdent
 		goDocDesc = "map key params"
 
-		mStruct = Struct(Field(c.methodStruct(paramsKeyIdent, fieldList)).
+		mStruct = Struct(Field(c.methodStruct(paramsKeyIdent, fieldList, parentType)).
 			Names(c.exportId(paramsIdent)).Obj,
-			Field(c.methodStruct(hashesIdent, fieldList)).
+			Field(c.methodStruct(hashesIdent, fieldList, parentType)).
 				Names(c.exportId(hashesIdent)).Obj)
 	} else {
 		label = paramsIdent
 		goDocDesc = label
 
-		mStruct = c.methodStruct(paramsIdent, fieldList)
+		mStruct = c.methodStruct(paramsIdent, fieldList, parentType)
 	}
 
 	structName := fmt.Sprintf(double, prefix, label)
@@ -648,9 +651,9 @@ func (c *Converter) paramsStructDecl(
 			structName, goDocDesc, c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
-func (c *Converter) methodStruct(label string, fieldList *dst.FieldList) *dst.StructType {
+func (c *Converter) methodStruct(label string, fieldList *dst.FieldList, parentType TypeInfo) *dst.StructType {
 	unnamedPrefix, _ := labelDirection(label)
-	fieldList = cloneFieldList(fieldList, false)
+	fieldList = c.cloneFieldList(fieldList, false, parentType)
 
 	if fieldList == nil {
 		return StructFromList(nil)
@@ -688,7 +691,7 @@ func (c *Converter) comparableType(label string, typ dst.Expr) dst.Expr {
 	case paramsIdent:
 	case resultsIdent:
 	case paramsKeyIdent:
-		comp, err := c.typeCache.IsComparable(typ)
+		comp, err := c.typeCache.IsComparable(typ, c.typ.TypeInfo)
 		if err != nil {
 			if c.err == nil {
 				c.err = err
@@ -731,10 +734,10 @@ func (c *Converter) resultByParamsStruct(prefix string) *dst.GenDecl {
 		c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
-func (c *Converter) doFuncType(prefix string, params *dst.FieldList) *dst.GenDecl {
+func (c *Converter) doFuncType(prefix string, params *dst.FieldList, parentType TypeInfo) *dst.GenDecl {
 	fnName := fmt.Sprintf(double, prefix, doFnIdent)
 	return TypeDecl(TypeSpec(fnName).
-		Type(FnType(cloneFieldList(params, false)).Obj).Obj).
+		Type(FnType(c.cloneFieldList(params, false, parentType)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -745,8 +748,8 @@ func (c *Converter) doFuncType(prefix string, params *dst.FieldList) *dst.GenDec
 func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
 	fnName := fmt.Sprintf(double, prefix, doReturnFnIdent)
 	return TypeDecl(TypeSpec(fnName).
-		Type(FnType(cloneFieldList(fn.FuncType.Params, false)).
-			Results(cloneFieldList(fn.FuncType.Results, false)).Obj).Obj).
+		Type(FnType(c.cloneFieldList(fn.FuncType.Params, false, fn.ParentType)).
+			Results(c.cloneFieldList(fn.FuncType.Results, false, fn.ParentType)).Obj).Obj).
 		Decs(genDeclDec(
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
@@ -754,13 +757,13 @@ func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
 			c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
-func (c *Converter) resultsStruct(prefix string, results *dst.FieldList) *dst.GenDecl {
+func (c *Converter) resultsStruct(prefix string, results *dst.FieldList, parentType TypeInfo) *dst.GenDecl {
 	structName := fmt.Sprintf(double, prefix, resultsIdent)
 
 	return TypeDecl(TypeSpec(structName).Type(Struct(
 		Field(Idf(double, prefix, paramsIdent)).
 			Names(c.exportId(paramsIdent)).Obj,
-		Field(SliceType(c.innerResultsStruct(prefix, results))).
+		Field(SliceType(c.innerResultsStruct(prefix, results, parentType))).
 			Names(c.exportId(resultsIdent)).Obj,
 		Field(Id("uint32")).Names(c.exportId(indexIdent)).Obj,
 		Field(Star(c.idPath(repeatValType, moqPkg))).Names(c.exportId(repeatIdent)).Obj,
@@ -769,9 +772,9 @@ func (c *Converter) resultsStruct(prefix string, results *dst.FieldList) *dst.Ge
 		c.typ.TypeInfo.Type.Name.Name)).Obj
 }
 
-func (c *Converter) innerResultsStruct(prefix string, results *dst.FieldList) *dst.StructType {
+func (c *Converter) innerResultsStruct(prefix string, results *dst.FieldList, parentType TypeInfo) *dst.StructType {
 	return Struct(
-		Field(Star(c.methodStruct(resultsIdent, results))).
+		Field(Star(c.methodStruct(resultsIdent, results, parentType))).
 			Names(c.exportId(valuesIdent)).Obj,
 		Field(Id("uint32")).Names(c.exportId(sequenceIdent)).Obj,
 		Field(Idf(double, prefix, doFnIdent)).
@@ -820,7 +823,8 @@ func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt
 		Assign(Id(paramsIdent)).
 			Tok(token.DEFINE).
 			Rhs(Comp(Idf(double, typePrefix, paramsIdent)).
-				Elts(c.passthroughElements(fn.FuncType.Params, paramsIdent, "")...).Obj).Obj,
+				Elts(c.passthroughElements(
+					fn.FuncType.Params, paramsIdent, "", fn.ParentType)...).Obj).Obj,
 		Var(Value(Star(Idf(double, typePrefix, resultsIdent))).
 			Names(Id(resultsIdent)).Obj),
 		Range(Sel(cloneExpr(stateSelector)).
@@ -974,7 +978,7 @@ func (c *Converter) recorderFn(fn Func) *dst.FuncDecl {
 
 	return Fn(fnName).
 		Recv(Field(Star(Id(recvType))).Names(Id(moqReceiverIdent)).Obj).
-		ParamList(cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params)).
+		ParamList(c.cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params, fn.ParentType)).
 		Results(Field(Star(Id(fnRecName))).Obj).
 		Body(c.recorderFnInterfaceBody(fnRecName, c.typePrefix(fn), moqVal, fn)...).
 		Decs(stdFuncDec()).Obj
@@ -987,10 +991,10 @@ func (c *Converter) recorderFnInterfaceBody(
 		token.AND,
 		Comp(Id(fnRecName)).
 			Elts(
-				Key(c.exportId(paramsIdent)).
-					Value(Comp(Idf(double, typePrefix, paramsIdent)).
-						Elts(c.passthroughElements(fn.FuncType.Params, paramsIdent, "")...).Obj,
-					).Decs(kvExprDec(dst.None)).Obj,
+				Key(c.exportId(paramsIdent)).Value(Comp(Idf(double, typePrefix, paramsIdent)).
+					Elts(c.passthroughElements(
+						fn.FuncType.Params, paramsIdent, "", fn.ParentType)...).Obj,
+				).Decs(kvExprDec(dst.None)).Obj,
 				Key(c.exportId(sequenceIdent)).Value(Bin(Sel(Sel(moqVal).
 					Dot(c.exportId(configIdent)).Obj).
 					Dot(Id(titler.String(sequenceIdent))).Obj).
@@ -1077,12 +1081,11 @@ func (c *Converter) anyParamFn(anyParamsName, fnRecName, pName string, paramPos 
 
 func (c *Converter) returnResultsFn(fn Func) *dst.FuncDecl {
 	return c.returnFn(returnFnName, fn,
-		cloneAndNameUnnamed(resultPrefix, fn.FuncType.Results), []dst.Expr{
-			Key(c.exportId(valuesIdent)).
-				Value(Un(token.AND,
-					Comp(c.methodStruct(resultsIdent, fn.FuncType.Results)).
-						Elts(c.passthroughElements(
-							fn.FuncType.Results, resultsIdent, "")...).Obj)).
+		c.cloneAndNameUnnamed(resultPrefix, fn.FuncType.Results, fn.ParentType), []dst.Expr{
+			Key(c.exportId(valuesIdent)).Value(Un(token.AND,
+				Comp(c.methodStruct(resultsIdent, fn.FuncType.Results, fn.ParentType)).
+					Elts(c.passthroughElements(
+						fn.FuncType.Results, resultsIdent, "", fn.ParentType)...).Obj)).
 				Decs(kvExprDec(dst.NewLine)).Obj,
 			Key(c.exportId(sequenceIdent)).
 				Value(Id(sequenceIdent)).Decs(kvExprDec(dst.None)).Obj,
@@ -1102,7 +1105,7 @@ func (c *Converter) returnFn(
 		fnRecName = fmt.Sprintf(double, mName, fnRecorderSuffix)
 	}
 
-	resStruct := c.innerResultsStruct(c.typePrefix(fn), fn.FuncType.Results)
+	resStruct := c.innerResultsStruct(c.typePrefix(fn), fn.FuncType.Results, fn.ParentType)
 
 	return Fn(c.export(fnName)).
 		Recv(Field(Star(Id(fnRecName))).Names(Id(recorderReceiverIdent)).Obj).
@@ -1349,7 +1352,7 @@ func (c *Converter) recorderRepeatFn(fn Func) *dst.FuncDecl {
 		fnRecName = fmt.Sprintf(double, mName, fnRecorderSuffix)
 	}
 
-	lastVal := Comp(c.innerResultsStruct(c.typePrefix(fn), fn.FuncType.Results)).Elts(
+	lastVal := Comp(c.innerResultsStruct(c.typePrefix(fn), fn.FuncType.Results, fn.ParentType)).Elts(
 		Key(c.exportId(valuesIdent)).
 			Value(Sel(Id(lastIdent)).Dot(c.exportId(valuesIdent)).Obj).
 			Decs(kvExprDec(dst.NewLine)).Obj,
@@ -1474,15 +1477,17 @@ func (c *Converter) paramsKeyFn(fn Func) *dst.FuncDecl {
 	}
 	count := 0
 	for _, param := range fn.FuncType.Params.List {
+		typ := c.resolveExpr(param.Type, fn.ParentType)
+
 		if len(param.Names) == 0 {
 			stmts = append(stmts, c.mockFuncFindResultsParam(
-				fn, fmt.Sprintf(unnamed, paramPrefix, count+1), count, param.Type)...)
+				fn, fmt.Sprintf(unnamed, paramPrefix, count+1), count, typ)...)
 			count++
 		}
 
 		for _, name := range param.Names {
 			stmts = append(stmts,
-				c.mockFuncFindResultsParam(fn, name.Name, count, param.Type)...)
+				c.mockFuncFindResultsParam(fn, name.Name, count, typ)...)
 			count++
 		}
 	}
@@ -1498,11 +1503,15 @@ func (c *Converter) paramsKeyFn(fn Func) *dst.FuncDecl {
 	}
 
 	stmts = append(stmts, Return(Comp(Id(paramsKey)).Elts(
-		Key(c.exportId(paramsIdent)).Value(Comp(c.methodStruct(paramsKeyIdent, fn.FuncType.Params)).
-			Elts(c.passthroughElements(fn.FuncType.Params, paramsKeyIdent, usedSuffix)...).Obj).
+		Key(c.exportId(paramsIdent)).Value(Comp(
+			c.methodStruct(paramsKeyIdent, fn.FuncType.Params, fn.ParentType)).
+			Elts(c.passthroughElements(
+				fn.FuncType.Params, paramsKeyIdent, usedSuffix, fn.ParentType)...).Obj).
 			Decs(kvExprDec(dst.NewLine)).Obj,
-		Key(c.exportId(hashesIdent)).Value(Comp(c.methodStruct(hashesIdent, fn.FuncType.Params)).
-			Elts(c.passthroughElements(fn.FuncType.Params, hashesIdent, usedHashSuffix)...).Obj).
+		Key(c.exportId(hashesIdent)).Value(Comp(
+			c.methodStruct(hashesIdent, fn.FuncType.Params, fn.ParentType)).
+			Elts(c.passthroughElements(
+				fn.FuncType.Params, hashesIdent, usedHashSuffix, fn.ParentType)...).Obj).
 			Decs(kvExprDec(dst.NewLine)).Obj).Obj))
 
 	return Fn(c.export(fnName)).
@@ -1517,7 +1526,7 @@ func (c *Converter) paramsKeyFn(fn Func) *dst.FuncDecl {
 func (c *Converter) mockFuncFindResultsParam(
 	fn Func, pName string, paramPos int, typ dst.Expr,
 ) []dst.Stmt {
-	comp, err := c.typeCache.IsComparable(typ)
+	comp, err := c.typeCache.IsComparable(typ, c.typ.TypeInfo)
 	if err != nil {
 		if c.err == nil {
 			c.err = err
@@ -1660,7 +1669,7 @@ func (c *Converter) callPrettyParams(fn Func, moqExpr, paramsExpr dst.Expr) *dst
 		Args(c.selExport(paramsExpr, paramsIdent)).Obj
 }
 
-func (c *Converter) passthroughElements(fl *dst.FieldList, label, valSuffix string) []dst.Expr {
+func (c *Converter) passthroughElements(fl *dst.FieldList, label, valSuffix string, parentType TypeInfo) []dst.Expr {
 	if fl == nil {
 		return nil
 	}
@@ -1670,7 +1679,7 @@ func (c *Converter) passthroughElements(fl *dst.FieldList, label, valSuffix stri
 	beforeDec := dst.NewLine
 	count := 0
 	for _, field := range fl.List {
-		comp, err := c.typeCache.IsComparable(field.Type)
+		comp, err := c.typeCache.IsComparable(c.resolveExpr(field.Type, parentType), c.typ.TypeInfo)
 		if err != nil {
 			if c.err == nil {
 				c.err = err
@@ -1763,8 +1772,8 @@ func (c *Converter) assignResult(resFL *dst.FieldList) []dst.Stmt {
 	return assigns
 }
 
-func cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList) *dst.FieldList {
-	fieldList = cloneFieldList(fieldList, false)
+func (c *Converter) cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList, parentType TypeInfo) *dst.FieldList {
+	fieldList = c.cloneFieldList(fieldList, false, parentType)
 	if fieldList != nil {
 		count := 0
 		for _, f := range fieldList.List {
@@ -1874,7 +1883,7 @@ func isVariadic(fl *dst.FieldList) bool {
 	return false
 }
 
-func cloneFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
+func (c *Converter) cloneFieldList(fl *dst.FieldList, removeNames bool, parentType TypeInfo) *dst.FieldList {
 	if fl != nil {
 		//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 		fl = dst.Clone(fl).(*dst.FieldList)
@@ -1886,6 +1895,8 @@ func cloneFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
 					id.Path = ""
 				}
 			}
+
+			field.Type = c.resolveExpr(field.Type, parentType)
 		}
 		if removeNames {
 			for _, field := range fl.List {
@@ -1896,6 +1907,37 @@ func cloneFieldList(fl *dst.FieldList, removeNames bool) *dst.FieldList {
 		}
 	}
 	return fl
+}
+
+func (c *Converter) resolveExpr(expr dst.Expr, parentType TypeInfo) dst.Expr {
+	switch e := expr.(type) {
+	case *dst.ArrayType:
+		e.Elt = c.resolveExpr(e.Elt, parentType)
+	case *dst.ChanType:
+		e.Value = c.resolveExpr(e.Value, parentType)
+	case *dst.Ellipsis:
+		e.Elt = c.resolveExpr(e.Elt, parentType)
+	case *dst.Ident:
+		typ, err := c.typeCache.Type(*e, parentType.PkgPath, false)
+		if err != nil {
+			if c.err == nil {
+				c.err = err
+			}
+			return nil
+		}
+		return IdPath(typ.Type.Name.Name, typ.PkgPath)
+	case *dst.MapType:
+		e.Key = c.resolveExpr(e.Key, parentType)
+		e.Value = c.resolveExpr(e.Value, parentType)
+	case *dst.StarExpr:
+		e.X = c.resolveExpr(e.X, parentType)
+	case *dst.StructType:
+		for n, f := range e.Fields.List {
+			e.Fields.List[n].Type = c.resolveExpr(f.Type, parentType)
+		}
+	}
+
+	return expr
 }
 
 func cloneSelect(sel *dst.SelectorExpr) dst.Expr {

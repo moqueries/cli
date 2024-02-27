@@ -1419,9 +1419,9 @@ func TestConsistentMockInstance(t *testing.T) {
 
 type paramIndexingAdaptor interface {
 	setParamIndexing(pi moq.ParamIndexing)
-	onCall(params *testmoqs.PassByReferenceParams, sResult string, err error)
-	invokeMockAndExpectResults(t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error)
-	prettyParams(params *testmoqs.PassByReferenceParams) string
+	onCall(params *testmoqs.Params, sResult string, err error)
+	invokeMockAndExpectResults(t moq.T, params *testmoqs.Params, sResult string, err error)
+	prettyParams(params *testmoqs.Params) string
 }
 
 type passByReferenceFnParamIndexingAdaptor struct {
@@ -1433,24 +1433,30 @@ func (a *passByReferenceFnParamIndexingAdaptor) setParamIndexing(pi moq.ParamInd
 }
 
 func (a *passByReferenceFnParamIndexingAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error,
+	params *testmoqs.Params, sResult string, err error,
 ) {
-	a.m.onCall(params).returnResults(sResult, err)
+	a.m.onCall(params).returnResults(&testmoqs.Results{SResult: sResult, Err: err})
 }
 
 func (a *passByReferenceFnParamIndexingAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+	t moq.T, params *testmoqs.Params, sResult string, err error,
 ) {
-	actualSResult, actualErr := a.m.mock()(params)
-	if sResult != actualSResult {
-		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	r := a.m.mock()(params)
+	if r == nil {
+		if sResult != "" || err != nil {
+			t.Fatalf("got nil, want real results")
+		}
+		return
 	}
-	if err != actualErr {
-		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	if sResult != r.SResult {
+		t.Errorf("got %s, wanted %s", r.SResult, sResult)
+	}
+	if err != r.Err {
+		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
 
-func (a *passByReferenceFnParamIndexingAdaptor) prettyParams(params *testmoqs.PassByReferenceParams) string {
+func (a *passByReferenceFnParamIndexingAdaptor) prettyParams(params *testmoqs.Params) string {
 	return fmt.Sprintf("PassByReferenceFn(%#v)", params)
 }
 
@@ -1463,25 +1469,31 @@ func (a *exportedPassByReferenceParamIndexingFnAdaptor) setParamIndexing(pi moq.
 }
 
 func (a *exportedPassByReferenceParamIndexingFnAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error,
+	params *testmoqs.Params, sResult string, err error,
 ) {
-	a.m.OnCall(params).ReturnResults(sResult, err)
+	a.m.OnCall(params).ReturnResults(&testmoqs.Results{SResult: sResult, Err: err})
 }
 
 func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+	t moq.T, params *testmoqs.Params, sResult string, err error,
 ) {
-	actualSResult, actualErr := a.m.Mock()(params)
-	if sResult != actualSResult {
-		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	r := a.m.Mock()(params)
+	if r == nil {
+		if sResult != "" || err != nil {
+			t.Fatalf("got nil, want real results")
+		}
+		return
 	}
-	if err != actualErr {
-		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	if sResult != r.SResult {
+		t.Errorf("got %s, wanted %s", r.SResult, sResult)
+	}
+	if err != r.Err {
+		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
 
 func (a *exportedPassByReferenceParamIndexingFnAdaptor) prettyParams(
-	params *testmoqs.PassByReferenceParams,
+	params *testmoqs.Params,
 ) string {
 	return fmt.Sprintf("PassByReferenceFn(%#v)", params)
 }
@@ -1495,24 +1507,30 @@ func (a *passByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.ParamIndex
 }
 
 func (a *passByReferenceParamIndexingAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error,
+	params *testmoqs.Params, sResult string, err error,
 ) {
-	a.m.onCall().PassByReference(params).returnResults(sResult, err)
+	a.m.onCall().PassByReference(params).returnResults(&testmoqs.Results{SResult: sResult, Err: err})
 }
 
 func (a *passByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+	t moq.T, params *testmoqs.Params, sResult string, err error,
 ) {
-	actualSResult, actualErr := a.m.mock().PassByReference(params)
-	if sResult != actualSResult {
-		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	r := a.m.mock().PassByReference(params)
+	if r == nil {
+		if sResult != "" || err != nil {
+			t.Fatalf("got nil, want real results")
+		}
+		return
 	}
-	if err != actualErr {
-		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	if sResult != r.SResult {
+		t.Errorf("got %s, wanted %s", r.SResult, sResult)
+	}
+	if err != r.Err {
+		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
 
-func (a *passByReferenceParamIndexingAdaptor) prettyParams(params *testmoqs.PassByReferenceParams) string {
+func (a *passByReferenceParamIndexingAdaptor) prettyParams(params *testmoqs.Params) string {
 	return fmt.Sprintf("PassByReference(%#v)", params)
 }
 
@@ -1525,24 +1543,30 @@ func (a *exportedPassByReferenceParamIndexingAdaptor) setParamIndexing(pi moq.Pa
 }
 
 func (a *exportedPassByReferenceParamIndexingAdaptor) onCall(
-	params *testmoqs.PassByReferenceParams, sResult string, err error,
+	params *testmoqs.Params, sResult string, err error,
 ) {
-	a.m.OnCall().PassByReference(params).ReturnResults(sResult, err)
+	a.m.OnCall().PassByReference(params).ReturnResults(&testmoqs.Results{SResult: sResult, Err: err})
 }
 
 func (a *exportedPassByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
-	t moq.T, params *testmoqs.PassByReferenceParams, sResult string, err error,
+	t moq.T, params *testmoqs.Params, sResult string, err error,
 ) {
-	actualSResult, actualErr := a.m.Mock().PassByReference(params)
-	if sResult != actualSResult {
-		t.Errorf("got %s, wanted %s", actualSResult, sResult)
+	r := a.m.Mock().PassByReference(params)
+	if r == nil {
+		if sResult != "" || err != nil {
+			t.Fatalf("got nil, want real results")
+		}
+		return
 	}
-	if err != actualErr {
-		t.Errorf("got %#v, wanted %#v", actualErr, err)
+	if sResult != r.SResult {
+		t.Errorf("got %s, wanted %s", r.SResult, sResult)
+	}
+	if err != r.Err {
+		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
 
-func (a *exportedPassByReferenceParamIndexingAdaptor) prettyParams(params *testmoqs.PassByReferenceParams) string {
+func (a *exportedPassByReferenceParamIndexingAdaptor) prettyParams(params *testmoqs.Params) string {
 	return fmt.Sprintf("PassByReference(%#v)", params)
 }
 
@@ -1585,7 +1609,7 @@ func TestParamIndexing(t *testing.T) {
 
 				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
-				p := testmoqs.PassByReferenceParams{
+				p := testmoqs.Params{
 					SParam: "Hi",
 					BParam: true,
 				}
@@ -1616,11 +1640,11 @@ func TestParamIndexing(t *testing.T) {
 
 				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
-				p1 := testmoqs.PassByReferenceParams{
+				p1 := testmoqs.Params{
 					SParam: "Hi",
 					BParam: true,
 				}
-				p2 := testmoqs.PassByReferenceParams{
+				p2 := testmoqs.Params{
 					SParam: "Hi",
 					BParam: true,
 				}
