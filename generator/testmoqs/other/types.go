@@ -1,3 +1,4 @@
+// Package other contains multiple test types for use in unit testing
 package other
 
 type Other interface {
@@ -17,5 +18,6 @@ type Results struct {
 }
 
 type Another interface {
+	//nolint:inamedparam // Testing interface method with unnamed param
 	Other(Params) Results
 }

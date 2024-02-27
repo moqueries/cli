@@ -124,6 +124,7 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 
 		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported, fabricated: typeInfo.Fabricated}
 		// Clone the type because findFuncs may reduce the interface
+		//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 		typeInfo.Type = dst.Clone(typeInfo.Type).(*dst.TypeSpec)
 		tErr := g.findFuncs(typeInfo, fInfo)
 		if tErr != nil {
