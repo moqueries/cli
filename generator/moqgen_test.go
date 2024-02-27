@@ -760,10 +760,11 @@ func TestMoqGenerator(t *testing.T) {
 
 		t.Run("various ErrNonExported", func(t *testing.T) {
 			for name, tc := range map[string]struct {
-				typeInfo             *ast.TypeInfo
-				overrideFunc1Name    string
-				overrideFunc1Results *dst.FieldList
-				errorMsg             string
+				typeInfo               *ast.TypeInfo
+				overrideFunc1Name      string
+				overrideFunc1Results   **dst.FieldList
+				overrideStringExported bool
+				errorMsg               string
 			}{
 				"only unexported methods, error": {
 					typeInfo:          &ifaceInfo1,
@@ -775,9 +776,10 @@ func TestMoqGenerator(t *testing.T) {
 					errorMsg: "type ..MyType only contains non-exported types",
 				},
 				"one method with unexported result, error": {
-					typeInfo:             &ifaceInfo1,
-					overrideFunc1Results: func1Results,
-					errorMsg:             "type ..MyType only contains non-exported types",
+					typeInfo:               &ifaceInfo1,
+					overrideFunc1Results:   &func1Results,
+					overrideStringExported: true,
+					errorMsg:               "type ..MyType only contains non-exported types",
 				},
 				"mocking a function": {
 					typeInfo: &fnInfo,
@@ -797,13 +799,13 @@ func TestMoqGenerator(t *testing.T) {
 						func1.Names[0].Name = tc.overrideFunc1Name
 					}
 					if tc.overrideFunc1Results != nil {
-						func1.Type.(*dst.FuncType).Results = tc.overrideFunc1Results
+						func1.Type.(*dst.FuncType).Results = *tc.overrideFunc1Results
 					}
 					typeCacheMoq.onCall().Type(*ast.IdPath("MyType", "."), ".", false).
 						returnResults(*tc.typeInfo, nil)
 					if tc.overrideFunc1Name == "" {
 						typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
-							returnResults(ast.TypeInfo{Exported: false}, nil)
+							returnResults(ast.TypeInfo{Exported: tc.overrideStringExported}, nil)
 					}
 					if tc.overrideFunc1Results != nil {
 						typeCacheMoq.onCall().Type(*ast.IdPath("error", ""), genPkg, false).
