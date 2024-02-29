@@ -34,6 +34,10 @@ linters:
   # Usually disabled but useful for checking everything has godoc
   - golint
 
+run:
+  skip-dirs:
+  - ^testit.*
+
 linters-settings:
   gci:
     sections:
@@ -70,6 +74,15 @@ issues:
     - revive
     - stylecheck
     - unused
+  - linters:
+    - unused
+    path: generator/testmoqs/fnadaptors_test.go
+  - linters:
+    - unused
+    path: generator/testmoqs/usualadaptors_test.go
+  - linters:
+    - inamedparam
+    path: .*/testmoqs/.*
   include:
   # disable excluding of issues about comments from golint.
   - EXC0002

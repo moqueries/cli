@@ -49,7 +49,15 @@ func TestMoqGenerator(t *testing.T) {
 		getwdFnMoq = newMoqGetwdFunc(scene, nil)
 		newConverterFnMoq = newMoqNewConverterFunc(scene, nil)
 		converter1Moq = newMoqConverterer(scene, nil)
+		converter1Moq.runtime.parameterIndexing.MethodStructs.fn = moq.ParamIndexByHash
+		converter1Moq.runtime.parameterIndexing.MockMethod.fn = moq.ParamIndexByHash
+		converter1Moq.runtime.parameterIndexing.RecorderMethods.fn = moq.ParamIndexByHash
+		converter1Moq.runtime.parameterIndexing.FuncClosure.fn = moq.ParamIndexByHash
 		converter2Moq = newMoqConverterer(scene, nil)
+		converter2Moq.runtime.parameterIndexing.MethodStructs.fn = moq.ParamIndexByHash
+		converter2Moq.runtime.parameterIndexing.MockMethod.fn = moq.ParamIndexByHash
+		converter2Moq.runtime.parameterIndexing.RecorderMethods.fn = moq.ParamIndexByHash
+		converter2Moq.runtime.parameterIndexing.FuncClosure.fn = moq.ParamIndexByHash
 
 		gen = generator.New(
 			typeCacheMoq.mock(),
@@ -783,7 +791,7 @@ func TestMoqGenerator(t *testing.T) {
 				},
 				"mocking a function": {
 					typeInfo: &fnInfo,
-					errorMsg: "PublicFn mocked type is not exported",
+					errorMsg: "PublicFn (moqueries.org/cli/generator) mocked type is not exported",
 				},
 			} {
 				t.Run(name, func(t *testing.T) {
@@ -1026,6 +1034,56 @@ func TestMoqGenerator(t *testing.T) {
 			expectedMsg := "non-exported types: type ..PublicInterface only contains non-exported types"
 			if err.Error() != expectedMsg {
 				t.Errorf("got %s, wanted %s", err.Error(), expectedMsg)
+			}
+			if !errors.Is(err, generator.ErrNonExported) {
+				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
+			}
+			if resp.File != nil {
+				t.Errorf("got %#v, wanted nil", resp.File)
+			}
+			if resp.DestPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.DestPath)
+			}
+			if resp.OutPkgPath != "" {
+				t.Errorf("got %s, wanted nothing", resp.OutPkgPath)
+			}
+		})
+
+		t.Run("mocking a function", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t)
+			defer afterEach(t)
+
+			typeCacheMoq.onCall().FindPackage(".").
+				returnResults("destdir", nil)
+			getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
+
+			typeCacheMoq.onCall().Type(*ast.IdPath("MyFunc", "."), ".", false).
+				returnResults(fnInfo, nil)
+			typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+				returnResults(ast.TypeInfo{Exported: false}, nil)
+			req := generator.GenerateRequest{
+				Types:              []string{"MyFunc"},
+				Export:             true,
+				Destination:        "file_test.go",
+				Package:            "",
+				Import:             ".",
+				TestImport:         false,
+				WorkingDir:         "/some-nice-path",
+				ExcludeNonExported: true,
+			}
+
+			// ACT
+			resp, err := gen.Generate(req)
+
+			// ASSERT
+			if err == nil {
+				t.Fatal("got no error, wanted error")
+			}
+			expectedMsg := fmt.Sprintf("non-exported types: PublicFn (%s) mocked type is not exported",
+				genPkg)
+			if err.Error() != expectedMsg {
+				t.Errorf("got %s, want %s", err.Error(), expectedMsg)
 			}
 			if !errors.Is(err, generator.ErrNonExported) {
 				t.Errorf("got %#v, want %#v", err, generator.ErrNonExported)
@@ -1616,10 +1674,10 @@ func TestMoqGenerator(t *testing.T) {
 
 		typeCacheMoq.onCall().FindPackage(".").returnResults("thispkg", nil)
 		getwdFnMoq.onCall().returnResults("/some-nice-path", nil)
-		fnInfo.Type.Name.Path = "where-the-fn-lives"
+		fnInfo.PkgPath = "where-the-fn-lives"
 		typeCacheMoq.onCall().Type(*ast.IdPath("PublicFn", "."), ".", false).
 			returnResults(fnInfo, nil)
-		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), genPkg, false).
+		typeCacheMoq.onCall().Type(*ast.IdPath("string", ""), "where-the-fn-lives", false).
 			returnResults(ast.TypeInfo{Exported: true}, nil)
 		fnFuncs := []generator.Func{{
 			FuncType:   &dst.FuncType{Params: func1Params},
@@ -1628,7 +1686,7 @@ func TestMoqGenerator(t *testing.T) {
 		newConverterFnMoq.onCall(generator.Type{
 			TypeInfo: ast.TypeInfo{
 				Type:     fnInfo.Type,
-				PkgPath:  genPkg,
+				PkgPath:  "where-the-fn-lives",
 				Exported: true,
 			},
 			Funcs:      fnFuncs,

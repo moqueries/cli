@@ -19,7 +19,6 @@ var _ Reduced_reduced = (*MoqReduced_mock)(nil)
 // when the original interface contains non-exported methods)
 type Reduced_reduced interface {
 	Usual(sParam string, bParam bool) (sResult string, err error)
-	//nolint:inamedparam // Testing interface method with unnamed param
 	ReallyUnusualParams(struct{ a string })
 	ReallyUnusualResults() struct{ a string }
 }
