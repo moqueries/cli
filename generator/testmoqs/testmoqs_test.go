@@ -76,6 +76,14 @@ func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 
 	usualMoq := newMoqUsual(moqScene, &c)
 	exportUsualMoq := exported.NewMoqUsual(moqScene, &c)
+	genericParamsMoq := newMoqGenericParams[string, bool](moqScene, &c)
+	exportedGenericParamsMoq := exported.NewMoqGenericParams[string, bool](moqScene, &c)
+	partialGenericParamsMoq := newMoqPartialGenericParams[string](moqScene, &c)
+	exportedPartialGenericParamsMoq := exported.NewMoqPartialGenericParams[string](moqScene, &c)
+	genericResultsMoq := newMoqGenericResults[string, error](moqScene, &c)
+	exportedGenericResultsMoq := exported.NewMoqGenericResults[string, error](moqScene, &c)
+	partialGenericResultsMoq := newMoqPartialGenericResults[string](moqScene, &c)
+	exportedPartialGenericResultsMoq := exported.NewMoqPartialGenericResults[string](moqScene, &c)
 	//nolint:lll // chopped down entries are reverted by gofumpt
 	entries := map[string]adaptor{
 		"usual fn":                           &usualFnAdaptor{m: newMoqUsualFn(moqScene, &c)},
@@ -104,6 +112,30 @@ func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 		"exported interface param fn":        &exportedInterfaceParamFnAdaptor{m: exported.NewMoqInterfaceParamFn(moqScene, &c)},
 		"interface result fn":                &interfaceResultFnAdaptor{m: newMoqInterfaceResultFn(moqScene, &c)},
 		"exported interface result param fn": &exportedInterfaceResultFnAdaptor{m: exported.NewMoqInterfaceResultFn(moqScene, &c)},
+		"generic params fn": &genericParamsFnAdaptor[string, bool]{
+			m: newMoqGenericParamsFn[string, bool](moqScene, &c),
+		},
+		"exported generic params fn": &exportedGenericParamsFnAdaptor[string, bool]{
+			m: exported.NewMoqGenericParamsFn[string, bool](moqScene, &c),
+		},
+		"partial generic params fn": &partialGenericParamsFnAdaptor[string]{
+			m: newMoqPartialGenericParamsFn[string](moqScene, &c),
+		},
+		"exported partial generic params fn": &exportedPartialGenericParamsFnAdaptor[string]{
+			m: exported.NewMoqPartialGenericParamsFn[string](moqScene, &c),
+		},
+		"generic results fn": &genericResultsFnAdaptor[string, error]{
+			m: newMoqGenericResultsFn[string, error](moqScene, &c),
+		},
+		"exported generic results fn": &exportedGenericResultsFnAdaptor[string, error]{
+			m: exported.NewMoqGenericResultsFn[string, error](moqScene, &c),
+		},
+		"partial generic results fn": &partialGenericResultsFnAdaptor[string]{
+			m: newMoqPartialGenericResultsFn[string](moqScene, &c),
+		},
+		"partial exported generic results fn": &exportedPartialGenericResultsFnAdaptor[string]{
+			m: exported.NewMoqPartialGenericResultsFn[string](moqScene, &c),
+		},
 
 		"usual":                           &usualAdaptor{m: usualMoq},
 		"exported usual":                  &exportedUsualAdaptor{m: exportUsualMoq},
@@ -131,6 +163,20 @@ func testCases(t *testing.T, c moq.Config) map[string]adaptor {
 		"exported interface param":        &exportedInterfaceParamAdaptor{m: exportUsualMoq},
 		"interface result":                &interfaceResultAdaptor{m: usualMoq},
 		"exported interface result param": &exportedInterfaceResultAdaptor{m: exportUsualMoq},
+		"generic params":                  &genericParamsAdaptor[string, bool]{m: genericParamsMoq},
+		"exported generic params":         &exportedGenericParamsAdaptor[string, bool]{m: exportedGenericParamsMoq},
+		"partial generic params":          &partialGenericParamsAdaptor[string]{m: partialGenericParamsMoq},
+		"partial exported generic params": &exportedPartialGenericParamsAdaptor[string]{
+			m: exportedPartialGenericParamsMoq,
+		},
+		"generic results": &genericResultsAdaptor[string, error]{m: genericResultsMoq},
+		"exported generic results": &exportedGenericResultsAdaptor[string, error]{
+			m: exportedGenericResultsMoq,
+		},
+		"partial generic results": &partialGenericResultsAdaptor[string]{m: partialGenericResultsMoq},
+		"exported partial generic results": &exportedPartialGenericResultsAdaptor[string]{
+			m: exportedPartialGenericResultsMoq,
+		},
 	}
 
 	return entries

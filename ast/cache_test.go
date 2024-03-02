@@ -14,6 +14,8 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"golang.org/x/tools/go/packages"
 	"moqueries.org/runtime/moq"
 
@@ -1106,6 +1108,287 @@ type e struct {
 				})
 			}
 		})
+
+		t.Run("generics", func(t *testing.T) {
+			for name, tc := range map[string]struct {
+				comparable        bool
+				defaultComparable bool
+				typeConstraints   string
+				structContents    string
+				typeParams        string
+				errorContains     string
+				alterMethod       func(*dst.FuncDecl)
+				skipNonMethodTest bool
+			}{
+				"[T any, U comparable, V any]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[T any, U comparable, V any]",
+					structContents:    "t T; u U; v V",
+					typeParams:        "T, U, V",
+				},
+				"[T any, U any, V any]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[T any, U any, V any]",
+					structContents:    "t T; u U; v V",
+					typeParams:        "T, U, V",
+				},
+				"[U comparable]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U comparable]",
+				},
+				"[U any]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U any]",
+				},
+				"[U interface{}]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U interface{}]",
+				},
+				"[U []int]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U []int]",
+				},
+				"[U int]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U int]",
+				},
+				"[U interface{ []int }]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U interface{ []int }]",
+				},
+				"[U interface{ int }]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U interface{ int }]",
+				},
+				"[U notComparable]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U notComparable]",
+				},
+				"[U isComparable]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U isComparable]",
+				},
+				"[U ~notComparable]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U ~notComparable]",
+				},
+				"[U ~isComparable]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U ~isComparable]",
+				},
+				"[U interface{ ~int | ~string }]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U interface{ ~int | ~string }]",
+				},
+				"[U interface{ ~int | ~string | ~notComparable }]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U interface{ ~int | ~string | ~notComparable }]",
+				},
+				"[U interface{ ~notComparable | ~int | ~string }]": {
+					comparable:        false,
+					defaultComparable: false,
+					typeConstraints:   "[U interface{ ~notComparable | ~int | ~string }]",
+				},
+				"[U interface{ ~int | ~isComparable | ~string }]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U interface{ ~int | ~isComparable | ~string }]",
+				},
+				"[U interface{ comparable; m() }]": {
+					comparable:        true,
+					defaultComparable: true,
+					typeConstraints:   "[U interface{ comparable; m() }]",
+				},
+				"no type constraints on struct": {
+					typeConstraints: "",
+					errorContains:   "base type to method type param mismatch",
+					// A generic function (not a method) doesn't depend on the
+					// type params on a struct. Skip
+					skipNonMethodTest: true,
+				},
+				"non-id IndexListExpr.X": {
+					typeConstraints: "[T any, U any, V any]",
+					structContents:  "t T; u U; v V",
+					typeParams:      "T, U, V",
+					alterMethod: func(decl *dst.FuncDecl) {
+						decl.Recv.List[0].Type.(*dst.IndexListExpr).X = ast.Un(token.AND, ast.Id("hi"))
+					},
+					// There is no index list for a generic function
+					skipNonMethodTest: true,
+					errorContains:     "expecting *dst.Ident in IndexListExpr.X",
+				},
+				"non-id IndexExpr.X": {
+					alterMethod: func(decl *dst.FuncDecl) {
+						decl.Recv.List[0].Type.(*dst.IndexExpr).X = ast.Un(token.AND, ast.Id("hi"))
+					},
+					// There is no index list for a generic function
+					skipNonMethodTest: true,
+					errorContains:     "expecting *dst.Ident in IndexExpr.X",
+				},
+				"unexpected index type": {
+					alterMethod: func(decl *dst.FuncDecl) {
+						decl.Recv.List[0].Type = ast.Un(token.AND, ast.Id("hi"))
+					},
+					// There is no index list for a generic function
+					skipNonMethodTest: true,
+					errorContains:     "unexpected index type",
+				},
+				"too many method type params": {
+					typeParams:    "A, B, C, U",
+					errorContains: "base type to method type param mismatch",
+					// A generic function (not a method) doesn't depend on
+					// the type params on a struct. Skip
+					skipNonMethodTest: true,
+				},
+				"no type spec": {
+					alterMethod: func(decl *dst.FuncDecl) {
+						decl.Recv.List[0].Type.(*dst.IndexExpr).X.(*dst.Ident).Obj = nil
+					},
+					// There is no index list for a generic function
+					skipNonMethodTest: true,
+					errorContains:     "expecting Obj",
+				},
+				"non-type spec decl": {
+					alterMethod: func(decl *dst.FuncDecl) {
+						decl.Recv.List[0].Type.(*dst.IndexExpr).X.(*dst.Ident).Obj.Decl = "hi"
+					},
+					// There is no index list for a generic function
+					skipNonMethodTest: true,
+					errorContains:     "expecting *dst.TypeSpec",
+				},
+				"bad underlying type operator": {
+					typeConstraints: "[U ~int]",
+					alterMethod: func(decl *dst.FuncDecl) {
+						decl.Recv.List[0].
+							Type.(*dst.IndexExpr).
+							X.(*dst.Ident).Obj.
+							Decl.(*dst.TypeSpec).TypeParams.List[0].
+							Type.(*dst.UnaryExpr).Op = token.AND
+					},
+					// There is no index list for a generic function
+					skipNonMethodTest: true,
+					errorContains:     "unexpected unary operator &",
+				},
+			} {
+				t.Run(name, func(t *testing.T) {
+					for name, stc := range map[string]struct {
+						compFn     compFn
+						comparable bool
+						structable bool
+					}{
+						"IsComparable": {
+							compFn:     isComparable,
+							comparable: tc.comparable,
+							structable: false,
+						},
+						"IsDefaultComparable": {
+							compFn:     isDefaultComparable,
+							comparable: tc.defaultComparable,
+							structable: true,
+						},
+					} {
+						t.Run(name, func(t *testing.T) {
+							for name, fn := range map[string]func(*testing.T) ast.TypeInfo{
+								"type context": func(t *testing.T) ast.TypeInfo {
+									t.Helper()
+									tSpec, err := cache.Type(*ast.IdPath("b", "a"), "", false)
+									if err != nil {
+										t.Fatalf("got Type error: %#v, want no error", err)
+									}
+
+									return tSpec
+								},
+							} {
+								t.Run(name, func(t *testing.T) {
+									if tc.skipNonMethodTest {
+										t.Skip()
+									}
+
+									// ASSEMBLE
+									beforeEach(t, false)
+									defer afterEach(t)
+
+									code := `package a
+
+type U struct{}
+
+type notComparable []int
+
+type isComparable int
+
+type b%s struct{%s}
+
+func (b[%s]) c(U) {}
+
+func d%s(U) {}
+`
+									structContents := tc.structContents
+									if structContents == "" {
+										structContents = "u U"
+									}
+									typeParams := tc.typeParams
+									if typeParams == "" {
+										typeParams = "U"
+									}
+									code = fmt.Sprintf(code, tc.typeConstraints,
+										structContents, typeParams,
+										tc.typeConstraints)
+									pkgs := loadPackages(t, map[string]string{
+										"code.go": code,
+										"go.mod":  "module a",
+									})
+
+									metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
+									loadFnMoq.onCall(loadCfg, "a").
+										returnResults(pkgs, nil)
+									metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
+									metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().ReturnResults()
+
+									tSpec := fn(t)
+
+									// ACT
+									isComp, err := stc.compFn(cache, ast.Id("U"), tSpec)
+									// ASSERT
+									if tc.errorContains == "" {
+										if err != nil {
+											t.Errorf("got %#v, want no error", err)
+										}
+										if isComp != stc.comparable {
+											t.Errorf("got %t, want %t", isComp, stc.comparable)
+										}
+									} else {
+										if err == nil {
+											t.Fatalf("got no error, want err")
+										}
+										if !errors.Is(err, ast.ErrInvalidType) {
+											t.Errorf("got %#v, want ast.ErrInvalidType", err)
+										}
+										if !strings.Contains(err.Error(), tc.errorContains) {
+											t.Errorf("got %s, want to contain %s", err.Error(), tc.errorContains)
+										}
+									}
+								})
+							}
+						})
+					}
+				})
+			}
+		})
 	})
 
 	t.Run("DST ident not comparable", func(t *testing.T) {
@@ -1354,6 +1637,7 @@ type e struct {
 		}
 
 		t.Run("everything returned", func(t *testing.T) {
+			titler := cases.Title(language.Und, cases.NoLower)
 			testCases := map[string]struct {
 				pkg          string
 				pkgs         []*packages.Package
@@ -1397,8 +1681,8 @@ type e struct {
 					typs := cache.MockableTypes(tc.onlyExported)
 
 					// ASSERT
-					if len(typs) != 5 {
-						t.Fatalf("got %d types, want 5", len(typs))
+					if len(typs) != 7 {
+						t.Fatalf("got %d types, want 7", len(typs))
 					}
 
 					typsByName := map[string]dst.Ident{}
@@ -1407,20 +1691,21 @@ type e struct {
 						typsByName[id.Name] = id
 					}
 
-					if _, ok := typsByName[tc.prefix+"1"]; !ok {
-						t.Errorf("got nothing, want %s1", tc.prefix)
-					}
-					if _, ok := typsByName[tc.prefix+"2"]; !ok {
-						t.Errorf("got nothing, want %s2", tc.prefix)
-					}
-					if _, ok := typsByName[tc.prefix+"4_genType"]; !ok {
-						t.Errorf("got nothing, want %s4_genType", tc.prefix)
-					}
-					if _, ok := typsByName[tc.widgetPrefix+"_genType"]; !ok {
-						t.Errorf("got nothing, want %s_genType", tc.widgetPrefix)
-					}
-					if _, ok := typsByName[tc.widgetPrefix+"_starGenType"]; !ok {
-						t.Errorf("got nothing, want %s_starGenType", tc.widgetPrefix)
+					for _, tname := range []string{
+						"type1",
+						"type2",
+						"type4_genType",
+						"widget_genType",
+						"widget_starGenType",
+						"generic_indexGenType",
+						"genericList_indexListGenType",
+					} {
+						if tc.onlyExported {
+							tname = titler.String(tname)
+						}
+						if _, ok := typsByName[tname]; !ok {
+							t.Errorf("got nothing, want %s", tname)
+						}
 					}
 				})
 			}
@@ -1471,8 +1756,8 @@ type e struct {
 			typs := cache.MockableTypes(true)
 
 			// ASSERT
-			if len(typs) != 5 {
-				t.Fatalf("got %d types, want 5", len(typs))
+			if len(typs) != 7 {
+				t.Fatalf("got %d types, want 7", len(typs))
 			}
 		})
 
@@ -1500,8 +1785,8 @@ type e struct {
 			typs := cache.MockableTypes(true)
 
 			// ASSERT
-			if len(typs) != 5 {
-				t.Fatalf("got %d types, want 5", len(typs))
+			if len(typs) != 7 {
+				t.Fatalf("got %d types, want 7", len(typs))
 			}
 		})
 	})

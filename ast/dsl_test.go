@@ -17,12 +17,15 @@ var (
 	id4 = dst.NewIdent("id4")
 	id5 = dst.NewIdent("id5")
 	id6 = dst.NewIdent("id6")
+	id7 = dst.NewIdent("id7")
+	id8 = dst.NewIdent("id8")
 
 	field1 = &dst.Field{Type: id1}
 	field2 = &dst.Field{Type: id2}
 
-	params  = &dst.FieldList{List: []*dst.Field{{Type: id3}, {Type: id4}}}
-	results = &dst.FieldList{List: []*dst.Field{{Type: id5}, {Type: id6}}}
+	typeParams = &dst.FieldList{List: []*dst.Field{{Type: id7}, {Type: id8}}}
+	params     = &dst.FieldList{List: []*dst.Field{{Type: id3}, {Type: id4}}}
+	results    = &dst.FieldList{List: []*dst.Field{{Type: id5}, {Type: id6}}}
 
 	assign1 = &dst.AssignStmt{Lhs: []dst.Expr{id1}}
 	assign2 = &dst.AssignStmt{Lhs: []dst.Expr{id2}}
@@ -449,7 +452,11 @@ func TestFn(t *testing.T) {
 		decs := dst.FuncDeclDecorations{NodeDecs: dst.NodeDecs{Before: dst.EmptyLine}}
 		expected := &dst.FuncDecl{
 			Name: dst.NewIdent("fn1"),
-			Type: &dst.FuncType{Params: params, Results: results},
+			Type: &dst.FuncType{
+				Params:     params,
+				Results:    results,
+				TypeParams: typeParams,
+			},
 			Recv: &dst.FieldList{List: []*dst.Field{{Type: id1}, {Type: id2}}},
 			Body: &dst.BlockStmt{List: []dst.Stmt{assign1, assign2}},
 			Decs: decs,
@@ -458,6 +465,7 @@ func TestFn(t *testing.T) {
 		// ACT
 		actual := ast.Fn("fn1").
 			Recv(ast.Field(id1).Obj, ast.Field(id2).Obj).
+			TypeParams(typeParams).
 			ParamList(params).
 			ResultList(results).
 			Body(assign1, assign2).
@@ -627,7 +635,7 @@ func TestIncStmt(t *testing.T) {
 func TestIndex(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		// ASSEMBLE
-		expected := &dst.IndexExpr{X: id1}
+		expected := &dst.IndexListExpr{X: id1}
 
 		// ACT
 		actual := ast.Index(id1).Obj
@@ -640,10 +648,10 @@ func TestIndex(t *testing.T) {
 
 	t.Run("complete", func(t *testing.T) {
 		// ASSEMBLE
-		expected := &dst.IndexExpr{X: id1, Index: id2}
+		expected := &dst.IndexListExpr{X: id1, Indices: []dst.Expr{id2, id3}}
 
 		// ACT
-		actual := ast.Index(id1).Sub(id2).Obj
+		actual := ast.Index(id1).Sub(id2, id3).Obj
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
@@ -1198,10 +1206,14 @@ func TestTypeSpec(t *testing.T) {
 
 	t.Run("complete", func(t *testing.T) {
 		// ASSEMBLE
-		expected := &dst.TypeSpec{Name: dst.NewIdent("typ"), Type: id2}
+		expected := &dst.TypeSpec{
+			Name:       dst.NewIdent("typ"),
+			Type:       id2,
+			TypeParams: typeParams,
+		}
 
 		// ACT
-		actual := ast.TypeSpec("typ").Type(id2).Obj
+		actual := ast.TypeSpec("typ").Type(id2).TypeParams(typeParams).Obj
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {

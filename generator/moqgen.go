@@ -321,8 +321,8 @@ func (g *MoqGenerator) findFuncs(tInfo ast.TypeInfo, fInfo *funcInfo) error {
 		}
 
 		if fInfo.excludeNonExported && !fully {
-			return fmt.Errorf("%w: %s mocked type is not exported",
-				ErrNonExported, tInfo.Type.Name.String())
+			return fmt.Errorf("%w: %s (%s) mocked type is not exported",
+				ErrNonExported, tInfo.Type.Name.String(), tInfo.PkgPath)
 		}
 
 		fInfo.funcs = append(fInfo.funcs, fn)

@@ -4,6 +4,7 @@ package ast
 import (
 	"errors"
 	"fmt"
+	"go/token"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -23,9 +24,11 @@ import (
 const (
 	builtinPkg = "builtin"
 
-	genTypeSuffix     = "_genType"
-	starGenTypeSuffix = "_starGenType"
-	testPkgSuffix     = "_test"
+	genTypeSuffix          = "_genType"
+	starGenTypeSuffix      = "_starGenType"
+	indexGenTypeSuffix     = "_indexGenType"
+	indexListGenTypeSuffix = "_indexListGenType"
+	testPkgSuffix          = "_test"
 )
 
 //go:generate moqueries LoadFn
@@ -197,7 +200,7 @@ func (c *Cache) Type(id dst.Ident, contextPkg string, testImport bool) (TypeInfo
 // IsComparable determines if an expression is comparable. The optional
 // parentType can be used to supply type parameters.
 func (c *Cache) IsComparable(expr dst.Expr, parentType TypeInfo) (bool, error) {
-	return c.isDefaultComparable(expr, &parentType, true)
+	return c.isDefaultComparable(expr, &parentType, true, false)
 }
 
 // IsDefaultComparable determines if an expression is comparable. Returns the
@@ -206,7 +209,7 @@ func (c *Cache) IsComparable(expr dst.Expr, parentType TypeInfo) (bool, error) {
 // map key will panic at runtime and by default pointers use a deep hash to be
 // comparable).
 func (c *Cache) IsDefaultComparable(expr dst.Expr, parentType TypeInfo) (bool, error) {
-	return c.isDefaultComparable(expr, &parentType, false)
+	return c.isDefaultComparable(expr, &parentType, false, false)
 }
 
 // FindPackage finds the package for a given directory
@@ -368,32 +371,69 @@ func (c *Cache) isDefaultComparable(
 	expr dst.Expr,
 	parentType *TypeInfo,
 	interfacePointerDefault bool,
+	genericType bool,
 ) (bool, error) {
+	subInterfaceDefault := interfacePointerDefault
+	if genericType {
+		subInterfaceDefault = false
+	}
 	switch e := expr.(type) {
 	case *dst.ArrayType:
 		if e.Len == nil {
 			return false, nil
 		}
-		return c.isDefaultComparable(e.Elt, parentType, interfacePointerDefault)
+
+		return c.isDefaultComparable(e.Elt, parentType, interfacePointerDefault, genericType)
+	case *dst.BinaryExpr:
+		comp, err := c.isDefaultComparable(e.X, parentType, interfacePointerDefault, genericType)
+		if err != nil || !comp {
+			return comp, err
+		}
+
+		return c.isDefaultComparable(e.Y, parentType, interfacePointerDefault, genericType)
 	case *dst.Ellipsis:
 		return false, nil
 	case *dst.FuncType:
 		return false, nil
 	case *dst.InterfaceType:
-		return interfacePointerDefault, nil
-	case *dst.Ident:
-		if e.Obj != nil {
-			typ, ok := e.Obj.Decl.(*dst.TypeSpec)
-			if !ok {
-				return false, fmt.Errorf("%q: %w", e.String(), ErrInvalidType)
-			}
-
-			if typ.Name.Name == "string" && typ.Name.Path == "" {
-				return true, nil
-			}
-
-			return c.isDefaultComparable(typ.Type, parentType, interfacePointerDefault)
+		if e.Methods == nil || len(e.Methods.List) == 0 {
+			// Basically an "any" interface
+			return subInterfaceDefault, nil
 		}
+		hasTypeConstraints := false
+		for _, m := range e.Methods.List {
+			if _, ok := m.Type.(*dst.FuncType); ok {
+				// Skip methods as they don't change whether something is
+				// comparable
+				continue
+			}
+
+			hasTypeConstraints = true
+
+			comp, err := c.isDefaultComparable(m.Type, parentType, subInterfaceDefault, genericType)
+			if err != nil || !comp {
+				return comp, err
+			}
+		}
+
+		if hasTypeConstraints {
+			// If an interface has type constraints and none of them were not
+			// comparable (none were because we would have returned early
+			// above), then it is always comparable
+			return true, nil
+		}
+
+		return subInterfaceDefault, nil
+	case *dst.Ident:
+		noPkg := e.Path == "" || (parentType != nil && parentType.Type != nil && e.Path == parentType.Type.Name.Path)
+		if noPkg {
+			// Precedence is given to a generic type
+			gType := c.findGenericType(parentType, e.Name)
+			if gType != nil {
+				return c.isDefaultComparable(gType, parentType, interfacePointerDefault, true)
+			}
+		}
+
 		pkgPath := e.Path
 		typ, ok := c.typesByIdent[e.String()]
 		if !ok && e.Path == "" && parentType != nil {
@@ -407,15 +447,21 @@ func (c *Cache) isDefaultComparable(
 				Exported:   isExported(e.Name, pkgPath),
 				Fabricated: false,
 			}
-			return c.isDefaultComparable(typ.typ.Type, tInfo, interfacePointerDefault)
+			return c.isDefaultComparable(
+				typ.typ.Type, tInfo, interfacePointerDefault, genericType)
 		}
 
 		// Builtin type?
-		if e.Path == "" {
-			// error is the one builtin type that may not be comparable (it's
+		if noPkg {
+			// error is a builtin type that may not be comparable (it's
 			// an interface so return the same result as an interface)
 			if e.Name == "error" {
-				return interfacePointerDefault, nil
+				return subInterfaceDefault, nil
+			}
+
+			// any is an alias for interface{}, so again the default
+			if e.Name == "any" {
+				return subInterfaceDefault, nil
 			}
 
 			return true, nil
@@ -434,7 +480,7 @@ func (c *Cache) isDefaultComparable(
 				Exported:   isExported(e.Name, e.Path),
 				Fabricated: false,
 			}
-			return c.isDefaultComparable(typ.typ.Type, tInfo, interfacePointerDefault)
+			return c.isDefaultComparable(typ.typ.Type, tInfo, interfacePointerDefault, genericType)
 		}
 
 		return true, nil
@@ -443,7 +489,7 @@ func (c *Cache) isDefaultComparable(
 	case *dst.SelectorExpr:
 		ex, ok := e.X.(*dst.Ident)
 		if !ok {
-			return false, fmt.Errorf("%q: %w", e.X, ErrInvalidType)
+			return false, fmt.Errorf("selector expression %q: %w", e.X, ErrInvalidType)
 		}
 		path := ex.Name
 		_, err := c.loadPackage(path, false)
@@ -453,7 +499,7 @@ func (c *Cache) isDefaultComparable(
 
 		typ, ok := c.typesByIdent[IdPath(e.Sel.Name, path).String()]
 		if ok {
-			return c.isDefaultComparable(typ.typ.Type, parentType, interfacePointerDefault)
+			return c.isDefaultComparable(typ.typ.Type, nil, interfacePointerDefault, genericType)
 		}
 
 		// Builtin type?
@@ -462,14 +508,38 @@ func (c *Cache) isDefaultComparable(
 		return interfacePointerDefault, nil
 	case *dst.StructType:
 		for _, f := range e.Fields.List {
-			comp, err := c.isDefaultComparable(f.Type, parentType, interfacePointerDefault)
+			comp, err := c.isDefaultComparable(f.Type, parentType, interfacePointerDefault, genericType)
 			if err != nil || !comp {
 				return false, err
 			}
 		}
+	case *dst.UnaryExpr:
+		if e.Op != token.TILDE {
+			return false, fmt.Errorf(
+				"unexpected unary operator %s: %w", e.Op.String(), ErrInvalidType)
+		}
+		// This is a type constraint and for determining comparability, we
+		// don't care if the constraint is for a type or underlying types
+		return c.isDefaultComparable(e.X, parentType, interfacePointerDefault, genericType)
 	}
 
 	return true, nil
+}
+
+func (c *Cache) findGenericType(parentType *TypeInfo, paramTypeName string) dst.Expr {
+	if parentType == nil || parentType.Type == nil || parentType.Type.TypeParams == nil {
+		return nil
+	}
+
+	for _, p := range parentType.Type.TypeParams.List {
+		for _, n := range p.Names {
+			if n.Name == paramTypeName {
+				return p.Type
+			}
+		}
+	}
+
+	return nil
 }
 
 func (c *Cache) loadPackage(path string, testImport bool) (string, error) {
@@ -705,6 +775,14 @@ func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
 	if sExpr, ok := expr.(*dst.StarExpr); ok {
 		suffix = starGenTypeSuffix
 		expr = sExpr.X
+	}
+	if iExpr, ok := expr.(*dst.IndexExpr); ok {
+		suffix = indexGenTypeSuffix
+		expr = iExpr.X
+	}
+	if ilExpr, ok := expr.(*dst.IndexListExpr); ok {
+		suffix = indexListGenTypeSuffix
+		expr = ilExpr.X
 	}
 	exprId, ok := expr.(*dst.Ident)
 	if !ok {

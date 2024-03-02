@@ -7708,6 +7708,2516 @@ func (m *moqInterfaceResultFn) AssertExpectationsMet() {
 	}
 }
 
+// moqGenericParamsFn holds the state of a moq of the GenericParamsFn type
+type moqGenericParamsFn[S, B any] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericParamsFn_mock[S, B]
+
+	resultsByParams []moqGenericParamsFn_resultsByParams[S, B]
+
+	runtime struct {
+		parameterIndexing struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}
+	}
+}
+
+// moqGenericParamsFn_mock isolates the mock interface of the GenericParamsFn
+// type
+type moqGenericParamsFn_mock[S, B any] struct {
+	moq *moqGenericParamsFn[S, B]
+}
+
+// moqGenericParamsFn_params holds the params of the GenericParamsFn type
+type moqGenericParamsFn_params[S, B any] struct {
+	param1 S
+	param2 B
+}
+
+// moqGenericParamsFn_paramsKey holds the map key params of the GenericParamsFn
+// type
+type moqGenericParamsFn_paramsKey[S, B any] struct {
+	params struct{}
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqGenericParamsFn_resultsByParams contains the results for a given set of
+// parameters for the GenericParamsFn type
+type moqGenericParamsFn_resultsByParams[S, B any] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericParamsFn_paramsKey[S, B]]*moqGenericParamsFn_results[S, B]
+}
+
+// moqGenericParamsFn_doFn defines the type of function needed when calling
+// andDo for the GenericParamsFn type
+type moqGenericParamsFn_doFn[S, B any] func(S, B)
+
+// moqGenericParamsFn_doReturnFn defines the type of function needed when
+// calling doReturnResults for the GenericParamsFn type
+type moqGenericParamsFn_doReturnFn[S, B any] func(S, B) (string, error)
+
+// moqGenericParamsFn_results holds the results of the GenericParamsFn type
+type moqGenericParamsFn_results[S, B any] struct {
+	params  moqGenericParamsFn_params[S, B]
+	results []struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqGenericParamsFn_doFn[S, B]
+		doReturnFn moqGenericParamsFn_doReturnFn[S, B]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericParamsFn_fnRecorder routes recorded function calls to the
+// moqGenericParamsFn moq
+type moqGenericParamsFn_fnRecorder[S, B any] struct {
+	params    moqGenericParamsFn_params[S, B]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericParamsFn_results[S, B]
+	moq       *moqGenericParamsFn[S, B]
+}
+
+// moqGenericParamsFn_anyParams isolates the any params functions of the
+// GenericParamsFn type
+type moqGenericParamsFn_anyParams[S, B any] struct {
+	recorder *moqGenericParamsFn_fnRecorder[S, B]
+}
+
+// newMoqGenericParamsFn creates a new moq of the GenericParamsFn type
+func newMoqGenericParamsFn[S, B any](scene *moq.Scene, config *moq.Config) *moqGenericParamsFn[S, B] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericParamsFn[S, B]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericParamsFn_mock[S, B]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}{
+			param1: moq.ParamIndexByHash,
+			param2: moq.ParamIndexByHash,
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the GenericParamsFn type
+func (m *moqGenericParamsFn[S, B]) mock() testmoqs.GenericParamsFn[S, B] {
+	return func(param1 S, param2 B) (string, error) {
+		m.scene.T.Helper()
+		moq := &moqGenericParamsFn_mock[S, B]{moq: m}
+		return moq.fn(param1, param2)
+	}
+}
+
+func (m *moqGenericParamsFn_mock[S, B]) fn(param1 S, param2 B) (result1 string, result2 error) {
+	m.moq.scene.T.Helper()
+	params := moqGenericParamsFn_params[S, B]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqGenericParamsFn_results[S, B]
+	for _, resultsByParams := range m.moq.resultsByParams {
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+func (m *moqGenericParamsFn[S, B]) onCall(param1 S, param2 B) *moqGenericParamsFn_fnRecorder[S, B] {
+	return &moqGenericParamsFn_fnRecorder[S, B]{
+		params: moqGenericParamsFn_params[S, B]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
+	}
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) any() *moqGenericParamsFn_anyParams[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	return &moqGenericParamsFn_anyParams[S, B]{recorder: r}
+}
+
+func (a *moqGenericParamsFn_anyParams[S, B]) param1() *moqGenericParamsFn_fnRecorder[S, B] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqGenericParamsFn_anyParams[S, B]) param2() *moqGenericParamsFn_fnRecorder[S, B] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) seq() *moqGenericParamsFn_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) noSeq() *moqGenericParamsFn_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) returnResults(result1 string, result2 error) *moqGenericParamsFn_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqGenericParamsFn_doFn[S, B]
+		doReturnFn moqGenericParamsFn_doReturnFn[S, B]
+	}{
+		values: &struct {
+			result1 string
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) andDo(fn moqGenericParamsFn_doFn[S, B]) *moqGenericParamsFn_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) doReturnResults(fn moqGenericParamsFn_doReturnFn[S, B]) *moqGenericParamsFn_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqGenericParamsFn_doFn[S, B]
+		doReturnFn moqGenericParamsFn_doReturnFn[S, B]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericParamsFn_resultsByParams[S, B]
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericParamsFn_resultsByParams[S, B]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericParamsFn_paramsKey[S, B]]*moqGenericParamsFn_results[S, B]{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericParamsFn_results[S, B]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericParamsFn_fnRecorder[S, B]) repeat(repeaters ...moq.Repeater) *moqGenericParamsFn_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 string
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqGenericParamsFn_doFn[S, B]
+				doReturnFn moqGenericParamsFn_doReturnFn[S, B]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericParamsFn[S, B]) prettyParams(params moqGenericParamsFn_params[S, B]) string {
+	return fmt.Sprintf("GenericParamsFn(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqGenericParamsFn[S, B]) paramsKey(params moqGenericParamsFn_params[S, B], anyParams uint64) moqGenericParamsFn_paramsKey[S, B] {
+	m.scene.T.Helper()
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The param1 parameter can't be indexed by value")
+		}
+		param1UsedHash = hash.DeepHash(params.param1)
+	}
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The param2 parameter can't be indexed by value")
+		}
+		param2UsedHash = hash.DeepHash(params.param2)
+	}
+	return moqGenericParamsFn_paramsKey[S, B]{
+		params: struct{}{},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericParamsFn[S, B]) Reset() { m.resultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericParamsFn[S, B]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
+			}
+		}
+	}
+}
+
+// moqPartialGenericParamsFn holds the state of a moq of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn[S any] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqPartialGenericParamsFn_mock[S]
+
+	resultsByParams []moqPartialGenericParamsFn_resultsByParams[S]
+
+	runtime struct {
+		parameterIndexing struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}
+	}
+}
+
+// moqPartialGenericParamsFn_mock isolates the mock interface of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn_mock[S any] struct {
+	moq *moqPartialGenericParamsFn[S]
+}
+
+// moqPartialGenericParamsFn_params holds the params of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn_params[S any] struct {
+	param1 S
+	param2 bool
+}
+
+// moqPartialGenericParamsFn_paramsKey holds the map key params of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn_paramsKey[S any] struct {
+	params struct{ param2 bool }
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqPartialGenericParamsFn_resultsByParams contains the results for a given
+// set of parameters for the PartialGenericParamsFn type
+type moqPartialGenericParamsFn_resultsByParams[S any] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqPartialGenericParamsFn_paramsKey[S]]*moqPartialGenericParamsFn_results[S]
+}
+
+// moqPartialGenericParamsFn_doFn defines the type of function needed when
+// calling andDo for the PartialGenericParamsFn type
+type moqPartialGenericParamsFn_doFn[S any] func(S, bool)
+
+// moqPartialGenericParamsFn_doReturnFn defines the type of function needed
+// when calling doReturnResults for the PartialGenericParamsFn type
+type moqPartialGenericParamsFn_doReturnFn[S any] func(S, bool) (string, error)
+
+// moqPartialGenericParamsFn_results holds the results of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn_results[S any] struct {
+	params  moqPartialGenericParamsFn_params[S]
+	results []struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericParamsFn_doFn[S]
+		doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqPartialGenericParamsFn_fnRecorder routes recorded function calls to the
+// moqPartialGenericParamsFn moq
+type moqPartialGenericParamsFn_fnRecorder[S any] struct {
+	params    moqPartialGenericParamsFn_params[S]
+	anyParams uint64
+	sequence  bool
+	results   *moqPartialGenericParamsFn_results[S]
+	moq       *moqPartialGenericParamsFn[S]
+}
+
+// moqPartialGenericParamsFn_anyParams isolates the any params functions of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn_anyParams[S any] struct {
+	recorder *moqPartialGenericParamsFn_fnRecorder[S]
+}
+
+// newMoqPartialGenericParamsFn creates a new moq of the PartialGenericParamsFn
+// type
+func newMoqPartialGenericParamsFn[S any](scene *moq.Scene, config *moq.Config) *moqPartialGenericParamsFn[S] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqPartialGenericParamsFn[S]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqPartialGenericParamsFn_mock[S]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}{
+			param1: moq.ParamIndexByHash,
+			param2: moq.ParamIndexByValue,
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the PartialGenericParamsFn type
+func (m *moqPartialGenericParamsFn[S]) mock() testmoqs.PartialGenericParamsFn[S] {
+	return func(param1 S, param2 bool) (string, error) {
+		m.scene.T.Helper()
+		moq := &moqPartialGenericParamsFn_mock[S]{moq: m}
+		return moq.fn(param1, param2)
+	}
+}
+
+func (m *moqPartialGenericParamsFn_mock[S]) fn(param1 S, param2 bool) (result1 string, result2 error) {
+	m.moq.scene.T.Helper()
+	params := moqPartialGenericParamsFn_params[S]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqPartialGenericParamsFn_results[S]
+	for _, resultsByParams := range m.moq.resultsByParams {
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+func (m *moqPartialGenericParamsFn[S]) onCall(param1 S, param2 bool) *moqPartialGenericParamsFn_fnRecorder[S] {
+	return &moqPartialGenericParamsFn_fnRecorder[S]{
+		params: moqPartialGenericParamsFn_params[S]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
+	}
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) any() *moqPartialGenericParamsFn_anyParams[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	return &moqPartialGenericParamsFn_anyParams[S]{recorder: r}
+}
+
+func (a *moqPartialGenericParamsFn_anyParams[S]) param1() *moqPartialGenericParamsFn_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqPartialGenericParamsFn_anyParams[S]) param2() *moqPartialGenericParamsFn_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) seq() *moqPartialGenericParamsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) noSeq() *moqPartialGenericParamsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) returnResults(result1 string, result2 error) *moqPartialGenericParamsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericParamsFn_doFn[S]
+		doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
+	}{
+		values: &struct {
+			result1 string
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) andDo(fn moqPartialGenericParamsFn_doFn[S]) *moqPartialGenericParamsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) doReturnResults(fn moqPartialGenericParamsFn_doReturnFn[S]) *moqPartialGenericParamsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericParamsFn_doFn[S]
+		doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqPartialGenericParamsFn_resultsByParams[S]
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqPartialGenericParamsFn_resultsByParams[S]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqPartialGenericParamsFn_paramsKey[S]]*moqPartialGenericParamsFn_results[S]{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqPartialGenericParamsFn_results[S]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqPartialGenericParamsFn_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericParamsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 string
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqPartialGenericParamsFn_doFn[S]
+				doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqPartialGenericParamsFn[S]) prettyParams(params moqPartialGenericParamsFn_params[S]) string {
+	return fmt.Sprintf("PartialGenericParamsFn(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqPartialGenericParamsFn[S]) paramsKey(params moqPartialGenericParamsFn_params[S], anyParams uint64) moqPartialGenericParamsFn_paramsKey[S] {
+	m.scene.T.Helper()
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The param1 parameter can't be indexed by value")
+		}
+		param1UsedHash = hash.DeepHash(params.param1)
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	return moqPartialGenericParamsFn_paramsKey[S]{
+		params: struct{ param2 bool }{
+			param2: param2Used,
+		},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqPartialGenericParamsFn[S]) Reset() { m.resultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqPartialGenericParamsFn[S]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
+			}
+		}
+	}
+}
+
+// moqGenericResultsFn holds the state of a moq of the GenericResultsFn type
+type moqGenericResultsFn[S ~string, E error] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericResultsFn_mock[S, E]
+
+	resultsByParams []moqGenericResultsFn_resultsByParams[S, E]
+
+	runtime struct {
+		parameterIndexing struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}
+	}
+}
+
+// moqGenericResultsFn_mock isolates the mock interface of the GenericResultsFn
+// type
+type moqGenericResultsFn_mock[S ~string, E error] struct {
+	moq *moqGenericResultsFn[S, E]
+}
+
+// moqGenericResultsFn_params holds the params of the GenericResultsFn type
+type moqGenericResultsFn_params[S ~string, E error] struct {
+	param1 string
+	param2 bool
+}
+
+// moqGenericResultsFn_paramsKey holds the map key params of the
+// GenericResultsFn type
+type moqGenericResultsFn_paramsKey[S ~string, E error] struct {
+	params struct {
+		param1 string
+		param2 bool
+	}
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqGenericResultsFn_resultsByParams contains the results for a given set of
+// parameters for the GenericResultsFn type
+type moqGenericResultsFn_resultsByParams[S ~string, E error] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericResultsFn_paramsKey[S, E]]*moqGenericResultsFn_results[S, E]
+}
+
+// moqGenericResultsFn_doFn defines the type of function needed when calling
+// andDo for the GenericResultsFn type
+type moqGenericResultsFn_doFn[S ~string, E error] func(string, bool)
+
+// moqGenericResultsFn_doReturnFn defines the type of function needed when
+// calling doReturnResults for the GenericResultsFn type
+type moqGenericResultsFn_doReturnFn[S ~string, E error] func(string, bool) (S, E)
+
+// moqGenericResultsFn_results holds the results of the GenericResultsFn type
+type moqGenericResultsFn_results[S ~string, E error] struct {
+	params  moqGenericResultsFn_params[S, E]
+	results []struct {
+		values *struct {
+			result1 S
+			result2 E
+		}
+		sequence   uint32
+		doFn       moqGenericResultsFn_doFn[S, E]
+		doReturnFn moqGenericResultsFn_doReturnFn[S, E]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericResultsFn_fnRecorder routes recorded function calls to the
+// moqGenericResultsFn moq
+type moqGenericResultsFn_fnRecorder[S ~string, E error] struct {
+	params    moqGenericResultsFn_params[S, E]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericResultsFn_results[S, E]
+	moq       *moqGenericResultsFn[S, E]
+}
+
+// moqGenericResultsFn_anyParams isolates the any params functions of the
+// GenericResultsFn type
+type moqGenericResultsFn_anyParams[S ~string, E error] struct {
+	recorder *moqGenericResultsFn_fnRecorder[S, E]
+}
+
+// newMoqGenericResultsFn creates a new moq of the GenericResultsFn type
+func newMoqGenericResultsFn[S ~string, E error](scene *moq.Scene, config *moq.Config) *moqGenericResultsFn[S, E] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericResultsFn[S, E]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericResultsFn_mock[S, E]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}{
+			param1: moq.ParamIndexByValue,
+			param2: moq.ParamIndexByValue,
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the GenericResultsFn type
+func (m *moqGenericResultsFn[S, E]) mock() testmoqs.GenericResultsFn[S, E] {
+	return func(param1 string, param2 bool) (S, E) {
+		m.scene.T.Helper()
+		moq := &moqGenericResultsFn_mock[S, E]{moq: m}
+		return moq.fn(param1, param2)
+	}
+}
+
+func (m *moqGenericResultsFn_mock[S, E]) fn(param1 string, param2 bool) (result1 S, result2 E) {
+	m.moq.scene.T.Helper()
+	params := moqGenericResultsFn_params[S, E]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqGenericResultsFn_results[S, E]
+	for _, resultsByParams := range m.moq.resultsByParams {
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+func (m *moqGenericResultsFn[S, E]) onCall(param1 string, param2 bool) *moqGenericResultsFn_fnRecorder[S, E] {
+	return &moqGenericResultsFn_fnRecorder[S, E]{
+		params: moqGenericResultsFn_params[S, E]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
+	}
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) any() *moqGenericResultsFn_anyParams[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	return &moqGenericResultsFn_anyParams[S, E]{recorder: r}
+}
+
+func (a *moqGenericResultsFn_anyParams[S, E]) param1() *moqGenericResultsFn_fnRecorder[S, E] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqGenericResultsFn_anyParams[S, E]) param2() *moqGenericResultsFn_fnRecorder[S, E] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) seq() *moqGenericResultsFn_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) noSeq() *moqGenericResultsFn_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) returnResults(result1 S, result2 E) *moqGenericResultsFn_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 E
+		}
+		sequence   uint32
+		doFn       moqGenericResultsFn_doFn[S, E]
+		doReturnFn moqGenericResultsFn_doReturnFn[S, E]
+	}{
+		values: &struct {
+			result1 S
+			result2 E
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) andDo(fn moqGenericResultsFn_doFn[S, E]) *moqGenericResultsFn_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) doReturnResults(fn moqGenericResultsFn_doReturnFn[S, E]) *moqGenericResultsFn_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 E
+		}
+		sequence   uint32
+		doFn       moqGenericResultsFn_doFn[S, E]
+		doReturnFn moqGenericResultsFn_doReturnFn[S, E]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericResultsFn_resultsByParams[S, E]
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericResultsFn_resultsByParams[S, E]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericResultsFn_paramsKey[S, E]]*moqGenericResultsFn_results[S, E]{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericResultsFn_results[S, E]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericResultsFn_fnRecorder[S, E]) repeat(repeaters ...moq.Repeater) *moqGenericResultsFn_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 S
+					result2 E
+				}
+				sequence   uint32
+				doFn       moqGenericResultsFn_doFn[S, E]
+				doReturnFn moqGenericResultsFn_doReturnFn[S, E]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericResultsFn[S, E]) prettyParams(params moqGenericResultsFn_params[S, E]) string {
+	return fmt.Sprintf("GenericResultsFn(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqGenericResultsFn[S, E]) paramsKey(params moqGenericResultsFn_params[S, E], anyParams uint64) moqGenericResultsFn_paramsKey[S, E] {
+	m.scene.T.Helper()
+	var param1Used string
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
+			param1Used = params.param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	return moqGenericResultsFn_paramsKey[S, E]{
+		params: struct {
+			param1 string
+			param2 bool
+		}{
+			param1: param1Used,
+			param2: param2Used,
+		},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericResultsFn[S, E]) Reset() { m.resultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericResultsFn[S, E]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
+			}
+		}
+	}
+}
+
+// moqPartialGenericResultsFn holds the state of a moq of the
+// PartialGenericResultsFn type
+type moqPartialGenericResultsFn[S ~string] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqPartialGenericResultsFn_mock[S]
+
+	resultsByParams []moqPartialGenericResultsFn_resultsByParams[S]
+
+	runtime struct {
+		parameterIndexing struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}
+	}
+}
+
+// moqPartialGenericResultsFn_mock isolates the mock interface of the
+// PartialGenericResultsFn type
+type moqPartialGenericResultsFn_mock[S ~string] struct {
+	moq *moqPartialGenericResultsFn[S]
+}
+
+// moqPartialGenericResultsFn_params holds the params of the
+// PartialGenericResultsFn type
+type moqPartialGenericResultsFn_params[S ~string] struct {
+	param1 string
+	param2 bool
+}
+
+// moqPartialGenericResultsFn_paramsKey holds the map key params of the
+// PartialGenericResultsFn type
+type moqPartialGenericResultsFn_paramsKey[S ~string] struct {
+	params struct {
+		param1 string
+		param2 bool
+	}
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqPartialGenericResultsFn_resultsByParams contains the results for a given
+// set of parameters for the PartialGenericResultsFn type
+type moqPartialGenericResultsFn_resultsByParams[S ~string] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqPartialGenericResultsFn_paramsKey[S]]*moqPartialGenericResultsFn_results[S]
+}
+
+// moqPartialGenericResultsFn_doFn defines the type of function needed when
+// calling andDo for the PartialGenericResultsFn type
+type moqPartialGenericResultsFn_doFn[S ~string] func(string, bool)
+
+// moqPartialGenericResultsFn_doReturnFn defines the type of function needed
+// when calling doReturnResults for the PartialGenericResultsFn type
+type moqPartialGenericResultsFn_doReturnFn[S ~string] func(string, bool) (S, error)
+
+// moqPartialGenericResultsFn_results holds the results of the
+// PartialGenericResultsFn type
+type moqPartialGenericResultsFn_results[S ~string] struct {
+	params  moqPartialGenericResultsFn_params[S]
+	results []struct {
+		values *struct {
+			result1 S
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericResultsFn_doFn[S]
+		doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqPartialGenericResultsFn_fnRecorder routes recorded function calls to the
+// moqPartialGenericResultsFn moq
+type moqPartialGenericResultsFn_fnRecorder[S ~string] struct {
+	params    moqPartialGenericResultsFn_params[S]
+	anyParams uint64
+	sequence  bool
+	results   *moqPartialGenericResultsFn_results[S]
+	moq       *moqPartialGenericResultsFn[S]
+}
+
+// moqPartialGenericResultsFn_anyParams isolates the any params functions of
+// the PartialGenericResultsFn type
+type moqPartialGenericResultsFn_anyParams[S ~string] struct {
+	recorder *moqPartialGenericResultsFn_fnRecorder[S]
+}
+
+// newMoqPartialGenericResultsFn creates a new moq of the
+// PartialGenericResultsFn type
+func newMoqPartialGenericResultsFn[S ~string](scene *moq.Scene, config *moq.Config) *moqPartialGenericResultsFn[S] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqPartialGenericResultsFn[S]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqPartialGenericResultsFn_mock[S]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			param1 moq.ParamIndexing
+			param2 moq.ParamIndexing
+		}{
+			param1: moq.ParamIndexByValue,
+			param2: moq.ParamIndexByValue,
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the PartialGenericResultsFn type
+func (m *moqPartialGenericResultsFn[S]) mock() testmoqs.PartialGenericResultsFn[S] {
+	return func(param1 string, param2 bool) (S, error) {
+		m.scene.T.Helper()
+		moq := &moqPartialGenericResultsFn_mock[S]{moq: m}
+		return moq.fn(param1, param2)
+	}
+}
+
+func (m *moqPartialGenericResultsFn_mock[S]) fn(param1 string, param2 bool) (result1 S, result2 error) {
+	m.moq.scene.T.Helper()
+	params := moqPartialGenericResultsFn_params[S]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqPartialGenericResultsFn_results[S]
+	for _, resultsByParams := range m.moq.resultsByParams {
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+func (m *moqPartialGenericResultsFn[S]) onCall(param1 string, param2 bool) *moqPartialGenericResultsFn_fnRecorder[S] {
+	return &moqPartialGenericResultsFn_fnRecorder[S]{
+		params: moqPartialGenericResultsFn_params[S]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
+	}
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) any() *moqPartialGenericResultsFn_anyParams[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	return &moqPartialGenericResultsFn_anyParams[S]{recorder: r}
+}
+
+func (a *moqPartialGenericResultsFn_anyParams[S]) param1() *moqPartialGenericResultsFn_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqPartialGenericResultsFn_anyParams[S]) param2() *moqPartialGenericResultsFn_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) seq() *moqPartialGenericResultsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) noSeq() *moqPartialGenericResultsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) returnResults(result1 S, result2 error) *moqPartialGenericResultsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericResultsFn_doFn[S]
+		doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
+	}{
+		values: &struct {
+			result1 S
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) andDo(fn moqPartialGenericResultsFn_doFn[S]) *moqPartialGenericResultsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) doReturnResults(fn moqPartialGenericResultsFn_doReturnFn[S]) *moqPartialGenericResultsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericResultsFn_doFn[S]
+		doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqPartialGenericResultsFn_resultsByParams[S]
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqPartialGenericResultsFn_resultsByParams[S]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqPartialGenericResultsFn_paramsKey[S]]*moqPartialGenericResultsFn_results[S]{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqPartialGenericResultsFn_results[S]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqPartialGenericResultsFn_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericResultsFn_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 S
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqPartialGenericResultsFn_doFn[S]
+				doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqPartialGenericResultsFn[S]) prettyParams(params moqPartialGenericResultsFn_params[S]) string {
+	return fmt.Sprintf("PartialGenericResultsFn(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqPartialGenericResultsFn[S]) paramsKey(params moqPartialGenericResultsFn_params[S], anyParams uint64) moqPartialGenericResultsFn_paramsKey[S] {
+	m.scene.T.Helper()
+	var param1Used string
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
+			param1Used = params.param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	return moqPartialGenericResultsFn_paramsKey[S]{
+		params: struct {
+			param1 string
+			param2 bool
+		}{
+			param1: param1Used,
+			param2: param2Used,
+		},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqPartialGenericResultsFn[S]) Reset() { m.resultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqPartialGenericResultsFn[S]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
+			}
+		}
+	}
+}
+
+// moqGenericInterfaceParamFn holds the state of a moq of the
+// GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn[W testmoqs.MyWriter] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericInterfaceParamFn_mock[W]
+
+	resultsByParams []moqGenericInterfaceParamFn_resultsByParams[W]
+
+	runtime struct {
+		parameterIndexing struct {
+			w moq.ParamIndexing
+		}
+	}
+}
+
+// moqGenericInterfaceParamFn_mock isolates the mock interface of the
+// GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_mock[W testmoqs.MyWriter] struct {
+	moq *moqGenericInterfaceParamFn[W]
+}
+
+// moqGenericInterfaceParamFn_params holds the params of the
+// GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_params[W testmoqs.MyWriter] struct{ w W }
+
+// moqGenericInterfaceParamFn_paramsKey holds the map key params of the
+// GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_paramsKey[W testmoqs.MyWriter] struct {
+	params struct{}
+	hashes struct{ w hash.Hash }
+}
+
+// moqGenericInterfaceParamFn_resultsByParams contains the results for a given
+// set of parameters for the GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_resultsByParams[W testmoqs.MyWriter] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericInterfaceParamFn_paramsKey[W]]*moqGenericInterfaceParamFn_results[W]
+}
+
+// moqGenericInterfaceParamFn_doFn defines the type of function needed when
+// calling andDo for the GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_doFn[W testmoqs.MyWriter] func(w W)
+
+// moqGenericInterfaceParamFn_doReturnFn defines the type of function needed
+// when calling doReturnResults for the GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_doReturnFn[W testmoqs.MyWriter] func(w W) (sResult string, err error)
+
+// moqGenericInterfaceParamFn_results holds the results of the
+// GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_results[W testmoqs.MyWriter] struct {
+	params  moqGenericInterfaceParamFn_params[W]
+	results []struct {
+		values *struct {
+			sResult string
+			err     error
+		}
+		sequence   uint32
+		doFn       moqGenericInterfaceParamFn_doFn[W]
+		doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericInterfaceParamFn_fnRecorder routes recorded function calls to the
+// moqGenericInterfaceParamFn moq
+type moqGenericInterfaceParamFn_fnRecorder[W testmoqs.MyWriter] struct {
+	params    moqGenericInterfaceParamFn_params[W]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericInterfaceParamFn_results[W]
+	moq       *moqGenericInterfaceParamFn[W]
+}
+
+// moqGenericInterfaceParamFn_anyParams isolates the any params functions of
+// the GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_anyParams[W testmoqs.MyWriter] struct {
+	recorder *moqGenericInterfaceParamFn_fnRecorder[W]
+}
+
+// newMoqGenericInterfaceParamFn creates a new moq of the
+// GenericInterfaceParamFn type
+func newMoqGenericInterfaceParamFn[W testmoqs.MyWriter](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceParamFn[W] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericInterfaceParamFn[W]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericInterfaceParamFn_mock[W]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				w moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			w moq.ParamIndexing
+		}{
+			w: moq.ParamIndexByHash,
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the GenericInterfaceParamFn type
+func (m *moqGenericInterfaceParamFn[W]) mock() testmoqs.GenericInterfaceParamFn[W] {
+	return func(w W) (_ string, _ error) {
+		m.scene.T.Helper()
+		moq := &moqGenericInterfaceParamFn_mock[W]{moq: m}
+		return moq.fn(w)
+	}
+}
+
+func (m *moqGenericInterfaceParamFn_mock[W]) fn(w W) (sResult string, err error) {
+	m.moq.scene.T.Helper()
+	params := moqGenericInterfaceParamFn_params[W]{
+		w: w,
+	}
+	var results *moqGenericInterfaceParamFn_results[W]
+	for _, resultsByParams := range m.moq.resultsByParams {
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(w)
+	}
+
+	if result.values != nil {
+		sResult = result.values.sResult
+		err = result.values.err
+	}
+	if result.doReturnFn != nil {
+		sResult, err = result.doReturnFn(w)
+	}
+	return
+}
+
+func (m *moqGenericInterfaceParamFn[W]) onCall(w W) *moqGenericInterfaceParamFn_fnRecorder[W] {
+	return &moqGenericInterfaceParamFn_fnRecorder[W]{
+		params: moqGenericInterfaceParamFn_params[W]{
+			w: w,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
+	}
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) any() *moqGenericInterfaceParamFn_anyParams[W] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	return &moqGenericInterfaceParamFn_anyParams[W]{recorder: r}
+}
+
+func (a *moqGenericInterfaceParamFn_anyParams[W]) w() *moqGenericInterfaceParamFn_fnRecorder[W] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) seq() *moqGenericInterfaceParamFn_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) noSeq() *moqGenericInterfaceParamFn_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) returnResults(sResult string, err error) *moqGenericInterfaceParamFn_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			sResult string
+			err     error
+		}
+		sequence   uint32
+		doFn       moqGenericInterfaceParamFn_doFn[W]
+		doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
+	}{
+		values: &struct {
+			sResult string
+			err     error
+		}{
+			sResult: sResult,
+			err:     err,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) andDo(fn moqGenericInterfaceParamFn_doFn[W]) *moqGenericInterfaceParamFn_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) doReturnResults(fn moqGenericInterfaceParamFn_doReturnFn[W]) *moqGenericInterfaceParamFn_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			sResult string
+			err     error
+		}
+		sequence   uint32
+		doFn       moqGenericInterfaceParamFn_doFn[W]
+		doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericInterfaceParamFn_resultsByParams[W]
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericInterfaceParamFn_resultsByParams[W]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericInterfaceParamFn_paramsKey[W]]*moqGenericInterfaceParamFn_results[W]{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericInterfaceParamFn_results[W]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericInterfaceParamFn_fnRecorder[W]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceParamFn_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					sResult string
+					err     error
+				}
+				sequence   uint32
+				doFn       moqGenericInterfaceParamFn_doFn[W]
+				doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericInterfaceParamFn[W]) prettyParams(params moqGenericInterfaceParamFn_params[W]) string {
+	return fmt.Sprintf("GenericInterfaceParamFn(%#v)", params.w)
+}
+
+func (m *moqGenericInterfaceParamFn[W]) paramsKey(params moqGenericInterfaceParamFn_params[W], anyParams uint64) moqGenericInterfaceParamFn_paramsKey[W] {
+	m.scene.T.Helper()
+	var wUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.w == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The w parameter can't be indexed by value")
+		}
+		wUsedHash = hash.DeepHash(params.w)
+	}
+	return moqGenericInterfaceParamFn_paramsKey[W]{
+		params: struct{}{},
+		hashes: struct{ w hash.Hash }{
+			w: wUsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericInterfaceParamFn[W]) Reset() { m.resultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericInterfaceParamFn[W]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
+			}
+		}
+	}
+}
+
+// moqGenericInterfaceResultFn holds the state of a moq of the
+// GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn[R testmoqs.MyReader] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericInterfaceResultFn_mock[R]
+
+	resultsByParams []moqGenericInterfaceResultFn_resultsByParams[R]
+
+	runtime struct {
+		parameterIndexing struct {
+			sParam moq.ParamIndexing
+			bParam moq.ParamIndexing
+		}
+	}
+}
+
+// moqGenericInterfaceResultFn_mock isolates the mock interface of the
+// GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_mock[R testmoqs.MyReader] struct {
+	moq *moqGenericInterfaceResultFn[R]
+}
+
+// moqGenericInterfaceResultFn_params holds the params of the
+// GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_params[R testmoqs.MyReader] struct {
+	sParam string
+	bParam bool
+}
+
+// moqGenericInterfaceResultFn_paramsKey holds the map key params of the
+// GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_paramsKey[R testmoqs.MyReader] struct {
+	params struct {
+		sParam string
+		bParam bool
+	}
+	hashes struct {
+		sParam hash.Hash
+		bParam hash.Hash
+	}
+}
+
+// moqGenericInterfaceResultFn_resultsByParams contains the results for a given
+// set of parameters for the GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_resultsByParams[R testmoqs.MyReader] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericInterfaceResultFn_paramsKey[R]]*moqGenericInterfaceResultFn_results[R]
+}
+
+// moqGenericInterfaceResultFn_doFn defines the type of function needed when
+// calling andDo for the GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_doFn[R testmoqs.MyReader] func(sParam string, bParam bool)
+
+// moqGenericInterfaceResultFn_doReturnFn defines the type of function needed
+// when calling doReturnResults for the GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_doReturnFn[R testmoqs.MyReader] func(sParam string, bParam bool) (r R)
+
+// moqGenericInterfaceResultFn_results holds the results of the
+// GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_results[R testmoqs.MyReader] struct {
+	params  moqGenericInterfaceResultFn_params[R]
+	results []struct {
+		values     *struct{ result1 R }
+		sequence   uint32
+		doFn       moqGenericInterfaceResultFn_doFn[R]
+		doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericInterfaceResultFn_fnRecorder routes recorded function calls to the
+// moqGenericInterfaceResultFn moq
+type moqGenericInterfaceResultFn_fnRecorder[R testmoqs.MyReader] struct {
+	params    moqGenericInterfaceResultFn_params[R]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericInterfaceResultFn_results[R]
+	moq       *moqGenericInterfaceResultFn[R]
+}
+
+// moqGenericInterfaceResultFn_anyParams isolates the any params functions of
+// the GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_anyParams[R testmoqs.MyReader] struct {
+	recorder *moqGenericInterfaceResultFn_fnRecorder[R]
+}
+
+// newMoqGenericInterfaceResultFn creates a new moq of the
+// GenericInterfaceResultFn type
+func newMoqGenericInterfaceResultFn[R testmoqs.MyReader](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceResultFn[R] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericInterfaceResultFn[R]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericInterfaceResultFn_mock[R]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				sParam moq.ParamIndexing
+				bParam moq.ParamIndexing
+			}
+		}{parameterIndexing: struct {
+			sParam moq.ParamIndexing
+			bParam moq.ParamIndexing
+		}{
+			sParam: moq.ParamIndexByValue,
+			bParam: moq.ParamIndexByValue,
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the GenericInterfaceResultFn type
+func (m *moqGenericInterfaceResultFn[R]) mock() testmoqs.GenericInterfaceResultFn[R] {
+	return func(sParam string, bParam bool) (_ R) {
+		m.scene.T.Helper()
+		moq := &moqGenericInterfaceResultFn_mock[R]{moq: m}
+		return moq.fn(sParam, bParam)
+	}
+}
+
+func (m *moqGenericInterfaceResultFn_mock[R]) fn(sParam string, bParam bool) (result1 R) {
+	m.moq.scene.T.Helper()
+	params := moqGenericInterfaceResultFn_params[R]{
+		sParam: sParam,
+		bParam: bParam,
+	}
+	var results *moqGenericInterfaceResultFn_results[R]
+	for _, resultsByParams := range m.moq.resultsByParams {
+		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(sParam, bParam)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+	}
+	if result.doReturnFn != nil {
+		result1 = result.doReturnFn(sParam, bParam)
+	}
+	return
+}
+
+func (m *moqGenericInterfaceResultFn[R]) onCall(sParam string, bParam bool) *moqGenericInterfaceResultFn_fnRecorder[R] {
+	return &moqGenericInterfaceResultFn_fnRecorder[R]{
+		params: moqGenericInterfaceResultFn_params[R]{
+			sParam: sParam,
+			bParam: bParam,
+		},
+		sequence: m.config.Sequence == moq.SeqDefaultOn,
+		moq:      m,
+	}
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) any() *moqGenericInterfaceResultFn_anyParams[R] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	return &moqGenericInterfaceResultFn_anyParams[R]{recorder: r}
+}
+
+func (a *moqGenericInterfaceResultFn_anyParams[R]) sParam() *moqGenericInterfaceResultFn_fnRecorder[R] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqGenericInterfaceResultFn_anyParams[R]) bParam() *moqGenericInterfaceResultFn_fnRecorder[R] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) seq() *moqGenericInterfaceResultFn_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) noSeq() *moqGenericInterfaceResultFn_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) returnResults(result1 R) *moqGenericInterfaceResultFn_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values     *struct{ result1 R }
+		sequence   uint32
+		doFn       moqGenericInterfaceResultFn_doFn[R]
+		doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
+	}{
+		values: &struct{ result1 R }{
+			result1: result1,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) andDo(fn moqGenericInterfaceResultFn_doFn[R]) *moqGenericInterfaceResultFn_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) doReturnResults(fn moqGenericInterfaceResultFn_doReturnFn[R]) *moqGenericInterfaceResultFn_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values     *struct{ result1 R }
+		sequence   uint32
+		doFn       moqGenericInterfaceResultFn_doFn[R]
+		doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericInterfaceResultFn_resultsByParams[R]
+	for n, res := range r.moq.resultsByParams {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericInterfaceResultFn_resultsByParams[R]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericInterfaceResultFn_paramsKey[R]]*moqGenericInterfaceResultFn_results[R]{},
+		}
+		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
+			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
+			r.moq.resultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericInterfaceResultFn_results[R]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericInterfaceResultFn_fnRecorder[R]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceResultFn_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values     *struct{ result1 R }
+				sequence   uint32
+				doFn       moqGenericInterfaceResultFn_doFn[R]
+				doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericInterfaceResultFn[R]) prettyParams(params moqGenericInterfaceResultFn_params[R]) string {
+	return fmt.Sprintf("GenericInterfaceResultFn(%#v, %#v)", params.sParam, params.bParam)
+}
+
+func (m *moqGenericInterfaceResultFn[R]) paramsKey(params moqGenericInterfaceResultFn_params[R], anyParams uint64) moqGenericInterfaceResultFn_paramsKey[R] {
+	m.scene.T.Helper()
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.sParam == moq.ParamIndexByValue {
+			sParamUsed = params.sParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.sParam)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
+			bParamUsed = params.bParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.bParam)
+		}
+	}
+	return moqGenericInterfaceResultFn_paramsKey[R]{
+		params: struct {
+			sParam string
+			bParam bool
+		}{
+			sParam: sParamUsed,
+			bParam: bParamUsed,
+		},
+		hashes: struct {
+			sParam hash.Hash
+			bParam hash.Hash
+		}{
+			sParam: sParamUsedHash,
+			bParam: bParamUsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericInterfaceResultFn[R]) Reset() { m.resultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericInterfaceResultFn[R]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
+			}
+		}
+	}
+}
+
 // The following type assertion assures that testmoqs.Usual is mocked
 // completely
 var _ testmoqs.Usual = (*moqUsual_mock)(nil)
@@ -15222,6 +17732,2647 @@ func (m *moqUsual) AssertExpectationsMet() {
 			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
 			if missing > 0 {
 				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Other(results.params))
+			}
+		}
+	}
+}
+
+// The following type assertion assures that testmoqs.GenericParams is mocked
+// completely
+var _ testmoqs.GenericParams[any, any] = (*moqGenericParams_mock[any, any])(nil)
+
+// moqGenericParams holds the state of a moq of the GenericParams type
+type moqGenericParams[S, B any] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericParams_mock[S, B]
+
+	resultsByParams_Usual []moqGenericParams_Usual_resultsByParams[S, B]
+
+	runtime struct {
+		parameterIndexing struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}
+	}
+	// moqGenericParams_mock isolates the mock interface of the GenericParams type
+}
+
+type moqGenericParams_mock[S, B any] struct {
+	moq *moqGenericParams[S, B]
+}
+
+// moqGenericParams_recorder isolates the recorder interface of the
+// GenericParams type
+type moqGenericParams_recorder[S, B any] struct {
+	moq *moqGenericParams[S, B]
+}
+
+// moqGenericParams_Usual_params holds the params of the GenericParams type
+type moqGenericParams_Usual_params[S, B any] struct {
+	param1 S
+	param2 B
+}
+
+// moqGenericParams_Usual_paramsKey holds the map key params of the
+// GenericParams type
+type moqGenericParams_Usual_paramsKey[S, B any] struct {
+	params struct{}
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqGenericParams_Usual_resultsByParams contains the results for a given set
+// of parameters for the GenericParams type
+type moqGenericParams_Usual_resultsByParams[S, B any] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericParams_Usual_paramsKey[S, B]]*moqGenericParams_Usual_results[S, B]
+}
+
+// moqGenericParams_Usual_doFn defines the type of function needed when calling
+// andDo for the GenericParams type
+type moqGenericParams_Usual_doFn[S, B any] func(S, B)
+
+// moqGenericParams_Usual_doReturnFn defines the type of function needed when
+// calling doReturnResults for the GenericParams type
+type moqGenericParams_Usual_doReturnFn[S, B any] func(S, B) (string, error)
+
+// moqGenericParams_Usual_results holds the results of the GenericParams type
+type moqGenericParams_Usual_results[S, B any] struct {
+	params  moqGenericParams_Usual_params[S, B]
+	results []struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqGenericParams_Usual_doFn[S, B]
+		doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericParams_Usual_fnRecorder routes recorded function calls to the
+// moqGenericParams moq
+type moqGenericParams_Usual_fnRecorder[S, B any] struct {
+	params    moqGenericParams_Usual_params[S, B]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericParams_Usual_results[S, B]
+	moq       *moqGenericParams[S, B]
+}
+
+// moqGenericParams_Usual_anyParams isolates the any params functions of the
+// GenericParams type
+type moqGenericParams_Usual_anyParams[S, B any] struct {
+	recorder *moqGenericParams_Usual_fnRecorder[S, B]
+}
+
+// newMoqGenericParams creates a new moq of the GenericParams type
+func newMoqGenericParams[S, B any](scene *moq.Scene, config *moq.Config) *moqGenericParams[S, B] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericParams[S, B]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericParams_mock[S, B]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Usual struct {
+					param1 moq.ParamIndexing
+					param2 moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}{
+				param1: moq.ParamIndexByHash,
+				param2: moq.ParamIndexByHash,
+			},
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the mock implementation of the GenericParams type
+func (m *moqGenericParams[S, B]) mock() *moqGenericParams_mock[S, B] { return m.moq }
+
+func (m *moqGenericParams_mock[S, B]) Usual(param1 S, param2 B) (result1 string, result2 error) {
+	m.moq.scene.T.Helper()
+	params := moqGenericParams_Usual_params[S, B]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqGenericParams_Usual_results[S, B]
+	for _, resultsByParams := range m.moq.resultsByParams_Usual {
+		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+// onCall returns the recorder implementation of the GenericParams type
+func (m *moqGenericParams[S, B]) onCall() *moqGenericParams_recorder[S, B] {
+	return &moqGenericParams_recorder[S, B]{
+		moq: m,
+	}
+}
+
+func (m *moqGenericParams_recorder[S, B]) Usual(param1 S, param2 B) *moqGenericParams_Usual_fnRecorder[S, B] {
+	return &moqGenericParams_Usual_fnRecorder[S, B]{
+		params: moqGenericParams_Usual_params[S, B]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) any() *moqGenericParams_Usual_anyParams[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	return &moqGenericParams_Usual_anyParams[S, B]{recorder: r}
+}
+
+func (a *moqGenericParams_Usual_anyParams[S, B]) param1() *moqGenericParams_Usual_fnRecorder[S, B] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqGenericParams_Usual_anyParams[S, B]) param2() *moqGenericParams_Usual_fnRecorder[S, B] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) seq() *moqGenericParams_Usual_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) noSeq() *moqGenericParams_Usual_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) returnResults(result1 string, result2 error) *moqGenericParams_Usual_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqGenericParams_Usual_doFn[S, B]
+		doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
+	}{
+		values: &struct {
+			result1 string
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) andDo(fn moqGenericParams_Usual_doFn[S, B]) *moqGenericParams_Usual_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) doReturnResults(fn moqGenericParams_Usual_doReturnFn[S, B]) *moqGenericParams_Usual_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqGenericParams_Usual_doFn[S, B]
+		doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericParams_Usual_resultsByParams[S, B]
+	for n, res := range r.moq.resultsByParams_Usual {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericParams_Usual_resultsByParams[S, B]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericParams_Usual_paramsKey[S, B]]*moqGenericParams_Usual_results[S, B]{},
+		}
+		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
+			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
+			r.moq.resultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericParams_Usual_results[S, B]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericParams_Usual_fnRecorder[S, B]) repeat(repeaters ...moq.Repeater) *moqGenericParams_Usual_fnRecorder[S, B] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 string
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqGenericParams_Usual_doFn[S, B]
+				doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericParams[S, B]) prettyParams_Usual(params moqGenericParams_Usual_params[S, B]) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqGenericParams[S, B]) paramsKey_Usual(params moqGenericParams_Usual_params[S, B], anyParams uint64) moqGenericParams_Usual_paramsKey[S, B] {
+	m.scene.T.Helper()
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The param1 parameter of the Usual function can't be indexed by value")
+		}
+		param1UsedHash = hash.DeepHash(params.param1)
+	}
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The param2 parameter of the Usual function can't be indexed by value")
+		}
+		param2UsedHash = hash.DeepHash(params.param2)
+	}
+	return moqGenericParams_Usual_paramsKey[S, B]{
+		params: struct{}{},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericParams[S, B]) Reset() { m.resultsByParams_Usual = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericParams[S, B]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams_Usual {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
+			}
+		}
+	}
+}
+
+// The following type assertion assures that testmoqs.PartialGenericParams is
+// mocked completely
+var _ testmoqs.PartialGenericParams[any] = (*moqPartialGenericParams_mock[any])(nil)
+
+// moqPartialGenericParams holds the state of a moq of the PartialGenericParams
+// type
+type moqPartialGenericParams[S any] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqPartialGenericParams_mock[S]
+
+	resultsByParams_Usual []moqPartialGenericParams_Usual_resultsByParams[S]
+
+	runtime struct {
+		parameterIndexing struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}
+	}
+	// moqPartialGenericParams_mock isolates the mock interface of the
+}
+
+// PartialGenericParams type
+type moqPartialGenericParams_mock[S any] struct {
+	moq *moqPartialGenericParams[S]
+}
+
+// moqPartialGenericParams_recorder isolates the recorder interface of the
+// PartialGenericParams type
+type moqPartialGenericParams_recorder[S any] struct {
+	moq *moqPartialGenericParams[S]
+}
+
+// moqPartialGenericParams_Usual_params holds the params of the
+// PartialGenericParams type
+type moqPartialGenericParams_Usual_params[S any] struct {
+	param1 S
+	param2 bool
+}
+
+// moqPartialGenericParams_Usual_paramsKey holds the map key params of the
+// PartialGenericParams type
+type moqPartialGenericParams_Usual_paramsKey[S any] struct {
+	params struct{ param2 bool }
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqPartialGenericParams_Usual_resultsByParams contains the results for a
+// given set of parameters for the PartialGenericParams type
+type moqPartialGenericParams_Usual_resultsByParams[S any] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqPartialGenericParams_Usual_paramsKey[S]]*moqPartialGenericParams_Usual_results[S]
+}
+
+// moqPartialGenericParams_Usual_doFn defines the type of function needed when
+// calling andDo for the PartialGenericParams type
+type moqPartialGenericParams_Usual_doFn[S any] func(S, bool)
+
+// moqPartialGenericParams_Usual_doReturnFn defines the type of function needed
+// when calling doReturnResults for the PartialGenericParams type
+type moqPartialGenericParams_Usual_doReturnFn[S any] func(S, bool) (string, error)
+
+// moqPartialGenericParams_Usual_results holds the results of the
+// PartialGenericParams type
+type moqPartialGenericParams_Usual_results[S any] struct {
+	params  moqPartialGenericParams_Usual_params[S]
+	results []struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericParams_Usual_doFn[S]
+		doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqPartialGenericParams_Usual_fnRecorder routes recorded function calls to
+// the moqPartialGenericParams moq
+type moqPartialGenericParams_Usual_fnRecorder[S any] struct {
+	params    moqPartialGenericParams_Usual_params[S]
+	anyParams uint64
+	sequence  bool
+	results   *moqPartialGenericParams_Usual_results[S]
+	moq       *moqPartialGenericParams[S]
+}
+
+// moqPartialGenericParams_Usual_anyParams isolates the any params functions of
+// the PartialGenericParams type
+type moqPartialGenericParams_Usual_anyParams[S any] struct {
+	recorder *moqPartialGenericParams_Usual_fnRecorder[S]
+}
+
+// newMoqPartialGenericParams creates a new moq of the PartialGenericParams
+// type
+func newMoqPartialGenericParams[S any](scene *moq.Scene, config *moq.Config) *moqPartialGenericParams[S] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqPartialGenericParams[S]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqPartialGenericParams_mock[S]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Usual struct {
+					param1 moq.ParamIndexing
+					param2 moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}{
+				param1: moq.ParamIndexByHash,
+				param2: moq.ParamIndexByValue,
+			},
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the mock implementation of the PartialGenericParams type
+func (m *moqPartialGenericParams[S]) mock() *moqPartialGenericParams_mock[S] { return m.moq }
+
+func (m *moqPartialGenericParams_mock[S]) Usual(param1 S, param2 bool) (result1 string, result2 error) {
+	m.moq.scene.T.Helper()
+	params := moqPartialGenericParams_Usual_params[S]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqPartialGenericParams_Usual_results[S]
+	for _, resultsByParams := range m.moq.resultsByParams_Usual {
+		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+// onCall returns the recorder implementation of the PartialGenericParams type
+func (m *moqPartialGenericParams[S]) onCall() *moqPartialGenericParams_recorder[S] {
+	return &moqPartialGenericParams_recorder[S]{
+		moq: m,
+	}
+}
+
+func (m *moqPartialGenericParams_recorder[S]) Usual(param1 S, param2 bool) *moqPartialGenericParams_Usual_fnRecorder[S] {
+	return &moqPartialGenericParams_Usual_fnRecorder[S]{
+		params: moqPartialGenericParams_Usual_params[S]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) any() *moqPartialGenericParams_Usual_anyParams[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	return &moqPartialGenericParams_Usual_anyParams[S]{recorder: r}
+}
+
+func (a *moqPartialGenericParams_Usual_anyParams[S]) param1() *moqPartialGenericParams_Usual_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqPartialGenericParams_Usual_anyParams[S]) param2() *moqPartialGenericParams_Usual_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) seq() *moqPartialGenericParams_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) noSeq() *moqPartialGenericParams_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) returnResults(result1 string, result2 error) *moqPartialGenericParams_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericParams_Usual_doFn[S]
+		doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
+	}{
+		values: &struct {
+			result1 string
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) andDo(fn moqPartialGenericParams_Usual_doFn[S]) *moqPartialGenericParams_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) doReturnResults(fn moqPartialGenericParams_Usual_doReturnFn[S]) *moqPartialGenericParams_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 string
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericParams_Usual_doFn[S]
+		doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqPartialGenericParams_Usual_resultsByParams[S]
+	for n, res := range r.moq.resultsByParams_Usual {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqPartialGenericParams_Usual_resultsByParams[S]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqPartialGenericParams_Usual_paramsKey[S]]*moqPartialGenericParams_Usual_results[S]{},
+		}
+		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
+			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
+			r.moq.resultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqPartialGenericParams_Usual_results[S]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqPartialGenericParams_Usual_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericParams_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 string
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqPartialGenericParams_Usual_doFn[S]
+				doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqPartialGenericParams[S]) prettyParams_Usual(params moqPartialGenericParams_Usual_params[S]) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqPartialGenericParams[S]) paramsKey_Usual(params moqPartialGenericParams_Usual_params[S], anyParams uint64) moqPartialGenericParams_Usual_paramsKey[S] {
+	m.scene.T.Helper()
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The param1 parameter of the Usual function can't be indexed by value")
+		}
+		param1UsedHash = hash.DeepHash(params.param1)
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	return moqPartialGenericParams_Usual_paramsKey[S]{
+		params: struct{ param2 bool }{
+			param2: param2Used,
+		},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqPartialGenericParams[S]) Reset() { m.resultsByParams_Usual = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqPartialGenericParams[S]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams_Usual {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
+			}
+		}
+	}
+}
+
+// The following type assertion assures that testmoqs.GenericResults is mocked
+// completely
+var _ testmoqs.GenericResults[string, error] = (*moqGenericResults_mock[string, error])(nil)
+
+// moqGenericResults holds the state of a moq of the GenericResults type
+type moqGenericResults[S ~string, E error] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericResults_mock[S, E]
+
+	resultsByParams_Usual []moqGenericResults_Usual_resultsByParams[S, E]
+
+	runtime struct {
+		parameterIndexing struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}
+	}
+	// moqGenericResults_mock isolates the mock interface of the GenericResults
+}
+
+// type
+type moqGenericResults_mock[S ~string, E error] struct {
+	moq *moqGenericResults[S, E]
+}
+
+// moqGenericResults_recorder isolates the recorder interface of the
+// GenericResults type
+type moqGenericResults_recorder[S ~string, E error] struct {
+	moq *moqGenericResults[S, E]
+}
+
+// moqGenericResults_Usual_params holds the params of the GenericResults type
+type moqGenericResults_Usual_params[S ~string, E error] struct {
+	param1 string
+	param2 bool
+}
+
+// moqGenericResults_Usual_paramsKey holds the map key params of the
+// GenericResults type
+type moqGenericResults_Usual_paramsKey[S ~string, E error] struct {
+	params struct {
+		param1 string
+		param2 bool
+	}
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqGenericResults_Usual_resultsByParams contains the results for a given set
+// of parameters for the GenericResults type
+type moqGenericResults_Usual_resultsByParams[S ~string, E error] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericResults_Usual_paramsKey[S, E]]*moqGenericResults_Usual_results[S, E]
+}
+
+// moqGenericResults_Usual_doFn defines the type of function needed when
+// calling andDo for the GenericResults type
+type moqGenericResults_Usual_doFn[S ~string, E error] func(string, bool)
+
+// moqGenericResults_Usual_doReturnFn defines the type of function needed when
+// calling doReturnResults for the GenericResults type
+type moqGenericResults_Usual_doReturnFn[S ~string, E error] func(string, bool) (S, E)
+
+// moqGenericResults_Usual_results holds the results of the GenericResults type
+type moqGenericResults_Usual_results[S ~string, E error] struct {
+	params  moqGenericResults_Usual_params[S, E]
+	results []struct {
+		values *struct {
+			result1 S
+			result2 E
+		}
+		sequence   uint32
+		doFn       moqGenericResults_Usual_doFn[S, E]
+		doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericResults_Usual_fnRecorder routes recorded function calls to the
+// moqGenericResults moq
+type moqGenericResults_Usual_fnRecorder[S ~string, E error] struct {
+	params    moqGenericResults_Usual_params[S, E]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericResults_Usual_results[S, E]
+	moq       *moqGenericResults[S, E]
+}
+
+// moqGenericResults_Usual_anyParams isolates the any params functions of the
+// GenericResults type
+type moqGenericResults_Usual_anyParams[S ~string, E error] struct {
+	recorder *moqGenericResults_Usual_fnRecorder[S, E]
+}
+
+// newMoqGenericResults creates a new moq of the GenericResults type
+func newMoqGenericResults[S ~string, E error](scene *moq.Scene, config *moq.Config) *moqGenericResults[S, E] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericResults[S, E]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericResults_mock[S, E]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Usual struct {
+					param1 moq.ParamIndexing
+					param2 moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}{
+				param1: moq.ParamIndexByValue,
+				param2: moq.ParamIndexByValue,
+			},
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the mock implementation of the GenericResults type
+func (m *moqGenericResults[S, E]) mock() *moqGenericResults_mock[S, E] { return m.moq }
+
+func (m *moqGenericResults_mock[S, E]) Usual(param1 string, param2 bool) (result1 S, result2 E) {
+	m.moq.scene.T.Helper()
+	params := moqGenericResults_Usual_params[S, E]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqGenericResults_Usual_results[S, E]
+	for _, resultsByParams := range m.moq.resultsByParams_Usual {
+		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+// onCall returns the recorder implementation of the GenericResults type
+func (m *moqGenericResults[S, E]) onCall() *moqGenericResults_recorder[S, E] {
+	return &moqGenericResults_recorder[S, E]{
+		moq: m,
+	}
+}
+
+func (m *moqGenericResults_recorder[S, E]) Usual(param1 string, param2 bool) *moqGenericResults_Usual_fnRecorder[S, E] {
+	return &moqGenericResults_Usual_fnRecorder[S, E]{
+		params: moqGenericResults_Usual_params[S, E]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) any() *moqGenericResults_Usual_anyParams[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	return &moqGenericResults_Usual_anyParams[S, E]{recorder: r}
+}
+
+func (a *moqGenericResults_Usual_anyParams[S, E]) param1() *moqGenericResults_Usual_fnRecorder[S, E] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqGenericResults_Usual_anyParams[S, E]) param2() *moqGenericResults_Usual_fnRecorder[S, E] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) seq() *moqGenericResults_Usual_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) noSeq() *moqGenericResults_Usual_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) returnResults(result1 S, result2 E) *moqGenericResults_Usual_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 E
+		}
+		sequence   uint32
+		doFn       moqGenericResults_Usual_doFn[S, E]
+		doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
+	}{
+		values: &struct {
+			result1 S
+			result2 E
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) andDo(fn moqGenericResults_Usual_doFn[S, E]) *moqGenericResults_Usual_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) doReturnResults(fn moqGenericResults_Usual_doReturnFn[S, E]) *moqGenericResults_Usual_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 E
+		}
+		sequence   uint32
+		doFn       moqGenericResults_Usual_doFn[S, E]
+		doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericResults_Usual_resultsByParams[S, E]
+	for n, res := range r.moq.resultsByParams_Usual {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericResults_Usual_resultsByParams[S, E]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericResults_Usual_paramsKey[S, E]]*moqGenericResults_Usual_results[S, E]{},
+		}
+		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
+			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
+			r.moq.resultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericResults_Usual_results[S, E]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericResults_Usual_fnRecorder[S, E]) repeat(repeaters ...moq.Repeater) *moqGenericResults_Usual_fnRecorder[S, E] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 S
+					result2 E
+				}
+				sequence   uint32
+				doFn       moqGenericResults_Usual_doFn[S, E]
+				doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericResults[S, E]) prettyParams_Usual(params moqGenericResults_Usual_params[S, E]) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqGenericResults[S, E]) paramsKey_Usual(params moqGenericResults_Usual_params[S, E], anyParams uint64) moqGenericResults_Usual_paramsKey[S, E] {
+	m.scene.T.Helper()
+	var param1Used string
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
+			param1Used = params.param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	return moqGenericResults_Usual_paramsKey[S, E]{
+		params: struct {
+			param1 string
+			param2 bool
+		}{
+			param1: param1Used,
+			param2: param2Used,
+		},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericResults[S, E]) Reset() { m.resultsByParams_Usual = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericResults[S, E]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams_Usual {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
+			}
+		}
+	}
+}
+
+// The following type assertion assures that testmoqs.PartialGenericResults is
+// mocked completely
+var _ testmoqs.PartialGenericResults[string] = (*moqPartialGenericResults_mock[string])(nil)
+
+// moqPartialGenericResults holds the state of a moq of the
+// PartialGenericResults type
+type moqPartialGenericResults[S ~string] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqPartialGenericResults_mock[S]
+
+	resultsByParams_Usual []moqPartialGenericResults_Usual_resultsByParams[S]
+
+	runtime struct {
+		parameterIndexing struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}
+	}
+	// moqPartialGenericResults_mock isolates the mock interface of the
+}
+
+// PartialGenericResults type
+type moqPartialGenericResults_mock[S ~string] struct {
+	moq *moqPartialGenericResults[S]
+}
+
+// moqPartialGenericResults_recorder isolates the recorder interface of the
+// PartialGenericResults type
+type moqPartialGenericResults_recorder[S ~string] struct {
+	moq *moqPartialGenericResults[S]
+}
+
+// moqPartialGenericResults_Usual_params holds the params of the
+// PartialGenericResults type
+type moqPartialGenericResults_Usual_params[S ~string] struct {
+	param1 string
+	param2 bool
+}
+
+// moqPartialGenericResults_Usual_paramsKey holds the map key params of the
+// PartialGenericResults type
+type moqPartialGenericResults_Usual_paramsKey[S ~string] struct {
+	params struct {
+		param1 string
+		param2 bool
+	}
+	hashes struct {
+		param1 hash.Hash
+		param2 hash.Hash
+	}
+}
+
+// moqPartialGenericResults_Usual_resultsByParams contains the results for a
+// given set of parameters for the PartialGenericResults type
+type moqPartialGenericResults_Usual_resultsByParams[S ~string] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqPartialGenericResults_Usual_paramsKey[S]]*moqPartialGenericResults_Usual_results[S]
+}
+
+// moqPartialGenericResults_Usual_doFn defines the type of function needed when
+// calling andDo for the PartialGenericResults type
+type moqPartialGenericResults_Usual_doFn[S ~string] func(string, bool)
+
+// moqPartialGenericResults_Usual_doReturnFn defines the type of function
+// needed when calling doReturnResults for the PartialGenericResults type
+type moqPartialGenericResults_Usual_doReturnFn[S ~string] func(string, bool) (S, error)
+
+// moqPartialGenericResults_Usual_results holds the results of the
+// PartialGenericResults type
+type moqPartialGenericResults_Usual_results[S ~string] struct {
+	params  moqPartialGenericResults_Usual_params[S]
+	results []struct {
+		values *struct {
+			result1 S
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericResults_Usual_doFn[S]
+		doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqPartialGenericResults_Usual_fnRecorder routes recorded function calls to
+// the moqPartialGenericResults moq
+type moqPartialGenericResults_Usual_fnRecorder[S ~string] struct {
+	params    moqPartialGenericResults_Usual_params[S]
+	anyParams uint64
+	sequence  bool
+	results   *moqPartialGenericResults_Usual_results[S]
+	moq       *moqPartialGenericResults[S]
+}
+
+// moqPartialGenericResults_Usual_anyParams isolates the any params functions
+// of the PartialGenericResults type
+type moqPartialGenericResults_Usual_anyParams[S ~string] struct {
+	recorder *moqPartialGenericResults_Usual_fnRecorder[S]
+}
+
+// newMoqPartialGenericResults creates a new moq of the PartialGenericResults
+// type
+func newMoqPartialGenericResults[S ~string](scene *moq.Scene, config *moq.Config) *moqPartialGenericResults[S] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqPartialGenericResults[S]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqPartialGenericResults_mock[S]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Usual struct {
+					param1 moq.ParamIndexing
+					param2 moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Usual struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				param1 moq.ParamIndexing
+				param2 moq.ParamIndexing
+			}{
+				param1: moq.ParamIndexByValue,
+				param2: moq.ParamIndexByValue,
+			},
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the mock implementation of the PartialGenericResults type
+func (m *moqPartialGenericResults[S]) mock() *moqPartialGenericResults_mock[S] { return m.moq }
+
+func (m *moqPartialGenericResults_mock[S]) Usual(param1 string, param2 bool) (result1 S, result2 error) {
+	m.moq.scene.T.Helper()
+	params := moqPartialGenericResults_Usual_params[S]{
+		param1: param1,
+		param2: param2,
+	}
+	var results *moqPartialGenericResults_Usual_results[S]
+	for _, resultsByParams := range m.moq.resultsByParams_Usual {
+		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(param1, param2)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+		result2 = result.values.result2
+	}
+	if result.doReturnFn != nil {
+		result1, result2 = result.doReturnFn(param1, param2)
+	}
+	return
+}
+
+// onCall returns the recorder implementation of the PartialGenericResults type
+func (m *moqPartialGenericResults[S]) onCall() *moqPartialGenericResults_recorder[S] {
+	return &moqPartialGenericResults_recorder[S]{
+		moq: m,
+	}
+}
+
+func (m *moqPartialGenericResults_recorder[S]) Usual(param1 string, param2 bool) *moqPartialGenericResults_Usual_fnRecorder[S] {
+	return &moqPartialGenericResults_Usual_fnRecorder[S]{
+		params: moqPartialGenericResults_Usual_params[S]{
+			param1: param1,
+			param2: param2,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) any() *moqPartialGenericResults_Usual_anyParams[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	return &moqPartialGenericResults_Usual_anyParams[S]{recorder: r}
+}
+
+func (a *moqPartialGenericResults_Usual_anyParams[S]) param1() *moqPartialGenericResults_Usual_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqPartialGenericResults_Usual_anyParams[S]) param2() *moqPartialGenericResults_Usual_fnRecorder[S] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) seq() *moqPartialGenericResults_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) noSeq() *moqPartialGenericResults_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) returnResults(result1 S, result2 error) *moqPartialGenericResults_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericResults_Usual_doFn[S]
+		doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
+	}{
+		values: &struct {
+			result1 S
+			result2 error
+		}{
+			result1: result1,
+			result2: result2,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) andDo(fn moqPartialGenericResults_Usual_doFn[S]) *moqPartialGenericResults_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) doReturnResults(fn moqPartialGenericResults_Usual_doReturnFn[S]) *moqPartialGenericResults_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			result1 S
+			result2 error
+		}
+		sequence   uint32
+		doFn       moqPartialGenericResults_Usual_doFn[S]
+		doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqPartialGenericResults_Usual_resultsByParams[S]
+	for n, res := range r.moq.resultsByParams_Usual {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqPartialGenericResults_Usual_resultsByParams[S]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqPartialGenericResults_Usual_paramsKey[S]]*moqPartialGenericResults_Usual_results[S]{},
+		}
+		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
+			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
+			r.moq.resultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqPartialGenericResults_Usual_results[S]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqPartialGenericResults_Usual_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericResults_Usual_fnRecorder[S] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					result1 S
+					result2 error
+				}
+				sequence   uint32
+				doFn       moqPartialGenericResults_Usual_doFn[S]
+				doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqPartialGenericResults[S]) prettyParams_Usual(params moqPartialGenericResults_Usual_params[S]) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
+}
+
+func (m *moqPartialGenericResults[S]) paramsKey_Usual(params moqPartialGenericResults_Usual_params[S], anyParams uint64) moqPartialGenericResults_Usual_paramsKey[S] {
+	m.scene.T.Helper()
+	var param1Used string
+	var param1UsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
+			param1Used = params.param1
+		} else {
+			param1UsedHash = hash.DeepHash(params.param1)
+		}
+	}
+	var param2Used bool
+	var param2UsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
+			param2Used = params.param2
+		} else {
+			param2UsedHash = hash.DeepHash(params.param2)
+		}
+	}
+	return moqPartialGenericResults_Usual_paramsKey[S]{
+		params: struct {
+			param1 string
+			param2 bool
+		}{
+			param1: param1Used,
+			param2: param2Used,
+		},
+		hashes: struct {
+			param1 hash.Hash
+			param2 hash.Hash
+		}{
+			param1: param1UsedHash,
+			param2: param2UsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqPartialGenericResults[S]) Reset() { m.resultsByParams_Usual = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqPartialGenericResults[S]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams_Usual {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
+			}
+		}
+	}
+}
+
+// The following type assertion assures that testmoqs.GenericInterfaceParam is
+// mocked completely
+var _ testmoqs.GenericInterfaceParam[testmoqs.MyWriter] = (*moqGenericInterfaceParam_mock[testmoqs.MyWriter])(nil)
+
+// moqGenericInterfaceParam holds the state of a moq of the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam[W testmoqs.MyWriter] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericInterfaceParam_mock[W]
+
+	resultsByParams_Usual []moqGenericInterfaceParam_Usual_resultsByParams[W]
+
+	runtime struct {
+		parameterIndexing struct {
+			Usual struct {
+				w moq.ParamIndexing
+			}
+		}
+	}
+	// moqGenericInterfaceParam_mock isolates the mock interface of the
+}
+
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_mock[W testmoqs.MyWriter] struct {
+	moq *moqGenericInterfaceParam[W]
+}
+
+// moqGenericInterfaceParam_recorder isolates the recorder interface of the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_recorder[W testmoqs.MyWriter] struct {
+	moq *moqGenericInterfaceParam[W]
+}
+
+// moqGenericInterfaceParam_Usual_params holds the params of the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_params[W testmoqs.MyWriter] struct{ w W }
+
+// moqGenericInterfaceParam_Usual_paramsKey holds the map key params of the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_paramsKey[W testmoqs.MyWriter] struct {
+	params struct{}
+	hashes struct{ w hash.Hash }
+}
+
+// moqGenericInterfaceParam_Usual_resultsByParams contains the results for a
+// given set of parameters for the GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_resultsByParams[W testmoqs.MyWriter] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericInterfaceParam_Usual_paramsKey[W]]*moqGenericInterfaceParam_Usual_results[W]
+}
+
+// moqGenericInterfaceParam_Usual_doFn defines the type of function needed when
+// calling andDo for the GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_doFn[W testmoqs.MyWriter] func(w W)
+
+// moqGenericInterfaceParam_Usual_doReturnFn defines the type of function
+// needed when calling doReturnResults for the GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_doReturnFn[W testmoqs.MyWriter] func(w W) (sResult string, err error)
+
+// moqGenericInterfaceParam_Usual_results holds the results of the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_results[W testmoqs.MyWriter] struct {
+	params  moqGenericInterfaceParam_Usual_params[W]
+	results []struct {
+		values *struct {
+			sResult string
+			err     error
+		}
+		sequence   uint32
+		doFn       moqGenericInterfaceParam_Usual_doFn[W]
+		doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericInterfaceParam_Usual_fnRecorder routes recorded function calls to
+// the moqGenericInterfaceParam moq
+type moqGenericInterfaceParam_Usual_fnRecorder[W testmoqs.MyWriter] struct {
+	params    moqGenericInterfaceParam_Usual_params[W]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericInterfaceParam_Usual_results[W]
+	moq       *moqGenericInterfaceParam[W]
+}
+
+// moqGenericInterfaceParam_Usual_anyParams isolates the any params functions
+// of the GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_anyParams[W testmoqs.MyWriter] struct {
+	recorder *moqGenericInterfaceParam_Usual_fnRecorder[W]
+}
+
+// newMoqGenericInterfaceParam creates a new moq of the GenericInterfaceParam
+// type
+func newMoqGenericInterfaceParam[W testmoqs.MyWriter](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceParam[W] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericInterfaceParam[W]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericInterfaceParam_mock[W]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Usual struct {
+					w moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Usual struct {
+				w moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				w moq.ParamIndexing
+			}{
+				w: moq.ParamIndexByHash,
+			},
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the mock implementation of the GenericInterfaceParam type
+func (m *moqGenericInterfaceParam[W]) mock() *moqGenericInterfaceParam_mock[W] { return m.moq }
+
+func (m *moqGenericInterfaceParam_mock[W]) Usual(w W) (sResult string, err error) {
+	m.moq.scene.T.Helper()
+	params := moqGenericInterfaceParam_Usual_params[W]{
+		w: w,
+	}
+	var results *moqGenericInterfaceParam_Usual_results[W]
+	for _, resultsByParams := range m.moq.resultsByParams_Usual {
+		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(w)
+	}
+
+	if result.values != nil {
+		sResult = result.values.sResult
+		err = result.values.err
+	}
+	if result.doReturnFn != nil {
+		sResult, err = result.doReturnFn(w)
+	}
+	return
+}
+
+// onCall returns the recorder implementation of the GenericInterfaceParam type
+func (m *moqGenericInterfaceParam[W]) onCall() *moqGenericInterfaceParam_recorder[W] {
+	return &moqGenericInterfaceParam_recorder[W]{
+		moq: m,
+	}
+}
+
+func (m *moqGenericInterfaceParam_recorder[W]) Usual(w W) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	return &moqGenericInterfaceParam_Usual_fnRecorder[W]{
+		params: moqGenericInterfaceParam_Usual_params[W]{
+			w: w,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) any() *moqGenericInterfaceParam_Usual_anyParams[W] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	return &moqGenericInterfaceParam_Usual_anyParams[W]{recorder: r}
+}
+
+func (a *moqGenericInterfaceParam_Usual_anyParams[W]) w() *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) seq() *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) noSeq() *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) returnResults(sResult string, err error) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			sResult string
+			err     error
+		}
+		sequence   uint32
+		doFn       moqGenericInterfaceParam_Usual_doFn[W]
+		doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
+	}{
+		values: &struct {
+			sResult string
+			err     error
+		}{
+			sResult: sResult,
+			err:     err,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) andDo(fn moqGenericInterfaceParam_Usual_doFn[W]) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) doReturnResults(fn moqGenericInterfaceParam_Usual_doReturnFn[W]) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values *struct {
+			sResult string
+			err     error
+		}
+		sequence   uint32
+		doFn       moqGenericInterfaceParam_Usual_doFn[W]
+		doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericInterfaceParam_Usual_resultsByParams[W]
+	for n, res := range r.moq.resultsByParams_Usual {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericInterfaceParam_Usual_resultsByParams[W]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericInterfaceParam_Usual_paramsKey[W]]*moqGenericInterfaceParam_Usual_results[W]{},
+		}
+		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
+			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
+			r.moq.resultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericInterfaceParam_Usual_results[W]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values *struct {
+					sResult string
+					err     error
+				}
+				sequence   uint32
+				doFn       moqGenericInterfaceParam_Usual_doFn[W]
+				doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericInterfaceParam[W]) prettyParams_Usual(params moqGenericInterfaceParam_Usual_params[W]) string {
+	return fmt.Sprintf("Usual(%#v)", params.w)
+}
+
+func (m *moqGenericInterfaceParam[W]) paramsKey_Usual(params moqGenericInterfaceParam_Usual_params[W], anyParams uint64) moqGenericInterfaceParam_Usual_paramsKey[W] {
+	m.scene.T.Helper()
+	var wUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Usual.w == moq.ParamIndexByValue {
+			m.scene.T.Fatalf("The w parameter of the Usual function can't be indexed by value")
+		}
+		wUsedHash = hash.DeepHash(params.w)
+	}
+	return moqGenericInterfaceParam_Usual_paramsKey[W]{
+		params: struct{}{},
+		hashes: struct{ w hash.Hash }{
+			w: wUsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericInterfaceParam[W]) Reset() { m.resultsByParams_Usual = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericInterfaceParam[W]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams_Usual {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
+			}
+		}
+	}
+}
+
+// The following type assertion assures that testmoqs.GenericInterfaceResult is
+// mocked completely
+var _ testmoqs.GenericInterfaceResult[testmoqs.MyReader] = (*moqGenericInterfaceResult_mock[testmoqs.MyReader])(nil)
+
+// moqGenericInterfaceResult holds the state of a moq of the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult[R testmoqs.MyReader] struct {
+	scene  *moq.Scene
+	config moq.Config
+	moq    *moqGenericInterfaceResult_mock[R]
+
+	resultsByParams_Usual []moqGenericInterfaceResult_Usual_resultsByParams[R]
+
+	runtime struct {
+		parameterIndexing struct {
+			Usual struct {
+				sParam moq.ParamIndexing
+				bParam moq.ParamIndexing
+			}
+		}
+	}
+	// moqGenericInterfaceResult_mock isolates the mock interface of the
+}
+
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_mock[R testmoqs.MyReader] struct {
+	moq *moqGenericInterfaceResult[R]
+}
+
+// moqGenericInterfaceResult_recorder isolates the recorder interface of the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_recorder[R testmoqs.MyReader] struct {
+	moq *moqGenericInterfaceResult[R]
+}
+
+// moqGenericInterfaceResult_Usual_params holds the params of the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_params[R testmoqs.MyReader] struct {
+	sParam string
+	bParam bool
+}
+
+// moqGenericInterfaceResult_Usual_paramsKey holds the map key params of the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_paramsKey[R testmoqs.MyReader] struct {
+	params struct {
+		sParam string
+		bParam bool
+	}
+	hashes struct {
+		sParam hash.Hash
+		bParam hash.Hash
+	}
+}
+
+// moqGenericInterfaceResult_Usual_resultsByParams contains the results for a
+// given set of parameters for the GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_resultsByParams[R testmoqs.MyReader] struct {
+	anyCount  int
+	anyParams uint64
+	results   map[moqGenericInterfaceResult_Usual_paramsKey[R]]*moqGenericInterfaceResult_Usual_results[R]
+}
+
+// moqGenericInterfaceResult_Usual_doFn defines the type of function needed
+// when calling andDo for the GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_doFn[R testmoqs.MyReader] func(sParam string, bParam bool)
+
+// moqGenericInterfaceResult_Usual_doReturnFn defines the type of function
+// needed when calling doReturnResults for the GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_doReturnFn[R testmoqs.MyReader] func(sParam string, bParam bool) (r R)
+
+// moqGenericInterfaceResult_Usual_results holds the results of the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_results[R testmoqs.MyReader] struct {
+	params  moqGenericInterfaceResult_Usual_params[R]
+	results []struct {
+		values     *struct{ result1 R }
+		sequence   uint32
+		doFn       moqGenericInterfaceResult_Usual_doFn[R]
+		doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
+	}
+	index  uint32
+	repeat *moq.RepeatVal
+}
+
+// moqGenericInterfaceResult_Usual_fnRecorder routes recorded function calls to
+// the moqGenericInterfaceResult moq
+type moqGenericInterfaceResult_Usual_fnRecorder[R testmoqs.MyReader] struct {
+	params    moqGenericInterfaceResult_Usual_params[R]
+	anyParams uint64
+	sequence  bool
+	results   *moqGenericInterfaceResult_Usual_results[R]
+	moq       *moqGenericInterfaceResult[R]
+}
+
+// moqGenericInterfaceResult_Usual_anyParams isolates the any params functions
+// of the GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_anyParams[R testmoqs.MyReader] struct {
+	recorder *moqGenericInterfaceResult_Usual_fnRecorder[R]
+}
+
+// newMoqGenericInterfaceResult creates a new moq of the GenericInterfaceResult
+// type
+func newMoqGenericInterfaceResult[R testmoqs.MyReader](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceResult[R] {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &moqGenericInterfaceResult[R]{
+		scene:  scene,
+		config: *config,
+		moq:    &moqGenericInterfaceResult_mock[R]{},
+
+		runtime: struct {
+			parameterIndexing struct {
+				Usual struct {
+					sParam moq.ParamIndexing
+					bParam moq.ParamIndexing
+				}
+			}
+		}{parameterIndexing: struct {
+			Usual struct {
+				sParam moq.ParamIndexing
+				bParam moq.ParamIndexing
+			}
+		}{
+			Usual: struct {
+				sParam moq.ParamIndexing
+				bParam moq.ParamIndexing
+			}{
+				sParam: moq.ParamIndexByValue,
+				bParam: moq.ParamIndexByValue,
+			},
+		}},
+	}
+	m.moq.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the mock implementation of the GenericInterfaceResult type
+func (m *moqGenericInterfaceResult[R]) mock() *moqGenericInterfaceResult_mock[R] { return m.moq }
+
+func (m *moqGenericInterfaceResult_mock[R]) Usual(sParam string, bParam bool) (result1 R) {
+	m.moq.scene.T.Helper()
+	params := moqGenericInterfaceResult_Usual_params[R]{
+		sParam: sParam,
+		bParam: bParam,
+	}
+	var results *moqGenericInterfaceResult_Usual_results[R]
+	for _, resultsByParams := range m.moq.resultsByParams_Usual {
+		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
+		var ok bool
+		results, ok = resultsByParams.results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.moq.config.Expectation == moq.Strict {
+			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.index, 1)) - 1
+	if i >= results.repeat.ResultCount {
+		if !results.repeat.AnyTimes {
+			if m.moq.config.Expectation == moq.Strict {
+				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
+			}
+			return
+		}
+		i = results.repeat.ResultCount - 1
+	}
+
+	result := results.results[i]
+	if result.sequence != 0 {
+		sequence := m.moq.scene.NextMockSequence()
+		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
+			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
+		}
+	}
+
+	if result.doFn != nil {
+		result.doFn(sParam, bParam)
+	}
+
+	if result.values != nil {
+		result1 = result.values.result1
+	}
+	if result.doReturnFn != nil {
+		result1 = result.doReturnFn(sParam, bParam)
+	}
+	return
+}
+
+// onCall returns the recorder implementation of the GenericInterfaceResult
+// type
+func (m *moqGenericInterfaceResult[R]) onCall() *moqGenericInterfaceResult_recorder[R] {
+	return &moqGenericInterfaceResult_recorder[R]{
+		moq: m,
+	}
+}
+
+func (m *moqGenericInterfaceResult_recorder[R]) Usual(sParam string, bParam bool) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	return &moqGenericInterfaceResult_Usual_fnRecorder[R]{
+		params: moqGenericInterfaceResult_Usual_params[R]{
+			sParam: sParam,
+			bParam: bParam,
+		},
+		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
+		moq:      m.moq,
+	}
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) any() *moqGenericInterfaceResult_Usual_anyParams[R] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	return &moqGenericInterfaceResult_Usual_anyParams[R]{recorder: r}
+}
+
+func (a *moqGenericInterfaceResult_Usual_anyParams[R]) sParam() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	a.recorder.anyParams |= 1 << 0
+	return a.recorder
+}
+
+func (a *moqGenericInterfaceResult_Usual_anyParams[R]) bParam() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	a.recorder.anyParams |= 1 << 1
+	return a.recorder
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) seq() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = true
+	return r
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) noSeq() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+		return nil
+	}
+	r.sequence = false
+	return r
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) returnResults(result1 R) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values     *struct{ result1 R }
+		sequence   uint32
+		doFn       moqGenericInterfaceResult_Usual_doFn[R]
+		doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
+	}{
+		values: &struct{ result1 R }{
+			result1: result1,
+		},
+		sequence: sequence,
+	})
+	return r
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) andDo(fn moqGenericInterfaceResult_Usual_doFn[R]) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+		return nil
+	}
+	last := &r.results.results[len(r.results.results)-1]
+	last.doFn = fn
+	return r
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) doReturnResults(fn moqGenericInterfaceResult_Usual_doReturnFn[R]) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	r.findResults()
+
+	var sequence uint32
+	if r.sequence {
+		sequence = r.moq.scene.NextRecorderSequence()
+	}
+
+	r.results.results = append(r.results.results, struct {
+		values     *struct{ result1 R }
+		sequence   uint32
+		doFn       moqGenericInterfaceResult_Usual_doFn[R]
+		doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
+	}{sequence: sequence, doReturnFn: fn})
+	return r
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) findResults() {
+	r.moq.scene.T.Helper()
+	if r.results != nil {
+		r.results.repeat.Increment(r.moq.scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.anyParams)
+	insertAt := -1
+	var results *moqGenericInterfaceResult_Usual_resultsByParams[R]
+	for n, res := range r.moq.resultsByParams_Usual {
+		if res.anyParams == r.anyParams {
+			results = &res
+			break
+		}
+		if res.anyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &moqGenericInterfaceResult_Usual_resultsByParams[R]{
+			anyCount:  anyCount,
+			anyParams: r.anyParams,
+			results:   map[moqGenericInterfaceResult_Usual_paramsKey[R]]*moqGenericInterfaceResult_Usual_results[R]{},
+		}
+		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
+		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
+			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
+			r.moq.resultsByParams_Usual[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
+
+	var ok bool
+	r.results, ok = results.results[paramsKey]
+	if !ok {
+		r.results = &moqGenericInterfaceResult_Usual_results[R]{
+			params:  r.params,
+			results: nil,
+			index:   0,
+			repeat:  &moq.RepeatVal{},
+		}
+		results.results[paramsKey] = r.results
+	}
+
+	r.results.repeat.Increment(r.moq.scene.T)
+}
+
+func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
+	r.moq.scene.T.Helper()
+	if r.results == nil {
+		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+		return nil
+	}
+	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
+	last := r.results.results[len(r.results.results)-1]
+	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
+		if r.sequence {
+			last = struct {
+				values     *struct{ result1 R }
+				sequence   uint32
+				doFn       moqGenericInterfaceResult_Usual_doFn[R]
+				doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
+			}{
+				values:   last.values,
+				sequence: r.moq.scene.NextRecorderSequence(),
+			}
+		}
+		r.results.results = append(r.results.results, last)
+	}
+	return r
+}
+
+func (m *moqGenericInterfaceResult[R]) prettyParams_Usual(params moqGenericInterfaceResult_Usual_params[R]) string {
+	return fmt.Sprintf("Usual(%#v, %#v)", params.sParam, params.bParam)
+}
+
+func (m *moqGenericInterfaceResult[R]) paramsKey_Usual(params moqGenericInterfaceResult_Usual_params[R], anyParams uint64) moqGenericInterfaceResult_Usual_paramsKey[R] {
+	m.scene.T.Helper()
+	var sParamUsed string
+	var sParamUsedHash hash.Hash
+	if anyParams&(1<<0) == 0 {
+		if m.runtime.parameterIndexing.Usual.sParam == moq.ParamIndexByValue {
+			sParamUsed = params.sParam
+		} else {
+			sParamUsedHash = hash.DeepHash(params.sParam)
+		}
+	}
+	var bParamUsed bool
+	var bParamUsedHash hash.Hash
+	if anyParams&(1<<1) == 0 {
+		if m.runtime.parameterIndexing.Usual.bParam == moq.ParamIndexByValue {
+			bParamUsed = params.bParam
+		} else {
+			bParamUsedHash = hash.DeepHash(params.bParam)
+		}
+	}
+	return moqGenericInterfaceResult_Usual_paramsKey[R]{
+		params: struct {
+			sParam string
+			bParam bool
+		}{
+			sParam: sParamUsed,
+			bParam: bParamUsed,
+		},
+		hashes: struct {
+			sParam hash.Hash
+			bParam hash.Hash
+		}{
+			sParam: sParamUsedHash,
+			bParam: bParamUsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericInterfaceResult[R]) Reset() { m.resultsByParams_Usual = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericInterfaceResult[R]) AssertExpectationsMet() {
+	m.scene.T.Helper()
+	for _, res := range m.resultsByParams_Usual {
+		for _, results := range res.results {
+			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
+			if missing > 0 {
+				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
 			}
 		}
 	}
