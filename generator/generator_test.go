@@ -124,7 +124,7 @@ func TestGenerating(t *testing.T) {
 				delete(checked, genType)
 			}
 
-			for c, _ := range checked {
+			for c := range checked {
 				t.Errorf("type %s missing from line %d of %s", c, lineNo, typeGoPath)
 			}
 		}

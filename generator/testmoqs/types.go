@@ -154,11 +154,12 @@ type Usual interface {
 
 // The following unused structs check that the AST cache doesn't pick up the
 // wrong types
-
-type S struct{}
-type B struct{}
-type E struct{}
-type W struct{}
+type (
+	S struct{}
+	B struct{}
+	E struct{}
+	W struct{}
+)
 
 type GenericParams[S, B any] interface {
 	Usual(S, B) (string, error)
