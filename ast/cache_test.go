@@ -14,6 +14,8 @@ import (
 
 	"github.com/dave/dst"
 	"github.com/dave/dst/decorator"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"golang.org/x/tools/go/packages"
 	"moqueries.org/runtime/moq"
 
@@ -1302,51 +1304,6 @@ type e struct {
 					} {
 						t.Run(name, func(t *testing.T) {
 							for name, fn := range map[string]func(*testing.T) ast.TypeInfo{
-								// "struct context": func(t *testing.T, f *dst.File) (dst.Expr, *dst.TypeSpec) {
-								// 	if tc.skipNonMethodTest {
-								// 		t.Skip()
-								// 	}
-								//
-								// 	gen, ok := f.Decls[2].(*dst.GenDecl)
-								// 	if !ok {
-								// 		t.Fatalf("got %#v, want a generic declaration", f.Decls[1])
-								// 	}
-								// 	fields := gen.Specs[0].(*dst.TypeSpec).Type.(*dst.StructType).Fields.List
-								// 	var idx int
-								// 	// A bit brittle but at least one of the
-								// 	// tests puts U in the middle of the list
-								// 	if len(fields) == 1 {
-								// 		idx = 0
-								// 	} else {
-								// 		idx = 1
-								// 	}
-								// 	expr := fields[idx].Type
-								// 	return expr, nil
-								// },
-								// "method context": func(t *testing.T, f *dst.File) (dst.Expr, *dst.FuncDecl) {
-								// 	fn, ok := f.Decls[3].(*dst.FuncDecl)
-								// 	if !ok {
-								// 		t.Fatalf("got %#v, want a function declaration", f.Decls[1])
-								// 	}
-								// 	expr := fn.Type.Params.List[0].Type
-								// 	if tc.alterMethod != nil {
-								// 		tc.alterMethod(fn)
-								// 	}
-								// 	return expr, fn
-								// },
-								// "function context": func(t *testing.T, f *dst.File) (dst.Expr, *dst.FuncDecl) {
-								// 	if tc.skipNonMethodTest {
-								// 		t.Skip()
-								// 	}
-								//
-								// 	fn, ok := f.Decls[4].(*dst.FuncDecl)
-								// 	if !ok {
-								// 		t.Fatalf("got %#v, want a function declaration", f.Decls[1])
-								// 	}
-								// 	expr := fn.Type.Params.List[0].Type
-								//
-								// 	return expr, fn
-								// },
 								"type context": func(t *testing.T) ast.TypeInfo {
 									t.Helper()
 									tSpec, err := cache.Type(*ast.IdPath("b", "a"), "", false)
@@ -1367,6 +1324,8 @@ type e struct {
 									defer afterEach(t)
 
 									code := `package a
+
+type U struct{}
 
 type notComparable []int
 
@@ -1678,6 +1637,7 @@ func d%s(U) {}
 		}
 
 		t.Run("everything returned", func(t *testing.T) {
+			titler := cases.Title(language.Und, cases.NoLower)
 			testCases := map[string]struct {
 				pkg          string
 				pkgs         []*packages.Package
@@ -1731,22 +1691,22 @@ func d%s(U) {}
 						typsByName[id.Name] = id
 					}
 
-					if _, ok := typsByName[tc.prefix+"1"]; !ok {
-						t.Errorf("got nothing, want %s1", tc.prefix)
+					for _, tname := range []string{
+						"type1",
+						"type2",
+						"type4_genType",
+						"widget_genType",
+						"widget_starGenType",
+						"generic_indexGenType",
+						"genericList_indexListGenType",
+					} {
+						if tc.onlyExported {
+							tname = titler.String(tname)
+						}
+						if _, ok := typsByName[tname]; !ok {
+							t.Errorf("got nothing, want %s", tname)
+						}
 					}
-					if _, ok := typsByName[tc.prefix+"2"]; !ok {
-						t.Errorf("got nothing, want %s2", tc.prefix)
-					}
-					if _, ok := typsByName[tc.prefix+"4_genType"]; !ok {
-						t.Errorf("got nothing, want %s4_genType", tc.prefix)
-					}
-					if _, ok := typsByName[tc.widgetPrefix+"_genType"]; !ok {
-						t.Errorf("got nothing, want %s_genType", tc.widgetPrefix)
-					}
-					if _, ok := typsByName[tc.widgetPrefix+"_starGenType"]; !ok {
-						t.Errorf("got nothing, want %s_starGenType", tc.widgetPrefix)
-					}
-					// TODO: Check new extensions
 				})
 			}
 		})

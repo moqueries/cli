@@ -8,8 +8,6 @@ import (
 	"moqueries.org/cli/generator/testmoqs/other"
 )
 
-// TODO: Need to have a full copy of this file in a test package?
-
 // NB: Keep in sync with ../generator_test.go TestGenerating
 
 //go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult
@@ -153,6 +151,14 @@ type Usual interface {
 	FnParam(fn func())
 	other.Other
 }
+
+// The following unused structs check that the AST cache doesn't pick up the
+// wrong types
+
+type S struct{}
+type B struct{}
+type E struct{}
+type W struct{}
 
 type GenericParams[S, B any] interface {
 	Usual(S, B) (string, error)

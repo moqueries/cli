@@ -1,9 +1,11 @@
 package generator_test
 
 import (
+	"bufio"
 	"go/parser"
 	"go/token"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/dave/dst"
@@ -32,8 +34,7 @@ func TestGenerating(t *testing.T) {
 		// NB: Keep in sync with testmoqs/types.go go:generate directives
 
 		// These lines generate the same moqs listed in types.go go:generate
-		// directives. Remove the "pending" flag on this test to verify code
-		// coverage.
+		// directives.
 
 		types := []string{
 			"UsualFn",
@@ -85,6 +86,47 @@ func TestGenerating(t *testing.T) {
 		)
 		if err != nil {
 			t.Errorf("got %#v, wanted no err", err)
+		}
+
+		typeGoPath := "testmoqs/types.go"
+		f, err := os.Open(typeGoPath)
+		if err != nil {
+			t.Fatalf("got %#v, wanted no err", err)
+		}
+		s := bufio.NewScanner(f)
+
+		lineNo := 0
+		for s.Scan() {
+			lineNo++
+			line := string(s.Bytes())
+
+			prefix := "//go:generate moqueries"
+			if !strings.HasPrefix(line, prefix) {
+				continue
+			}
+
+			// Fresh copy of checked map; we check multiple lines
+			checked := map[string]struct{}{}
+			for _, typ := range types {
+				checked[typ] = struct{}{}
+			}
+
+			genTypes := strings.Split(line[len(prefix)+1:], " ")
+			for _, genType := range genTypes {
+				if strings.HasPrefix(genType, "--") || strings.HasSuffix(genType, ".go") {
+					continue
+				}
+
+				if _, ok := checked[genType]; !ok {
+					t.Errorf("type %s missing from types array above", genType)
+				}
+
+				delete(checked, genType)
+			}
+
+			for c, _ := range checked {
+				t.Errorf("type %s missing from line %d of %s", c, lineNo, typeGoPath)
+			}
 		}
 	})
 

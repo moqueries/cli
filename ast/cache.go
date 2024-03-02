@@ -425,21 +425,15 @@ func (c *Cache) isDefaultComparable(
 
 		return subInterfaceDefault, nil
 	case *dst.Ident:
-		// if e.Obj != nil {
-		// 	var tExpr dst.Expr
-		// 	switch typ := e.Obj.Decl.(type) {
-		// 	case *dst.TypeSpec:
-		// 		tExpr = typ.Type
-		// 	case *dst.Field:
-		// 		tExpr = typ.Type
-		// 	default:
-		// 		return false, fmt.Errorf("identity expression %q: %w", e.String(), ErrInvalidType)
-		// 	}
-		//
-		// 	return c.isDefaultComparable(tExpr, parentType, "", interfacePointerDefault, false)
-		// }
-		// TODO: Generic type parameters should trump types in the cache (call
-		//   findGenericType first)
+		noPkg := e.Path == "" || (parentType != nil && parentType.Type != nil && e.Path == parentType.Type.Name.Path)
+		if noPkg {
+			// Precedence is given to a generic type
+			gType := c.findGenericType(parentType, e.Name)
+			if gType != nil {
+				return c.isDefaultComparable(gType, parentType, interfacePointerDefault, true)
+			}
+		}
+
 		pkgPath := e.Path
 		typ, ok := c.typesByIdent[e.String()]
 		if !ok && e.Path == "" && parentType != nil {
@@ -457,14 +451,8 @@ func (c *Cache) isDefaultComparable(
 				typ.typ.Type, tInfo, interfacePointerDefault, genericType)
 		}
 
-		// Builtin or generic type?
-		if e.Path == "" || (parentType != nil && parentType.Type != nil && e.Path == parentType.Type.Name.Path) {
-			// Precedence is given to a generic type
-			gType := c.findGenericType(parentType, e.Name)
-			if gType != nil {
-				return c.isDefaultComparable(gType, parentType, interfacePointerDefault, true)
-			}
-
+		// Builtin type?
+		if noPkg {
 			// error is a builtin type that may not be comparable (it's
 			// an interface so return the same result as an interface)
 			if e.Name == "error" {
@@ -553,62 +541,6 @@ func (c *Cache) findGenericType(parentType *TypeInfo, paramTypeName string) dst.
 
 	return nil
 }
-
-// func (c *Cache) findMethodGenericType(fn *dst.FuncDecl, paramTypeName string) (dst.Expr, error) {
-// 	// Only handle methods here. Functions and structs have their Obj's intact
-// 	// and don't need to be looked up in another declaration
-// 	for _, r := range fn.Recv.List {
-// 		switch idxType := r.Type.(type) {
-// 		case *dst.IndexListExpr:
-// 			for n, iExpr := range idxType.Indices {
-// 				xId, ok := idxType.X.(*dst.Ident)
-// 				if !ok {
-// 					return nil, fmt.Errorf(
-// 						"expecting *dst.Ident in IndexListExpr.X: %w", ErrInvalidType)
-// 				}
-// 				gType, err := c.findIndexedGenericType(iExpr, paramTypeName, xId, n)
-// 				if err != nil || gType != nil {
-// 					return gType, err
-// 				}
-// 			}
-// 		case *dst.IndexExpr:
-// 			xId, ok := idxType.X.(*dst.Ident)
-// 			if !ok {
-// 				return nil, fmt.Errorf(
-// 					"expecting *dst.Ident in IndexExpr.X: %w", ErrInvalidType)
-// 			}
-// 			return c.findIndexedGenericType(idxType.Index, paramTypeName, xId, 0)
-// 		default:
-// 			return nil, fmt.Errorf(
-// 				"unexpected index type %#v: %w", idxType, ErrInvalidType)
-// 		}
-// 	}
-//
-// 	return nil, nil
-// }
-
-// func (c *Cache) findIndexedGenericType(
-// 	iExpr dst.Expr, paramTypeName string, xId *dst.Ident, idx int,
-// ) (dst.Expr, error) {
-// 	if id, ok := iExpr.(*dst.Ident); ok && id.Name != paramTypeName {
-// 		return nil, nil
-// 	}
-//
-// 	if xId.Obj == nil {
-// 		return nil, fmt.Errorf(
-// 			"expecting Obj: %w", ErrInvalidType)
-// 	}
-// 	tSpec, ok := xId.Obj.Decl.(*dst.TypeSpec)
-// 	if !ok {
-// 		return nil, fmt.Errorf(
-// 			"expecting *dst.TypeSpec: %w", ErrInvalidType)
-// 	}
-// 	if tSpec.TypeParams == nil || len(tSpec.TypeParams.List) <= idx {
-// 		return nil, fmt.Errorf(
-// 			"base type to method type param mismatch: %w", ErrInvalidType)
-// 	}
-// 	return tSpec.TypeParams.List[idx].Type, nil
-// }
 
 func (c *Cache) loadPackage(path string, testImport bool) (string, error) {
 	indexPath := path
