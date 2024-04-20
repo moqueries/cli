@@ -7,6 +7,7 @@ import (
 	"io"
 	"math/bits"
 	"sync/atomic"
+	"unsafe"
 
 	"moqueries.org/cli/generator/testmoqs"
 	"moqueries.org/cli/generator/testmoqs/other"
@@ -20373,6 +20374,357 @@ func (m *MoqGenericInterfaceResult[R]) AssertExpectationsMet() {
 			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
 			if missing > 0 {
 				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Usual(results.Params))
+			}
+		}
+	}
+}
+
+// MoqUnsafePointerFn holds the state of a moq of the UnsafePointerFn type
+type MoqUnsafePointerFn struct {
+	Scene  *moq.Scene
+	Config moq.Config
+	Moq    *MoqUnsafePointerFn_mock
+
+	ResultsByParams []MoqUnsafePointerFn_resultsByParams
+
+	Runtime struct {
+		ParameterIndexing struct{}
+	}
+}
+
+// MoqUnsafePointerFn_mock isolates the mock interface of the UnsafePointerFn
+// type
+type MoqUnsafePointerFn_mock struct {
+	Moq *MoqUnsafePointerFn
+}
+
+// MoqUnsafePointerFn_params holds the params of the UnsafePointerFn type
+type MoqUnsafePointerFn_params struct{}
+
+// MoqUnsafePointerFn_paramsKey holds the map key params of the UnsafePointerFn
+// type
+type MoqUnsafePointerFn_paramsKey struct {
+	Params struct{}
+	Hashes struct{}
+}
+
+// MoqUnsafePointerFn_resultsByParams contains the results for a given set of
+// parameters for the UnsafePointerFn type
+type MoqUnsafePointerFn_resultsByParams struct {
+	AnyCount  int
+	AnyParams uint64
+	Results   map[MoqUnsafePointerFn_paramsKey]*MoqUnsafePointerFn_results
+}
+
+// MoqUnsafePointerFn_doFn defines the type of function needed when calling
+// AndDo for the UnsafePointerFn type
+type MoqUnsafePointerFn_doFn func()
+
+// MoqUnsafePointerFn_doReturnFn defines the type of function needed when
+// calling DoReturnResults for the UnsafePointerFn type
+type MoqUnsafePointerFn_doReturnFn func() unsafe.Pointer
+
+// MoqUnsafePointerFn_results holds the results of the UnsafePointerFn type
+type MoqUnsafePointerFn_results struct {
+	Params  MoqUnsafePointerFn_params
+	Results []struct {
+		Values *struct {
+			Result1 unsafe.Pointer
+		}
+		Sequence   uint32
+		DoFn       MoqUnsafePointerFn_doFn
+		DoReturnFn MoqUnsafePointerFn_doReturnFn
+	}
+	Index  uint32
+	Repeat *moq.RepeatVal
+}
+
+// MoqUnsafePointerFn_fnRecorder routes recorded function calls to the
+// MoqUnsafePointerFn moq
+type MoqUnsafePointerFn_fnRecorder struct {
+	Params    MoqUnsafePointerFn_params
+	AnyParams uint64
+	Sequence  bool
+	Results   *MoqUnsafePointerFn_results
+	Moq       *MoqUnsafePointerFn
+}
+
+// MoqUnsafePointerFn_anyParams isolates the any params functions of the
+// UnsafePointerFn type
+type MoqUnsafePointerFn_anyParams struct {
+	Recorder *MoqUnsafePointerFn_fnRecorder
+}
+
+// NewMoqUnsafePointerFn creates a new moq of the UnsafePointerFn type
+func NewMoqUnsafePointerFn(scene *moq.Scene, config *moq.Config) *MoqUnsafePointerFn {
+	if config == nil {
+		config = &moq.Config{}
+	}
+	m := &MoqUnsafePointerFn{
+		Scene:  scene,
+		Config: *config,
+		Moq:    &MoqUnsafePointerFn_mock{},
+
+		Runtime: struct {
+			ParameterIndexing struct{}
+		}{ParameterIndexing: struct{}{}},
+	}
+	m.Moq.Moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// Mock returns the moq implementation of the UnsafePointerFn type
+func (m *MoqUnsafePointerFn) Mock() testmoqs.UnsafePointerFn {
+	return func() unsafe.Pointer { m.Scene.T.Helper(); moq := &MoqUnsafePointerFn_mock{Moq: m}; return moq.Fn() }
+}
+
+func (m *MoqUnsafePointerFn_mock) Fn() (result1 unsafe.Pointer) {
+	m.Moq.Scene.T.Helper()
+	params := MoqUnsafePointerFn_params{}
+	var results *MoqUnsafePointerFn_results
+	for _, resultsByParams := range m.Moq.ResultsByParams {
+		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
+		var ok bool
+		results, ok = resultsByParams.Results[paramsKey]
+		if ok {
+			break
+		}
+	}
+	if results == nil {
+		if m.Moq.Config.Expectation == moq.Strict {
+			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams(params))
+		}
+		return
+	}
+
+	i := int(atomic.AddUint32(&results.Index, 1)) - 1
+	if i >= results.Repeat.ResultCount {
+		if !results.Repeat.AnyTimes {
+			if m.Moq.Config.Expectation == moq.Strict {
+				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams(params))
+			}
+			return
+		}
+		i = results.Repeat.ResultCount - 1
+	}
+
+	result := results.Results[i]
+	if result.Sequence != 0 {
+		sequence := m.Moq.Scene.NextMockSequence()
+		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
+			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams(params))
+		}
+	}
+
+	if result.DoFn != nil {
+		result.DoFn()
+	}
+
+	if result.Values != nil {
+		result1 = result.Values.Result1
+	}
+	if result.DoReturnFn != nil {
+		result1 = result.DoReturnFn()
+	}
+	return
+}
+
+func (m *MoqUnsafePointerFn) OnCall() *MoqUnsafePointerFn_fnRecorder {
+	return &MoqUnsafePointerFn_fnRecorder{
+		Params:   MoqUnsafePointerFn_params{},
+		Sequence: m.Config.Sequence == moq.SeqDefaultOn,
+		Moq:      m,
+	}
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) Any() *MoqUnsafePointerFn_anyParams {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams(r.Params))
+		return nil
+	}
+	return &MoqUnsafePointerFn_anyParams{Recorder: r}
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) Seq() *MoqUnsafePointerFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams(r.Params))
+		return nil
+	}
+	r.Sequence = true
+	return r
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) NoSeq() *MoqUnsafePointerFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams(r.Params))
+		return nil
+	}
+	r.Sequence = false
+	return r
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) ReturnResults(result1 unsafe.Pointer) *MoqUnsafePointerFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			Result1 unsafe.Pointer
+		}
+		Sequence   uint32
+		DoFn       MoqUnsafePointerFn_doFn
+		DoReturnFn MoqUnsafePointerFn_doReturnFn
+	}{
+		Values: &struct {
+			Result1 unsafe.Pointer
+		}{
+			Result1: result1,
+		},
+		Sequence: sequence,
+	})
+	return r
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) AndDo(fn MoqUnsafePointerFn_doFn) *MoqUnsafePointerFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+		return nil
+	}
+	last := &r.Results.Results[len(r.Results.Results)-1]
+	last.DoFn = fn
+	return r
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) DoReturnResults(fn MoqUnsafePointerFn_doReturnFn) *MoqUnsafePointerFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	r.FindResults()
+
+	var sequence uint32
+	if r.Sequence {
+		sequence = r.Moq.Scene.NextRecorderSequence()
+	}
+
+	r.Results.Results = append(r.Results.Results, struct {
+		Values *struct {
+			Result1 unsafe.Pointer
+		}
+		Sequence   uint32
+		DoFn       MoqUnsafePointerFn_doFn
+		DoReturnFn MoqUnsafePointerFn_doReturnFn
+	}{Sequence: sequence, DoReturnFn: fn})
+	return r
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) FindResults() {
+	r.Moq.Scene.T.Helper()
+	if r.Results != nil {
+		r.Results.Repeat.Increment(r.Moq.Scene.T)
+		return
+	}
+
+	anyCount := bits.OnesCount64(r.AnyParams)
+	insertAt := -1
+	var results *MoqUnsafePointerFn_resultsByParams
+	for n, res := range r.Moq.ResultsByParams {
+		if res.AnyParams == r.AnyParams {
+			results = &res
+			break
+		}
+		if res.AnyCount > anyCount {
+			insertAt = n
+		}
+	}
+	if results == nil {
+		results = &MoqUnsafePointerFn_resultsByParams{
+			AnyCount:  anyCount,
+			AnyParams: r.AnyParams,
+			Results:   map[MoqUnsafePointerFn_paramsKey]*MoqUnsafePointerFn_results{},
+		}
+		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
+		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
+			copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
+			r.Moq.ResultsByParams[insertAt] = *results
+		}
+	}
+
+	paramsKey := r.Moq.ParamsKey(r.Params, r.AnyParams)
+
+	var ok bool
+	r.Results, ok = results.Results[paramsKey]
+	if !ok {
+		r.Results = &MoqUnsafePointerFn_results{
+			Params:  r.Params,
+			Results: nil,
+			Index:   0,
+			Repeat:  &moq.RepeatVal{},
+		}
+		results.Results[paramsKey] = r.Results
+	}
+
+	r.Results.Repeat.Increment(r.Moq.Scene.T)
+}
+
+func (r *MoqUnsafePointerFn_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqUnsafePointerFn_fnRecorder {
+	r.Moq.Scene.T.Helper()
+	if r.Results == nil {
+		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+		return nil
+	}
+	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
+	last := r.Results.Results[len(r.Results.Results)-1]
+	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
+		if r.Sequence {
+			last = struct {
+				Values *struct {
+					Result1 unsafe.Pointer
+				}
+				Sequence   uint32
+				DoFn       MoqUnsafePointerFn_doFn
+				DoReturnFn MoqUnsafePointerFn_doReturnFn
+			}{
+				Values:   last.Values,
+				Sequence: r.Moq.Scene.NextRecorderSequence(),
+			}
+		}
+		r.Results.Results = append(r.Results.Results, last)
+	}
+	return r
+}
+
+func (m *MoqUnsafePointerFn) PrettyParams(params MoqUnsafePointerFn_params) string {
+	return fmt.Sprintf("UnsafePointerFn()")
+}
+
+func (m *MoqUnsafePointerFn) ParamsKey(params MoqUnsafePointerFn_params, anyParams uint64) MoqUnsafePointerFn_paramsKey {
+	m.Scene.T.Helper()
+	return MoqUnsafePointerFn_paramsKey{
+		Params: struct{}{},
+		Hashes: struct{}{},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *MoqUnsafePointerFn) Reset() { m.ResultsByParams = nil }
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *MoqUnsafePointerFn) AssertExpectationsMet() {
+	m.Scene.T.Helper()
+	for _, res := range m.ResultsByParams {
+		for _, results := range res.Results {
+			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
+			if missing > 0 {
+				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams(results.Params))
 			}
 		}
 	}

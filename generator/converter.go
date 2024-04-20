@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"errors"
 	"fmt"
 	"go/token"
 	"path/filepath"
@@ -1982,6 +1983,15 @@ func (c *Converter) resolveExpr(expr dst.Expr, parentType TypeInfo) dst.Expr {
 		}
 		typ, err := c.typeCache.Type(*e, parentType.PkgPath, false)
 		if err != nil {
+			if errors.Is(err, ErrTypeNotFound) {
+				ppkg := e.Path
+				if ppkg == "" {
+					ppkg = parentType.PkgPath
+				}
+				id := IdPath(e.Name, ppkg)
+				logs.Warnf("Passing through unknown type %s as %s", e.String(), id.String())
+				return id
+			}
 			if c.err == nil {
 				c.err = err
 			}

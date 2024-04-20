@@ -4,14 +4,15 @@ package testmoqs
 
 import (
 	"io"
+	"unsafe"
 
 	"moqueries.org/cli/generator/testmoqs/other"
 )
 
 // NB: Keep in sync with ../generator_test.go TestGenerating
 
-//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult
-//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult
+//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult UnsafePointerFn
+//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult UnsafePointerFn
 
 // UsualFn is a typical function type
 type UsualFn func(sParam string, bParam bool) (sResult string, err error)
@@ -184,3 +185,5 @@ type GenericInterfaceParam[W MyWriter] interface {
 type GenericInterfaceResult[R MyReader] interface {
 	Usual(sParam string, bParam bool) (r R)
 }
+
+type UnsafePointerFn func() unsafe.Pointer

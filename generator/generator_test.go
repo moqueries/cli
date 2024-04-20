@@ -69,6 +69,7 @@ func TestGenerating(t *testing.T) {
 			"PartialGenericResults",
 			"GenericInterfaceParam",
 			"GenericInterfaceResult",
+			"UnsafePointerFn",
 		}
 
 		err := generator.Generate(
