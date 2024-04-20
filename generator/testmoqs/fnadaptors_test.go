@@ -2539,7 +2539,6 @@ func (r *exportedInterfaceResultFnRecorder) isNil() bool {
 }
 
 type genericParamsFnAdaptor[S, B any] struct {
-	//nolint:structcheck // definitely used
 	m *moqGenericParamsFn[S, B]
 }
 
@@ -2570,7 +2569,6 @@ func (a *genericParamsFnAdaptor[S, B]) sceneMoq() moq.Moq {
 }
 
 type genericParamsFnRecorder[S, B any] struct {
-	//nolint:structcheck // definitely used
 	r *moqGenericParamsFn_fnRecorder[S, B]
 }
 
@@ -2638,7 +2636,6 @@ func (r *genericParamsFnRecorder[S, B]) isNil() bool {
 }
 
 type exportedGenericParamsFnAdaptor[S, B any] struct {
-	//nolint:structcheck // definitely used
 	m *exported.MoqGenericParamsFn[S, B]
 }
 
@@ -2673,7 +2670,6 @@ func (a *exportedGenericParamsFnAdaptor[S, B]) sceneMoq() moq.Moq {
 }
 
 type exportedGenericParamsFnRecorder[S, B any] struct {
-	//nolint:structcheck // definitely used
 	r *exported.MoqGenericParamsFn_fnRecorder[S, B]
 }
 
@@ -2743,7 +2739,6 @@ func (r *exportedGenericParamsFnRecorder[S, B]) isNil() bool {
 }
 
 type partialGenericParamsFnAdaptor[S any] struct {
-	//nolint:structcheck // definitely used
 	m *moqPartialGenericParamsFn[S]
 }
 
@@ -2776,7 +2771,6 @@ func (a *partialGenericParamsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type partialGenericParamsFnRecorder[S any] struct {
-	//nolint:structcheck // definitely used
 	r *moqPartialGenericParamsFn_fnRecorder[S]
 }
 
@@ -2844,7 +2838,6 @@ func (r *partialGenericParamsFnRecorder[S]) isNil() bool {
 }
 
 type exportedPartialGenericParamsFnAdaptor[S any] struct {
-	//nolint:structcheck // definitely used
 	m *exported.MoqPartialGenericParamsFn[S]
 }
 
@@ -2879,7 +2872,6 @@ func (a *exportedPartialGenericParamsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type exportedPartialGenericParamsFnRecorder[S any] struct {
-	//nolint:structcheck // definitely used
 	r *exported.MoqPartialGenericParamsFn_fnRecorder[S]
 }
 
@@ -2949,7 +2941,6 @@ func (r *exportedPartialGenericParamsFnRecorder[S]) isNil() bool {
 }
 
 type genericResultsFnAdaptor[S ~string, E error] struct {
-	//nolint:structcheck // definitely used
 	m *moqGenericResultsFn[S, E]
 }
 
@@ -2982,7 +2973,6 @@ func (a *genericResultsFnAdaptor[S, E]) sceneMoq() moq.Moq {
 }
 
 type genericResultsFnRecorder[S ~string, E error] struct {
-	//nolint:structcheck // definitely used
 	r *moqGenericResultsFn_fnRecorder[S, E]
 }
 
@@ -3058,7 +3048,6 @@ func (r *genericResultsFnRecorder[S, E]) isNil() bool {
 }
 
 type exportedGenericResultsFnAdaptor[S ~string, E error] struct {
-	//nolint:structcheck // definitely used
 	m *exported.MoqGenericResultsFn[S, E]
 }
 
@@ -3093,7 +3082,6 @@ func (a *exportedGenericResultsFnAdaptor[S, E]) sceneMoq() moq.Moq {
 }
 
 type exportedGenericResultsFnRecorder[S ~string, E error] struct {
-	//nolint:structcheck // definitely used
 	r *exported.MoqGenericResultsFn_fnRecorder[S, E]
 }
 
@@ -3171,7 +3159,6 @@ func (r *exportedGenericResultsFnRecorder[S, E]) isNil() bool {
 }
 
 type partialGenericResultsFnAdaptor[S ~string] struct {
-	//nolint:structcheck // definitely used
 	m *moqPartialGenericResultsFn[S]
 }
 
@@ -3204,7 +3191,6 @@ func (a *partialGenericResultsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type partialGenericResultsFnRecorder[S ~string] struct {
-	//nolint:structcheck // definitely used
 	r *moqPartialGenericResultsFn_fnRecorder[S]
 }
 
@@ -3274,7 +3260,6 @@ func (r *partialGenericResultsFnRecorder[S]) isNil() bool {
 }
 
 type exportedPartialGenericResultsFnAdaptor[S ~string] struct {
-	//nolint:structcheck // definitely used
 	m *exported.MoqPartialGenericResultsFn[S]
 }
 
@@ -3309,7 +3294,6 @@ func (a *exportedPartialGenericResultsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type exportedPartialGenericResultsFnRecorder[S ~string] struct {
-	//nolint:structcheck // definitely used
 	r *exported.MoqPartialGenericResultsFn_fnRecorder[S]
 }
 
