@@ -48,8 +48,7 @@ func TestPackageGeneration(t *testing.T) {
 
 		moqs[e.Name()] = struct{}{}
 	}
-	count := 4
-	if len(moqs) != count {
+	if count := 4; len(moqs) != count {
 		t.Errorf("got %#v mocks, want %d", moqs, count)
 	}
 	if _, ok := moqs["moq_passbyrefsimple.go"]; !ok {

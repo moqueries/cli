@@ -823,10 +823,8 @@ func (c *Cache) fabricateInterfaceType(id, pkgPath string, funcs []*funcDeclInfo
 	for n, fn := range funcs {
 		if n == 0 {
 			dec = fn.decoratedRecvType
-		} else {
-			if dec != fn.decoratedRecvType {
-				mixedRecvTypes = true
-			}
+		} else if dec != fn.decoratedRecvType {
+			mixedRecvTypes = true
 		}
 	}
 
@@ -842,10 +840,8 @@ func (c *Cache) fabricateInterfaceType(id, pkgPath string, funcs []*funcDeclInfo
 
 			if exportedDec == "" {
 				exportedDec = fn.decoratedRecvType
-			} else {
-				if exportedDec != fn.decoratedRecvType {
-					return nil, fmt.Errorf("%w: %s.%s", ErrMixedRecvTypes, pkgPath, id)
-				}
+			} else if exportedDec != fn.decoratedRecvType {
+				return nil, fmt.Errorf("%w: %s.%s", ErrMixedRecvTypes, pkgPath, id)
 			}
 		}
 
