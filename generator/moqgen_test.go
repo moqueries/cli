@@ -268,6 +268,7 @@ func TestMoqGenerator(t *testing.T) {
 
 	t.Run("recursively looks up nested interfaces", func(t *testing.T) {
 		types := []string{"PublicInterface", "privateInterface"}
+		genTypes := []string{"PublicInterface_genType", "privateInterface_genType"}
 		for name, tc := range map[string]struct {
 			request    generator.GenerateRequest
 			findPkgDir string
@@ -480,6 +481,23 @@ func TestMoqGenerator(t *testing.T) {
 				typePath:   "./subdir1",
 				destPath:   "subdir1/destpkg3/moq_publicinterface_privateinterface.go",
 			},
+			"removes _gentype suffix from filenames": {
+				request: generator.GenerateRequest{
+					Types:          genTypes,
+					Export:         true,
+					DestinationDir: "destpkg3",
+					Package:        "subpkg2",
+					Import:         ".",
+					TestImport:     false,
+					WorkingDir:     "/some-nice-path/subdir1",
+				},
+				findPkgDir: "subdir1/destpkg3",
+				findPkgOut: "thispkg",
+				outPkgPath: "subpkg2",
+				getwdDir:   "/some-nice-path",
+				typePath:   "./subdir1",
+				destPath:   "subdir1/destpkg3/moq_publicinterface_privateinterface.go",
+			},
 		} {
 			t.Run(name, func(t *testing.T) {
 				// ASSEMBLE
@@ -493,7 +511,7 @@ func TestMoqGenerator(t *testing.T) {
 				// PublicInterface embeds privateInterface which embeds io.Reader
 				ifaceMethods1.List = append(ifaceMethods1.List, &dst.Field{
 					Type: &dst.Ident{
-						Name: "privateInterface",
+						Name: tc.request.Types[1],
 						Path: genPkg,
 					},
 				})
@@ -503,14 +521,14 @@ func TestMoqGenerator(t *testing.T) {
 						Path: "io",
 					},
 				})
-				typeCacheMoq.onCall().Type(*ast.IdPath("PublicInterface", tc.typePath), tc.typePath, false).
+				typeCacheMoq.onCall().Type(*ast.IdPath(tc.request.Types[0], tc.typePath), tc.typePath, false).
 					returnResults(ifaceInfo1, nil)
 				typeCacheMoq.onCall().Type(
-					*ast.IdPath("privateInterface", genPkg), genPkg, false).
+					*ast.IdPath(tc.request.Types[1], genPkg), genPkg, false).
 					returnResults(ifaceInfo2, nil)
 				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 					returnResults(readerInfo, nil)
-				typeCacheMoq.onCall().Type(*ast.IdPath("privateInterface", tc.typePath), tc.typePath, false).
+				typeCacheMoq.onCall().Type(*ast.IdPath(tc.request.Types[1], tc.typePath), tc.typePath, false).
 					returnResults(ifaceInfo2, nil)
 				typeCacheMoq.onCall().Type(*ast.IdPath("Reader", "io"), genPkg, false).
 					returnResults(readerInfo, nil)

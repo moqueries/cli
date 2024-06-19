@@ -13,6 +13,7 @@ import (
 	"github.com/dave/dst"
 	"moqueries.org/runtime/logs"
 
+	"moqueries.org/cli/ast"
 	"moqueries.org/cli/generator"
 	"moqueries.org/cli/metrics"
 )
@@ -96,7 +97,7 @@ func Generate(
 			ExcludeNonExported: true,
 		})
 		if err != nil {
-			if errors.Is(err, generator.ErrNonExported) {
+			if errors.Is(err, generator.ErrNonExported) || errors.Is(err, ast.ErrMixedRecvTypes) {
 				logs.Debugf("Skipping generation of mock for %s, %s",
 					id.String(), err.Error())
 				continue

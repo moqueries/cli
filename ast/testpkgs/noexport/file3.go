@@ -8,6 +8,8 @@ func (widget) method1() {}
 
 func (widget) method2() {}
 
-func (*widget) method3() {}
+type widgetByRef struct{}
 
-func (*widget) method4() {}
+func (*widgetByRef) method3() {}
+
+func (*widgetByRef) method4() {}

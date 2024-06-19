@@ -8,6 +8,8 @@ func (Widget) Type5() {}
 
 func (Widget) Type6() {}
 
-func (*Widget) Type7() {}
+type WidgetByRef struct{}
 
-func (*Widget) Type8() {}
+func (*WidgetByRef) Type7() {}
+
+func (*WidgetByRef) Type8() {}

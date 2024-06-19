@@ -24,11 +24,8 @@ import (
 const (
 	builtinPkg = "builtin"
 
-	genTypeSuffix          = "_genType"
-	starGenTypeSuffix      = "_starGenType"
-	indexGenTypeSuffix     = "_indexGenType"
-	indexListGenTypeSuffix = "_indexListGenType"
-	testPkgSuffix          = "_test"
+	GenTypeSuffix = "_genType"
+	testPkgSuffix = "_test"
 )
 
 //go:generate moqueries LoadFn
@@ -56,6 +53,13 @@ var (
 	// ErrMissingModuleDirective is returned when the go.mod file is missing
 	// its module directive
 	ErrMissingModuleDirective = errors.New("missing module directive")
+	// ErrMixedRecvTypes is returned when fabricating an interface for a type
+	// with multiple exported methods that differ by receiver type (i.e: some
+	// pass-by-value receivers and some pass-by-reference receivers). If all
+	// exported methods have a consistent receiver type and only the
+	// non-exported methods are different, non-exported methods are dropped
+	// and the cache emits a warning log.
+	ErrMixedRecvTypes = errors.New("single type is used with exported and differing receiver types")
 )
 
 // Cache loads packages from the AST and caches the results
@@ -83,8 +87,9 @@ type methodDeclInfo struct {
 }
 
 type funcDeclInfo struct {
-	id  dst.Ident
-	typ *dst.FuncType
+	id                dst.Ident
+	typ               *dst.FuncType
+	decoratedRecvType string
 }
 
 type pkgInfo struct {
@@ -160,10 +165,14 @@ func (c *Cache) Type(id dst.Ident, contextPkg string, testImport bool) (TypeInfo
 		}, nil
 	}
 	if methodDecl, ok := c.methodDeclsByIdent[realId]; ok {
+		fType, err := c.fabricateInterfaceType(id.Name, pkgPath, methodDecl.funcs)
+		if err != nil {
+			return TypeInfo{}, err
+		}
 		return TypeInfo{
 			Type: &dst.TypeSpec{
 				Name: &methodDecl.id,
-				Type: c.fabricateInterfaceType(methodDecl.funcs),
+				Type: fType,
 			},
 			PkgPath:    pkgPath,
 			Exported:   isExported(methodDecl.id.Name, pkgPath),
@@ -758,7 +767,7 @@ func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
 		typ: decl.Type,
 	}
 	if decl.Recv == nil {
-		fnInfo.id.Name += genTypeSuffix
+		fnInfo.id.Name += GenTypeSuffix
 		// Might be added twice when loading a package without test types and
 		// then loading again with test types
 		c.funcDeclsByIdent[fnInfo.id.String()] = fnInfo
@@ -770,27 +779,14 @@ func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
 			ident.String(), len(decl.Recv.List))
 	}
 	recv := decl.Recv.List[0].Type
-	suffix := genTypeSuffix
-	expr := recv
-	if sExpr, ok := expr.(*dst.StarExpr); ok {
-		suffix = starGenTypeSuffix
-		expr = sExpr.X
-	}
-	if iExpr, ok := expr.(*dst.IndexExpr); ok {
-		suffix = indexGenTypeSuffix
-		expr = iExpr.X
-	}
-	if ilExpr, ok := expr.(*dst.IndexListExpr); ok {
-		suffix = indexListGenTypeSuffix
-		expr = ilExpr.X
-	}
+	expr, dec := findReceiver(recv, GenTypeSuffix)
+	fnInfo.decoratedRecvType = dec
 	exprId, ok := expr.(*dst.Ident)
 	if !ok {
-		logs.Panicf("%s has a non-Ident (or StarExpr/Ident) receiver: %#v",
-			ident.String(), expr)
+		logs.Panicf("%s has a non-Ident receiver: %#v", ident.String(), expr)
 	}
 	keyId := dst.Ident{
-		Name: exprId.Name + suffix,
+		Name: exprId.Name + GenTypeSuffix,
 		Path: pkg.pkg.PkgPath,
 	}
 	declInfo, ok := c.methodDeclsByIdent[keyId.String()]
@@ -801,13 +797,68 @@ func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
 	declInfo.funcs = append(declInfo.funcs, fnInfo)
 }
 
-func (c *Cache) fabricateInterfaceType(funcs []*funcDeclInfo) *dst.InterfaceType {
+// findReceiver find the root expression of the receiver while also
+// determining a "decorated" string identifying the type. The format of the
+// decorated string isn't important as it's just compared against other
+// strings for the same type to detect if the types are incompatible to form a
+// single mock (e.g.: attempting to mock type Widget that has some
+// pass-by-value receivers like Widget and some pass-by-reference receivers
+// like *Widget).
+func findReceiver(expr dst.Expr, suffix string) (dst.Expr, string) {
+	switch e := expr.(type) {
+	case *dst.StarExpr:
+		return findReceiver(e.X, "_star"+suffix)
+	case *dst.IndexExpr:
+		return findReceiver(e.X, "_index"+suffix)
+	case *dst.IndexListExpr:
+		return findReceiver(e.X, "_indexList"+suffix)
+	default:
+		return expr, suffix
+	}
+}
+
+func (c *Cache) fabricateInterfaceType(id, pkgPath string, funcs []*funcDeclInfo) (*dst.InterfaceType, error) {
+	mixedRecvTypes := false
+	var dec string
+	for n, fn := range funcs {
+		if n == 0 {
+			dec = fn.decoratedRecvType
+		} else {
+			if dec != fn.decoratedRecvType {
+				mixedRecvTypes = true
+			}
+		}
+	}
+
+	var exportedDec string
+	droppedNonExported := false
 	fl := &dst.FieldList{}
 	for _, fn := range funcs {
+		if mixedRecvTypes {
+			if !isExported(fn.id.Name, pkgPath) {
+				droppedNonExported = true
+				continue
+			}
+
+			if exportedDec == "" {
+				exportedDec = fn.decoratedRecvType
+			} else {
+				if exportedDec != fn.decoratedRecvType {
+					return nil, fmt.Errorf("%w: %s.%s", ErrMixedRecvTypes, pkgPath, id)
+				}
+			}
+		}
+
 		fl.List = append(fl.List, &dst.Field{
 			Names: []*dst.Ident{dst.NewIdent(fn.id.Name)},
 			Type:  fn.typ,
 		})
 	}
-	return &dst.InterfaceType{Methods: fl}
+	if droppedNonExported {
+		logs.Warnf(
+			"Non-exported methods dropped from %s.%s to avoid generating a mock for mixed receiver types",
+			pkgPath, id)
+	}
+
+	return &dst.InterfaceType{Methods: fl}, nil
 }
