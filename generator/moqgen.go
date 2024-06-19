@@ -280,6 +280,7 @@ func destinationPath(req GenerateRequest, relPath string) (string, error) {
 	if destPath == "" {
 		destPath = "moq_"
 		for n, typ := range req.Types {
+			typ = strings.TrimSuffix(typ, ast.GenTypeSuffix)
 			destPath += strings.ToLower(typ)
 			if n+1 < len(req.Types) {
 				destPath += "_"

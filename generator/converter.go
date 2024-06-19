@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/token"
 	"path/filepath"
+	"strings"
 
 	"github.com/dave/dst"
 	"golang.org/x/text/cases"
@@ -177,7 +178,7 @@ func (c *Converter) BaseDecls() ([]dst.Decl, error) {
 
 	var decls []dst.Decl
 
-	typeName := c.typ.TypeInfo.Type.Name.Name
+	typeName := c.typeName()
 	id := IdPath(typeName, c.typ.TypeInfo.PkgPath)
 	idStr := fmt.Sprintf("%s.%s", filepath.Base(id.Path), id.Name)
 	if c.typ.Reduced && !c.typ.TypeInfo.Fabricated {
@@ -233,7 +234,7 @@ func (c *Converter) IsolationStruct(suffix string) (*dst.GenDecl, error) {
 	iStruct := TypeDecl(TypeSpec(iName).Type(Struct(Field(Star(c.genericExpr(Id(mName), clone))).
 		Names(c.exportId(moqIdent)).Obj)).TypeParams(c.typeParams()).Obj).
 		Decs(genDeclDec("// %s isolates the %s interface of the %s type",
-			iName, suffix, c.typ.TypeInfo.Type.Name.Name)).Obj
+			iName, suffix, c.typeName())).Obj
 
 	if c.err != nil {
 		return nil, c.err
@@ -267,7 +268,7 @@ func (c *Converter) MethodStructs(fn Func) ([]dst.Decl, error) {
 
 // NewFunc generates a function for constructing a moq
 func (c *Converter) NewFunc() (*dst.FuncDecl, error) {
-	fnName := c.export("newMoq" + c.typ.TypeInfo.Type.Name.Name)
+	fnName := c.export("newMoq" + c.typeName())
 	mName := c.moqName()
 
 	decl := Fn(fnName).
@@ -305,7 +306,7 @@ func (c *Converter) NewFunc() (*dst.FuncDecl, error) {
 			Return(Id(moqReceiverIdent)),
 		).
 		Decs(fnDeclDec("// %s creates a new moq of the %s type",
-			fnName, c.typ.TypeInfo.Type.Name.Name)).Obj
+			fnName, c.typeName())).Obj
 
 	if c.err != nil {
 		return nil, c.err
@@ -334,7 +335,7 @@ func (c *Converter) IsolationAccessor(suffix, fnName string) (*dst.FuncDecl, err
 		Results(Field(Star(iName)).Obj).
 		Body(Return(retVal)).
 		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
-			fnName, suffix, c.typ.TypeInfo.Type.Name.Name)).Obj
+			fnName, suffix, c.typeName())).Obj
 
 	if c.err != nil {
 		return nil, c.err
@@ -356,9 +357,9 @@ func (c *Converter) FuncClosure(fn Func) (*dst.FuncDecl, error) {
 		fnLitRetStmt = Expr(fnLitCall).Obj
 	}
 
-	resType := c.idPath(c.typ.TypeInfo.Type.Name.Name, c.typ.TypeInfo.Type.Name.Path)
+	resType := c.idPath(c.typeName(), c.typ.TypeInfo.Type.Name.Path)
 	if c.typ.TypeInfo.Fabricated {
-		resType = Id(c.typ.TypeInfo.Type.Name.Name)
+		resType = Id(c.typeName())
 	}
 
 	decl := Fn(c.export(mockFnName)).
@@ -376,7 +377,7 @@ func (c *Converter) FuncClosure(fn Func) (*dst.FuncDecl, error) {
 				fnLitRetStmt,
 			).Obj)).
 		Decs(fnDeclDec("// %s returns the %s implementation of the %s type",
-			c.export(mockFnName), moqIdent, c.typ.TypeInfo.Type.Name.Name)).Obj
+			c.export(mockFnName), moqIdent, c.typeName())).Obj
 
 	if c.err != nil {
 		return nil, c.err
@@ -654,7 +655,7 @@ func (c *Converter) paramsStructDecl(
 	structName := fmt.Sprintf(double, prefix, label)
 	return TypeDecl(TypeSpec(structName).Type(mStruct).TypeParams(c.typeParams()).Obj).
 		Decs(genDeclDec("// %s holds the %s of the %s type",
-			structName, goDocDesc, c.typ.TypeInfo.Type.Name.Name)).Obj
+			structName, goDocDesc, c.typeName())).Obj
 }
 
 func (c *Converter) methodStruct(label string, fieldList *dst.FieldList, parentType TypeInfo) *dst.StructType {
@@ -737,7 +738,7 @@ func (c *Converter) resultByParamsStruct(prefix string) *dst.GenDecl {
 	)).TypeParams(c.typeParams()).Obj).Decs(genDeclDec(
 		"// %s contains the results for a given set of parameters for the %s type",
 		structName,
-		c.typ.TypeInfo.Type.Name.Name)).Obj
+		c.typeName())).Obj
 }
 
 func (c *Converter) doFuncType(prefix string, params *dst.FieldList, parentType TypeInfo) *dst.GenDecl {
@@ -749,7 +750,7 @@ func (c *Converter) doFuncType(prefix string, params *dst.FieldList, parentType 
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
 			c.export(andDoFnName),
-			c.typ.TypeInfo.Type.Name.Name)).Obj
+			c.typeName())).Obj
 }
 
 func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
@@ -762,7 +763,7 @@ func (c *Converter) doReturnFuncType(prefix string, fn Func) *dst.GenDecl {
 			"// %s defines the type of function needed when calling %s for the %s type",
 			fnName,
 			c.export(doReturnResultsFnName),
-			c.typ.TypeInfo.Type.Name.Name)).Obj
+			c.typeName())).Obj
 }
 
 func (c *Converter) resultsStruct(prefix string, results *dst.FieldList, parentType TypeInfo) *dst.GenDecl {
@@ -779,7 +780,7 @@ func (c *Converter) resultsStruct(prefix string, results *dst.FieldList, parentT
 	)).TypeParams(c.typeParams()).Obj).
 		Decs(genDeclDec("// %s holds the results of the %s type",
 			structName,
-			c.typ.TypeInfo.Type.Name.Name)).Obj
+			c.typeName())).Obj
 }
 
 func (c *Converter) innerResultsStruct(prefix string, results *dst.FieldList, parentType TypeInfo) *dst.StructType {
@@ -814,7 +815,7 @@ func (c *Converter) anyParamsStruct(prefix string) *dst.GenDecl {
 		Field(Star(c.genericExpr(Id(fmt.Sprintf(double, prefix, fnRecorderSuffix)), clone))).
 			Names(c.exportId(recorderIdent)).Obj)).TypeParams(c.typeParams()).Obj).
 		Decs(genDeclDec("// %s isolates the any params functions of the %s type",
-			structName, c.typ.TypeInfo.Type.Name.Name)).Obj
+			structName, c.typeName())).Obj
 }
 
 func (c *Converter) mockFunc(typePrefix, fieldSuffix string, fn Func) []dst.Stmt {
@@ -1437,7 +1438,7 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 	fnName := fmt.Sprintf(double, prettyParamsFnName, fn.Name)
 	sfmt := fn.Name + "("
 	if fn.Name == "" {
-		sfmt = c.typ.TypeInfo.Type.Name.Name + "("
+		sfmt = c.typeName() + "("
 		params = fmt.Sprintf(double, mName, paramsIdent)
 		fnName = prettyParamsFnName
 	}
@@ -1849,7 +1850,16 @@ func validName(name, prefix string, count int) string {
 }
 
 func (c *Converter) moqName() string {
-	return c.export(moqIdent + titler.String(c.typ.TypeInfo.Type.Name.Name))
+	return c.export(moqIdent + titler.String(c.typeName()))
+}
+
+func (c *Converter) typeName() string {
+	typ := c.typ.TypeInfo.Type.Name.Name
+	if strings.HasPrefix(typ, GenTypeSuffix) {
+		typ = typ[:len(typ)-len(GenTypeSuffix)]
+	}
+
+	return typ
 }
 
 func (c *Converter) export(name string) string {

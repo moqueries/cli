@@ -29,6 +29,7 @@ const (
 	noExportTestPkg   = noExportPkg + "_test"
 	exportPkg         = testPkgs + "export"
 	replacebuiltinPkg = testPkgs + "replacebuiltin"
+	fabricatePkg      = testPkgs + "fabricate"
 )
 
 var (
@@ -37,8 +38,9 @@ var (
 	noExportPkgs       []*packages.Package
 	exportPkgs         []*packages.Package
 	replacebuiltinPkgs []*packages.Package
+	fabricatePkgs      []*packages.Package
 
-	noExportWTestsPkgs []*packages.Package
+	noExportWTestPkgs []*packages.Package
 )
 
 func TestMain(m *testing.M) {
@@ -74,9 +76,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("Could not load export package: %#v", err))
 	}
+	fabricatePkgs, err = packages.Load(cfg, fabricatePkg)
+	if err != nil {
+		panic(fmt.Sprintf("Could not load export package: %#v", err))
+	}
 
 	cfg.Tests = true
-	noExportWTestsPkgs, err = packages.Load(cfg, noExportPkg)
+	noExportWTestPkgs, err = packages.Load(cfg, noExportPkg)
 	if err != nil {
 		panic(fmt.Sprintf("Could not load noexport package with test types: %#v", err))
 	}
@@ -168,7 +174,7 @@ func TestCache(t *testing.T) {
 				expectedPkg        string
 				expectedExported   bool
 				expectedFabricated bool
-				validateInterface  func(t *testing.T, iType *dst.InterfaceType)
+				validateInterface  func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList)
 				validateFunc       func(t *testing.T, fnType *dst.FuncType)
 			}{
 				"regular non-test": {
@@ -190,7 +196,7 @@ func TestCache(t *testing.T) {
 					expectedFabricated: false,
 				},
 				"regular test": {
-					pkgs:               noExportWTestsPkgs,
+					pkgs:               noExportWTestPkgs,
 					typeToLoad:         "test_type1",
 					testImport:         true,
 					expectedInterface:  true,
@@ -219,7 +225,7 @@ func TestCache(t *testing.T) {
 					validateFunc:       validateFuncFn,
 				},
 				"func test": {
-					pkgs:               noExportWTestsPkgs,
+					pkgs:               noExportWTestPkgs,
 					typeToLoad:         "test_type4_genType",
 					testImport:         true,
 					expectedInterface:  false,
@@ -236,7 +242,7 @@ func TestCache(t *testing.T) {
 					expectedPkg:        noExportPkg,
 					expectedExported:   false,
 					expectedFabricated: true,
-					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "method1", "method2")
 					},
@@ -249,66 +255,171 @@ func TestCache(t *testing.T) {
 					expectedPkg:        exportPkg,
 					expectedExported:   true,
 					expectedFabricated: true,
-					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "Type5", "Type6")
 					},
 				},
 				"method test": {
-					pkgs:               noExportWTestsPkgs,
+					pkgs:               noExportWTestPkgs,
 					typeToLoad:         "test_widget_genType",
 					testImport:         true,
 					expectedInterface:  true,
 					expectedPkg:        noExportTestPkg,
 					expectedExported:   false,
 					expectedFabricated: true,
-					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "test_method1", "test_method2")
 					},
 				},
 				"star method non-test": {
 					pkgs:               noExportPkgs,
-					typeToLoad:         "widget_starGenType",
+					typeToLoad:         "widgetByRef_genType",
 					testImport:         false,
 					expectedInterface:  true,
 					expectedPkg:        noExportPkg,
 					expectedExported:   false,
 					expectedFabricated: true,
-					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "method3", "method4")
 					},
 				},
 				"exported star method non-test": {
 					pkgs:               exportPkgs,
-					typeToLoad:         "Widget_starGenType",
+					typeToLoad:         "WidgetByRef_genType",
 					testImport:         false,
 					expectedInterface:  true,
 					expectedPkg:        exportPkg,
 					expectedExported:   true,
 					expectedFabricated: true,
-					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "Type7", "Type8")
 					},
 				},
 				"star method test": {
-					pkgs:               noExportWTestsPkgs,
-					typeToLoad:         "test_widget_starGenType",
+					pkgs:               noExportWTestPkgs,
+					typeToLoad:         "test_widgetByRef_genType",
 					testImport:         true,
 					expectedInterface:  true,
 					expectedPkg:        noExportTestPkg,
 					expectedExported:   false,
 					expectedFabricated: true,
-					validateInterface: func(t *testing.T, iType *dst.InterfaceType) {
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "test_method3", "test_method4")
+					},
+				},
+				"exported generic method non-test": {
+					pkgs:               exportPkgs,
+					typeToLoad:         "Generic_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        exportPkg,
+					expectedExported:   true,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "DoSomething", "DoSomethingElse")
+					},
+				},
+				"generic method non-test": {
+					pkgs:               noExportPkgs,
+					typeToLoad:         "generic_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        noExportPkg,
+					expectedExported:   false,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "doSomething", "doSomethingElse")
+					},
+				},
+				"exported star generic method non-test": {
+					pkgs:               exportPkgs,
+					typeToLoad:         "GenericByRef_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        exportPkg,
+					expectedExported:   true,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "DoSomethingPtr", "DoSomethingElsePtr")
+					},
+				},
+				"star generic method non-test": {
+					pkgs:               noExportPkgs,
+					typeToLoad:         "genericByRef_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        noExportPkg,
+					expectedExported:   false,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "doSomethingPtr", "doSomethingElsePtr")
+					},
+				},
+				"exported generic list method non-test": {
+					pkgs:               exportPkgs,
+					typeToLoad:         "GenericList_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        exportPkg,
+					expectedExported:   true,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "DoSomething", "DoSomethingElse")
+					},
+				},
+				"generic list method non-test": {
+					pkgs:               noExportPkgs,
+					typeToLoad:         "genericList_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        noExportPkg,
+					expectedExported:   false,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "doSomething", "doSomethingElse")
+					},
+				},
+				"exported star generic list method non-test": {
+					pkgs:               exportPkgs,
+					typeToLoad:         "GenericListByRef_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        exportPkg,
+					expectedExported:   true,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "DoSomethingPtr", "DoSomethingElsePtr")
+					},
+				},
+				"star generic list method non-test": {
+					pkgs:               noExportPkgs,
+					typeToLoad:         "genericListByRef_genType",
+					testImport:         false,
+					expectedInterface:  true,
+					expectedPkg:        noExportPkg,
+					expectedExported:   false,
+					expectedFabricated: true,
+					validateInterface: func(t *testing.T, iType *dst.InterfaceType, _ *dst.FieldList) {
+						t.Helper()
+						validateInterfaceFn(t, iType, "doSomethingPtr", "doSomethingElsePtr")
 					},
 				},
 			}
 
 			for name, tc := range testCases {
+				tc := tc
 				t.Run(name, func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t, tc.testImport)
@@ -352,7 +463,7 @@ func TestCache(t *testing.T) {
 							t.Fatalf("got %#v, want *dst.InterfaceType", actualType.Type.Type)
 						}
 						if tc.validateInterface != nil {
-							tc.validateInterface(t, iType)
+							tc.validateInterface(t, iType, actualType.Type.TypeParams)
 						}
 					} else {
 						fnType, ok := actualType.Type.Type.(*dst.FuncType)
@@ -444,7 +555,7 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportWTestsPkgs, nil)
+			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportWTestPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
 				ReturnResults().Repeat(moq.MinTimes(1))
@@ -579,7 +690,7 @@ func TestCache(t *testing.T) {
 
 					metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
 					loadCfg.Tests = tc.initialTestImport
-					loadFnMoq.onCall(loadCfg, tc.pkgName).returnResults(noExportWTestsPkgs, nil)
+					loadFnMoq.onCall(loadCfg, tc.pkgName).returnResults(noExportWTestPkgs, nil)
 					metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 					metricsMoq.OnCall().ASTPkgCacheHitsInc().ReturnResults()
 					metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
@@ -624,7 +735,7 @@ func TestCache(t *testing.T) {
 			loadCfg.Tests = true
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportWTestsPkgs, nil)
+			loadFnMoq.onCall(loadCfg, noExportPkg).returnResults(noExportWTestPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 
 			id := ast.IdPath("test_type2", noExportPkg)
@@ -744,7 +855,7 @@ func TestCache(t *testing.T) {
 			defer afterEach(t)
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
-			loadFnMoq.onCall(loadCfg, ".").returnResults(noExportWTestsPkgs, nil)
+			loadFnMoq.onCall(loadCfg, ".").returnResults(noExportWTestPkgs, nil)
 			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
 			metricsMoq.OnCall().ASTPkgCacheHitsInc().ReturnResults()
 			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
@@ -775,6 +886,78 @@ func TestCache(t *testing.T) {
 
 			if actualPkgType != actualRelType {
 				t.Errorf("got %#v, want %#v", actualPkgType, actualRelType)
+			}
+		})
+
+		t.Run("returns only exported methods when receiver is mixed", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach(t)
+
+			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
+			loadFnMoq.onCall(loadCfg, fabricatePkg).returnResults(fabricatePkgs, nil)
+			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
+			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
+				ReturnResults().Repeat(moq.MinTimes(1))
+
+			name := "Mixed_genType"
+			id := ast.IdPath(name, fabricatePkg)
+
+			// ACT
+			actualType, actualErr := cache.Type(*id, fabricatePkg, false)
+
+			// ASSERT
+			if actualErr != nil {
+				t.Fatalf("got %#v, want no error", actualErr)
+			}
+
+			if actualType.Type.Name.Name != name {
+				t.Errorf("got %#v, want %s", actualType.Type.Name.Name, name)
+			}
+
+			if actualType.PkgPath != fabricatePkg {
+				t.Errorf("got %s, want %s", actualType.PkgPath, fabricatePkg)
+			}
+
+			if !actualType.Fabricated {
+				t.Errorf("got %t, want true", actualType.Fabricated)
+			}
+
+			iType, ok := actualType.Type.Type.(*dst.InterfaceType)
+			if !ok {
+				t.Fatalf("got %#v, want *dst.InterfaceType", actualType.Type.Type)
+			}
+			if iType.Methods == nil || len(iType.Methods.List) != 1 {
+				t.Fatalf("got %#v, want 1 method", iType.Methods)
+			}
+			if iType.Methods.List[0].Names[0].Name != "ExportedByRefRecv" {
+				t.Errorf("got %#v, want method named ExportedByRefRecv", iType.Methods.List[0].Names)
+			}
+		})
+
+		t.Run("returns ErrMixedRecvTypes when simple interface can't be created", func(t *testing.T) {
+			// ASSEMBLE
+			beforeEach(t, false)
+			defer afterEach(t)
+
+			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
+			loadFnMoq.onCall(loadCfg, fabricatePkg).returnResults(fabricatePkgs, nil)
+			metricsMoq.OnCall().ASTTotalLoadTimeInc(0).Any().D().ReturnResults()
+			metricsMoq.OnCall().ASTTotalDecorationTimeInc(0).Any().D().
+				ReturnResults().Repeat(moq.MinTimes(1))
+
+			name := "CantMock_genType"
+			id := ast.IdPath(name, fabricatePkg)
+
+			// ACT
+			_, actualErr := cache.Type(*id, fabricatePkg, false)
+
+			// ASSERT
+			if actualErr == nil {
+				t.Fatalf("got nil error, want error")
+			}
+			if !errors.Is(actualErr, ast.ErrMixedRecvTypes) {
+				t.Errorf("got %#v, want ast.ErrMixedRecvTypes", actualErr)
 			}
 		})
 	})
@@ -1588,6 +1771,7 @@ func d%s(U) {}
 	})
 
 	t.Run("MockableTypes", func(t *testing.T) {
+		const expectedTypes = 9
 		pkg := func(pkgPath string) *packages.Package {
 			fset := token.NewFileSet()
 			fset.AddFile("file1", 1, 0)
@@ -1681,8 +1865,8 @@ func d%s(U) {}
 					typs := cache.MockableTypes(tc.onlyExported)
 
 					// ASSERT
-					if len(typs) != 7 {
-						t.Fatalf("got %d types, want 7", len(typs))
+					if len(typs) != expectedTypes {
+						t.Fatalf("got %d types, want %d", len(typs), expectedTypes)
 					}
 
 					typsByName := map[string]dst.Ident{}
@@ -1696,9 +1880,8 @@ func d%s(U) {}
 						"type2",
 						"type4_genType",
 						"widget_genType",
-						"widget_starGenType",
-						"generic_indexGenType",
-						"genericList_indexListGenType",
+						"generic_genType",
+						"genericList_genType",
 					} {
 						if tc.onlyExported {
 							tname = titler.String(tname)
@@ -1756,8 +1939,8 @@ func d%s(U) {}
 			typs := cache.MockableTypes(true)
 
 			// ASSERT
-			if len(typs) != 7 {
-				t.Fatalf("got %d types, want 7", len(typs))
+			if len(typs) != expectedTypes {
+				t.Fatalf("got %d types, want %d", len(typs), expectedTypes)
 			}
 		})
 
@@ -1785,8 +1968,8 @@ func d%s(U) {}
 			typs := cache.MockableTypes(true)
 
 			// ASSERT
-			if len(typs) != 7 {
-				t.Fatalf("got %d types, want 7", len(typs))
+			if len(typs) != expectedTypes {
+				t.Fatalf("got %d types, want %d", len(typs), expectedTypes)
 			}
 		})
 	})
