@@ -24,10 +24,17 @@ func TestPackageGeneration(t *testing.T) {
 			t.Errorf("got %#v, want no error", err)
 		}
 	}
+	expectedFiles := []string{
+		"moq_dosomethingwithparam.go",
+		"moq_passbyrefsimple.go",
+		"moq_passbyvaluesimple.go",
+		"moq_reduced.go",
+		"moq_standalonefunc.go",
+	}
 
 	// ACT
 	err = pkg.Generate(pkg.PackageGenerateRequest{
-		DestinationDir: ".",
+		DestinationDir: "pkgout",
 		SkipPkgDirs:    4,
 		PkgPatterns:    []string{"moqueries.org/cli/pkg/testmoqs"},
 	})
@@ -36,7 +43,7 @@ func TestPackageGeneration(t *testing.T) {
 		t.Fatalf("got %#v, want no error", err)
 	}
 
-	entries, err = os.ReadDir(".")
+	entries, err = os.ReadDir("pkgout")
 	if err != nil {
 		t.Fatalf("got %#v, want no error", err)
 	}
@@ -48,20 +55,13 @@ func TestPackageGeneration(t *testing.T) {
 
 		moqs[e.Name()] = struct{}{}
 	}
-	if count := 4; len(moqs) != count {
-		t.Errorf("got %#v mocks, want %d", moqs, count)
+	if len(moqs) != len(expectedFiles) {
+		t.Errorf("got %#v mocks, want length %d", moqs, len(expectedFiles))
 	}
-	if _, ok := moqs["moq_passbyrefsimple.go"]; !ok {
-		t.Errorf("got %#v, want to contain moq_passbyrefsimple_stargentype.go", moqs)
-	}
-	if _, ok := moqs["moq_passbyvaluesimple.go"]; !ok {
-		t.Errorf("got %#v, want to contain moq_passbyvaluesimple_gentype.go", moqs)
-	}
-	if _, ok := moqs["moq_standalonefunc.go"]; !ok {
-		t.Errorf("got %#v, want to contain moq_standalonefunc_gentype.go", moqs)
-	}
-	if _, ok := moqs["moq_reduced.go"]; !ok {
-		t.Errorf("got %#v, want to contain moq_standalonefunc_gentype.go", moqs)
+	for _, f := range expectedFiles {
+		if _, ok := moqs[f]; !ok {
+			t.Errorf("got %#v, want to contain %s", moqs, f)
+		}
 	}
 	// Minimal testing here just to make sure the right types were found (full
 	// mock testing in the generator package)

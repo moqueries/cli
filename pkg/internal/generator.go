@@ -79,11 +79,11 @@ func Generate(
 			continue
 		}
 
-		pkgDestDir := filepath.Join(req.DestinationDir, id.Path)
-		pkgDestDir, err := skipDirs(pkgDestDir, req.SkipPkgDirs)
+		pkgDestDir, err := skipDirs(id.Path, req.SkipPkgDirs)
 		if err != nil {
 			return err
 		}
+		pkgDestDir = filepath.Join(req.DestinationDir, pkgDestDir)
 		logs.Debugf("Package generating,"+
 			" destination-dir: %s,"+
 			" type: %s",
@@ -112,19 +112,19 @@ func Generate(
 	return nil
 }
 
-func skipDirs(dir string, skipDirs int) (string, error) {
-	orig := dir
+func skipDirs(pkgPath string, skipDirs int) (string, error) {
+	orig := pkgPath
 	for n := 0; n < skipDirs; n++ {
-		if dir == "." {
-			return "", fmt.Errorf("%w: skipping %d directories on %s path",
+		if pkgPath == "." {
+			return "", fmt.Errorf("%w: skipping %d directories on package %s",
 				ErrSkipTooManyPackageDirs, skipDirs, orig)
 		}
-		idx := strings.Index(dir, string(filepath.Separator))
+		idx := strings.Index(pkgPath, string(filepath.Separator))
 		if idx == -1 {
-			dir = "."
+			pkgPath = "."
 		} else {
-			dir = dir[idx+1:]
+			pkgPath = pkgPath[idx+1:]
 		}
 	}
-	return dir, nil
+	return pkgPath, nil
 }

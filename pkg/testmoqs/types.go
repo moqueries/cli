@@ -37,3 +37,7 @@ func (g *Generic[X, Y]) DoSomethingElsePtr() {}
 func (g Generic[T, V]) DoSomething() {}
 
 func (g Generic[X, Y]) DoSomethingElse() {}
+
+type Param struct{}
+
+func DoSomethingWithParam(Param) {}
