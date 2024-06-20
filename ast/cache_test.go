@@ -166,6 +166,34 @@ func TestCache(t *testing.T) {
 						iType.Methods.List[1].Names[0].String(), name2)
 				}
 			}
+			validateTypeParamsFn := func(t *testing.T, typeParams *dst.FieldList, nameTypes ...string) {
+				t.Helper()
+				if typeParams == nil {
+					t.Fatalf("got nil type params, want not nil")
+				}
+
+				if len(nameTypes)%2 != 0 {
+					t.Fatalf("got odd name/type pairs, want even pairs")
+				}
+				if len(typeParams.List) != len(nameTypes)/2 {
+					t.Fatalf("got %d pairs, want %d", len(typeParams.List), len(nameTypes)/2)
+				}
+				for n, f := range typeParams.List {
+					if len(f.Names) != 1 {
+						t.Fatalf("got %d names, want 1", len(f.Names))
+					}
+					if f.Names[0].Name != nameTypes[n*2] {
+						t.Errorf("got %s name, want %s", f.Names[0], nameTypes[n*2])
+					}
+					tid, ok := f.Type.(*dst.Ident)
+					if !ok {
+						t.Fatalf("got %#v, want *dst.Ident type", f.Type)
+					}
+					if tid.Name != nameTypes[n*2+1] {
+						t.Errorf("got %s type, want %s", tid.Name, nameTypes[n*2+1])
+					}
+				}
+			}
 			testCases := map[string]struct {
 				pkgs               []*packages.Package
 				typeToLoad         string
@@ -323,6 +351,7 @@ func TestCache(t *testing.T) {
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "DoSomething", "DoSomethingElse")
+						validateTypeParamsFn(t, typeParams, "T", "any")
 					},
 				},
 				"generic method non-test": {
@@ -336,6 +365,7 @@ func TestCache(t *testing.T) {
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "doSomething", "doSomethingElse")
+						validateTypeParamsFn(t, typeParams, "T", "any")
 					},
 				},
 				"exported star generic method non-test": {
@@ -349,6 +379,7 @@ func TestCache(t *testing.T) {
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "DoSomethingPtr", "DoSomethingElsePtr")
+						validateTypeParamsFn(t, typeParams, "T", "any")
 					},
 				},
 				"star generic method non-test": {
@@ -362,6 +393,7 @@ func TestCache(t *testing.T) {
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "doSomethingPtr", "doSomethingElsePtr")
+						validateTypeParamsFn(t, typeParams, "T", "any")
 					},
 				},
 				"exported generic list method non-test": {
@@ -375,6 +407,7 @@ func TestCache(t *testing.T) {
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "DoSomething", "DoSomethingElse")
+						validateTypeParamsFn(t, typeParams, "T", "any", "V", "any")
 					},
 				},
 				"generic list method non-test": {
@@ -388,6 +421,7 @@ func TestCache(t *testing.T) {
 					validateInterface: func(t *testing.T, iType *dst.InterfaceType, typeParams *dst.FieldList) {
 						t.Helper()
 						validateInterfaceFn(t, iType, "doSomething", "doSomethingElse")
+						validateTypeParamsFn(t, typeParams, "T", "any", "V", "any")
 					},
 				},
 				"exported star generic list method non-test": {

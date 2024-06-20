@@ -201,7 +201,7 @@ func (c *Converter) BaseDecls() ([]dst.Decl, error) {
 	}
 
 	if c.typ.TypeInfo.Fabricated || c.typ.Reduced {
-		typ := cloneExpr(c.typ.TypeInfo.Type.Type)
+		typ := c.resolveExpr(cloneExpr(c.typ.TypeInfo.Type.Type), c.typ.TypeInfo)
 		msg := "emitted when mocking functions directly and not from a function type"
 		if isInterface {
 			msg = "emitted when mocking a collections of methods directly and not from an interface type"
@@ -209,7 +209,7 @@ func (c *Converter) BaseDecls() ([]dst.Decl, error) {
 		if !c.typ.TypeInfo.Fabricated {
 			msg = "emitted when the original interface contains non-exported methods"
 		}
-		decls = append(decls, TypeDecl(TypeSpec(typeName).Type(typ).Obj).
+		decls = append(decls, TypeDecl(TypeSpec(typeName).Type(typ).TypeParams(c.typeParams()).Obj).
 			Decs(genDeclDec("// %s is the fabricated implementation type of this mock (%s)",
 				typeName, msg)).Obj)
 	}
@@ -1949,17 +1949,7 @@ func (c *Converter) cloneFieldList(fl *dst.FieldList, removeNames bool, parentTy
 	if fl != nil {
 		//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 		fl = dst.Clone(fl).(*dst.FieldList)
-		for _, field := range fl.List {
-			if id, ok := field.Type.(*dst.Ident); ok {
-				if id.Path == "builtin" {
-					// When mocking errors, the string return value is reported
-					// in the builtin package
-					id.Path = ""
-				}
-			}
-
-			field.Type = c.resolveExpr(field.Type, parentType)
-		}
+		c.resolveFieldList(fl, parentType)
 		if removeNames {
 			for _, field := range fl.List {
 				for n := range field.Names {
@@ -1971,10 +1961,28 @@ func (c *Converter) cloneFieldList(fl *dst.FieldList, removeNames bool, parentTy
 	return fl
 }
 
+func (c *Converter) resolveFieldList(fl *dst.FieldList, parentType TypeInfo) {
+	if fl == nil {
+		return
+	}
+	for _, field := range fl.List {
+		if id, ok := field.Type.(*dst.Ident); ok {
+			if id.Path == "builtin" {
+				// When mocking errors, the string return value is reported
+				// in the builtin package
+				id.Path = ""
+			}
+		}
+
+		field.Type = c.resolveExpr(field.Type, parentType)
+	}
+}
+
 func (c *Converter) resolveExpr(expr dst.Expr, parentType TypeInfo) dst.Expr {
 	switch e := expr.(type) {
 	case *dst.ArrayType:
 		e.Elt = c.resolveExpr(e.Elt, parentType)
+		e.Len = c.resolveExpr(e.Len, parentType)
 	case *dst.ChanType:
 		e.Value = c.resolveExpr(e.Value, parentType)
 	case *dst.Ellipsis:
@@ -2008,6 +2016,13 @@ func (c *Converter) resolveExpr(expr dst.Expr, parentType TypeInfo) dst.Expr {
 			return nil
 		}
 		return IdPath(typ.Type.Name.Name, typ.PkgPath)
+	case *dst.InterfaceType:
+		for _, method := range e.Methods.List {
+			method.Type = c.resolveExpr(method.Type, parentType)
+		}
+	case *dst.FuncType:
+		c.resolveFieldList(e.Params, parentType)
+		c.resolveFieldList(e.Results, parentType)
 	case *dst.MapType:
 		e.Key = c.resolveExpr(e.Key, parentType)
 		e.Value = c.resolveExpr(e.Value, parentType)

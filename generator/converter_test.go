@@ -229,6 +229,10 @@ func TestConverter(t *testing.T) {
 						},
 						Funcs: iSpecFuncs,
 					}
+					typeCacheMoq.onCall().Type(dst.Ident{}, "thatmodule/pkg", false).
+						any().id().returnResults(ast.TypeInfo{
+						Type: &dst.TypeSpec{Name: dst.NewIdent("fab")},
+					}, nil).repeat(moq.AnyTimes())
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
@@ -279,6 +283,10 @@ func TestConverter(t *testing.T) {
 						TypeInfo: ast.TypeInfo{Type: fnSpec, Fabricated: true},
 						Funcs:    fnSpecFuncs,
 					}
+					typeCacheMoq.onCall().Type(dst.Ident{}, "", false).
+						any().id().returnResults(ast.TypeInfo{
+						Type: &dst.TypeSpec{Name: dst.NewIdent("fab")},
+					}, nil).repeat(moq.AnyTimes())
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
