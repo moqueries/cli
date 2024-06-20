@@ -81,9 +81,10 @@ type typInfo struct {
 }
 
 type methodDeclInfo struct {
-	id    dst.Ident
-	recv  *dst.Expr
-	funcs []*funcDeclInfo
+	id     dst.Ident
+	recv   *dst.Expr
+	recvId dst.Ident
+	funcs  []*funcDeclInfo
 }
 
 type funcDeclInfo struct {
@@ -165,14 +166,19 @@ func (c *Cache) Type(id dst.Ident, contextPkg string, testImport bool) (TypeInfo
 		}, nil
 	}
 	if methodDecl, ok := c.methodDeclsByIdent[realId]; ok {
+		var typeParams *dst.FieldList
+		if recvType, okR := c.typesByIdent[IdPath(methodDecl.recvId.Name, pkgPath).String()]; okR {
+			typeParams = recvType.typ.TypeParams
+		}
 		fType, err := c.fabricateInterfaceType(id.Name, pkgPath, methodDecl.funcs)
 		if err != nil {
 			return TypeInfo{}, err
 		}
 		return TypeInfo{
 			Type: &dst.TypeSpec{
-				Name: &methodDecl.id,
-				Type: fType,
+				Name:       &methodDecl.id,
+				Type:       fType,
+				TypeParams: typeParams,
 			},
 			PkgPath:    pkgPath,
 			Exported:   isExported(methodDecl.id.Name, pkgPath),
@@ -791,7 +797,7 @@ func (c *Cache) storeFuncDecl(decl *dst.FuncDecl, pkg *pkgInfo) {
 	}
 	declInfo, ok := c.methodDeclsByIdent[keyId.String()]
 	if !ok {
-		declInfo = &methodDeclInfo{id: keyId, recv: &recv}
+		declInfo = &methodDeclInfo{id: keyId, recv: &recv, recvId: *exprId}
 		c.methodDeclsByIdent[keyId.String()] = declInfo
 	}
 	declInfo.funcs = append(declInfo.funcs, fnInfo)
