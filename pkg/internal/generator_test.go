@@ -48,33 +48,34 @@ func TestGenerate(t *testing.T) {
 			excludePkg2Regex string
 		}{
 			"no skips": {
-				destDir1: "that-dir/there/pkg1",
-				destDir2: "that-dir/there/pkg2",
+				destDir1: "that-dir/there/github.com/thiscoolproject/pkg1",
+				destDir2: "that-dir/there/github.com/thiscoolproject/pkg2",
 			},
-			"skips": {
+			"skip 2": {
+				skipPkgDirs: 2,
+				destDir1:    "that-dir/there/pkg1",
+				destDir2:    "that-dir/there/pkg2",
+			},
+			"skip 3": {
 				skipPkgDirs: 3,
-				destDir1:    ".",
-				destDir2:    ".",
+				destDir1:    "that-dir/there",
+				destDir2:    "that-dir/there",
 			},
 			"exclude prefix": {
-				destDir1:         "that-dir/there/pkg1",
-				destDir2:         "that-dir/there/pkg2",
+				destDir1:         "that-dir/there/github.com/thiscoolproject/pkg1",
 				excludePkg2Regex: "pkg2",
 			},
 			"exclude suffix wildcard": {
-				destDir1:         "that-dir/there/pkg1",
-				destDir2:         "that-dir/there/pkg2",
+				destDir1:         "that-dir/there/github.com/thiscoolproject/pkg1",
 				excludePkg2Regex: "pkg2.*",
 			},
 			"exclude full wildcard": {
-				destDir1:         "that-dir/there/pkg1",
-				destDir2:         "that-dir/there/pkg2",
+				destDir1:         "that-dir/there/github.com/thiscoolproject/pkg1",
 				excludePkg2Regex: ".*2.*",
 			},
 			"exclude exact": {
-				destDir1:         "that-dir/there/pkg1",
-				destDir2:         "that-dir/there/pkg2",
-				excludePkg2Regex: "^pkg2$",
+				destDir1:         "that-dir/there/github.com/thiscoolproject/pkg1",
+				excludePkg2Regex: "^github.com/thiscoolproject/pkg2$",
 			},
 		} {
 			t.Run(name, func(t *testing.T) {
@@ -84,14 +85,14 @@ func TestGenerate(t *testing.T) {
 
 				cacheMoq.onCall().LoadPackage("pkg1").returnResults(nil)
 				cacheMoq.onCall().LoadPackage("pkg2").returnResults(nil)
-				id1 := dst.Ident{Name: "Typ1", Path: "pkg1"}
-				id2 := dst.Ident{Name: "Typ2", Path: "pkg2"}
+				id1 := dst.Ident{Name: "Typ1", Path: "github.com/thiscoolproject/pkg1"}
+				id2 := dst.Ident{Name: "Typ2", Path: "github.com/thiscoolproject/pkg2"}
 				cacheMoq.onCall().MockableTypes(true).returnResults([]dst.Ident{id1, id2})
 				req1 := generator.GenerateRequest{
 					Types:              []string{"Typ1"},
 					Export:             true,
 					DestinationDir:     tc.destDir1,
-					Import:             "pkg1",
+					Import:             "github.com/thiscoolproject/pkg1",
 					ExcludeNonExported: true,
 				}
 				genFnMoq.onCall(cacheMoq.mock(), req1).returnResults(nil)
@@ -100,7 +101,7 @@ func TestGenerate(t *testing.T) {
 						Types:              []string{"Typ2"},
 						Export:             true,
 						DestinationDir:     tc.destDir2,
-						Import:             "pkg2",
+						Import:             "github.com/thiscoolproject/pkg2",
 						ExcludeNonExported: true,
 					}
 					genFnMoq.onCall(cacheMoq.mock(), req2).returnResults(nil)
@@ -134,9 +135,16 @@ func TestGenerate(t *testing.T) {
 
 		cacheMoq.onCall().LoadPackage("pkg1").returnResults(nil)
 		cacheMoq.onCall().LoadPackage("pkg2").returnResults(nil)
-		id1 := dst.Ident{Name: "Typ1", Path: "pkg1"}
-		id2 := dst.Ident{Name: "Typ2", Path: "pkg2"}
+		id1 := dst.Ident{Name: "Typ1", Path: "1/2/3/pkg1"}
+		id2 := dst.Ident{Name: "Typ2", Path: "1/2/pkg2"}
 		cacheMoq.onCall().MockableTypes(true).returnResults([]dst.Ident{id1, id2})
+		genFnMoq.onCall(cacheMoq.mock(), generator.GenerateRequest{
+			Types:              []string{"Typ1"},
+			Export:             true,
+			DestinationDir:     "that-dir/there",
+			Import:             "1/2/3/pkg1",
+			ExcludeNonExported: true,
+		}).returnResults(nil)
 
 		// ACT
 		err := internal.Generate(
@@ -157,7 +165,7 @@ func TestGenerate(t *testing.T) {
 			t.Errorf("got %#v, want an internal.ErrSkipTooManyPackageDirs", err)
 		}
 
-		expectedMsg := "skipping too many package dirs: skipping 4 directories on that-dir/there/pkg1 path"
+		expectedMsg := "skipping too many package dirs: skipping 4 directories on package 1/2/pkg2"
 		if err.Error() != expectedMsg {
 			t.Errorf("got %s, want %s", err.Error(), expectedMsg)
 		}
