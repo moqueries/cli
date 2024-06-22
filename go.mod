@@ -3,7 +3,7 @@ module moqueries.org/cli
 go 1.19
 
 require (
-	github.com/dave/dst v0.27.2
+	github.com/dave/dst v0.27.3
 	github.com/spf13/cobra v1.6.1
 	golang.org/x/mod v0.14.0
 	golang.org/x/text v0.14.0
