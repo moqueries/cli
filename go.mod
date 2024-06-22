@@ -8,7 +8,7 @@ require (
 	golang.org/x/mod v0.18.0
 	golang.org/x/text v0.16.0
 	golang.org/x/tools v0.22.0
-	moqueries.org/runtime v0.2.1-0.20230514231133-79eabd1bc852
+	moqueries.org/runtime v0.3.0
 )
 
 require (
