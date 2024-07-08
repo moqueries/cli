@@ -7,7 +7,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/mod v0.19.0
 	golang.org/x/text v0.16.0
-	golang.org/x/tools v0.22.0
+	golang.org/x/tools v0.23.0
 	moqueries.org/runtime v0.3.0
 )
 
