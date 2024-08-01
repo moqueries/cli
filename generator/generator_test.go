@@ -143,7 +143,7 @@ func TestGenerating(t *testing.T) {
 
 	t.Run("dumps the DST of a moq", func(t *testing.T) {
 		t.SkipNow()
-		filePath := "./moq_usual_test.go"
+		filePath := "./testmoqs/exported/moqusual.go"
 		outPath := "./dst.txt"
 
 		fSet := token.NewFileSet()

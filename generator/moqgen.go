@@ -52,7 +52,7 @@ type NewConverterFunc func(typ Type, export bool) Converterer
 // Converterer is the interface used by MoqGenerator to invoke a Converter
 type Converterer interface {
 	BaseDecls() (baseDecls []dst.Decl, err error)
-	IsolationStruct(suffix string) (structDecl *dst.GenDecl, err error)
+	MockStructs() (structDecls []dst.Decl, err error)
 	MethodStructs(fn Func) (structDecls []dst.Decl, err error)
 	NewFunc() (funcDecl *dst.FuncDecl, err error)
 	IsolationAccessor(suffix, fnName string) (funcDecl *dst.FuncDecl, err error)
@@ -488,21 +488,11 @@ func (g *MoqGenerator) structs(converter Converterer, typ Type) ([]dst.Decl, err
 	if err != nil {
 		return nil, err
 	}
-	mockIsolStruct, err := converter.IsolationStruct(mockIdent)
+	mockStructs, err := converter.MockStructs()
 	if err != nil {
 		return nil, err
 	}
-	decls = append(decls, mockIsolStruct)
-
-	_, iOk := typ.TypeInfo.Type.Type.(*dst.InterfaceType)
-	_, aOk := typ.TypeInfo.Type.Type.(*dst.Ident)
-	if iOk || aOk {
-		recIsolStruct, err := converter.IsolationStruct(recorderIdent)
-		if err != nil {
-			return nil, err
-		}
-		decls = append(decls, recIsolStruct)
-	}
+	decls = append(decls, mockStructs...)
 
 	for _, fn := range typ.Funcs {
 		structs, err := converter.MethodStructs(fn)
@@ -560,12 +550,6 @@ func (g *MoqGenerator) methods(
 			return nil, err
 		}
 		decls = append(decls, fnClos)
-
-		meth, err := converter.MockMethod(funcs[0])
-		if err != nil {
-			return nil, err
-		}
-		decls = append(decls, meth)
 
 		meths, err := converter.RecorderMethods(funcs[0])
 		if err != nil {

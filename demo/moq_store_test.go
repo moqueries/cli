@@ -4,11 +4,10 @@ package demo_test
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/cli/demo"
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
@@ -17,35 +16,51 @@ var _ demo.Store = (*moqStore_mock)(nil)
 
 // moqStore holds the state of a moq of the Store type
 type moqStore struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqStore_mock
+	moq *moqStore_mock
 
-	resultsByParams_AllWidgetsIds          []moqStore_AllWidgetsIds_resultsByParams
-	resultsByParams_GadgetsByWidgetId      []moqStore_GadgetsByWidgetId_resultsByParams
-	resultsByParams_LightGadgetsByWidgetId []moqStore_LightGadgetsByWidgetId_resultsByParams
+	moq_AllWidgetsIds *impl.Moq[
+		*moqStore_AllWidgetsIds_adaptor,
+		moqStore_AllWidgetsIds_params,
+		moqStore_AllWidgetsIds_paramsKey,
+		moqStore_AllWidgetsIds_results,
+	]
+	moq_GadgetsByWidgetId *impl.Moq[
+		*moqStore_GadgetsByWidgetId_adaptor,
+		moqStore_GadgetsByWidgetId_params,
+		moqStore_GadgetsByWidgetId_paramsKey,
+		moqStore_GadgetsByWidgetId_results,
+	]
+	moq_LightGadgetsByWidgetId *impl.Moq[
+		*moqStore_LightGadgetsByWidgetId_adaptor,
+		moqStore_LightGadgetsByWidgetId_params,
+		moqStore_LightGadgetsByWidgetId_paramsKey,
+		moqStore_LightGadgetsByWidgetId_results,
+	]
 
-	runtime struct {
-		parameterIndexing struct {
-			AllWidgetsIds     struct{}
-			GadgetsByWidgetId struct {
-				widgetId moq.ParamIndexing
-			}
-			LightGadgetsByWidgetId struct {
-				widgetId  moq.ParamIndexing
-				maxWeight moq.ParamIndexing
-			}
-		}
-	}
-	// moqStore_mock isolates the mock interface of the Store type
+	runtime moqStore_runtime
 }
 
+// moqStore_mock isolates the mock interface of the Store type
 type moqStore_mock struct {
 	moq *moqStore
 }
 
 // moqStore_recorder isolates the recorder interface of the Store type
 type moqStore_recorder struct {
+	moq *moqStore
+}
+
+// moqStore_runtime holds runtime configuration for the Store type
+type moqStore_runtime struct {
+	parameterIndexing struct {
+		AllWidgetsIds          moqStore_AllWidgetsIds_paramIndexing
+		GadgetsByWidgetId      moqStore_GadgetsByWidgetId_paramIndexing
+		LightGadgetsByWidgetId moqStore_LightGadgetsByWidgetId_paramIndexing
+	}
+}
+
+// moqStore_AllWidgetsIds_adaptor adapts moqStore as needed by the runtime
+type moqStore_AllWidgetsIds_adaptor struct {
 	moq *moqStore
 }
 
@@ -58,13 +73,15 @@ type moqStore_AllWidgetsIds_paramsKey struct {
 	hashes struct{}
 }
 
-// moqStore_AllWidgetsIds_resultsByParams contains the results for a given set
-// of parameters for the Store type
-type moqStore_AllWidgetsIds_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqStore_AllWidgetsIds_paramsKey]*moqStore_AllWidgetsIds_results
+// moqStore_AllWidgetsIds_results holds the results of the Store type
+type moqStore_AllWidgetsIds_results struct {
+	result1 []int
+	result2 error
 }
+
+// moqStore_AllWidgetsIds_paramIndexing holds the parameter indexing runtime
+// configuration for the Store type
+type moqStore_AllWidgetsIds_paramIndexing struct{}
 
 // moqStore_AllWidgetsIds_doFn defines the type of function needed when calling
 // andDo for the Store type
@@ -74,36 +91,26 @@ type moqStore_AllWidgetsIds_doFn func()
 // calling doReturnResults for the Store type
 type moqStore_AllWidgetsIds_doReturnFn func() ([]int, error)
 
-// moqStore_AllWidgetsIds_results holds the results of the Store type
-type moqStore_AllWidgetsIds_results struct {
-	params  moqStore_AllWidgetsIds_params
-	results []struct {
-		values *struct {
-			result1 []int
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqStore_AllWidgetsIds_doFn
-		doReturnFn moqStore_AllWidgetsIds_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqStore_AllWidgetsIds_fnRecorder routes recorded function calls to the
+// moqStore_AllWidgetsIds_recorder routes recorded function calls to the
 // moqStore moq
-type moqStore_AllWidgetsIds_fnRecorder struct {
-	params    moqStore_AllWidgetsIds_params
-	anyParams uint64
-	sequence  bool
-	results   *moqStore_AllWidgetsIds_results
-	moq       *moqStore
+type moqStore_AllWidgetsIds_recorder struct {
+	recorder *impl.Recorder[
+		*moqStore_AllWidgetsIds_adaptor,
+		moqStore_AllWidgetsIds_params,
+		moqStore_AllWidgetsIds_paramsKey,
+		moqStore_AllWidgetsIds_results,
+	]
 }
 
 // moqStore_AllWidgetsIds_anyParams isolates the any params functions of the
 // Store type
 type moqStore_AllWidgetsIds_anyParams struct {
-	recorder *moqStore_AllWidgetsIds_fnRecorder
+	recorder *moqStore_AllWidgetsIds_recorder
+}
+
+// moqStore_GadgetsByWidgetId_adaptor adapts moqStore as needed by the runtime
+type moqStore_GadgetsByWidgetId_adaptor struct {
+	moq *moqStore
 }
 
 // moqStore_GadgetsByWidgetId_params holds the params of the Store type
@@ -116,12 +123,16 @@ type moqStore_GadgetsByWidgetId_paramsKey struct {
 	hashes struct{ widgetId hash.Hash }
 }
 
-// moqStore_GadgetsByWidgetId_resultsByParams contains the results for a given
-// set of parameters for the Store type
-type moqStore_GadgetsByWidgetId_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqStore_GadgetsByWidgetId_paramsKey]*moqStore_GadgetsByWidgetId_results
+// moqStore_GadgetsByWidgetId_results holds the results of the Store type
+type moqStore_GadgetsByWidgetId_results struct {
+	result1 []demo.Gadget
+	result2 error
+}
+
+// moqStore_GadgetsByWidgetId_paramIndexing holds the parameter indexing
+// runtime configuration for the Store type
+type moqStore_GadgetsByWidgetId_paramIndexing struct {
+	widgetId moq.ParamIndexing
 }
 
 // moqStore_GadgetsByWidgetId_doFn defines the type of function needed when
@@ -132,36 +143,27 @@ type moqStore_GadgetsByWidgetId_doFn func(widgetId int)
 // when calling doReturnResults for the Store type
 type moqStore_GadgetsByWidgetId_doReturnFn func(widgetId int) ([]demo.Gadget, error)
 
-// moqStore_GadgetsByWidgetId_results holds the results of the Store type
-type moqStore_GadgetsByWidgetId_results struct {
-	params  moqStore_GadgetsByWidgetId_params
-	results []struct {
-		values *struct {
-			result1 []demo.Gadget
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqStore_GadgetsByWidgetId_doFn
-		doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqStore_GadgetsByWidgetId_fnRecorder routes recorded function calls to the
+// moqStore_GadgetsByWidgetId_recorder routes recorded function calls to the
 // moqStore moq
-type moqStore_GadgetsByWidgetId_fnRecorder struct {
-	params    moqStore_GadgetsByWidgetId_params
-	anyParams uint64
-	sequence  bool
-	results   *moqStore_GadgetsByWidgetId_results
-	moq       *moqStore
+type moqStore_GadgetsByWidgetId_recorder struct {
+	recorder *impl.Recorder[
+		*moqStore_GadgetsByWidgetId_adaptor,
+		moqStore_GadgetsByWidgetId_params,
+		moqStore_GadgetsByWidgetId_paramsKey,
+		moqStore_GadgetsByWidgetId_results,
+	]
 }
 
 // moqStore_GadgetsByWidgetId_anyParams isolates the any params functions of
 // the Store type
 type moqStore_GadgetsByWidgetId_anyParams struct {
-	recorder *moqStore_GadgetsByWidgetId_fnRecorder
+	recorder *moqStore_GadgetsByWidgetId_recorder
+}
+
+// moqStore_LightGadgetsByWidgetId_adaptor adapts moqStore as needed by the
+// runtime
+type moqStore_LightGadgetsByWidgetId_adaptor struct {
+	moq *moqStore
 }
 
 // moqStore_LightGadgetsByWidgetId_params holds the params of the Store type
@@ -183,12 +185,17 @@ type moqStore_LightGadgetsByWidgetId_paramsKey struct {
 	}
 }
 
-// moqStore_LightGadgetsByWidgetId_resultsByParams contains the results for a
-// given set of parameters for the Store type
-type moqStore_LightGadgetsByWidgetId_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqStore_LightGadgetsByWidgetId_paramsKey]*moqStore_LightGadgetsByWidgetId_results
+// moqStore_LightGadgetsByWidgetId_results holds the results of the Store type
+type moqStore_LightGadgetsByWidgetId_results struct {
+	result1 []demo.Gadget
+	result2 error
+}
+
+// moqStore_LightGadgetsByWidgetId_paramIndexing holds the parameter indexing
+// runtime configuration for the Store type
+type moqStore_LightGadgetsByWidgetId_paramIndexing struct {
+	widgetId  moq.ParamIndexing
+	maxWeight moq.ParamIndexing
 }
 
 // moqStore_LightGadgetsByWidgetId_doFn defines the type of function needed
@@ -199,85 +206,70 @@ type moqStore_LightGadgetsByWidgetId_doFn func(widgetId int, maxWeight uint32)
 // needed when calling doReturnResults for the Store type
 type moqStore_LightGadgetsByWidgetId_doReturnFn func(widgetId int, maxWeight uint32) ([]demo.Gadget, error)
 
-// moqStore_LightGadgetsByWidgetId_results holds the results of the Store type
-type moqStore_LightGadgetsByWidgetId_results struct {
-	params  moqStore_LightGadgetsByWidgetId_params
-	results []struct {
-		values *struct {
-			result1 []demo.Gadget
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqStore_LightGadgetsByWidgetId_doFn
-		doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqStore_LightGadgetsByWidgetId_fnRecorder routes recorded function calls to
+// moqStore_LightGadgetsByWidgetId_recorder routes recorded function calls to
 // the moqStore moq
-type moqStore_LightGadgetsByWidgetId_fnRecorder struct {
-	params    moqStore_LightGadgetsByWidgetId_params
-	anyParams uint64
-	sequence  bool
-	results   *moqStore_LightGadgetsByWidgetId_results
-	moq       *moqStore
+type moqStore_LightGadgetsByWidgetId_recorder struct {
+	recorder *impl.Recorder[
+		*moqStore_LightGadgetsByWidgetId_adaptor,
+		moqStore_LightGadgetsByWidgetId_params,
+		moqStore_LightGadgetsByWidgetId_paramsKey,
+		moqStore_LightGadgetsByWidgetId_results,
+	]
 }
 
 // moqStore_LightGadgetsByWidgetId_anyParams isolates the any params functions
 // of the Store type
 type moqStore_LightGadgetsByWidgetId_anyParams struct {
-	recorder *moqStore_LightGadgetsByWidgetId_fnRecorder
+	recorder *moqStore_LightGadgetsByWidgetId_recorder
 }
 
 // newMoqStore creates a new moq of the Store type
 func newMoqStore(scene *moq.Scene, config *moq.Config) *moqStore {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqStore_AllWidgetsIds_adaptor{}
+	adaptor2 := &moqStore_GadgetsByWidgetId_adaptor{}
+	adaptor3 := &moqStore_LightGadgetsByWidgetId_adaptor{}
 	m := &moqStore{
-		scene:  scene,
-		config: *config,
-		moq:    &moqStore_mock{},
+		moq: &moqStore_mock{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				AllWidgetsIds     struct{}
-				GadgetsByWidgetId struct {
-					widgetId moq.ParamIndexing
-				}
-				LightGadgetsByWidgetId struct {
-					widgetId  moq.ParamIndexing
-					maxWeight moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			AllWidgetsIds     struct{}
-			GadgetsByWidgetId struct {
-				widgetId moq.ParamIndexing
-			}
-			LightGadgetsByWidgetId struct {
-				widgetId  moq.ParamIndexing
-				maxWeight moq.ParamIndexing
-			}
+		moq_AllWidgetsIds: impl.NewMoq[
+			*moqStore_AllWidgetsIds_adaptor,
+			moqStore_AllWidgetsIds_params,
+			moqStore_AllWidgetsIds_paramsKey,
+			moqStore_AllWidgetsIds_results,
+		](scene, adaptor1, config),
+		moq_GadgetsByWidgetId: impl.NewMoq[
+			*moqStore_GadgetsByWidgetId_adaptor,
+			moqStore_GadgetsByWidgetId_params,
+			moqStore_GadgetsByWidgetId_paramsKey,
+			moqStore_GadgetsByWidgetId_results,
+		](scene, adaptor2, config),
+		moq_LightGadgetsByWidgetId: impl.NewMoq[
+			*moqStore_LightGadgetsByWidgetId_adaptor,
+			moqStore_LightGadgetsByWidgetId_params,
+			moqStore_LightGadgetsByWidgetId_paramsKey,
+			moqStore_LightGadgetsByWidgetId_results,
+		](scene, adaptor3, config),
+
+		runtime: moqStore_runtime{parameterIndexing: struct {
+			AllWidgetsIds          moqStore_AllWidgetsIds_paramIndexing
+			GadgetsByWidgetId      moqStore_GadgetsByWidgetId_paramIndexing
+			LightGadgetsByWidgetId moqStore_LightGadgetsByWidgetId_paramIndexing
 		}{
-			AllWidgetsIds: struct{}{},
-			GadgetsByWidgetId: struct {
-				widgetId moq.ParamIndexing
-			}{
+			AllWidgetsIds: moqStore_AllWidgetsIds_paramIndexing{},
+			GadgetsByWidgetId: moqStore_GadgetsByWidgetId_paramIndexing{
 				widgetId: moq.ParamIndexByValue,
 			},
-			LightGadgetsByWidgetId: struct {
-				widgetId  moq.ParamIndexing
-				maxWeight moq.ParamIndexing
-			}{
+			LightGadgetsByWidgetId: moqStore_LightGadgetsByWidgetId_paramIndexing{
 				widgetId:  moq.ParamIndexByValue,
 				maxWeight: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
+	adaptor2.moq = m
+	adaptor3.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -286,165 +278,48 @@ func newMoqStore(scene *moq.Scene, config *moq.Config) *moqStore {
 // mock returns the mock implementation of the Store type
 func (m *moqStore) mock() *moqStore_mock { return m.moq }
 
-func (m *moqStore_mock) AllWidgetsIds() (result1 []int, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqStore_mock) AllWidgetsIds() ([]int, error) {
+	m.moq.moq_AllWidgetsIds.Scene.T.Helper()
 	params := moqStore_AllWidgetsIds_params{}
-	var results *moqStore_AllWidgetsIds_results
-	for _, resultsByParams := range m.moq.resultsByParams_AllWidgetsIds {
-		paramsKey := m.moq.paramsKey_AllWidgetsIds(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_AllWidgetsIds(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_AllWidgetsIds(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 []int
+	var result2 error
+	if result := m.moq.moq_AllWidgetsIds.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_AllWidgetsIds(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn()
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqStore_mock) GadgetsByWidgetId(widgetId int) (result1 []demo.Gadget, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqStore_mock) GadgetsByWidgetId(widgetId int) ([]demo.Gadget, error) {
+	m.moq.moq_GadgetsByWidgetId.Scene.T.Helper()
 	params := moqStore_GadgetsByWidgetId_params{
 		widgetId: widgetId,
 	}
-	var results *moqStore_GadgetsByWidgetId_results
-	for _, resultsByParams := range m.moq.resultsByParams_GadgetsByWidgetId {
-		paramsKey := m.moq.paramsKey_GadgetsByWidgetId(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_GadgetsByWidgetId(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_GadgetsByWidgetId(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 []demo.Gadget
+	var result2 error
+	if result := m.moq.moq_GadgetsByWidgetId.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_GadgetsByWidgetId(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(widgetId)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(widgetId)
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) (result1 []demo.Gadget, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqStore_mock) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) ([]demo.Gadget, error) {
+	m.moq.moq_LightGadgetsByWidgetId.Scene.T.Helper()
 	params := moqStore_LightGadgetsByWidgetId_params{
 		widgetId:  widgetId,
 		maxWeight: maxWeight,
 	}
-	var results *moqStore_LightGadgetsByWidgetId_results
-	for _, resultsByParams := range m.moq.resultsByParams_LightGadgetsByWidgetId {
-		paramsKey := m.moq.paramsKey_LightGadgetsByWidgetId(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_LightGadgetsByWidgetId(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_LightGadgetsByWidgetId(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 []demo.Gadget
+	var result2 error
+	if result := m.moq.moq_LightGadgetsByWidgetId.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_LightGadgetsByWidgetId(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(widgetId, maxWeight)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(widgetId, maxWeight)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the Store type
@@ -454,392 +329,171 @@ func (m *moqStore) onCall() *moqStore_recorder {
 	}
 }
 
-func (m *moqStore_recorder) AllWidgetsIds() *moqStore_AllWidgetsIds_fnRecorder {
-	return &moqStore_AllWidgetsIds_fnRecorder{
-		params:   moqStore_AllWidgetsIds_params{},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+func (m *moqStore_recorder) AllWidgetsIds() *moqStore_AllWidgetsIds_recorder {
+	return &moqStore_AllWidgetsIds_recorder{
+		recorder: m.moq.moq_AllWidgetsIds.OnCall(moqStore_AllWidgetsIds_params{}),
 	}
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) any() *moqStore_AllWidgetsIds_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AllWidgetsIds(r.params))
+func (r *moqStore_AllWidgetsIds_recorder) any() *moqStore_AllWidgetsIds_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqStore_AllWidgetsIds_anyParams{recorder: r}
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) seq() *moqStore_AllWidgetsIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AllWidgetsIds(r.params))
+func (r *moqStore_AllWidgetsIds_recorder) seq() *moqStore_AllWidgetsIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) noSeq() *moqStore_AllWidgetsIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_AllWidgetsIds(r.params))
+func (r *moqStore_AllWidgetsIds_recorder) noSeq() *moqStore_AllWidgetsIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) returnResults(result1 []int, result2 error) *moqStore_AllWidgetsIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []int
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqStore_AllWidgetsIds_doFn
-		doReturnFn moqStore_AllWidgetsIds_doReturnFn
-	}{
-		values: &struct {
-			result1 []int
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqStore_AllWidgetsIds_recorder) returnResults(result1 []int, result2 error) *moqStore_AllWidgetsIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqStore_AllWidgetsIds_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) andDo(fn moqStore_AllWidgetsIds_doFn) *moqStore_AllWidgetsIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqStore_AllWidgetsIds_recorder) andDo(fn moqStore_AllWidgetsIds_doFn) *moqStore_AllWidgetsIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqStore_AllWidgetsIds_params) {
+		fn()
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) doReturnResults(fn moqStore_AllWidgetsIds_doReturnFn) *moqStore_AllWidgetsIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []int
-			result2 error
+func (r *moqStore_AllWidgetsIds_recorder) doReturnResults(fn moqStore_AllWidgetsIds_doReturnFn) *moqStore_AllWidgetsIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqStore_AllWidgetsIds_params) *moqStore_AllWidgetsIds_results {
+		result1, result2 := fn()
+		return &moqStore_AllWidgetsIds_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqStore_AllWidgetsIds_doFn
-		doReturnFn moqStore_AllWidgetsIds_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqStore_AllWidgetsIds_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqStore_AllWidgetsIds_resultsByParams
-	for n, res := range r.moq.resultsByParams_AllWidgetsIds {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqStore_AllWidgetsIds_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqStore_AllWidgetsIds_paramsKey]*moqStore_AllWidgetsIds_results{},
-		}
-		r.moq.resultsByParams_AllWidgetsIds = append(r.moq.resultsByParams_AllWidgetsIds, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_AllWidgetsIds) {
-			copy(r.moq.resultsByParams_AllWidgetsIds[insertAt+1:], r.moq.resultsByParams_AllWidgetsIds[insertAt:0])
-			r.moq.resultsByParams_AllWidgetsIds[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_AllWidgetsIds(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqStore_AllWidgetsIds_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqStore_AllWidgetsIds_fnRecorder) repeat(repeaters ...moq.Repeater) *moqStore_AllWidgetsIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqStore_AllWidgetsIds_recorder) repeat(repeaters ...moq.Repeater) *moqStore_AllWidgetsIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 []int
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqStore_AllWidgetsIds_doFn
-				doReturnFn moqStore_AllWidgetsIds_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqStore) prettyParams_AllWidgetsIds(params moqStore_AllWidgetsIds_params) string {
+func (*moqStore_AllWidgetsIds_adaptor) PrettyParams(params moqStore_AllWidgetsIds_params) string {
 	return fmt.Sprintf("AllWidgetsIds()")
 }
 
-func (m *moqStore) paramsKey_AllWidgetsIds(params moqStore_AllWidgetsIds_params, anyParams uint64) moqStore_AllWidgetsIds_paramsKey {
-	m.scene.T.Helper()
+func (a *moqStore_AllWidgetsIds_adaptor) ParamsKey(params moqStore_AllWidgetsIds_params, anyParams uint64) moqStore_AllWidgetsIds_paramsKey {
+	a.moq.moq_AllWidgetsIds.Scene.T.Helper()
 	return moqStore_AllWidgetsIds_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
 	}
 }
 
-func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByWidgetId_fnRecorder {
-	return &moqStore_GadgetsByWidgetId_fnRecorder{
-		params: moqStore_GadgetsByWidgetId_params{
+func (m *moqStore_recorder) GadgetsByWidgetId(widgetId int) *moqStore_GadgetsByWidgetId_recorder {
+	return &moqStore_GadgetsByWidgetId_recorder{
+		recorder: m.moq.moq_GadgetsByWidgetId.OnCall(moqStore_GadgetsByWidgetId_params{
 			widgetId: widgetId,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) any() *moqStore_GadgetsByWidgetId_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_GadgetsByWidgetId(r.params))
+func (r *moqStore_GadgetsByWidgetId_recorder) any() *moqStore_GadgetsByWidgetId_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqStore_GadgetsByWidgetId_anyParams{recorder: r}
 }
 
-func (a *moqStore_GadgetsByWidgetId_anyParams) widgetId() *moqStore_GadgetsByWidgetId_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqStore_GadgetsByWidgetId_anyParams) widgetId() *moqStore_GadgetsByWidgetId_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) seq() *moqStore_GadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_GadgetsByWidgetId(r.params))
+func (r *moqStore_GadgetsByWidgetId_recorder) seq() *moqStore_GadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) noSeq() *moqStore_GadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_GadgetsByWidgetId(r.params))
+func (r *moqStore_GadgetsByWidgetId_recorder) noSeq() *moqStore_GadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Gadget, result2 error) *moqStore_GadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []demo.Gadget
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqStore_GadgetsByWidgetId_doFn
-		doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
-	}{
-		values: &struct {
-			result1 []demo.Gadget
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqStore_GadgetsByWidgetId_recorder) returnResults(result1 []demo.Gadget, result2 error) *moqStore_GadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqStore_GadgetsByWidgetId_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) andDo(fn moqStore_GadgetsByWidgetId_doFn) *moqStore_GadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqStore_GadgetsByWidgetId_recorder) andDo(fn moqStore_GadgetsByWidgetId_doFn) *moqStore_GadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqStore_GadgetsByWidgetId_params) {
+		fn(params.widgetId)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) doReturnResults(fn moqStore_GadgetsByWidgetId_doReturnFn) *moqStore_GadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []demo.Gadget
-			result2 error
+func (r *moqStore_GadgetsByWidgetId_recorder) doReturnResults(fn moqStore_GadgetsByWidgetId_doReturnFn) *moqStore_GadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqStore_GadgetsByWidgetId_params) *moqStore_GadgetsByWidgetId_results {
+		result1, result2 := fn(params.widgetId)
+		return &moqStore_GadgetsByWidgetId_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqStore_GadgetsByWidgetId_doFn
-		doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqStore_GadgetsByWidgetId_resultsByParams
-	for n, res := range r.moq.resultsByParams_GadgetsByWidgetId {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqStore_GadgetsByWidgetId_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqStore_GadgetsByWidgetId_paramsKey]*moqStore_GadgetsByWidgetId_results{},
-		}
-		r.moq.resultsByParams_GadgetsByWidgetId = append(r.moq.resultsByParams_GadgetsByWidgetId, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_GadgetsByWidgetId) {
-			copy(r.moq.resultsByParams_GadgetsByWidgetId[insertAt+1:], r.moq.resultsByParams_GadgetsByWidgetId[insertAt:0])
-			r.moq.resultsByParams_GadgetsByWidgetId[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_GadgetsByWidgetId(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqStore_GadgetsByWidgetId_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqStore_GadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Repeater) *moqStore_GadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqStore_GadgetsByWidgetId_recorder) repeat(repeaters ...moq.Repeater) *moqStore_GadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 []demo.Gadget
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqStore_GadgetsByWidgetId_doFn
-				doReturnFn moqStore_GadgetsByWidgetId_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqStore) prettyParams_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId_params) string {
+func (*moqStore_GadgetsByWidgetId_adaptor) PrettyParams(params moqStore_GadgetsByWidgetId_params) string {
 	return fmt.Sprintf("GadgetsByWidgetId(%#v)", params.widgetId)
 }
 
-func (m *moqStore) paramsKey_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId_params, anyParams uint64) moqStore_GadgetsByWidgetId_paramsKey {
-	m.scene.T.Helper()
-	var widgetIdUsed int
-	var widgetIdUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.GadgetsByWidgetId.widgetId == moq.ParamIndexByValue {
-			widgetIdUsed = params.widgetId
-		} else {
-			widgetIdUsedHash = hash.DeepHash(params.widgetId)
-		}
-	}
+func (a *moqStore_GadgetsByWidgetId_adaptor) ParamsKey(params moqStore_GadgetsByWidgetId_params, anyParams uint64) moqStore_GadgetsByWidgetId_paramsKey {
+	a.moq.moq_GadgetsByWidgetId.Scene.T.Helper()
+	widgetIdUsed, widgetIdUsedHash := impl.ParamKey(
+		params.widgetId, 1, a.moq.runtime.parameterIndexing.GadgetsByWidgetId.widgetId, anyParams)
 	return moqStore_GadgetsByWidgetId_paramsKey{
 		params: struct{ widgetId int }{
 			widgetId: widgetIdUsed,
@@ -850,219 +504,98 @@ func (m *moqStore) paramsKey_GadgetsByWidgetId(params moqStore_GadgetsByWidgetId
 	}
 }
 
-func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	return &moqStore_LightGadgetsByWidgetId_fnRecorder{
-		params: moqStore_LightGadgetsByWidgetId_params{
+func (m *moqStore_recorder) LightGadgetsByWidgetId(widgetId int, maxWeight uint32) *moqStore_LightGadgetsByWidgetId_recorder {
+	return &moqStore_LightGadgetsByWidgetId_recorder{
+		recorder: m.moq.moq_LightGadgetsByWidgetId.OnCall(moqStore_LightGadgetsByWidgetId_params{
 			widgetId:  widgetId,
 			maxWeight: maxWeight,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) any() *moqStore_LightGadgetsByWidgetId_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_LightGadgetsByWidgetId(r.params))
+func (r *moqStore_LightGadgetsByWidgetId_recorder) any() *moqStore_LightGadgetsByWidgetId_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqStore_LightGadgetsByWidgetId_anyParams{recorder: r}
 }
 
-func (a *moqStore_LightGadgetsByWidgetId_anyParams) widgetId() *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqStore_LightGadgetsByWidgetId_anyParams) widgetId() *moqStore_LightGadgetsByWidgetId_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqStore_LightGadgetsByWidgetId_anyParams) maxWeight() *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqStore_LightGadgetsByWidgetId_anyParams) maxWeight() *moqStore_LightGadgetsByWidgetId_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) seq() *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_LightGadgetsByWidgetId(r.params))
+func (r *moqStore_LightGadgetsByWidgetId_recorder) seq() *moqStore_LightGadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) noSeq() *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_LightGadgetsByWidgetId(r.params))
+func (r *moqStore_LightGadgetsByWidgetId_recorder) noSeq() *moqStore_LightGadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) returnResults(result1 []demo.Gadget, result2 error) *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []demo.Gadget
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqStore_LightGadgetsByWidgetId_doFn
-		doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
-	}{
-		values: &struct {
-			result1 []demo.Gadget
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqStore_LightGadgetsByWidgetId_recorder) returnResults(result1 []demo.Gadget, result2 error) *moqStore_LightGadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqStore_LightGadgetsByWidgetId_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) andDo(fn moqStore_LightGadgetsByWidgetId_doFn) *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqStore_LightGadgetsByWidgetId_recorder) andDo(fn moqStore_LightGadgetsByWidgetId_doFn) *moqStore_LightGadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqStore_LightGadgetsByWidgetId_params) {
+		fn(params.widgetId, params.maxWeight)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) doReturnResults(fn moqStore_LightGadgetsByWidgetId_doReturnFn) *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []demo.Gadget
-			result2 error
+func (r *moqStore_LightGadgetsByWidgetId_recorder) doReturnResults(fn moqStore_LightGadgetsByWidgetId_doReturnFn) *moqStore_LightGadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqStore_LightGadgetsByWidgetId_params) *moqStore_LightGadgetsByWidgetId_results {
+		result1, result2 := fn(params.widgetId, params.maxWeight)
+		return &moqStore_LightGadgetsByWidgetId_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqStore_LightGadgetsByWidgetId_doFn
-		doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqStore_LightGadgetsByWidgetId_resultsByParams
-	for n, res := range r.moq.resultsByParams_LightGadgetsByWidgetId {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqStore_LightGadgetsByWidgetId_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqStore_LightGadgetsByWidgetId_paramsKey]*moqStore_LightGadgetsByWidgetId_results{},
-		}
-		r.moq.resultsByParams_LightGadgetsByWidgetId = append(r.moq.resultsByParams_LightGadgetsByWidgetId, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_LightGadgetsByWidgetId) {
-			copy(r.moq.resultsByParams_LightGadgetsByWidgetId[insertAt+1:], r.moq.resultsByParams_LightGadgetsByWidgetId[insertAt:0])
-			r.moq.resultsByParams_LightGadgetsByWidgetId[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_LightGadgetsByWidgetId(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqStore_LightGadgetsByWidgetId_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqStore_LightGadgetsByWidgetId_fnRecorder) repeat(repeaters ...moq.Repeater) *moqStore_LightGadgetsByWidgetId_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqStore_LightGadgetsByWidgetId_recorder) repeat(repeaters ...moq.Repeater) *moqStore_LightGadgetsByWidgetId_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 []demo.Gadget
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqStore_LightGadgetsByWidgetId_doFn
-				doReturnFn moqStore_LightGadgetsByWidgetId_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqStore) prettyParams_LightGadgetsByWidgetId(params moqStore_LightGadgetsByWidgetId_params) string {
+func (*moqStore_LightGadgetsByWidgetId_adaptor) PrettyParams(params moqStore_LightGadgetsByWidgetId_params) string {
 	return fmt.Sprintf("LightGadgetsByWidgetId(%#v, %#v)", params.widgetId, params.maxWeight)
 }
 
-func (m *moqStore) paramsKey_LightGadgetsByWidgetId(params moqStore_LightGadgetsByWidgetId_params, anyParams uint64) moqStore_LightGadgetsByWidgetId_paramsKey {
-	m.scene.T.Helper()
-	var widgetIdUsed int
-	var widgetIdUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.LightGadgetsByWidgetId.widgetId == moq.ParamIndexByValue {
-			widgetIdUsed = params.widgetId
-		} else {
-			widgetIdUsedHash = hash.DeepHash(params.widgetId)
-		}
-	}
-	var maxWeightUsed uint32
-	var maxWeightUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.LightGadgetsByWidgetId.maxWeight == moq.ParamIndexByValue {
-			maxWeightUsed = params.maxWeight
-		} else {
-			maxWeightUsedHash = hash.DeepHash(params.maxWeight)
-		}
-	}
+func (a *moqStore_LightGadgetsByWidgetId_adaptor) ParamsKey(params moqStore_LightGadgetsByWidgetId_params, anyParams uint64) moqStore_LightGadgetsByWidgetId_paramsKey {
+	a.moq.moq_LightGadgetsByWidgetId.Scene.T.Helper()
+	widgetIdUsed, widgetIdUsedHash := impl.ParamKey(
+		params.widgetId, 1, a.moq.runtime.parameterIndexing.LightGadgetsByWidgetId.widgetId, anyParams)
+	maxWeightUsed, maxWeightUsedHash := impl.ParamKey(
+		params.maxWeight, 2, a.moq.runtime.parameterIndexing.LightGadgetsByWidgetId.maxWeight, anyParams)
 	return moqStore_LightGadgetsByWidgetId_paramsKey{
 		params: struct {
 			widgetId  int
@@ -1083,36 +616,15 @@ func (m *moqStore) paramsKey_LightGadgetsByWidgetId(params moqStore_LightGadgets
 
 // Reset resets the state of the moq
 func (m *moqStore) Reset() {
-	m.resultsByParams_AllWidgetsIds = nil
-	m.resultsByParams_GadgetsByWidgetId = nil
-	m.resultsByParams_LightGadgetsByWidgetId = nil
+	m.moq_AllWidgetsIds.Reset()
+	m.moq_GadgetsByWidgetId.Reset()
+	m.moq_LightGadgetsByWidgetId.Reset()
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqStore) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_AllWidgetsIds {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_AllWidgetsIds(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_GadgetsByWidgetId {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_GadgetsByWidgetId(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_LightGadgetsByWidgetId {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_LightGadgetsByWidgetId(results.params))
-			}
-		}
-	}
+	m.moq_AllWidgetsIds.Scene.T.Helper()
+	m.moq_AllWidgetsIds.AssertExpectationsMet()
+	m.moq_GadgetsByWidgetId.AssertExpectationsMet()
+	m.moq_LightGadgetsByWidgetId.AssertExpectationsMet()
 }

@@ -42,7 +42,7 @@ func (a *usualFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type usualFnRecorder struct {
-	r *moqUsualFn_fnRecorder
+	r *moqUsualFn_recorder
 }
 
 func (r *usualFnRecorder) anySParam() {
@@ -141,7 +141,7 @@ func (a *exportedUsualFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedUsualFnRecorder struct {
-	r *exported.MoqUsualFn_fnRecorder
+	r *exported.MoqUsualFn_recorder
 }
 
 func (r *exportedUsualFnRecorder) anySParam() {
@@ -238,7 +238,7 @@ func (a *noNamesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type noNamesFnRecorder struct {
-	r *moqNoNamesFn_fnRecorder
+	r *moqNoNamesFn_recorder
 }
 
 func (r *noNamesFnRecorder) anySParam() {
@@ -337,7 +337,7 @@ func (a *exportedNoNamesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedNoNamesFnRecorder struct {
-	r *exported.MoqNoNamesFn_fnRecorder
+	r *exported.MoqNoNamesFn_recorder
 }
 
 func (r *exportedNoNamesFnRecorder) anySParam() {
@@ -428,7 +428,7 @@ func (a *noResultsFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type noResultsFnRecorder struct {
-	r *moqNoResultsFn_fnRecorder
+	r *moqNoResultsFn_recorder
 }
 
 func (r *noResultsFnRecorder) anySParam() {
@@ -520,7 +520,7 @@ func (a *exportedNoResultsFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedNoResultsFnRecorder struct {
-	r *exported.MoqNoResultsFn_fnRecorder
+	r *exported.MoqNoResultsFn_recorder
 }
 
 func (r *exportedNoResultsFnRecorder) anySParam() {
@@ -618,7 +618,7 @@ func (a *noParamsFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type noParamsFnRecorder struct {
-	r *moqNoParamsFn_fnRecorder
+	r *moqNoParamsFn_recorder
 }
 
 func (r *noParamsFnRecorder) anySParam() {}
@@ -693,7 +693,7 @@ func (a *exportedNoParamsFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedNoParamsFnRecorder struct {
-	r *exported.MoqNoParamsFn_fnRecorder
+	r *exported.MoqNoParamsFn_recorder
 }
 
 func (r *exportedNoParamsFnRecorder) anySParam() {}
@@ -762,7 +762,7 @@ func (a *nothingFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type nothingFnRecorder struct {
-	r *moqNothingFn_fnRecorder
+	r *moqNothingFn_recorder
 }
 
 func (r *nothingFnRecorder) anySParam() {}
@@ -830,7 +830,7 @@ func (a *exportedNothingFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedNothingFnRecorder struct {
-	r *exported.MoqNothingFn_fnRecorder
+	r *exported.MoqNothingFn_recorder
 }
 
 func (r *exportedNothingFnRecorder) anySParam() {}
@@ -902,7 +902,7 @@ func (a *variadicFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type variadicFnRecorder struct {
-	r *moqVariadicFn_fnRecorder
+	r *moqVariadicFn_recorder
 }
 
 func (r *variadicFnRecorder) anySParam() {
@@ -1003,7 +1003,7 @@ func (a *exportedVariadicFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedVariadicFnRecorder struct {
-	r *exported.MoqVariadicFn_fnRecorder
+	r *exported.MoqVariadicFn_recorder
 }
 
 func (r *exportedVariadicFnRecorder) anySParam() {
@@ -1103,7 +1103,7 @@ func (a *repeatedIdsFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type repeatedIdsFnRecorder struct {
-	r *moqRepeatedIdsFn_fnRecorder
+	r *moqRepeatedIdsFn_recorder
 }
 
 func (r *repeatedIdsFnRecorder) anySParam() {
@@ -1213,7 +1213,7 @@ func (a *exportedRepeatedIdsFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedRepeatedIdsFnRecorder struct {
-	r *exported.MoqRepeatedIdsFn_fnRecorder
+	r *exported.MoqRepeatedIdsFn_recorder
 }
 
 func (r *exportedRepeatedIdsFnRecorder) anySParam() {
@@ -1316,7 +1316,7 @@ func (a *timesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type timesFnRecorder struct {
-	r *moqTimesFn_fnRecorder
+	r *moqTimesFn_recorder
 }
 
 func (r *timesFnRecorder) anySParam() {
@@ -1415,7 +1415,7 @@ func (a *exportedTimesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedTimesFnRecorder struct {
-	r *exported.MoqTimesFn_fnRecorder
+	r *exported.MoqTimesFn_recorder
 }
 
 func (r *exportedTimesFnRecorder) anySParam() {
@@ -1506,7 +1506,7 @@ func (a *difficultParamNamesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type difficultParamNamesFnRecorder struct {
-	r *moqDifficultParamNamesFn_fnRecorder
+	r *moqDifficultParamNamesFn_recorder
 }
 
 func (r *difficultParamNamesFnRecorder) anySParam() {
@@ -1602,7 +1602,7 @@ func (a *exportedDifficultParamNamesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedDifficultParamNamesFnRecorder struct {
-	r *exported.MoqDifficultParamNamesFn_fnRecorder
+	r *exported.MoqDifficultParamNamesFn_recorder
 }
 
 func (r *exportedDifficultParamNamesFnRecorder) anySParam() {
@@ -1705,7 +1705,7 @@ func (a *difficultResultNamesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type difficultResultNamesFnRecorder struct {
-	r *moqDifficultResultNamesFn_fnRecorder
+	r *moqDifficultResultNamesFn_recorder
 }
 
 func (r *difficultResultNamesFnRecorder) anySParam() {}
@@ -1784,7 +1784,7 @@ func (a *exportedDifficultResultNamesFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedDifficultResultNamesFnRecorder struct {
-	r *exported.MoqDifficultResultNamesFn_fnRecorder
+	r *exported.MoqDifficultResultNamesFn_recorder
 }
 
 func (r *exportedDifficultResultNamesFnRecorder) anySParam() {}
@@ -1877,7 +1877,7 @@ func (a *passByReferenceFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type passByReferenceFnRecorder struct {
-	r *moqPassByReferenceFn_fnRecorder
+	r *moqPassByReferenceFn_recorder
 }
 
 func (r *passByReferenceFnRecorder) anySParam() {
@@ -1996,7 +1996,7 @@ func (a *exportedPassByReferenceFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedPassByReferenceFnRecorder struct {
-	r *exported.MoqPassByReferenceFn_fnRecorder
+	r *exported.MoqPassByReferenceFn_recorder
 }
 
 func (r *exportedPassByReferenceFnRecorder) anySParam() {
@@ -2106,7 +2106,7 @@ func (a *interfaceParamFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type interfaceParamFnRecorder struct {
-	r *moqInterfaceParamFn_fnRecorder
+	r *moqInterfaceParamFn_recorder
 }
 
 func (r *interfaceParamFnRecorder) anySParam() {
@@ -2227,7 +2227,7 @@ func (a *exportedInterfaceParamFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedInterfaceParamFnRecorder struct {
-	r *exported.MoqInterfaceParamFn_fnRecorder
+	r *exported.MoqInterfaceParamFn_recorder
 }
 
 func (r *exportedInterfaceParamFnRecorder) anySParam() {
@@ -2346,7 +2346,7 @@ func (a *interfaceResultFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type interfaceResultFnRecorder struct {
-	r *moqInterfaceResultFn_fnRecorder
+	r *moqInterfaceResultFn_recorder
 }
 
 func (r *interfaceResultFnRecorder) anySParam() {
@@ -2466,7 +2466,7 @@ func (a *exportedInterfaceResultFnAdaptor) sceneMoq() moq.Moq {
 }
 
 type exportedInterfaceResultFnRecorder struct {
-	r *exported.MoqInterfaceResultFn_fnRecorder
+	r *exported.MoqInterfaceResultFn_recorder
 }
 
 func (r *exportedInterfaceResultFnRecorder) anySParam() {
@@ -2569,7 +2569,7 @@ func (a *genericParamsFnAdaptor[S, B]) sceneMoq() moq.Moq {
 }
 
 type genericParamsFnRecorder[S, B any] struct {
-	r *moqGenericParamsFn_fnRecorder[S, B]
+	r *moqGenericParamsFn_recorder[S, B]
 }
 
 func (r *genericParamsFnRecorder[S, B]) anySParam() {
@@ -2670,7 +2670,7 @@ func (a *exportedGenericParamsFnAdaptor[S, B]) sceneMoq() moq.Moq {
 }
 
 type exportedGenericParamsFnRecorder[S, B any] struct {
-	r *exported.MoqGenericParamsFn_fnRecorder[S, B]
+	r *exported.MoqGenericParamsFn_recorder[S, B]
 }
 
 func (r *exportedGenericParamsFnRecorder[S, B]) anySParam() {
@@ -2771,7 +2771,7 @@ func (a *partialGenericParamsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type partialGenericParamsFnRecorder[S any] struct {
-	r *moqPartialGenericParamsFn_fnRecorder[S]
+	r *moqPartialGenericParamsFn_recorder[S]
 }
 
 func (r *partialGenericParamsFnRecorder[S]) anySParam() {
@@ -2872,7 +2872,7 @@ func (a *exportedPartialGenericParamsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type exportedPartialGenericParamsFnRecorder[S any] struct {
-	r *exported.MoqPartialGenericParamsFn_fnRecorder[S]
+	r *exported.MoqPartialGenericParamsFn_recorder[S]
 }
 
 func (r *exportedPartialGenericParamsFnRecorder[S]) anySParam() {
@@ -2973,7 +2973,7 @@ func (a *genericResultsFnAdaptor[S, E]) sceneMoq() moq.Moq {
 }
 
 type genericResultsFnRecorder[S ~string, E error] struct {
-	r *moqGenericResultsFn_fnRecorder[S, E]
+	r *moqGenericResultsFn_recorder[S, E]
 }
 
 func (r *genericResultsFnRecorder[S, E]) anySParam() {
@@ -3082,7 +3082,7 @@ func (a *exportedGenericResultsFnAdaptor[S, E]) sceneMoq() moq.Moq {
 }
 
 type exportedGenericResultsFnRecorder[S ~string, E error] struct {
-	r *exported.MoqGenericResultsFn_fnRecorder[S, E]
+	r *exported.MoqGenericResultsFn_recorder[S, E]
 }
 
 func (r *exportedGenericResultsFnRecorder[S, E]) anySParam() {
@@ -3191,7 +3191,7 @@ func (a *partialGenericResultsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type partialGenericResultsFnRecorder[S ~string] struct {
-	r *moqPartialGenericResultsFn_fnRecorder[S]
+	r *moqPartialGenericResultsFn_recorder[S]
 }
 
 func (r *partialGenericResultsFnRecorder[S]) anySParam() {
@@ -3294,7 +3294,7 @@ func (a *exportedPartialGenericResultsFnAdaptor[S]) sceneMoq() moq.Moq {
 }
 
 type exportedPartialGenericResultsFnRecorder[S ~string] struct {
-	r *exported.MoqPartialGenericResultsFn_fnRecorder[S]
+	r *exported.MoqPartialGenericResultsFn_recorder[S]
 }
 
 func (r *exportedPartialGenericResultsFnRecorder[S]) anySParam() {

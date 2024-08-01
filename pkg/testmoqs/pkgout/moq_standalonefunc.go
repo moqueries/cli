@@ -4,10 +4,9 @@ package pkgout
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
@@ -18,23 +17,25 @@ type StandaloneFunc_genType func(_ string, bParam bool) (string, error)
 // MoqStandaloneFunc_genType holds the state of a moq of the
 // StandaloneFunc_genType type
 type MoqStandaloneFunc_genType struct {
-	Scene  *moq.Scene
-	Config moq.Config
-	Moq    *MoqStandaloneFunc_genType_mock
+	Moq *impl.Moq[
+		*MoqStandaloneFunc_genType_adaptor,
+		MoqStandaloneFunc_genType_params,
+		MoqStandaloneFunc_genType_paramsKey,
+		MoqStandaloneFunc_genType_results,
+	]
 
-	ResultsByParams []MoqStandaloneFunc_genType_resultsByParams
-
-	Runtime struct {
-		ParameterIndexing struct {
-			Param1 moq.ParamIndexing
-			BParam moq.ParamIndexing
-		}
-	}
+	Runtime MoqStandaloneFunc_genType_runtime
 }
 
-// MoqStandaloneFunc_genType_mock isolates the mock interface of the
+// MoqStandaloneFunc_genType_runtime holds runtime configuration for the
 // StandaloneFunc_genType type
-type MoqStandaloneFunc_genType_mock struct {
+type MoqStandaloneFunc_genType_runtime struct {
+	ParameterIndexing MoqStandaloneFunc_genType_paramIndexing
+}
+
+// MoqStandaloneFunc_genType_adaptor adapts MoqStandaloneFunc_genType as needed
+// by the runtime
+type MoqStandaloneFunc_genType_adaptor struct {
 	Moq *MoqStandaloneFunc_genType
 }
 
@@ -58,12 +59,18 @@ type MoqStandaloneFunc_genType_paramsKey struct {
 	}
 }
 
-// MoqStandaloneFunc_genType_resultsByParams contains the results for a given
-// set of parameters for the StandaloneFunc_genType type
-type MoqStandaloneFunc_genType_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqStandaloneFunc_genType_paramsKey]*MoqStandaloneFunc_genType_results
+// MoqStandaloneFunc_genType_results holds the results of the
+// StandaloneFunc_genType type
+type MoqStandaloneFunc_genType_results struct {
+	Result1 string
+	Result2 error
+}
+
+// MoqStandaloneFunc_genType_paramIndexing holds the parameter indexing runtime
+// configuration for the StandaloneFunc_genType type
+type MoqStandaloneFunc_genType_paramIndexing struct {
+	Param1 moq.ParamIndexing
+	BParam moq.ParamIndexing
 }
 
 // MoqStandaloneFunc_genType_doFn defines the type of function needed when
@@ -74,64 +81,41 @@ type MoqStandaloneFunc_genType_doFn func(_ string, bParam bool)
 // when calling DoReturnResults for the StandaloneFunc_genType type
 type MoqStandaloneFunc_genType_doReturnFn func(_ string, bParam bool) (string, error)
 
-// MoqStandaloneFunc_genType_results holds the results of the
-// StandaloneFunc_genType type
-type MoqStandaloneFunc_genType_results struct {
-	Params  MoqStandaloneFunc_genType_params
-	Results []struct {
-		Values *struct {
-			Result1 string
-			Result2 error
-		}
-		Sequence   uint32
-		DoFn       MoqStandaloneFunc_genType_doFn
-		DoReturnFn MoqStandaloneFunc_genType_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqStandaloneFunc_genType_fnRecorder routes recorded function calls to the
+// MoqStandaloneFunc_genType_recorder routes recorded function calls to the
 // MoqStandaloneFunc_genType moq
-type MoqStandaloneFunc_genType_fnRecorder struct {
-	Params    MoqStandaloneFunc_genType_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqStandaloneFunc_genType_results
-	Moq       *MoqStandaloneFunc_genType
+type MoqStandaloneFunc_genType_recorder struct {
+	Recorder *impl.Recorder[
+		*MoqStandaloneFunc_genType_adaptor,
+		MoqStandaloneFunc_genType_params,
+		MoqStandaloneFunc_genType_paramsKey,
+		MoqStandaloneFunc_genType_results,
+	]
 }
 
 // MoqStandaloneFunc_genType_anyParams isolates the any params functions of the
 // StandaloneFunc_genType type
 type MoqStandaloneFunc_genType_anyParams struct {
-	Recorder *MoqStandaloneFunc_genType_fnRecorder
+	Recorder *MoqStandaloneFunc_genType_recorder
 }
 
 // NewMoqStandaloneFunc_genType creates a new moq of the StandaloneFunc_genType
 // type
 func NewMoqStandaloneFunc_genType(scene *moq.Scene, config *moq.Config) *MoqStandaloneFunc_genType {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &MoqStandaloneFunc_genType_adaptor{}
 	m := &MoqStandaloneFunc_genType{
-		Scene:  scene,
-		Config: *config,
-		Moq:    &MoqStandaloneFunc_genType_mock{},
+		Moq: impl.NewMoq[
+			*MoqStandaloneFunc_genType_adaptor,
+			MoqStandaloneFunc_genType_params,
+			MoqStandaloneFunc_genType_paramsKey,
+			MoqStandaloneFunc_genType_results,
+		](scene, adaptor1, config),
 
-		Runtime: struct {
-			ParameterIndexing struct {
-				Param1 moq.ParamIndexing
-				BParam moq.ParamIndexing
-			}
-		}{ParameterIndexing: struct {
-			Param1 moq.ParamIndexing
-			BParam moq.ParamIndexing
-		}{
+		Runtime: MoqStandaloneFunc_genType_runtime{ParameterIndexing: MoqStandaloneFunc_genType_paramIndexing{
 			Param1: moq.ParamIndexByValue,
 			BParam: moq.ParamIndexByValue,
 		}},
 	}
-	m.Moq.Moq = m
+	adaptor1.Moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -140,280 +124,114 @@ func NewMoqStandaloneFunc_genType(scene *moq.Scene, config *moq.Config) *MoqStan
 // Mock returns the moq implementation of the StandaloneFunc_genType type
 func (m *MoqStandaloneFunc_genType) Mock() StandaloneFunc_genType {
 	return func(param1 string, bParam bool) (string, error) {
-		m.Scene.T.Helper()
-		moq := &MoqStandaloneFunc_genType_mock{Moq: m}
-		return moq.Fn(param1, bParam)
-	}
-}
-
-func (m *MoqStandaloneFunc_genType_mock) Fn(param1 string, bParam bool) (result1 string, result2 error) {
-	m.Moq.Scene.T.Helper()
-	params := MoqStandaloneFunc_genType_params{
-		Param1: param1,
-		BParam: bParam,
-	}
-	var results *MoqStandaloneFunc_genType_results
-	for _, resultsByParams := range m.Moq.ResultsByParams {
-		paramsKey := m.Moq.ParamsKey(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
-	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn(param1, bParam)
-	}
-
-	if result.Values != nil {
-		result1 = result.Values.Result1
-		result2 = result.Values.Result2
-	}
-	if result.DoReturnFn != nil {
-		result1, result2 = result.DoReturnFn(param1, bParam)
-	}
-	return
-}
-
-func (m *MoqStandaloneFunc_genType) OnCall(param1 string, bParam bool) *MoqStandaloneFunc_genType_fnRecorder {
-	return &MoqStandaloneFunc_genType_fnRecorder{
-		Params: MoqStandaloneFunc_genType_params{
+		m.Moq.Scene.T.Helper()
+		params := MoqStandaloneFunc_genType_params{
 			Param1: param1,
 			BParam: bParam,
-		},
-		Sequence: m.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.Moq.Function(params); result != nil {
+			result1 = result.Result1
+			result2 = result.Result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) Any() *MoqStandaloneFunc_genType_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams(r.Params))
+func (m *MoqStandaloneFunc_genType) OnCall(param1 string, bParam bool) *MoqStandaloneFunc_genType_recorder {
+	return &MoqStandaloneFunc_genType_recorder{
+		Recorder: m.Moq.OnCall(MoqStandaloneFunc_genType_params{
+			Param1: param1,
+			BParam: bParam,
+		}),
+	}
+}
+
+func (r *MoqStandaloneFunc_genType_recorder) Any() *MoqStandaloneFunc_genType_anyParams {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.IsAnyPermitted(true) {
 		return nil
 	}
 	return &MoqStandaloneFunc_genType_anyParams{Recorder: r}
 }
 
-func (a *MoqStandaloneFunc_genType_anyParams) Param1() *MoqStandaloneFunc_genType_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 0
+func (a *MoqStandaloneFunc_genType_anyParams) Param1() *MoqStandaloneFunc_genType_recorder {
+	a.Recorder.Recorder.AnyParam(1)
 	return a.Recorder
 }
 
-func (a *MoqStandaloneFunc_genType_anyParams) BParam() *MoqStandaloneFunc_genType_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 1
+func (a *MoqStandaloneFunc_genType_anyParams) BParam() *MoqStandaloneFunc_genType_recorder {
+	a.Recorder.Recorder.AnyParam(2)
 	return a.Recorder
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) Seq() *MoqStandaloneFunc_genType_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams(r.Params))
+func (r *MoqStandaloneFunc_genType_recorder) Seq() *MoqStandaloneFunc_genType_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(true, "Seq", true) {
 		return nil
 	}
-	r.Sequence = true
 	return r
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) NoSeq() *MoqStandaloneFunc_genType_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams(r.Params))
+func (r *MoqStandaloneFunc_genType_recorder) NoSeq() *MoqStandaloneFunc_genType_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(false, "NoSeq", true) {
 		return nil
 	}
-	r.Sequence = false
 	return r
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) ReturnResults(result1 string, result2 error) *MoqStandaloneFunc_genType_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			Result1 string
-			Result2 error
-		}
-		Sequence   uint32
-		DoFn       MoqStandaloneFunc_genType_doFn
-		DoReturnFn MoqStandaloneFunc_genType_doReturnFn
-	}{
-		Values: &struct {
-			Result1 string
-			Result2 error
-		}{
-			Result1: result1,
-			Result2: result2,
-		},
-		Sequence: sequence,
+func (r *MoqStandaloneFunc_genType_recorder) ReturnResults(result1 string, result2 error) *MoqStandaloneFunc_genType_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.ReturnResults(MoqStandaloneFunc_genType_results{
+		Result1: result1,
+		Result2: result2,
 	})
 	return r
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) AndDo(fn MoqStandaloneFunc_genType_doFn) *MoqStandaloneFunc_genType_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+func (r *MoqStandaloneFunc_genType_recorder) AndDo(fn MoqStandaloneFunc_genType_doFn) *MoqStandaloneFunc_genType_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.AndDo(func(params MoqStandaloneFunc_genType_params) {
+		fn(params.Param1, params.BParam)
+	}, true) {
 		return nil
 	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
 	return r
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) DoReturnResults(fn MoqStandaloneFunc_genType_doReturnFn) *MoqStandaloneFunc_genType_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			Result1 string
-			Result2 error
+func (r *MoqStandaloneFunc_genType_recorder) DoReturnResults(fn MoqStandaloneFunc_genType_doReturnFn) *MoqStandaloneFunc_genType_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.DoReturnResults(func(params MoqStandaloneFunc_genType_params) *MoqStandaloneFunc_genType_results {
+		result1, result2 := fn(params.Param1, params.BParam)
+		return &MoqStandaloneFunc_genType_results{
+			Result1: result1,
+			Result2: result2,
 		}
-		Sequence   uint32
-		DoFn       MoqStandaloneFunc_genType_doFn
-		DoReturnFn MoqStandaloneFunc_genType_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
+	})
 	return r
 }
 
-func (r *MoqStandaloneFunc_genType_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqStandaloneFunc_genType_resultsByParams
-	for n, res := range r.Moq.ResultsByParams {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqStandaloneFunc_genType_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqStandaloneFunc_genType_paramsKey]*MoqStandaloneFunc_genType_results{},
-		}
-		r.Moq.ResultsByParams = append(r.Moq.ResultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams) {
-			copy(r.Moq.ResultsByParams[insertAt+1:], r.Moq.ResultsByParams[insertAt:0])
-			r.Moq.ResultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqStandaloneFunc_genType_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqStandaloneFunc_genType_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqStandaloneFunc_genType_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+func (r *MoqStandaloneFunc_genType_recorder) Repeat(repeaters ...moq.Repeater) *MoqStandaloneFunc_genType_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Repeat(repeaters, true) {
 		return nil
 	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values *struct {
-					Result1 string
-					Result2 error
-				}
-				Sequence   uint32
-				DoFn       MoqStandaloneFunc_genType_doFn
-				DoReturnFn MoqStandaloneFunc_genType_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
 	return r
 }
 
-func (m *MoqStandaloneFunc_genType) PrettyParams(params MoqStandaloneFunc_genType_params) string {
+func (*MoqStandaloneFunc_genType_adaptor) PrettyParams(params MoqStandaloneFunc_genType_params) string {
 	return fmt.Sprintf("StandaloneFunc_genType(%#v, %#v)", params.Param1, params.BParam)
 }
 
-func (m *MoqStandaloneFunc_genType) ParamsKey(params MoqStandaloneFunc_genType_params, anyParams uint64) MoqStandaloneFunc_genType_paramsKey {
-	m.Scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.Runtime.ParameterIndexing.Param1 == moq.ParamIndexByValue {
-			param1Used = params.Param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.Param1)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.Runtime.ParameterIndexing.BParam == moq.ParamIndexByValue {
-			bParamUsed = params.BParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.BParam)
-		}
-	}
+func (a *MoqStandaloneFunc_genType_adaptor) ParamsKey(params MoqStandaloneFunc_genType_params, anyParams uint64) MoqStandaloneFunc_genType_paramsKey {
+	a.Moq.Moq.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.Param1, 1, a.Moq.Runtime.ParameterIndexing.Param1, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.BParam, 2, a.Moq.Runtime.ParameterIndexing.BParam, anyParams)
 	return MoqStandaloneFunc_genType_paramsKey{
 		Params: struct {
 			Param1 string
@@ -433,17 +251,12 @@ func (m *MoqStandaloneFunc_genType) ParamsKey(params MoqStandaloneFunc_genType_p
 }
 
 // Reset resets the state of the moq
-func (m *MoqStandaloneFunc_genType) Reset() { m.ResultsByParams = nil }
+func (m *MoqStandaloneFunc_genType) Reset() {
+	m.Moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MoqStandaloneFunc_genType) AssertExpectationsMet() {
-	m.Scene.T.Helper()
-	for _, res := range m.ResultsByParams {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams(results.Params))
-			}
-		}
-	}
+	m.Moq.Scene.T.Helper()
+	m.Moq.AssertExpectationsMet()
 }

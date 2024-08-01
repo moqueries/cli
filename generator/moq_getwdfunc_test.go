@@ -4,28 +4,31 @@ package generator_test
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/cli/generator"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
 // moqGetwdFunc holds the state of a moq of the GetwdFunc type
 type moqGetwdFunc struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGetwdFunc_mock
+	moq *impl.Moq[
+		*moqGetwdFunc_adaptor,
+		moqGetwdFunc_params,
+		moqGetwdFunc_paramsKey,
+		moqGetwdFunc_results,
+	]
 
-	resultsByParams []moqGetwdFunc_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct{}
-	}
+	runtime moqGetwdFunc_runtime
 }
 
-// moqGetwdFunc_mock isolates the mock interface of the GetwdFunc type
-type moqGetwdFunc_mock struct {
+// moqGetwdFunc_runtime holds runtime configuration for the GetwdFunc type
+type moqGetwdFunc_runtime struct {
+	parameterIndexing moqGetwdFunc_paramIndexing
+}
+
+// moqGetwdFunc_adaptor adapts moqGetwdFunc as needed by the runtime
+type moqGetwdFunc_adaptor struct {
 	moq *moqGetwdFunc
 }
 
@@ -38,13 +41,15 @@ type moqGetwdFunc_paramsKey struct {
 	hashes struct{}
 }
 
-// moqGetwdFunc_resultsByParams contains the results for a given set of
-// parameters for the GetwdFunc type
-type moqGetwdFunc_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGetwdFunc_paramsKey]*moqGetwdFunc_results
+// moqGetwdFunc_results holds the results of the GetwdFunc type
+type moqGetwdFunc_results struct {
+	result1 string
+	result2 error
 }
+
+// moqGetwdFunc_paramIndexing holds the parameter indexing runtime
+// configuration for the GetwdFunc type
+type moqGetwdFunc_paramIndexing struct{}
 
 // moqGetwdFunc_doFn defines the type of function needed when calling andDo for
 // the GetwdFunc type
@@ -54,53 +59,36 @@ type moqGetwdFunc_doFn func()
 // doReturnResults for the GetwdFunc type
 type moqGetwdFunc_doReturnFn func() (string, error)
 
-// moqGetwdFunc_results holds the results of the GetwdFunc type
-type moqGetwdFunc_results struct {
-	params  moqGetwdFunc_params
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqGetwdFunc_doFn
-		doReturnFn moqGetwdFunc_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGetwdFunc_fnRecorder routes recorded function calls to the moqGetwdFunc
-// moq
-type moqGetwdFunc_fnRecorder struct {
-	params    moqGetwdFunc_params
-	anyParams uint64
-	sequence  bool
-	results   *moqGetwdFunc_results
-	moq       *moqGetwdFunc
+// moqGetwdFunc_recorder routes recorded function calls to the moqGetwdFunc moq
+type moqGetwdFunc_recorder struct {
+	recorder *impl.Recorder[
+		*moqGetwdFunc_adaptor,
+		moqGetwdFunc_params,
+		moqGetwdFunc_paramsKey,
+		moqGetwdFunc_results,
+	]
 }
 
 // moqGetwdFunc_anyParams isolates the any params functions of the GetwdFunc
 // type
 type moqGetwdFunc_anyParams struct {
-	recorder *moqGetwdFunc_fnRecorder
+	recorder *moqGetwdFunc_recorder
 }
 
 // newMoqGetwdFunc creates a new moq of the GetwdFunc type
 func newMoqGetwdFunc(scene *moq.Scene, config *moq.Config) *moqGetwdFunc {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGetwdFunc_adaptor{}
 	m := &moqGetwdFunc{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGetwdFunc_mock{},
+		moq: impl.NewMoq[
+			*moqGetwdFunc_adaptor,
+			moqGetwdFunc_params,
+			moqGetwdFunc_paramsKey,
+			moqGetwdFunc_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct{}
-		}{parameterIndexing: struct{}{}},
+		runtime: moqGetwdFunc_runtime{parameterIndexing: moqGetwdFunc_paramIndexing{}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -108,243 +96,95 @@ func newMoqGetwdFunc(scene *moq.Scene, config *moq.Config) *moqGetwdFunc {
 
 // mock returns the moq implementation of the GetwdFunc type
 func (m *moqGetwdFunc) mock() generator.GetwdFunc {
-	return func() (string, error) { m.scene.T.Helper(); moq := &moqGetwdFunc_mock{moq: m}; return moq.fn() }
-}
+	return func() (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqGetwdFunc_params{}
 
-func (m *moqGetwdFunc_mock) fn() (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqGetwdFunc_params{}
-	var results *moqGetwdFunc_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
 		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn()
-	}
-	return
-}
-
-func (m *moqGetwdFunc) onCall() *moqGetwdFunc_fnRecorder {
-	return &moqGetwdFunc_fnRecorder{
-		params:   moqGetwdFunc_params{},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		return result1, result2
 	}
 }
 
-func (r *moqGetwdFunc_fnRecorder) any() *moqGetwdFunc_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqGetwdFunc) onCall() *moqGetwdFunc_recorder {
+	return &moqGetwdFunc_recorder{
+		recorder: m.moq.OnCall(moqGetwdFunc_params{}),
+	}
+}
+
+func (r *moqGetwdFunc_recorder) any() *moqGetwdFunc_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGetwdFunc_anyParams{recorder: r}
 }
 
-func (r *moqGetwdFunc_fnRecorder) seq() *moqGetwdFunc_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGetwdFunc_recorder) seq() *moqGetwdFunc_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGetwdFunc_fnRecorder) noSeq() *moqGetwdFunc_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGetwdFunc_recorder) noSeq() *moqGetwdFunc_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGetwdFunc_fnRecorder) returnResults(result1 string, result2 error) *moqGetwdFunc_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqGetwdFunc_doFn
-		doReturnFn moqGetwdFunc_doReturnFn
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqGetwdFunc_recorder) returnResults(result1 string, result2 error) *moqGetwdFunc_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGetwdFunc_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqGetwdFunc_fnRecorder) andDo(fn moqGetwdFunc_doFn) *moqGetwdFunc_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGetwdFunc_recorder) andDo(fn moqGetwdFunc_doFn) *moqGetwdFunc_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGetwdFunc_params) {
+		fn()
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGetwdFunc_fnRecorder) doReturnResults(fn moqGetwdFunc_doReturnFn) *moqGetwdFunc_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqGetwdFunc_recorder) doReturnResults(fn moqGetwdFunc_doReturnFn) *moqGetwdFunc_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGetwdFunc_params) *moqGetwdFunc_results {
+		result1, result2 := fn()
+		return &moqGetwdFunc_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqGetwdFunc_doFn
-		doReturnFn moqGetwdFunc_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGetwdFunc_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGetwdFunc_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGetwdFunc_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGetwdFunc_paramsKey]*moqGetwdFunc_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGetwdFunc_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGetwdFunc_fnRecorder) repeat(repeaters ...moq.Repeater) *moqGetwdFunc_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGetwdFunc_recorder) repeat(repeaters ...moq.Repeater) *moqGetwdFunc_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqGetwdFunc_doFn
-				doReturnFn moqGetwdFunc_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGetwdFunc) prettyParams(params moqGetwdFunc_params) string {
+func (*moqGetwdFunc_adaptor) PrettyParams(params moqGetwdFunc_params) string {
 	return fmt.Sprintf("GetwdFunc()")
 }
 
-func (m *moqGetwdFunc) paramsKey(params moqGetwdFunc_params, anyParams uint64) moqGetwdFunc_paramsKey {
-	m.scene.T.Helper()
+func (a *moqGetwdFunc_adaptor) ParamsKey(params moqGetwdFunc_params, anyParams uint64) moqGetwdFunc_paramsKey {
+	a.moq.moq.Scene.T.Helper()
 	return moqGetwdFunc_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -352,17 +192,12 @@ func (m *moqGetwdFunc) paramsKey(params moqGetwdFunc_params, anyParams uint64) m
 }
 
 // Reset resets the state of the moq
-func (m *moqGetwdFunc) Reset() { m.resultsByParams = nil }
+func (m *moqGetwdFunc) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGetwdFunc) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }

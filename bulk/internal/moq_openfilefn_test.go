@@ -4,34 +4,33 @@ package internal_test
 
 import (
 	"fmt"
-	"math/bits"
 	"os"
-	"sync/atomic"
 
 	"moqueries.org/cli/bulk/internal"
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
 // moqOpenFileFn holds the state of a moq of the OpenFileFn type
 type moqOpenFileFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqOpenFileFn_mock
+	moq *impl.Moq[
+		*moqOpenFileFn_adaptor,
+		moqOpenFileFn_params,
+		moqOpenFileFn_paramsKey,
+		moqOpenFileFn_results,
+	]
 
-	resultsByParams []moqOpenFileFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			name moq.ParamIndexing
-			flag moq.ParamIndexing
-			perm moq.ParamIndexing
-		}
-	}
+	runtime moqOpenFileFn_runtime
 }
 
-// moqOpenFileFn_mock isolates the mock interface of the OpenFileFn type
-type moqOpenFileFn_mock struct {
+// moqOpenFileFn_runtime holds runtime configuration for the OpenFileFn type
+type moqOpenFileFn_runtime struct {
+	parameterIndexing moqOpenFileFn_paramIndexing
+}
+
+// moqOpenFileFn_adaptor adapts moqOpenFileFn as needed by the runtime
+type moqOpenFileFn_adaptor struct {
 	moq *moqOpenFileFn
 }
 
@@ -56,12 +55,18 @@ type moqOpenFileFn_paramsKey struct {
 	}
 }
 
-// moqOpenFileFn_resultsByParams contains the results for a given set of
-// parameters for the OpenFileFn type
-type moqOpenFileFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqOpenFileFn_paramsKey]*moqOpenFileFn_results
+// moqOpenFileFn_results holds the results of the OpenFileFn type
+type moqOpenFileFn_results struct {
+	result1 internal.ReadWriteSeekCloser
+	result2 error
+}
+
+// moqOpenFileFn_paramIndexing holds the parameter indexing runtime
+// configuration for the OpenFileFn type
+type moqOpenFileFn_paramIndexing struct {
+	name moq.ParamIndexing
+	flag moq.ParamIndexing
+	perm moq.ParamIndexing
 }
 
 // moqOpenFileFn_doFn defines the type of function needed when calling andDo
@@ -72,65 +77,41 @@ type moqOpenFileFn_doFn func(name string, flag int, perm os.FileMode)
 // doReturnResults for the OpenFileFn type
 type moqOpenFileFn_doReturnFn func(name string, flag int, perm os.FileMode) (internal.ReadWriteSeekCloser, error)
 
-// moqOpenFileFn_results holds the results of the OpenFileFn type
-type moqOpenFileFn_results struct {
-	params  moqOpenFileFn_params
-	results []struct {
-		values *struct {
-			result1 internal.ReadWriteSeekCloser
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqOpenFileFn_doFn
-		doReturnFn moqOpenFileFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqOpenFileFn_fnRecorder routes recorded function calls to the moqOpenFileFn
+// moqOpenFileFn_recorder routes recorded function calls to the moqOpenFileFn
 // moq
-type moqOpenFileFn_fnRecorder struct {
-	params    moqOpenFileFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqOpenFileFn_results
-	moq       *moqOpenFileFn
+type moqOpenFileFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqOpenFileFn_adaptor,
+		moqOpenFileFn_params,
+		moqOpenFileFn_paramsKey,
+		moqOpenFileFn_results,
+	]
 }
 
 // moqOpenFileFn_anyParams isolates the any params functions of the OpenFileFn
 // type
 type moqOpenFileFn_anyParams struct {
-	recorder *moqOpenFileFn_fnRecorder
+	recorder *moqOpenFileFn_recorder
 }
 
 // newMoqOpenFileFn creates a new moq of the OpenFileFn type
 func newMoqOpenFileFn(scene *moq.Scene, config *moq.Config) *moqOpenFileFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqOpenFileFn_adaptor{}
 	m := &moqOpenFileFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqOpenFileFn_mock{},
+		moq: impl.NewMoq[
+			*moqOpenFileFn_adaptor,
+			moqOpenFileFn_params,
+			moqOpenFileFn_paramsKey,
+			moqOpenFileFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				name moq.ParamIndexing
-				flag moq.ParamIndexing
-				perm moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			name moq.ParamIndexing
-			flag moq.ParamIndexing
-			perm moq.ParamIndexing
-		}{
+		runtime: moqOpenFileFn_runtime{parameterIndexing: moqOpenFileFn_paramIndexing{
 			name: moq.ParamIndexByValue,
 			flag: moq.ParamIndexByValue,
 			perm: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -139,296 +120,123 @@ func newMoqOpenFileFn(scene *moq.Scene, config *moq.Config) *moqOpenFileFn {
 // mock returns the moq implementation of the OpenFileFn type
 func (m *moqOpenFileFn) mock() internal.OpenFileFn {
 	return func(name string, flag int, perm os.FileMode) (internal.ReadWriteSeekCloser, error) {
-		m.scene.T.Helper()
-		moq := &moqOpenFileFn_mock{moq: m}
-		return moq.fn(name, flag, perm)
-	}
-}
-
-func (m *moqOpenFileFn_mock) fn(name string, flag int, perm os.FileMode) (result1 internal.ReadWriteSeekCloser, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqOpenFileFn_params{
-		name: name,
-		flag: flag,
-		perm: perm,
-	}
-	var results *moqOpenFileFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(name, flag, perm)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(name, flag, perm)
-	}
-	return
-}
-
-func (m *moqOpenFileFn) onCall(name string, flag int, perm os.FileMode) *moqOpenFileFn_fnRecorder {
-	return &moqOpenFileFn_fnRecorder{
-		params: moqOpenFileFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqOpenFileFn_params{
 			name: name,
 			flag: flag,
 			perm: perm,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 internal.ReadWriteSeekCloser
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqOpenFileFn_fnRecorder) any() *moqOpenFileFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqOpenFileFn) onCall(name string, flag int, perm os.FileMode) *moqOpenFileFn_recorder {
+	return &moqOpenFileFn_recorder{
+		recorder: m.moq.OnCall(moqOpenFileFn_params{
+			name: name,
+			flag: flag,
+			perm: perm,
+		}),
+	}
+}
+
+func (r *moqOpenFileFn_recorder) any() *moqOpenFileFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqOpenFileFn_anyParams{recorder: r}
 }
 
-func (a *moqOpenFileFn_anyParams) name() *moqOpenFileFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqOpenFileFn_anyParams) name() *moqOpenFileFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqOpenFileFn_anyParams) flag() *moqOpenFileFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqOpenFileFn_anyParams) flag() *moqOpenFileFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (a *moqOpenFileFn_anyParams) perm() *moqOpenFileFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+func (a *moqOpenFileFn_anyParams) perm() *moqOpenFileFn_recorder {
+	a.recorder.recorder.AnyParam(3)
 	return a.recorder
 }
 
-func (r *moqOpenFileFn_fnRecorder) seq() *moqOpenFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqOpenFileFn_recorder) seq() *moqOpenFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqOpenFileFn_fnRecorder) noSeq() *moqOpenFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqOpenFileFn_recorder) noSeq() *moqOpenFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqOpenFileFn_fnRecorder) returnResults(result1 internal.ReadWriteSeekCloser, result2 error) *moqOpenFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 internal.ReadWriteSeekCloser
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqOpenFileFn_doFn
-		doReturnFn moqOpenFileFn_doReturnFn
-	}{
-		values: &struct {
-			result1 internal.ReadWriteSeekCloser
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqOpenFileFn_recorder) returnResults(result1 internal.ReadWriteSeekCloser, result2 error) *moqOpenFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqOpenFileFn_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqOpenFileFn_fnRecorder) andDo(fn moqOpenFileFn_doFn) *moqOpenFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqOpenFileFn_recorder) andDo(fn moqOpenFileFn_doFn) *moqOpenFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqOpenFileFn_params) {
+		fn(params.name, params.flag, params.perm)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqOpenFileFn_fnRecorder) doReturnResults(fn moqOpenFileFn_doReturnFn) *moqOpenFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 internal.ReadWriteSeekCloser
-			result2 error
+func (r *moqOpenFileFn_recorder) doReturnResults(fn moqOpenFileFn_doReturnFn) *moqOpenFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqOpenFileFn_params) *moqOpenFileFn_results {
+		result1, result2 := fn(params.name, params.flag, params.perm)
+		return &moqOpenFileFn_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqOpenFileFn_doFn
-		doReturnFn moqOpenFileFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqOpenFileFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqOpenFileFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqOpenFileFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqOpenFileFn_paramsKey]*moqOpenFileFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqOpenFileFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqOpenFileFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqOpenFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqOpenFileFn_recorder) repeat(repeaters ...moq.Repeater) *moqOpenFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 internal.ReadWriteSeekCloser
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqOpenFileFn_doFn
-				doReturnFn moqOpenFileFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqOpenFileFn) prettyParams(params moqOpenFileFn_params) string {
+func (*moqOpenFileFn_adaptor) PrettyParams(params moqOpenFileFn_params) string {
 	return fmt.Sprintf("OpenFileFn(%#v, %#v, %#v)", params.name, params.flag, params.perm)
 }
 
-func (m *moqOpenFileFn) paramsKey(params moqOpenFileFn_params, anyParams uint64) moqOpenFileFn_paramsKey {
-	m.scene.T.Helper()
-	var nameUsed string
-	var nameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.name == moq.ParamIndexByValue {
-			nameUsed = params.name
-		} else {
-			nameUsedHash = hash.DeepHash(params.name)
-		}
-	}
-	var flagUsed int
-	var flagUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.flag == moq.ParamIndexByValue {
-			flagUsed = params.flag
-		} else {
-			flagUsedHash = hash.DeepHash(params.flag)
-		}
-	}
-	var permUsed os.FileMode
-	var permUsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
-		if m.runtime.parameterIndexing.perm == moq.ParamIndexByValue {
-			permUsed = params.perm
-		} else {
-			permUsedHash = hash.DeepHash(params.perm)
-		}
-	}
+func (a *moqOpenFileFn_adaptor) ParamsKey(params moqOpenFileFn_params, anyParams uint64) moqOpenFileFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	nameUsed, nameUsedHash := impl.ParamKey(
+		params.name, 1, a.moq.runtime.parameterIndexing.name, anyParams)
+	flagUsed, flagUsedHash := impl.ParamKey(
+		params.flag, 2, a.moq.runtime.parameterIndexing.flag, anyParams)
+	permUsed, permUsedHash := impl.ParamKey(
+		params.perm, 3, a.moq.runtime.parameterIndexing.perm, anyParams)
 	return moqOpenFileFn_paramsKey{
 		params: struct {
 			name string
@@ -452,17 +260,12 @@ func (m *moqOpenFileFn) paramsKey(params moqOpenFileFn_params, anyParams uint64)
 }
 
 // Reset resets the state of the moq
-func (m *moqOpenFileFn) Reset() { m.resultsByParams = nil }
+func (m *moqOpenFileFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqOpenFileFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }

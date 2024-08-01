@@ -4,31 +4,32 @@ package ast_test
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/cli/ast"
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
 // moqReadFileFn holds the state of a moq of the ReadFileFn type
 type moqReadFileFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqReadFileFn_mock
+	moq *impl.Moq[
+		*moqReadFileFn_adaptor,
+		moqReadFileFn_params,
+		moqReadFileFn_paramsKey,
+		moqReadFileFn_results,
+	]
 
-	resultsByParams []moqReadFileFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			name moq.ParamIndexing
-		}
-	}
+	runtime moqReadFileFn_runtime
 }
 
-// moqReadFileFn_mock isolates the mock interface of the ReadFileFn type
-type moqReadFileFn_mock struct {
+// moqReadFileFn_runtime holds runtime configuration for the ReadFileFn type
+type moqReadFileFn_runtime struct {
+	parameterIndexing moqReadFileFn_paramIndexing
+}
+
+// moqReadFileFn_adaptor adapts moqReadFileFn as needed by the runtime
+type moqReadFileFn_adaptor struct {
 	moq *moqReadFileFn
 }
 
@@ -41,12 +42,16 @@ type moqReadFileFn_paramsKey struct {
 	hashes struct{ name hash.Hash }
 }
 
-// moqReadFileFn_resultsByParams contains the results for a given set of
-// parameters for the ReadFileFn type
-type moqReadFileFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqReadFileFn_paramsKey]*moqReadFileFn_results
+// moqReadFileFn_results holds the results of the ReadFileFn type
+type moqReadFileFn_results struct {
+	result1 []byte
+	result2 error
+}
+
+// moqReadFileFn_paramIndexing holds the parameter indexing runtime
+// configuration for the ReadFileFn type
+type moqReadFileFn_paramIndexing struct {
+	name moq.ParamIndexing
 }
 
 // moqReadFileFn_doFn defines the type of function needed when calling andDo
@@ -57,59 +62,39 @@ type moqReadFileFn_doFn func(name string)
 // doReturnResults for the ReadFileFn type
 type moqReadFileFn_doReturnFn func(name string) ([]byte, error)
 
-// moqReadFileFn_results holds the results of the ReadFileFn type
-type moqReadFileFn_results struct {
-	params  moqReadFileFn_params
-	results []struct {
-		values *struct {
-			result1 []byte
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqReadFileFn_doFn
-		doReturnFn moqReadFileFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqReadFileFn_fnRecorder routes recorded function calls to the moqReadFileFn
+// moqReadFileFn_recorder routes recorded function calls to the moqReadFileFn
 // moq
-type moqReadFileFn_fnRecorder struct {
-	params    moqReadFileFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqReadFileFn_results
-	moq       *moqReadFileFn
+type moqReadFileFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqReadFileFn_adaptor,
+		moqReadFileFn_params,
+		moqReadFileFn_paramsKey,
+		moqReadFileFn_results,
+	]
 }
 
 // moqReadFileFn_anyParams isolates the any params functions of the ReadFileFn
 // type
 type moqReadFileFn_anyParams struct {
-	recorder *moqReadFileFn_fnRecorder
+	recorder *moqReadFileFn_recorder
 }
 
 // newMoqReadFileFn creates a new moq of the ReadFileFn type
 func newMoqReadFileFn(scene *moq.Scene, config *moq.Config) *moqReadFileFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqReadFileFn_adaptor{}
 	m := &moqReadFileFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqReadFileFn_mock{},
+		moq: impl.NewMoq[
+			*moqReadFileFn_adaptor,
+			moqReadFileFn_params,
+			moqReadFileFn_paramsKey,
+			moqReadFileFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				name moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			name moq.ParamIndexing
-		}{
+		runtime: moqReadFileFn_runtime{parameterIndexing: moqReadFileFn_paramIndexing{
 			name: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -118,264 +103,105 @@ func newMoqReadFileFn(scene *moq.Scene, config *moq.Config) *moqReadFileFn {
 // mock returns the moq implementation of the ReadFileFn type
 func (m *moqReadFileFn) mock() ast.ReadFileFn {
 	return func(name string) ([]byte, error) {
-		m.scene.T.Helper()
-		moq := &moqReadFileFn_mock{moq: m}
-		return moq.fn(name)
-	}
-}
-
-func (m *moqReadFileFn_mock) fn(name string) (result1 []byte, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqReadFileFn_params{
-		name: name,
-	}
-	var results *moqReadFileFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(name)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(name)
-	}
-	return
-}
-
-func (m *moqReadFileFn) onCall(name string) *moqReadFileFn_fnRecorder {
-	return &moqReadFileFn_fnRecorder{
-		params: moqReadFileFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqReadFileFn_params{
 			name: name,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 []byte
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqReadFileFn_fnRecorder) any() *moqReadFileFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqReadFileFn) onCall(name string) *moqReadFileFn_recorder {
+	return &moqReadFileFn_recorder{
+		recorder: m.moq.OnCall(moqReadFileFn_params{
+			name: name,
+		}),
+	}
+}
+
+func (r *moqReadFileFn_recorder) any() *moqReadFileFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqReadFileFn_anyParams{recorder: r}
 }
 
-func (a *moqReadFileFn_anyParams) name() *moqReadFileFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqReadFileFn_anyParams) name() *moqReadFileFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqReadFileFn_fnRecorder) seq() *moqReadFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqReadFileFn_recorder) seq() *moqReadFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqReadFileFn_fnRecorder) noSeq() *moqReadFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqReadFileFn_recorder) noSeq() *moqReadFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqReadFileFn_fnRecorder) returnResults(result1 []byte, result2 error) *moqReadFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []byte
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqReadFileFn_doFn
-		doReturnFn moqReadFileFn_doReturnFn
-	}{
-		values: &struct {
-			result1 []byte
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqReadFileFn_recorder) returnResults(result1 []byte, result2 error) *moqReadFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqReadFileFn_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqReadFileFn_fnRecorder) andDo(fn moqReadFileFn_doFn) *moqReadFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqReadFileFn_recorder) andDo(fn moqReadFileFn_doFn) *moqReadFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqReadFileFn_params) {
+		fn(params.name)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqReadFileFn_fnRecorder) doReturnResults(fn moqReadFileFn_doReturnFn) *moqReadFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []byte
-			result2 error
+func (r *moqReadFileFn_recorder) doReturnResults(fn moqReadFileFn_doReturnFn) *moqReadFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqReadFileFn_params) *moqReadFileFn_results {
+		result1, result2 := fn(params.name)
+		return &moqReadFileFn_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqReadFileFn_doFn
-		doReturnFn moqReadFileFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqReadFileFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqReadFileFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqReadFileFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqReadFileFn_paramsKey]*moqReadFileFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqReadFileFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqReadFileFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqReadFileFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqReadFileFn_recorder) repeat(repeaters ...moq.Repeater) *moqReadFileFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 []byte
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqReadFileFn_doFn
-				doReturnFn moqReadFileFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqReadFileFn) prettyParams(params moqReadFileFn_params) string {
+func (*moqReadFileFn_adaptor) PrettyParams(params moqReadFileFn_params) string {
 	return fmt.Sprintf("ReadFileFn(%#v)", params.name)
 }
 
-func (m *moqReadFileFn) paramsKey(params moqReadFileFn_params, anyParams uint64) moqReadFileFn_paramsKey {
-	m.scene.T.Helper()
-	var nameUsed string
-	var nameUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.name == moq.ParamIndexByValue {
-			nameUsed = params.name
-		} else {
-			nameUsedHash = hash.DeepHash(params.name)
-		}
-	}
+func (a *moqReadFileFn_adaptor) ParamsKey(params moqReadFileFn_params, anyParams uint64) moqReadFileFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	nameUsed, nameUsedHash := impl.ParamKey(
+		params.name, 1, a.moq.runtime.parameterIndexing.name, anyParams)
 	return moqReadFileFn_paramsKey{
 		params: struct{ name string }{
 			name: nameUsed,
@@ -387,17 +213,12 @@ func (m *moqReadFileFn) paramsKey(params moqReadFileFn_params, anyParams uint64)
 }
 
 // Reset resets the state of the moq
-func (m *moqReadFileFn) Reset() { m.resultsByParams = nil }
+func (m *moqReadFileFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqReadFileFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
