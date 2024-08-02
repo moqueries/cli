@@ -1,6 +1,6 @@
 module moqueries.org/cli
 
-go 1.20
+go 1.21
 
 require (
 	github.com/dave/dst v0.27.3

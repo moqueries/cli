@@ -6,7 +6,7 @@ orbs:
 executors:
   go:
     docker:
-    - image: cimg/go:1.20
+    - image: cimg/go:1.21
 
 jobs:
   build:
