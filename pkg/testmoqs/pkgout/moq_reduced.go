@@ -4,10 +4,9 @@ package pkgout
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
@@ -25,26 +24,28 @@ type Reduced_reduced interface {
 
 // MoqReduced holds the state of a moq of the Reduced_reduced type
 type MoqReduced struct {
-	Scene  *moq.Scene
-	Config moq.Config
-	Moq    *MoqReduced_mock
+	Moq *MoqReduced_mock
 
-	ResultsByParams_Usual                []MoqReduced_Usual_resultsByParams
-	ResultsByParams_ReallyUnusualParams  []MoqReduced_ReallyUnusualParams_resultsByParams
-	ResultsByParams_ReallyUnusualResults []MoqReduced_ReallyUnusualResults_resultsByParams
+	Moq_Usual *impl.Moq[
+		*MoqReduced_Usual_adaptor,
+		MoqReduced_Usual_params,
+		MoqReduced_Usual_paramsKey,
+		MoqReduced_Usual_results,
+	]
+	Moq_ReallyUnusualParams *impl.Moq[
+		*MoqReduced_ReallyUnusualParams_adaptor,
+		MoqReduced_ReallyUnusualParams_params,
+		MoqReduced_ReallyUnusualParams_paramsKey,
+		MoqReduced_ReallyUnusualParams_results,
+	]
+	Moq_ReallyUnusualResults *impl.Moq[
+		*MoqReduced_ReallyUnusualResults_adaptor,
+		MoqReduced_ReallyUnusualResults_params,
+		MoqReduced_ReallyUnusualResults_paramsKey,
+		MoqReduced_ReallyUnusualResults_results,
+	]
 
-	Runtime struct {
-		ParameterIndexing struct {
-			Usual struct {
-				SParam moq.ParamIndexing
-				BParam moq.ParamIndexing
-			}
-			ReallyUnusualParams struct {
-				Param1 moq.ParamIndexing
-			}
-			ReallyUnusualResults struct{}
-		}
-	}
+	Runtime MoqReduced_runtime
 }
 
 // MoqReduced_mock isolates the mock interface of the Reduced type
@@ -54,6 +55,20 @@ type MoqReduced_mock struct {
 
 // MoqReduced_recorder isolates the recorder interface of the Reduced type
 type MoqReduced_recorder struct {
+	Moq *MoqReduced
+}
+
+// MoqReduced_runtime holds runtime configuration for the Reduced type
+type MoqReduced_runtime struct {
+	ParameterIndexing struct {
+		Usual                MoqReduced_Usual_paramIndexing
+		ReallyUnusualParams  MoqReduced_ReallyUnusualParams_paramIndexing
+		ReallyUnusualResults MoqReduced_ReallyUnusualResults_paramIndexing
+	}
+}
+
+// MoqReduced_Usual_adaptor adapts MoqReduced as needed by the runtime
+type MoqReduced_Usual_adaptor struct {
 	Moq *MoqReduced
 }
 
@@ -75,12 +90,17 @@ type MoqReduced_Usual_paramsKey struct {
 	}
 }
 
-// MoqReduced_Usual_resultsByParams contains the results for a given set of
-// parameters for the Reduced type
-type MoqReduced_Usual_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqReduced_Usual_paramsKey]*MoqReduced_Usual_results
+// MoqReduced_Usual_results holds the results of the Reduced type
+type MoqReduced_Usual_results struct {
+	SResult string
+	Err     error
+}
+
+// MoqReduced_Usual_paramIndexing holds the parameter indexing runtime
+// configuration for the Reduced type
+type MoqReduced_Usual_paramIndexing struct {
+	SParam moq.ParamIndexing
+	BParam moq.ParamIndexing
 }
 
 // MoqReduced_Usual_doFn defines the type of function needed when calling AndDo
@@ -91,36 +111,27 @@ type MoqReduced_Usual_doFn func(sParam string, bParam bool)
 // DoReturnResults for the Reduced type
 type MoqReduced_Usual_doReturnFn func(sParam string, bParam bool) (sResult string, err error)
 
-// MoqReduced_Usual_results holds the results of the Reduced type
-type MoqReduced_Usual_results struct {
-	Params  MoqReduced_Usual_params
-	Results []struct {
-		Values *struct {
-			SResult string
-			Err     error
-		}
-		Sequence   uint32
-		DoFn       MoqReduced_Usual_doFn
-		DoReturnFn MoqReduced_Usual_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqReduced_Usual_fnRecorder routes recorded function calls to the MoqReduced
+// MoqReduced_Usual_recorder routes recorded function calls to the MoqReduced
 // moq
-type MoqReduced_Usual_fnRecorder struct {
-	Params    MoqReduced_Usual_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqReduced_Usual_results
-	Moq       *MoqReduced
+type MoqReduced_Usual_recorder struct {
+	Recorder *impl.Recorder[
+		*MoqReduced_Usual_adaptor,
+		MoqReduced_Usual_params,
+		MoqReduced_Usual_paramsKey,
+		MoqReduced_Usual_results,
+	]
 }
 
 // MoqReduced_Usual_anyParams isolates the any params functions of the Reduced
 // type
 type MoqReduced_Usual_anyParams struct {
-	Recorder *MoqReduced_Usual_fnRecorder
+	Recorder *MoqReduced_Usual_recorder
+}
+
+// MoqReduced_ReallyUnusualParams_adaptor adapts MoqReduced as needed by the
+// runtime
+type MoqReduced_ReallyUnusualParams_adaptor struct {
+	Moq *MoqReduced
 }
 
 // MoqReduced_ReallyUnusualParams_params holds the params of the Reduced type
@@ -133,12 +144,13 @@ type MoqReduced_ReallyUnusualParams_paramsKey struct {
 	Hashes struct{ Param1 hash.Hash }
 }
 
-// MoqReduced_ReallyUnusualParams_resultsByParams contains the results for a
-// given set of parameters for the Reduced type
-type MoqReduced_ReallyUnusualParams_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqReduced_ReallyUnusualParams_paramsKey]*MoqReduced_ReallyUnusualParams_results
+// MoqReduced_ReallyUnusualParams_results holds the results of the Reduced type
+type MoqReduced_ReallyUnusualParams_results struct{}
+
+// MoqReduced_ReallyUnusualParams_paramIndexing holds the parameter indexing
+// runtime configuration for the Reduced type
+type MoqReduced_ReallyUnusualParams_paramIndexing struct {
+	Param1 moq.ParamIndexing
 }
 
 // MoqReduced_ReallyUnusualParams_doFn defines the type of function needed when
@@ -149,33 +161,27 @@ type MoqReduced_ReallyUnusualParams_doFn func(struct{ a string })
 // needed when calling DoReturnResults for the Reduced type
 type MoqReduced_ReallyUnusualParams_doReturnFn func(struct{ a string })
 
-// MoqReduced_ReallyUnusualParams_results holds the results of the Reduced type
-type MoqReduced_ReallyUnusualParams_results struct {
-	Params  MoqReduced_ReallyUnusualParams_params
-	Results []struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqReduced_ReallyUnusualParams_doFn
-		DoReturnFn MoqReduced_ReallyUnusualParams_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqReduced_ReallyUnusualParams_fnRecorder routes recorded function calls to
+// MoqReduced_ReallyUnusualParams_recorder routes recorded function calls to
 // the MoqReduced moq
-type MoqReduced_ReallyUnusualParams_fnRecorder struct {
-	Params    MoqReduced_ReallyUnusualParams_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqReduced_ReallyUnusualParams_results
-	Moq       *MoqReduced
+type MoqReduced_ReallyUnusualParams_recorder struct {
+	Recorder *impl.Recorder[
+		*MoqReduced_ReallyUnusualParams_adaptor,
+		MoqReduced_ReallyUnusualParams_params,
+		MoqReduced_ReallyUnusualParams_paramsKey,
+		MoqReduced_ReallyUnusualParams_results,
+	]
 }
 
 // MoqReduced_ReallyUnusualParams_anyParams isolates the any params functions
 // of the Reduced type
 type MoqReduced_ReallyUnusualParams_anyParams struct {
-	Recorder *MoqReduced_ReallyUnusualParams_fnRecorder
+	Recorder *MoqReduced_ReallyUnusualParams_recorder
+}
+
+// MoqReduced_ReallyUnusualResults_adaptor adapts MoqReduced as needed by the
+// runtime
+type MoqReduced_ReallyUnusualResults_adaptor struct {
+	Moq *MoqReduced
 }
 
 // MoqReduced_ReallyUnusualResults_params holds the params of the Reduced type
@@ -188,13 +194,15 @@ type MoqReduced_ReallyUnusualResults_paramsKey struct {
 	Hashes struct{}
 }
 
-// MoqReduced_ReallyUnusualResults_resultsByParams contains the results for a
-// given set of parameters for the Reduced type
-type MoqReduced_ReallyUnusualResults_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqReduced_ReallyUnusualResults_paramsKey]*MoqReduced_ReallyUnusualResults_results
+// MoqReduced_ReallyUnusualResults_results holds the results of the Reduced
+// type
+type MoqReduced_ReallyUnusualResults_results struct {
+	Result1 struct{ a string }
 }
+
+// MoqReduced_ReallyUnusualResults_paramIndexing holds the parameter indexing
+// runtime configuration for the Reduced type
+type MoqReduced_ReallyUnusualResults_paramIndexing struct{}
 
 // MoqReduced_ReallyUnusualResults_doFn defines the type of function needed
 // when calling AndDo for the Reduced type
@@ -204,85 +212,70 @@ type MoqReduced_ReallyUnusualResults_doFn func()
 // needed when calling DoReturnResults for the Reduced type
 type MoqReduced_ReallyUnusualResults_doReturnFn func() struct{ a string }
 
-// MoqReduced_ReallyUnusualResults_results holds the results of the Reduced
-// type
-type MoqReduced_ReallyUnusualResults_results struct {
-	Params  MoqReduced_ReallyUnusualResults_params
-	Results []struct {
-		Values *struct {
-			Result1 struct{ a string }
-		}
-		Sequence   uint32
-		DoFn       MoqReduced_ReallyUnusualResults_doFn
-		DoReturnFn MoqReduced_ReallyUnusualResults_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqReduced_ReallyUnusualResults_fnRecorder routes recorded function calls to
+// MoqReduced_ReallyUnusualResults_recorder routes recorded function calls to
 // the MoqReduced moq
-type MoqReduced_ReallyUnusualResults_fnRecorder struct {
-	Params    MoqReduced_ReallyUnusualResults_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqReduced_ReallyUnusualResults_results
-	Moq       *MoqReduced
+type MoqReduced_ReallyUnusualResults_recorder struct {
+	Recorder *impl.Recorder[
+		*MoqReduced_ReallyUnusualResults_adaptor,
+		MoqReduced_ReallyUnusualResults_params,
+		MoqReduced_ReallyUnusualResults_paramsKey,
+		MoqReduced_ReallyUnusualResults_results,
+	]
 }
 
 // MoqReduced_ReallyUnusualResults_anyParams isolates the any params functions
 // of the Reduced type
 type MoqReduced_ReallyUnusualResults_anyParams struct {
-	Recorder *MoqReduced_ReallyUnusualResults_fnRecorder
+	Recorder *MoqReduced_ReallyUnusualResults_recorder
 }
 
 // NewMoqReduced creates a new moq of the Reduced type
 func NewMoqReduced(scene *moq.Scene, config *moq.Config) *MoqReduced {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &MoqReduced_Usual_adaptor{}
+	adaptor2 := &MoqReduced_ReallyUnusualParams_adaptor{}
+	adaptor3 := &MoqReduced_ReallyUnusualResults_adaptor{}
 	m := &MoqReduced{
-		Scene:  scene,
-		Config: *config,
-		Moq:    &MoqReduced_mock{},
+		Moq: &MoqReduced_mock{},
 
-		Runtime: struct {
-			ParameterIndexing struct {
-				Usual struct {
-					SParam moq.ParamIndexing
-					BParam moq.ParamIndexing
-				}
-				ReallyUnusualParams struct {
-					Param1 moq.ParamIndexing
-				}
-				ReallyUnusualResults struct{}
-			}
-		}{ParameterIndexing: struct {
-			Usual struct {
-				SParam moq.ParamIndexing
-				BParam moq.ParamIndexing
-			}
-			ReallyUnusualParams struct {
-				Param1 moq.ParamIndexing
-			}
-			ReallyUnusualResults struct{}
+		Moq_Usual: impl.NewMoq[
+			*MoqReduced_Usual_adaptor,
+			MoqReduced_Usual_params,
+			MoqReduced_Usual_paramsKey,
+			MoqReduced_Usual_results,
+		](scene, adaptor1, config),
+		Moq_ReallyUnusualParams: impl.NewMoq[
+			*MoqReduced_ReallyUnusualParams_adaptor,
+			MoqReduced_ReallyUnusualParams_params,
+			MoqReduced_ReallyUnusualParams_paramsKey,
+			MoqReduced_ReallyUnusualParams_results,
+		](scene, adaptor2, config),
+		Moq_ReallyUnusualResults: impl.NewMoq[
+			*MoqReduced_ReallyUnusualResults_adaptor,
+			MoqReduced_ReallyUnusualResults_params,
+			MoqReduced_ReallyUnusualResults_paramsKey,
+			MoqReduced_ReallyUnusualResults_results,
+		](scene, adaptor3, config),
+
+		Runtime: MoqReduced_runtime{ParameterIndexing: struct {
+			Usual                MoqReduced_Usual_paramIndexing
+			ReallyUnusualParams  MoqReduced_ReallyUnusualParams_paramIndexing
+			ReallyUnusualResults MoqReduced_ReallyUnusualResults_paramIndexing
 		}{
-			Usual: struct {
-				SParam moq.ParamIndexing
-				BParam moq.ParamIndexing
-			}{
+			Usual: MoqReduced_Usual_paramIndexing{
 				SParam: moq.ParamIndexByValue,
 				BParam: moq.ParamIndexByValue,
 			},
-			ReallyUnusualParams: struct {
-				Param1 moq.ParamIndexing
-			}{
+			ReallyUnusualParams: MoqReduced_ReallyUnusualParams_paramIndexing{
 				Param1: moq.ParamIndexByValue,
 			},
-			ReallyUnusualResults: struct{}{},
+			ReallyUnusualResults: MoqReduced_ReallyUnusualResults_paramIndexing{},
 		}},
 	}
 	m.Moq.Moq = m
+
+	adaptor1.Moq = m
+	adaptor2.Moq = m
+	adaptor3.Moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -291,160 +284,40 @@ func NewMoqReduced(scene *moq.Scene, config *moq.Config) *MoqReduced {
 // Mock returns the mock implementation of the Reduced type
 func (m *MoqReduced) Mock() *MoqReduced_mock { return m.Moq }
 
-func (m *MoqReduced_mock) Usual(sParam string, bParam bool) (sResult string, err error) {
-	m.Moq.Scene.T.Helper()
+func (m *MoqReduced_mock) Usual(sParam string, bParam bool) (string, error) {
+	m.Moq.Moq_Usual.Scene.T.Helper()
 	params := MoqReduced_Usual_params{
 		SParam: sParam,
 		BParam: bParam,
 	}
-	var results *MoqReduced_Usual_results
-	for _, resultsByParams := range m.Moq.ResultsByParams_Usual {
-		paramsKey := m.Moq.ParamsKey_Usual(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.Moq.Moq_Usual.Function(params); result != nil {
+		result1 = result.SResult
+		result2 = result.Err
 	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_Usual(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn(sParam, bParam)
-	}
-
-	if result.Values != nil {
-		sResult = result.Values.SResult
-		err = result.Values.Err
-	}
-	if result.DoReturnFn != nil {
-		sResult, err = result.DoReturnFn(sParam, bParam)
-	}
-	return
+	return result1, result2
 }
 
 func (m *MoqReduced_mock) ReallyUnusualParams(param1 struct{ a string }) {
-	m.Moq.Scene.T.Helper()
+	m.Moq.Moq_ReallyUnusualParams.Scene.T.Helper()
 	params := MoqReduced_ReallyUnusualParams_params{
 		Param1: param1,
 	}
-	var results *MoqReduced_ReallyUnusualParams_results
-	for _, resultsByParams := range m.Moq.ResultsByParams_ReallyUnusualParams {
-		paramsKey := m.Moq.ParamsKey_ReallyUnusualParams(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_ReallyUnusualParams(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_ReallyUnusualParams(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
-	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_ReallyUnusualParams(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn(param1)
-	}
-
-	if result.DoReturnFn != nil {
-		result.DoReturnFn(param1)
-	}
-	return
+	m.Moq.Moq_ReallyUnusualParams.Function(params)
 }
 
-func (m *MoqReduced_mock) ReallyUnusualResults() (result1 struct{ a string }) {
-	m.Moq.Scene.T.Helper()
+func (m *MoqReduced_mock) ReallyUnusualResults() struct{ a string } {
+	m.Moq.Moq_ReallyUnusualResults.Scene.T.Helper()
 	params := MoqReduced_ReallyUnusualResults_params{}
-	var results *MoqReduced_ReallyUnusualResults_results
-	for _, resultsByParams := range m.Moq.ResultsByParams_ReallyUnusualResults {
-		paramsKey := m.Moq.ParamsKey_ReallyUnusualResults(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_ReallyUnusualResults(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_ReallyUnusualResults(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
+	var result1 struct{ a string }
+	if result := m.Moq.Moq_ReallyUnusualResults.Function(params); result != nil {
+		result1 = result.Result1
 	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_ReallyUnusualResults(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn()
-	}
-
-	if result.Values != nil {
-		result1 = result.Values.Result1
-	}
-	if result.DoReturnFn != nil {
-		result1 = result.DoReturnFn()
-	}
-	return
+	return result1
 }
 
 // OnCall returns the recorder implementation of the Reduced type
@@ -454,219 +327,98 @@ func (m *MoqReduced) OnCall() *MoqReduced_recorder {
 	}
 }
 
-func (m *MoqReduced_recorder) Usual(sParam string, bParam bool) *MoqReduced_Usual_fnRecorder {
-	return &MoqReduced_Usual_fnRecorder{
-		Params: MoqReduced_Usual_params{
+func (m *MoqReduced_recorder) Usual(sParam string, bParam bool) *MoqReduced_Usual_recorder {
+	return &MoqReduced_Usual_recorder{
+		Recorder: m.Moq.Moq_Usual.OnCall(MoqReduced_Usual_params{
 			SParam: sParam,
 			BParam: bParam,
-		},
-		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m.Moq,
+		}),
 	}
 }
 
-func (r *MoqReduced_Usual_fnRecorder) Any() *MoqReduced_Usual_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Usual(r.Params))
+func (r *MoqReduced_Usual_recorder) Any() *MoqReduced_Usual_anyParams {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.IsAnyPermitted(true) {
 		return nil
 	}
 	return &MoqReduced_Usual_anyParams{Recorder: r}
 }
 
-func (a *MoqReduced_Usual_anyParams) SParam() *MoqReduced_Usual_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 0
+func (a *MoqReduced_Usual_anyParams) SParam() *MoqReduced_Usual_recorder {
+	a.Recorder.Recorder.AnyParam(1)
 	return a.Recorder
 }
 
-func (a *MoqReduced_Usual_anyParams) BParam() *MoqReduced_Usual_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 1
+func (a *MoqReduced_Usual_anyParams) BParam() *MoqReduced_Usual_recorder {
+	a.Recorder.Recorder.AnyParam(2)
 	return a.Recorder
 }
 
-func (r *MoqReduced_Usual_fnRecorder) Seq() *MoqReduced_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Usual(r.Params))
+func (r *MoqReduced_Usual_recorder) Seq() *MoqReduced_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(true, "Seq", true) {
 		return nil
 	}
-	r.Sequence = true
 	return r
 }
 
-func (r *MoqReduced_Usual_fnRecorder) NoSeq() *MoqReduced_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Usual(r.Params))
+func (r *MoqReduced_Usual_recorder) NoSeq() *MoqReduced_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(false, "NoSeq", true) {
 		return nil
 	}
-	r.Sequence = false
 	return r
 }
 
-func (r *MoqReduced_Usual_fnRecorder) ReturnResults(sResult string, err error) *MoqReduced_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			SResult string
-			Err     error
-		}
-		Sequence   uint32
-		DoFn       MoqReduced_Usual_doFn
-		DoReturnFn MoqReduced_Usual_doReturnFn
-	}{
-		Values: &struct {
-			SResult string
-			Err     error
-		}{
-			SResult: sResult,
-			Err:     err,
-		},
-		Sequence: sequence,
+func (r *MoqReduced_Usual_recorder) ReturnResults(sResult string, err error) *MoqReduced_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.ReturnResults(MoqReduced_Usual_results{
+		SResult: sResult,
+		Err:     err,
 	})
 	return r
 }
 
-func (r *MoqReduced_Usual_fnRecorder) AndDo(fn MoqReduced_Usual_doFn) *MoqReduced_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+func (r *MoqReduced_Usual_recorder) AndDo(fn MoqReduced_Usual_doFn) *MoqReduced_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.AndDo(func(params MoqReduced_Usual_params) {
+		fn(params.SParam, params.BParam)
+	}, true) {
 		return nil
 	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
 	return r
 }
 
-func (r *MoqReduced_Usual_fnRecorder) DoReturnResults(fn MoqReduced_Usual_doReturnFn) *MoqReduced_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			SResult string
-			Err     error
+func (r *MoqReduced_Usual_recorder) DoReturnResults(fn MoqReduced_Usual_doReturnFn) *MoqReduced_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.DoReturnResults(func(params MoqReduced_Usual_params) *MoqReduced_Usual_results {
+		sResult, err := fn(params.SParam, params.BParam)
+		return &MoqReduced_Usual_results{
+			SResult: sResult,
+			Err:     err,
 		}
-		Sequence   uint32
-		DoFn       MoqReduced_Usual_doFn
-		DoReturnFn MoqReduced_Usual_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
+	})
 	return r
 }
 
-func (r *MoqReduced_Usual_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqReduced_Usual_resultsByParams
-	for n, res := range r.Moq.ResultsByParams_Usual {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqReduced_Usual_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqReduced_Usual_paramsKey]*MoqReduced_Usual_results{},
-		}
-		r.Moq.ResultsByParams_Usual = append(r.Moq.ResultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Usual) {
-			copy(r.Moq.ResultsByParams_Usual[insertAt+1:], r.Moq.ResultsByParams_Usual[insertAt:0])
-			r.Moq.ResultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey_Usual(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqReduced_Usual_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqReduced_Usual_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqReduced_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+func (r *MoqReduced_Usual_recorder) Repeat(repeaters ...moq.Repeater) *MoqReduced_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Repeat(repeaters, true) {
 		return nil
 	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values *struct {
-					SResult string
-					Err     error
-				}
-				Sequence   uint32
-				DoFn       MoqReduced_Usual_doFn
-				DoReturnFn MoqReduced_Usual_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
 	return r
 }
 
-func (m *MoqReduced) PrettyParams_Usual(params MoqReduced_Usual_params) string {
+func (*MoqReduced_Usual_adaptor) PrettyParams(params MoqReduced_Usual_params) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.SParam, params.BParam)
 }
 
-func (m *MoqReduced) ParamsKey_Usual(params MoqReduced_Usual_params, anyParams uint64) MoqReduced_Usual_paramsKey {
-	m.Scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.Runtime.ParameterIndexing.Usual.SParam == moq.ParamIndexByValue {
-			sParamUsed = params.SParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.SParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.Runtime.ParameterIndexing.Usual.BParam == moq.ParamIndexByValue {
-			bParamUsed = params.BParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.BParam)
-		}
-	}
+func (a *MoqReduced_Usual_adaptor) ParamsKey(params MoqReduced_Usual_params, anyParams uint64) MoqReduced_Usual_paramsKey {
+	a.Moq.Moq_Usual.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.SParam, 1, a.Moq.Runtime.ParameterIndexing.Usual.SParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.BParam, 2, a.Moq.Runtime.ParameterIndexing.Usual.BParam, anyParams)
 	return MoqReduced_Usual_paramsKey{
 		Params: struct {
 			SParam string
@@ -685,189 +437,84 @@ func (m *MoqReduced) ParamsKey_Usual(params MoqReduced_Usual_params, anyParams u
 	}
 }
 
-func (m *MoqReduced_recorder) ReallyUnusualParams(param1 struct{ a string }) *MoqReduced_ReallyUnusualParams_fnRecorder {
-	return &MoqReduced_ReallyUnusualParams_fnRecorder{
-		Params: MoqReduced_ReallyUnusualParams_params{
+func (m *MoqReduced_recorder) ReallyUnusualParams(param1 struct{ a string }) *MoqReduced_ReallyUnusualParams_recorder {
+	return &MoqReduced_ReallyUnusualParams_recorder{
+		Recorder: m.Moq.Moq_ReallyUnusualParams.OnCall(MoqReduced_ReallyUnusualParams_params{
 			Param1: param1,
-		},
-		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m.Moq,
+		}),
 	}
 }
 
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) Any() *MoqReduced_ReallyUnusualParams_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ReallyUnusualParams(r.Params))
+func (r *MoqReduced_ReallyUnusualParams_recorder) Any() *MoqReduced_ReallyUnusualParams_anyParams {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.IsAnyPermitted(true) {
 		return nil
 	}
 	return &MoqReduced_ReallyUnusualParams_anyParams{Recorder: r}
 }
 
-func (a *MoqReduced_ReallyUnusualParams_anyParams) Param1() *MoqReduced_ReallyUnusualParams_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 0
+func (a *MoqReduced_ReallyUnusualParams_anyParams) Param1() *MoqReduced_ReallyUnusualParams_recorder {
+	a.Recorder.Recorder.AnyParam(1)
 	return a.Recorder
 }
 
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) Seq() *MoqReduced_ReallyUnusualParams_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ReallyUnusualParams(r.Params))
+func (r *MoqReduced_ReallyUnusualParams_recorder) Seq() *MoqReduced_ReallyUnusualParams_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(true, "Seq", true) {
 		return nil
 	}
-	r.Sequence = true
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) NoSeq() *MoqReduced_ReallyUnusualParams_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ReallyUnusualParams(r.Params))
+func (r *MoqReduced_ReallyUnusualParams_recorder) NoSeq() *MoqReduced_ReallyUnusualParams_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(false, "NoSeq", true) {
 		return nil
 	}
-	r.Sequence = false
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) ReturnResults() *MoqReduced_ReallyUnusualParams_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
+func (r *MoqReduced_ReallyUnusualParams_recorder) ReturnResults() *MoqReduced_ReallyUnusualParams_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.ReturnResults(MoqReduced_ReallyUnusualParams_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
+func (r *MoqReduced_ReallyUnusualParams_recorder) AndDo(fn MoqReduced_ReallyUnusualParams_doFn) *MoqReduced_ReallyUnusualParams_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.AndDo(func(params MoqReduced_ReallyUnusualParams_params) {
+		fn(params.Param1)
+	}, true) {
+		return nil
 	}
+	return r
+}
 
-	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqReduced_ReallyUnusualParams_doFn
-		DoReturnFn MoqReduced_ReallyUnusualParams_doReturnFn
-	}{
-		Values:   &struct{}{},
-		Sequence: sequence,
+func (r *MoqReduced_ReallyUnusualParams_recorder) DoReturnResults(fn MoqReduced_ReallyUnusualParams_doReturnFn) *MoqReduced_ReallyUnusualParams_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.DoReturnResults(func(params MoqReduced_ReallyUnusualParams_params) *MoqReduced_ReallyUnusualParams_results {
+		fn(params.Param1)
+		return &MoqReduced_ReallyUnusualParams_results{}
 	})
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) AndDo(fn MoqReduced_ReallyUnusualParams_doFn) *MoqReduced_ReallyUnusualParams_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+func (r *MoqReduced_ReallyUnusualParams_recorder) Repeat(repeaters ...moq.Repeater) *MoqReduced_ReallyUnusualParams_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Repeat(repeaters, true) {
 		return nil
 	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) DoReturnResults(fn MoqReduced_ReallyUnusualParams_doReturnFn) *MoqReduced_ReallyUnusualParams_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values     *struct{}
-		Sequence   uint32
-		DoFn       MoqReduced_ReallyUnusualParams_doFn
-		DoReturnFn MoqReduced_ReallyUnusualParams_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
-	return r
-}
-
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqReduced_ReallyUnusualParams_resultsByParams
-	for n, res := range r.Moq.ResultsByParams_ReallyUnusualParams {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqReduced_ReallyUnusualParams_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqReduced_ReallyUnusualParams_paramsKey]*MoqReduced_ReallyUnusualParams_results{},
-		}
-		r.Moq.ResultsByParams_ReallyUnusualParams = append(r.Moq.ResultsByParams_ReallyUnusualParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_ReallyUnusualParams) {
-			copy(r.Moq.ResultsByParams_ReallyUnusualParams[insertAt+1:], r.Moq.ResultsByParams_ReallyUnusualParams[insertAt:0])
-			r.Moq.ResultsByParams_ReallyUnusualParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey_ReallyUnusualParams(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqReduced_ReallyUnusualParams_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqReduced_ReallyUnusualParams_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqReduced_ReallyUnusualParams_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
-		return nil
-	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values     *struct{}
-				Sequence   uint32
-				DoFn       MoqReduced_ReallyUnusualParams_doFn
-				DoReturnFn MoqReduced_ReallyUnusualParams_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
-	return r
-}
-
-func (m *MoqReduced) PrettyParams_ReallyUnusualParams(params MoqReduced_ReallyUnusualParams_params) string {
+func (*MoqReduced_ReallyUnusualParams_adaptor) PrettyParams(params MoqReduced_ReallyUnusualParams_params) string {
 	return fmt.Sprintf("ReallyUnusualParams(%#v)", params.Param1)
 }
 
-func (m *MoqReduced) ParamsKey_ReallyUnusualParams(params MoqReduced_ReallyUnusualParams_params, anyParams uint64) MoqReduced_ReallyUnusualParams_paramsKey {
-	m.Scene.T.Helper()
-	var param1Used struct{ a string }
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.Runtime.ParameterIndexing.ReallyUnusualParams.Param1 == moq.ParamIndexByValue {
-			param1Used = params.Param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.Param1)
-		}
-	}
+func (a *MoqReduced_ReallyUnusualParams_adaptor) ParamsKey(params MoqReduced_ReallyUnusualParams_params, anyParams uint64) MoqReduced_ReallyUnusualParams_paramsKey {
+	a.Moq.Moq_ReallyUnusualParams.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.Param1, 1, a.Moq.Runtime.ParameterIndexing.ReallyUnusualParams.Param1, anyParams)
 	return MoqReduced_ReallyUnusualParams_paramsKey{
 		Params: struct{ Param1 struct{ a string } }{
 			Param1: param1Used,
@@ -878,183 +525,79 @@ func (m *MoqReduced) ParamsKey_ReallyUnusualParams(params MoqReduced_ReallyUnusu
 	}
 }
 
-func (m *MoqReduced_recorder) ReallyUnusualResults() *MoqReduced_ReallyUnusualResults_fnRecorder {
-	return &MoqReduced_ReallyUnusualResults_fnRecorder{
-		Params:   MoqReduced_ReallyUnusualResults_params{},
-		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m.Moq,
+func (m *MoqReduced_recorder) ReallyUnusualResults() *MoqReduced_ReallyUnusualResults_recorder {
+	return &MoqReduced_ReallyUnusualResults_recorder{
+		Recorder: m.Moq.Moq_ReallyUnusualResults.OnCall(MoqReduced_ReallyUnusualResults_params{}),
 	}
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) Any() *MoqReduced_ReallyUnusualResults_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ReallyUnusualResults(r.Params))
+func (r *MoqReduced_ReallyUnusualResults_recorder) Any() *MoqReduced_ReallyUnusualResults_anyParams {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.IsAnyPermitted(true) {
 		return nil
 	}
 	return &MoqReduced_ReallyUnusualResults_anyParams{Recorder: r}
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) Seq() *MoqReduced_ReallyUnusualResults_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ReallyUnusualResults(r.Params))
+func (r *MoqReduced_ReallyUnusualResults_recorder) Seq() *MoqReduced_ReallyUnusualResults_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(true, "Seq", true) {
 		return nil
 	}
-	r.Sequence = true
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) NoSeq() *MoqReduced_ReallyUnusualResults_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_ReallyUnusualResults(r.Params))
+func (r *MoqReduced_ReallyUnusualResults_recorder) NoSeq() *MoqReduced_ReallyUnusualResults_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(false, "NoSeq", true) {
 		return nil
 	}
-	r.Sequence = false
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) ReturnResults(result1 struct{ a string }) *MoqReduced_ReallyUnusualResults_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			Result1 struct{ a string }
-		}
-		Sequence   uint32
-		DoFn       MoqReduced_ReallyUnusualResults_doFn
-		DoReturnFn MoqReduced_ReallyUnusualResults_doReturnFn
-	}{
-		Values: &struct {
-			Result1 struct{ a string }
-		}{
-			Result1: result1,
-		},
-		Sequence: sequence,
+func (r *MoqReduced_ReallyUnusualResults_recorder) ReturnResults(result1 struct{ a string }) *MoqReduced_ReallyUnusualResults_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.ReturnResults(MoqReduced_ReallyUnusualResults_results{
+		Result1: result1,
 	})
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) AndDo(fn MoqReduced_ReallyUnusualResults_doFn) *MoqReduced_ReallyUnusualResults_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+func (r *MoqReduced_ReallyUnusualResults_recorder) AndDo(fn MoqReduced_ReallyUnusualResults_doFn) *MoqReduced_ReallyUnusualResults_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.AndDo(func(params MoqReduced_ReallyUnusualResults_params) {
+		fn()
+	}, true) {
 		return nil
 	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) DoReturnResults(fn MoqReduced_ReallyUnusualResults_doReturnFn) *MoqReduced_ReallyUnusualResults_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			Result1 struct{ a string }
+func (r *MoqReduced_ReallyUnusualResults_recorder) DoReturnResults(fn MoqReduced_ReallyUnusualResults_doReturnFn) *MoqReduced_ReallyUnusualResults_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.DoReturnResults(func(params MoqReduced_ReallyUnusualResults_params) *MoqReduced_ReallyUnusualResults_results {
+		result1 := fn()
+		return &MoqReduced_ReallyUnusualResults_results{
+			Result1: result1,
 		}
-		Sequence   uint32
-		DoFn       MoqReduced_ReallyUnusualResults_doFn
-		DoReturnFn MoqReduced_ReallyUnusualResults_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
+	})
 	return r
 }
 
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqReduced_ReallyUnusualResults_resultsByParams
-	for n, res := range r.Moq.ResultsByParams_ReallyUnusualResults {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqReduced_ReallyUnusualResults_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqReduced_ReallyUnusualResults_paramsKey]*MoqReduced_ReallyUnusualResults_results{},
-		}
-		r.Moq.ResultsByParams_ReallyUnusualResults = append(r.Moq.ResultsByParams_ReallyUnusualResults, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_ReallyUnusualResults) {
-			copy(r.Moq.ResultsByParams_ReallyUnusualResults[insertAt+1:], r.Moq.ResultsByParams_ReallyUnusualResults[insertAt:0])
-			r.Moq.ResultsByParams_ReallyUnusualResults[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey_ReallyUnusualResults(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqReduced_ReallyUnusualResults_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqReduced_ReallyUnusualResults_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqReduced_ReallyUnusualResults_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+func (r *MoqReduced_ReallyUnusualResults_recorder) Repeat(repeaters ...moq.Repeater) *MoqReduced_ReallyUnusualResults_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Repeat(repeaters, true) {
 		return nil
 	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values *struct {
-					Result1 struct{ a string }
-				}
-				Sequence   uint32
-				DoFn       MoqReduced_ReallyUnusualResults_doFn
-				DoReturnFn MoqReduced_ReallyUnusualResults_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
 	return r
 }
 
-func (m *MoqReduced) PrettyParams_ReallyUnusualResults(params MoqReduced_ReallyUnusualResults_params) string {
+func (*MoqReduced_ReallyUnusualResults_adaptor) PrettyParams(params MoqReduced_ReallyUnusualResults_params) string {
 	return fmt.Sprintf("ReallyUnusualResults()")
 }
 
-func (m *MoqReduced) ParamsKey_ReallyUnusualResults(params MoqReduced_ReallyUnusualResults_params, anyParams uint64) MoqReduced_ReallyUnusualResults_paramsKey {
-	m.Scene.T.Helper()
+func (a *MoqReduced_ReallyUnusualResults_adaptor) ParamsKey(params MoqReduced_ReallyUnusualResults_params, anyParams uint64) MoqReduced_ReallyUnusualResults_paramsKey {
+	a.Moq.Moq_ReallyUnusualResults.Scene.T.Helper()
 	return MoqReduced_ReallyUnusualResults_paramsKey{
 		Params: struct{}{},
 		Hashes: struct{}{},
@@ -1063,36 +606,15 @@ func (m *MoqReduced) ParamsKey_ReallyUnusualResults(params MoqReduced_ReallyUnus
 
 // Reset resets the state of the moq
 func (m *MoqReduced) Reset() {
-	m.ResultsByParams_Usual = nil
-	m.ResultsByParams_ReallyUnusualParams = nil
-	m.ResultsByParams_ReallyUnusualResults = nil
+	m.Moq_Usual.Reset()
+	m.Moq_ReallyUnusualParams.Reset()
+	m.Moq_ReallyUnusualResults.Reset()
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MoqReduced) AssertExpectationsMet() {
-	m.Scene.T.Helper()
-	for _, res := range m.ResultsByParams_Usual {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Usual(results.Params))
-			}
-		}
-	}
-	for _, res := range m.ResultsByParams_ReallyUnusualParams {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_ReallyUnusualParams(results.Params))
-			}
-		}
-	}
-	for _, res := range m.ResultsByParams_ReallyUnusualResults {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_ReallyUnusualResults(results.Params))
-			}
-		}
-	}
+	m.Moq_Usual.Scene.T.Helper()
+	m.Moq_Usual.AssertExpectationsMet()
+	m.Moq_ReallyUnusualParams.AssertExpectationsMet()
+	m.Moq_ReallyUnusualResults.AssertExpectationsMet()
 }

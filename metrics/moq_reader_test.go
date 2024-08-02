@@ -5,10 +5,9 @@ package metrics_test
 import (
 	"fmt"
 	"io"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
@@ -17,28 +16,37 @@ var _ io.Reader = (*moqReader_mock)(nil)
 
 // moqReader holds the state of a moq of the Reader type
 type moqReader struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqReader_mock
+	moq *moqReader_mock
 
-	resultsByParams_Read []moqReader_Read_resultsByParams
+	moq_Read *impl.Moq[
+		*moqReader_Read_adaptor,
+		moqReader_Read_params,
+		moqReader_Read_paramsKey,
+		moqReader_Read_results,
+	]
 
-	runtime struct {
-		parameterIndexing struct {
-			Read struct {
-				p moq.ParamIndexing
-			}
-		}
-	}
-	// moqReader_mock isolates the mock interface of the Reader type
+	runtime moqReader_runtime
 }
 
+// moqReader_mock isolates the mock interface of the Reader type
 type moqReader_mock struct {
 	moq *moqReader
 }
 
 // moqReader_recorder isolates the recorder interface of the Reader type
 type moqReader_recorder struct {
+	moq *moqReader
+}
+
+// moqReader_runtime holds runtime configuration for the Reader type
+type moqReader_runtime struct {
+	parameterIndexing struct {
+		Read moqReader_Read_paramIndexing
+	}
+}
+
+// moqReader_Read_adaptor adapts moqReader as needed by the runtime
+type moqReader_Read_adaptor struct {
 	moq *moqReader
 }
 
@@ -51,12 +59,16 @@ type moqReader_Read_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqReader_Read_resultsByParams contains the results for a given set of
-// parameters for the Reader type
-type moqReader_Read_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqReader_Read_paramsKey]*moqReader_Read_results
+// moqReader_Read_results holds the results of the Reader type
+type moqReader_Read_results struct {
+	n   int
+	err error
+}
+
+// moqReader_Read_paramIndexing holds the parameter indexing runtime
+// configuration for the Reader type
+type moqReader_Read_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqReader_Read_doFn defines the type of function needed when calling andDo
@@ -67,67 +79,46 @@ type moqReader_Read_doFn func(p []byte)
 // doReturnResults for the Reader type
 type moqReader_Read_doReturnFn func(p []byte) (n int, err error)
 
-// moqReader_Read_results holds the results of the Reader type
-type moqReader_Read_results struct {
-	params  moqReader_Read_params
-	results []struct {
-		values *struct {
-			n   int
-			err error
-		}
-		sequence   uint32
-		doFn       moqReader_Read_doFn
-		doReturnFn moqReader_Read_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqReader_Read_fnRecorder routes recorded function calls to the moqReader
-// moq
-type moqReader_Read_fnRecorder struct {
-	params    moqReader_Read_params
-	anyParams uint64
-	sequence  bool
-	results   *moqReader_Read_results
-	moq       *moqReader
+// moqReader_Read_recorder routes recorded function calls to the moqReader moq
+type moqReader_Read_recorder struct {
+	recorder *impl.Recorder[
+		*moqReader_Read_adaptor,
+		moqReader_Read_params,
+		moqReader_Read_paramsKey,
+		moqReader_Read_results,
+	]
 }
 
 // moqReader_Read_anyParams isolates the any params functions of the Reader
 // type
 type moqReader_Read_anyParams struct {
-	recorder *moqReader_Read_fnRecorder
+	recorder *moqReader_Read_recorder
 }
 
 // newMoqReader creates a new moq of the Reader type
 func newMoqReader(scene *moq.Scene, config *moq.Config) *moqReader {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqReader_Read_adaptor{}
 	m := &moqReader{
-		scene:  scene,
-		config: *config,
-		moq:    &moqReader_mock{},
+		moq: &moqReader_mock{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Read struct {
-					p moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Read struct {
-				p moq.ParamIndexing
-			}
+		moq_Read: impl.NewMoq[
+			*moqReader_Read_adaptor,
+			moqReader_Read_params,
+			moqReader_Read_paramsKey,
+			moqReader_Read_results,
+		](scene, adaptor1, config),
+
+		runtime: moqReader_runtime{parameterIndexing: struct {
+			Read moqReader_Read_paramIndexing
 		}{
-			Read: struct {
-				p moq.ParamIndexing
-			}{
+			Read: moqReader_Read_paramIndexing{
 				p: moq.ParamIndexByHash,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -136,58 +127,19 @@ func newMoqReader(scene *moq.Scene, config *moq.Config) *moqReader {
 // mock returns the mock implementation of the Reader type
 func (m *moqReader) mock() *moqReader_mock { return m.moq }
 
-func (m *moqReader_mock) Read(p []byte) (n int, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqReader_mock) Read(p []byte) (int, error) {
+	m.moq.moq_Read.Scene.T.Helper()
 	params := moqReader_Read_params{
 		p: p,
 	}
-	var results *moqReader_Read_results
-	for _, resultsByParams := range m.moq.resultsByParams_Read {
-		paramsKey := m.moq.paramsKey_Read(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Read(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Read(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 int
+	var result2 error
+	if result := m.moq.moq_Read.Function(params); result != nil {
+		result1 = result.n
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Read(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		n = result.values.n
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		n, err = result.doReturnFn(p)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the Reader type
@@ -197,202 +149,90 @@ func (m *moqReader) onCall() *moqReader_recorder {
 	}
 }
 
-func (m *moqReader_recorder) Read(p []byte) *moqReader_Read_fnRecorder {
-	return &moqReader_Read_fnRecorder{
-		params: moqReader_Read_params{
+func (m *moqReader_recorder) Read(p []byte) *moqReader_Read_recorder {
+	return &moqReader_Read_recorder{
+		recorder: m.moq.moq_Read.OnCall(moqReader_Read_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqReader_Read_fnRecorder) any() *moqReader_Read_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Read(r.params))
+func (r *moqReader_Read_recorder) any() *moqReader_Read_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqReader_Read_anyParams{recorder: r}
 }
 
-func (a *moqReader_Read_anyParams) p() *moqReader_Read_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqReader_Read_anyParams) p() *moqReader_Read_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqReader_Read_fnRecorder) seq() *moqReader_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Read(r.params))
+func (r *moqReader_Read_recorder) seq() *moqReader_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqReader_Read_fnRecorder) noSeq() *moqReader_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Read(r.params))
+func (r *moqReader_Read_recorder) noSeq() *moqReader_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqReader_Read_fnRecorder) returnResults(n int, err error) *moqReader_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			n   int
-			err error
-		}
-		sequence   uint32
-		doFn       moqReader_Read_doFn
-		doReturnFn moqReader_Read_doReturnFn
-	}{
-		values: &struct {
-			n   int
-			err error
-		}{
-			n:   n,
-			err: err,
-		},
-		sequence: sequence,
+func (r *moqReader_Read_recorder) returnResults(n int, err error) *moqReader_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqReader_Read_results{
+		n:   n,
+		err: err,
 	})
 	return r
 }
 
-func (r *moqReader_Read_fnRecorder) andDo(fn moqReader_Read_doFn) *moqReader_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqReader_Read_recorder) andDo(fn moqReader_Read_doFn) *moqReader_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqReader_Read_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqReader_Read_fnRecorder) doReturnResults(fn moqReader_Read_doReturnFn) *moqReader_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			n   int
-			err error
+func (r *moqReader_Read_recorder) doReturnResults(fn moqReader_Read_doReturnFn) *moqReader_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqReader_Read_params) *moqReader_Read_results {
+		n, err := fn(params.p)
+		return &moqReader_Read_results{
+			n:   n,
+			err: err,
 		}
-		sequence   uint32
-		doFn       moqReader_Read_doFn
-		doReturnFn moqReader_Read_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqReader_Read_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqReader_Read_resultsByParams
-	for n, res := range r.moq.resultsByParams_Read {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqReader_Read_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqReader_Read_paramsKey]*moqReader_Read_results{},
-		}
-		r.moq.resultsByParams_Read = append(r.moq.resultsByParams_Read, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Read) {
-			copy(r.moq.resultsByParams_Read[insertAt+1:], r.moq.resultsByParams_Read[insertAt:0])
-			r.moq.resultsByParams_Read[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Read(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqReader_Read_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqReader_Read_fnRecorder) repeat(repeaters ...moq.Repeater) *moqReader_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqReader_Read_recorder) repeat(repeaters ...moq.Repeater) *moqReader_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					n   int
-					err error
-				}
-				sequence   uint32
-				doFn       moqReader_Read_doFn
-				doReturnFn moqReader_Read_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqReader) prettyParams_Read(params moqReader_Read_params) string {
+func (*moqReader_Read_adaptor) PrettyParams(params moqReader_Read_params) string {
 	return fmt.Sprintf("Read(%#v)", params.p)
 }
 
-func (m *moqReader) paramsKey_Read(params moqReader_Read_params, anyParams uint64) moqReader_Read_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Read.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter of the Read function can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqReader_Read_adaptor) ParamsKey(params moqReader_Read_params, anyParams uint64) moqReader_Read_paramsKey {
+	a.moq.moq_Read.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq_Read.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.Read.p, anyParams)
 	return moqReader_Read_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -402,17 +242,12 @@ func (m *moqReader) paramsKey_Read(params moqReader_Read_params, anyParams uint6
 }
 
 // Reset resets the state of the moq
-func (m *moqReader) Reset() { m.resultsByParams_Read = nil }
+func (m *moqReader) Reset() {
+	m.moq_Read.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqReader) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Read {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Read(results.params))
-			}
-		}
-	}
+	m.moq_Read.Scene.T.Helper()
+	m.moq_Read.AssertExpectationsMet()
 }

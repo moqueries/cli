@@ -4,31 +4,32 @@ package demo_test
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/cli/demo"
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
 // moqIsFavorite holds the state of a moq of the IsFavorite type
 type moqIsFavorite struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqIsFavorite_mock
+	moq *impl.Moq[
+		*moqIsFavorite_adaptor,
+		moqIsFavorite_params,
+		moqIsFavorite_paramsKey,
+		moqIsFavorite_results,
+	]
 
-	resultsByParams []moqIsFavorite_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			n moq.ParamIndexing
-		}
-	}
+	runtime moqIsFavorite_runtime
 }
 
-// moqIsFavorite_mock isolates the mock interface of the IsFavorite type
-type moqIsFavorite_mock struct {
+// moqIsFavorite_runtime holds runtime configuration for the IsFavorite type
+type moqIsFavorite_runtime struct {
+	parameterIndexing moqIsFavorite_paramIndexing
+}
+
+// moqIsFavorite_adaptor adapts moqIsFavorite as needed by the runtime
+type moqIsFavorite_adaptor struct {
 	moq *moqIsFavorite
 }
 
@@ -41,12 +42,15 @@ type moqIsFavorite_paramsKey struct {
 	hashes struct{ n hash.Hash }
 }
 
-// moqIsFavorite_resultsByParams contains the results for a given set of
-// parameters for the IsFavorite type
-type moqIsFavorite_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqIsFavorite_paramsKey]*moqIsFavorite_results
+// moqIsFavorite_results holds the results of the IsFavorite type
+type moqIsFavorite_results struct {
+	result1 bool
+}
+
+// moqIsFavorite_paramIndexing holds the parameter indexing runtime
+// configuration for the IsFavorite type
+type moqIsFavorite_paramIndexing struct {
+	n moq.ParamIndexing
 }
 
 // moqIsFavorite_doFn defines the type of function needed when calling andDo
@@ -57,58 +61,39 @@ type moqIsFavorite_doFn func(n int)
 // doReturnResults for the IsFavorite type
 type moqIsFavorite_doReturnFn func(n int) bool
 
-// moqIsFavorite_results holds the results of the IsFavorite type
-type moqIsFavorite_results struct {
-	params  moqIsFavorite_params
-	results []struct {
-		values *struct {
-			result1 bool
-		}
-		sequence   uint32
-		doFn       moqIsFavorite_doFn
-		doReturnFn moqIsFavorite_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqIsFavorite_fnRecorder routes recorded function calls to the moqIsFavorite
+// moqIsFavorite_recorder routes recorded function calls to the moqIsFavorite
 // moq
-type moqIsFavorite_fnRecorder struct {
-	params    moqIsFavorite_params
-	anyParams uint64
-	sequence  bool
-	results   *moqIsFavorite_results
-	moq       *moqIsFavorite
+type moqIsFavorite_recorder struct {
+	recorder *impl.Recorder[
+		*moqIsFavorite_adaptor,
+		moqIsFavorite_params,
+		moqIsFavorite_paramsKey,
+		moqIsFavorite_results,
+	]
 }
 
 // moqIsFavorite_anyParams isolates the any params functions of the IsFavorite
 // type
 type moqIsFavorite_anyParams struct {
-	recorder *moqIsFavorite_fnRecorder
+	recorder *moqIsFavorite_recorder
 }
 
 // newMoqIsFavorite creates a new moq of the IsFavorite type
 func newMoqIsFavorite(scene *moq.Scene, config *moq.Config) *moqIsFavorite {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqIsFavorite_adaptor{}
 	m := &moqIsFavorite{
-		scene:  scene,
-		config: *config,
-		moq:    &moqIsFavorite_mock{},
+		moq: impl.NewMoq[
+			*moqIsFavorite_adaptor,
+			moqIsFavorite_params,
+			moqIsFavorite_paramsKey,
+			moqIsFavorite_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				n moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			n moq.ParamIndexing
-		}{
+		runtime: moqIsFavorite_runtime{parameterIndexing: moqIsFavorite_paramIndexing{
 			n: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -116,255 +101,102 @@ func newMoqIsFavorite(scene *moq.Scene, config *moq.Config) *moqIsFavorite {
 
 // mock returns the moq implementation of the IsFavorite type
 func (m *moqIsFavorite) mock() demo.IsFavorite {
-	return func(n int) bool { m.scene.T.Helper(); moq := &moqIsFavorite_mock{moq: m}; return moq.fn(n) }
-}
-
-func (m *moqIsFavorite_mock) fn(n int) (result1 bool) {
-	m.moq.scene.T.Helper()
-	params := moqIsFavorite_params{
-		n: n,
-	}
-	var results *moqIsFavorite_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(n)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(n)
-	}
-	return
-}
-
-func (m *moqIsFavorite) onCall(n int) *moqIsFavorite_fnRecorder {
-	return &moqIsFavorite_fnRecorder{
-		params: moqIsFavorite_params{
+	return func(n int) bool {
+		m.moq.Scene.T.Helper()
+		params := moqIsFavorite_params{
 			n: n,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 bool
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqIsFavorite_fnRecorder) any() *moqIsFavorite_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqIsFavorite) onCall(n int) *moqIsFavorite_recorder {
+	return &moqIsFavorite_recorder{
+		recorder: m.moq.OnCall(moqIsFavorite_params{
+			n: n,
+		}),
+	}
+}
+
+func (r *moqIsFavorite_recorder) any() *moqIsFavorite_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqIsFavorite_anyParams{recorder: r}
 }
 
-func (a *moqIsFavorite_anyParams) n() *moqIsFavorite_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqIsFavorite_anyParams) n() *moqIsFavorite_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqIsFavorite_fnRecorder) seq() *moqIsFavorite_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqIsFavorite_recorder) seq() *moqIsFavorite_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqIsFavorite_fnRecorder) noSeq() *moqIsFavorite_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqIsFavorite_recorder) noSeq() *moqIsFavorite_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqIsFavorite_fnRecorder) returnResults(result1 bool) *moqIsFavorite_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 bool
-		}
-		sequence   uint32
-		doFn       moqIsFavorite_doFn
-		doReturnFn moqIsFavorite_doReturnFn
-	}{
-		values: &struct {
-			result1 bool
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqIsFavorite_recorder) returnResults(result1 bool) *moqIsFavorite_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqIsFavorite_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqIsFavorite_fnRecorder) andDo(fn moqIsFavorite_doFn) *moqIsFavorite_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqIsFavorite_recorder) andDo(fn moqIsFavorite_doFn) *moqIsFavorite_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqIsFavorite_params) {
+		fn(params.n)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqIsFavorite_fnRecorder) doReturnResults(fn moqIsFavorite_doReturnFn) *moqIsFavorite_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 bool
+func (r *moqIsFavorite_recorder) doReturnResults(fn moqIsFavorite_doReturnFn) *moqIsFavorite_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqIsFavorite_params) *moqIsFavorite_results {
+		result1 := fn(params.n)
+		return &moqIsFavorite_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqIsFavorite_doFn
-		doReturnFn moqIsFavorite_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqIsFavorite_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqIsFavorite_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqIsFavorite_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqIsFavorite_paramsKey]*moqIsFavorite_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqIsFavorite_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqIsFavorite_fnRecorder) repeat(repeaters ...moq.Repeater) *moqIsFavorite_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqIsFavorite_recorder) repeat(repeaters ...moq.Repeater) *moqIsFavorite_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 bool
-				}
-				sequence   uint32
-				doFn       moqIsFavorite_doFn
-				doReturnFn moqIsFavorite_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqIsFavorite) prettyParams(params moqIsFavorite_params) string {
+func (*moqIsFavorite_adaptor) PrettyParams(params moqIsFavorite_params) string {
 	return fmt.Sprintf("IsFavorite(%#v)", params.n)
 }
 
-func (m *moqIsFavorite) paramsKey(params moqIsFavorite_params, anyParams uint64) moqIsFavorite_paramsKey {
-	m.scene.T.Helper()
-	var nUsed int
-	var nUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.n == moq.ParamIndexByValue {
-			nUsed = params.n
-		} else {
-			nUsedHash = hash.DeepHash(params.n)
-		}
-	}
+func (a *moqIsFavorite_adaptor) ParamsKey(params moqIsFavorite_params, anyParams uint64) moqIsFavorite_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	nUsed, nUsedHash := impl.ParamKey(
+		params.n, 1, a.moq.runtime.parameterIndexing.n, anyParams)
 	return moqIsFavorite_paramsKey{
 		params: struct{ n int }{
 			n: nUsed,
@@ -376,17 +208,12 @@ func (m *moqIsFavorite) paramsKey(params moqIsFavorite_params, anyParams uint64)
 }
 
 // Reset resets the state of the moq
-func (m *moqIsFavorite) Reset() { m.resultsByParams = nil }
+func (m *moqIsFavorite) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqIsFavorite) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }

@@ -5,34 +5,34 @@ package testmoqs_test
 import (
 	"fmt"
 	"io"
-	"math/bits"
-	"sync/atomic"
 	"unsafe"
 
 	"moqueries.org/cli/generator/testmoqs"
 	"moqueries.org/cli/generator/testmoqs/other"
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
 // moqUsualFn holds the state of a moq of the UsualFn type
 type moqUsualFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqUsualFn_mock
+	moq *impl.Moq[
+		*moqUsualFn_adaptor,
+		moqUsualFn_params,
+		moqUsualFn_paramsKey,
+		moqUsualFn_results,
+	]
 
-	resultsByParams []moqUsualFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}
-	}
+	runtime moqUsualFn_runtime
 }
 
-// moqUsualFn_mock isolates the mock interface of the UsualFn type
-type moqUsualFn_mock struct {
+// moqUsualFn_runtime holds runtime configuration for the UsualFn type
+type moqUsualFn_runtime struct {
+	parameterIndexing moqUsualFn_paramIndexing
+}
+
+// moqUsualFn_adaptor adapts moqUsualFn as needed by the runtime
+type moqUsualFn_adaptor struct {
 	moq *moqUsualFn
 }
 
@@ -54,12 +54,17 @@ type moqUsualFn_paramsKey struct {
 	}
 }
 
-// moqUsualFn_resultsByParams contains the results for a given set of
-// parameters for the UsualFn type
-type moqUsualFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsualFn_paramsKey]*moqUsualFn_results
+// moqUsualFn_results holds the results of the UsualFn type
+type moqUsualFn_results struct {
+	sResult string
+	err     error
+}
+
+// moqUsualFn_paramIndexing holds the parameter indexing runtime configuration
+// for the UsualFn type
+type moqUsualFn_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqUsualFn_doFn defines the type of function needed when calling andDo for
@@ -70,60 +75,38 @@ type moqUsualFn_doFn func(sParam string, bParam bool)
 // doReturnResults for the UsualFn type
 type moqUsualFn_doReturnFn func(sParam string, bParam bool) (sResult string, err error)
 
-// moqUsualFn_results holds the results of the UsualFn type
-type moqUsualFn_results struct {
-	params  moqUsualFn_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsualFn_doFn
-		doReturnFn moqUsualFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsualFn_fnRecorder routes recorded function calls to the moqUsualFn moq
-type moqUsualFn_fnRecorder struct {
-	params    moqUsualFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsualFn_results
-	moq       *moqUsualFn
+// moqUsualFn_recorder routes recorded function calls to the moqUsualFn moq
+type moqUsualFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsualFn_adaptor,
+		moqUsualFn_params,
+		moqUsualFn_paramsKey,
+		moqUsualFn_results,
+	]
 }
 
 // moqUsualFn_anyParams isolates the any params functions of the UsualFn type
 type moqUsualFn_anyParams struct {
-	recorder *moqUsualFn_fnRecorder
+	recorder *moqUsualFn_recorder
 }
 
 // newMoqUsualFn creates a new moq of the UsualFn type
 func newMoqUsualFn(scene *moq.Scene, config *moq.Config) *moqUsualFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqUsualFn_adaptor{}
 	m := &moqUsualFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqUsualFn_mock{},
+		moq: impl.NewMoq[
+			*moqUsualFn_adaptor,
+			moqUsualFn_params,
+			moqUsualFn_paramsKey,
+			moqUsualFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}{
+		runtime: moqUsualFn_runtime{parameterIndexing: moqUsualFn_paramIndexing{
 			sParam: moq.ParamIndexByValue,
 			bParam: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -131,281 +114,115 @@ func newMoqUsualFn(scene *moq.Scene, config *moq.Config) *moqUsualFn {
 
 // mock returns the moq implementation of the UsualFn type
 func (m *moqUsualFn) mock() testmoqs.UsualFn {
-	return func(sParam string, bParam bool) (_ string, _ error) {
-		m.scene.T.Helper()
-		moq := &moqUsualFn_mock{moq: m}
-		return moq.fn(sParam, bParam)
-	}
-}
-
-func (m *moqUsualFn_mock) fn(sParam string, bParam bool) (sResult string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqUsualFn_params{
-		sParam: sParam,
-		bParam: bParam,
-	}
-	var results *moqUsualFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(sParam, bParam)
-	}
-	return
-}
-
-func (m *moqUsualFn) onCall(sParam string, bParam bool) *moqUsualFn_fnRecorder {
-	return &moqUsualFn_fnRecorder{
-		params: moqUsualFn_params{
+	return func(sParam string, bParam bool) (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqUsualFn_params{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqUsualFn_fnRecorder) any() *moqUsualFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqUsualFn) onCall(sParam string, bParam bool) *moqUsualFn_recorder {
+	return &moqUsualFn_recorder{
+		recorder: m.moq.OnCall(moqUsualFn_params{
+			sParam: sParam,
+			bParam: bParam,
+		}),
+	}
+}
+
+func (r *moqUsualFn_recorder) any() *moqUsualFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsualFn_anyParams{recorder: r}
 }
 
-func (a *moqUsualFn_anyParams) sParam() *moqUsualFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsualFn_anyParams) sParam() *moqUsualFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsualFn_anyParams) bParam() *moqUsualFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsualFn_anyParams) bParam() *moqUsualFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsualFn_fnRecorder) seq() *moqUsualFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqUsualFn_recorder) seq() *moqUsualFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsualFn_fnRecorder) noSeq() *moqUsualFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqUsualFn_recorder) noSeq() *moqUsualFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsualFn_fnRecorder) returnResults(sResult string, err error) *moqUsualFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsualFn_doFn
-		doReturnFn moqUsualFn_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqUsualFn_recorder) returnResults(sResult string, err error) *moqUsualFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsualFn_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqUsualFn_fnRecorder) andDo(fn moqUsualFn_doFn) *moqUsualFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsualFn_recorder) andDo(fn moqUsualFn_doFn) *moqUsualFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsualFn_params) {
+		fn(params.sParam, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsualFn_fnRecorder) doReturnResults(fn moqUsualFn_doReturnFn) *moqUsualFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqUsualFn_recorder) doReturnResults(fn moqUsualFn_doReturnFn) *moqUsualFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsualFn_params) *moqUsualFn_results {
+		sResult, err := fn(params.sParam, params.bParam)
+		return &moqUsualFn_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqUsualFn_doFn
-		doReturnFn moqUsualFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsualFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsualFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsualFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsualFn_paramsKey]*moqUsualFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsualFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsualFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsualFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsualFn_recorder) repeat(repeaters ...moq.Repeater) *moqUsualFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqUsualFn_doFn
-				doReturnFn moqUsualFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsualFn) prettyParams(params moqUsualFn_params) string {
+func (*moqUsualFn_adaptor) PrettyParams(params moqUsualFn_params) string {
 	return fmt.Sprintf("UsualFn(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqUsualFn) paramsKey(params moqUsualFn_params, anyParams uint64) moqUsualFn_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqUsualFn_adaptor) ParamsKey(params moqUsualFn_params, anyParams uint64) moqUsualFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.bParam, anyParams)
 	return moqUsualFn_paramsKey{
 		params: struct {
 			sParam string
@@ -425,39 +242,35 @@ func (m *moqUsualFn) paramsKey(params moqUsualFn_params, anyParams uint64) moqUs
 }
 
 // Reset resets the state of the moq
-func (m *moqUsualFn) Reset() { m.resultsByParams = nil }
+func (m *moqUsualFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqUsualFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqNoNamesFn holds the state of a moq of the NoNamesFn type
 type moqNoNamesFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqNoNamesFn_mock
+	moq *impl.Moq[
+		*moqNoNamesFn_adaptor,
+		moqNoNamesFn_params,
+		moqNoNamesFn_paramsKey,
+		moqNoNamesFn_results,
+	]
 
-	resultsByParams []moqNoNamesFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}
-	}
+	runtime moqNoNamesFn_runtime
 }
 
-// moqNoNamesFn_mock isolates the mock interface of the NoNamesFn type
-type moqNoNamesFn_mock struct {
+// moqNoNamesFn_runtime holds runtime configuration for the NoNamesFn type
+type moqNoNamesFn_runtime struct {
+	parameterIndexing moqNoNamesFn_paramIndexing
+}
+
+// moqNoNamesFn_adaptor adapts moqNoNamesFn as needed by the runtime
+type moqNoNamesFn_adaptor struct {
 	moq *moqNoNamesFn
 }
 
@@ -479,12 +292,17 @@ type moqNoNamesFn_paramsKey struct {
 	}
 }
 
-// moqNoNamesFn_resultsByParams contains the results for a given set of
-// parameters for the NoNamesFn type
-type moqNoNamesFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqNoNamesFn_paramsKey]*moqNoNamesFn_results
+// moqNoNamesFn_results holds the results of the NoNamesFn type
+type moqNoNamesFn_results struct {
+	result1 string
+	result2 error
+}
+
+// moqNoNamesFn_paramIndexing holds the parameter indexing runtime
+// configuration for the NoNamesFn type
+type moqNoNamesFn_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqNoNamesFn_doFn defines the type of function needed when calling andDo for
@@ -495,62 +313,39 @@ type moqNoNamesFn_doFn func(string, bool)
 // doReturnResults for the NoNamesFn type
 type moqNoNamesFn_doReturnFn func(string, bool) (string, error)
 
-// moqNoNamesFn_results holds the results of the NoNamesFn type
-type moqNoNamesFn_results struct {
-	params  moqNoNamesFn_params
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqNoNamesFn_doFn
-		doReturnFn moqNoNamesFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqNoNamesFn_fnRecorder routes recorded function calls to the moqNoNamesFn
-// moq
-type moqNoNamesFn_fnRecorder struct {
-	params    moqNoNamesFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqNoNamesFn_results
-	moq       *moqNoNamesFn
+// moqNoNamesFn_recorder routes recorded function calls to the moqNoNamesFn moq
+type moqNoNamesFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqNoNamesFn_adaptor,
+		moqNoNamesFn_params,
+		moqNoNamesFn_paramsKey,
+		moqNoNamesFn_results,
+	]
 }
 
 // moqNoNamesFn_anyParams isolates the any params functions of the NoNamesFn
 // type
 type moqNoNamesFn_anyParams struct {
-	recorder *moqNoNamesFn_fnRecorder
+	recorder *moqNoNamesFn_recorder
 }
 
 // newMoqNoNamesFn creates a new moq of the NoNamesFn type
 func newMoqNoNamesFn(scene *moq.Scene, config *moq.Config) *moqNoNamesFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqNoNamesFn_adaptor{}
 	m := &moqNoNamesFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqNoNamesFn_mock{},
+		moq: impl.NewMoq[
+			*moqNoNamesFn_adaptor,
+			moqNoNamesFn_params,
+			moqNoNamesFn_paramsKey,
+			moqNoNamesFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}{
+		runtime: moqNoNamesFn_runtime{parameterIndexing: moqNoNamesFn_paramIndexing{
 			param1: moq.ParamIndexByValue,
 			param2: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -559,280 +354,114 @@ func newMoqNoNamesFn(scene *moq.Scene, config *moq.Config) *moqNoNamesFn {
 // mock returns the moq implementation of the NoNamesFn type
 func (m *moqNoNamesFn) mock() testmoqs.NoNamesFn {
 	return func(param1 string, param2 bool) (string, error) {
-		m.scene.T.Helper()
-		moq := &moqNoNamesFn_mock{moq: m}
-		return moq.fn(param1, param2)
-	}
-}
-
-func (m *moqNoNamesFn_mock) fn(param1 string, param2 bool) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqNoNamesFn_params{
-		param1: param1,
-		param2: param2,
-	}
-	var results *moqNoNamesFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
-}
-
-func (m *moqNoNamesFn) onCall(param1 string, param2 bool) *moqNoNamesFn_fnRecorder {
-	return &moqNoNamesFn_fnRecorder{
-		params: moqNoNamesFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqNoNamesFn_params{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqNoNamesFn_fnRecorder) any() *moqNoNamesFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqNoNamesFn) onCall(param1 string, param2 bool) *moqNoNamesFn_recorder {
+	return &moqNoNamesFn_recorder{
+		recorder: m.moq.OnCall(moqNoNamesFn_params{
+			param1: param1,
+			param2: param2,
+		}),
+	}
+}
+
+func (r *moqNoNamesFn_recorder) any() *moqNoNamesFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqNoNamesFn_anyParams{recorder: r}
 }
 
-func (a *moqNoNamesFn_anyParams) param1() *moqNoNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqNoNamesFn_anyParams) param1() *moqNoNamesFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqNoNamesFn_anyParams) param2() *moqNoNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqNoNamesFn_anyParams) param2() *moqNoNamesFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqNoNamesFn_fnRecorder) seq() *moqNoNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNoNamesFn_recorder) seq() *moqNoNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqNoNamesFn_fnRecorder) noSeq() *moqNoNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNoNamesFn_recorder) noSeq() *moqNoNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqNoNamesFn_fnRecorder) returnResults(result1 string, result2 error) *moqNoNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqNoNamesFn_doFn
-		doReturnFn moqNoNamesFn_doReturnFn
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqNoNamesFn_recorder) returnResults(result1 string, result2 error) *moqNoNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqNoNamesFn_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqNoNamesFn_fnRecorder) andDo(fn moqNoNamesFn_doFn) *moqNoNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqNoNamesFn_recorder) andDo(fn moqNoNamesFn_doFn) *moqNoNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqNoNamesFn_params) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqNoNamesFn_fnRecorder) doReturnResults(fn moqNoNamesFn_doReturnFn) *moqNoNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqNoNamesFn_recorder) doReturnResults(fn moqNoNamesFn_doReturnFn) *moqNoNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqNoNamesFn_params) *moqNoNamesFn_results {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqNoNamesFn_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqNoNamesFn_doFn
-		doReturnFn moqNoNamesFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqNoNamesFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqNoNamesFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqNoNamesFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqNoNamesFn_paramsKey]*moqNoNamesFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqNoNamesFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqNoNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqNoNamesFn_recorder) repeat(repeaters ...moq.Repeater) *moqNoNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqNoNamesFn_doFn
-				doReturnFn moqNoNamesFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqNoNamesFn) prettyParams(params moqNoNamesFn_params) string {
+func (*moqNoNamesFn_adaptor) PrettyParams(params moqNoNamesFn_params) string {
 	return fmt.Sprintf("NoNamesFn(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqNoNamesFn) paramsKey(params moqNoNamesFn_params, anyParams uint64) moqNoNamesFn_paramsKey {
-	m.scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqNoNamesFn_adaptor) ParamsKey(params moqNoNamesFn_params, anyParams uint64) moqNoNamesFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.param2, anyParams)
 	return moqNoNamesFn_paramsKey{
 		params: struct {
 			param1 string
@@ -852,39 +481,35 @@ func (m *moqNoNamesFn) paramsKey(params moqNoNamesFn_params, anyParams uint64) m
 }
 
 // Reset resets the state of the moq
-func (m *moqNoNamesFn) Reset() { m.resultsByParams = nil }
+func (m *moqNoNamesFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqNoNamesFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqNoResultsFn holds the state of a moq of the NoResultsFn type
 type moqNoResultsFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqNoResultsFn_mock
+	moq *impl.Moq[
+		*moqNoResultsFn_adaptor,
+		moqNoResultsFn_params,
+		moqNoResultsFn_paramsKey,
+		moqNoResultsFn_results,
+	]
 
-	resultsByParams []moqNoResultsFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}
-	}
+	runtime moqNoResultsFn_runtime
 }
 
-// moqNoResultsFn_mock isolates the mock interface of the NoResultsFn type
-type moqNoResultsFn_mock struct {
+// moqNoResultsFn_runtime holds runtime configuration for the NoResultsFn type
+type moqNoResultsFn_runtime struct {
+	parameterIndexing moqNoResultsFn_paramIndexing
+}
+
+// moqNoResultsFn_adaptor adapts moqNoResultsFn as needed by the runtime
+type moqNoResultsFn_adaptor struct {
 	moq *moqNoResultsFn
 }
 
@@ -906,12 +531,14 @@ type moqNoResultsFn_paramsKey struct {
 	}
 }
 
-// moqNoResultsFn_resultsByParams contains the results for a given set of
-// parameters for the NoResultsFn type
-type moqNoResultsFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqNoResultsFn_paramsKey]*moqNoResultsFn_results
+// moqNoResultsFn_results holds the results of the NoResultsFn type
+type moqNoResultsFn_results struct{}
+
+// moqNoResultsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the NoResultsFn type
+type moqNoResultsFn_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqNoResultsFn_doFn defines the type of function needed when calling andDo
@@ -922,59 +549,40 @@ type moqNoResultsFn_doFn func(sParam string, bParam bool)
 // doReturnResults for the NoResultsFn type
 type moqNoResultsFn_doReturnFn func(sParam string, bParam bool)
 
-// moqNoResultsFn_results holds the results of the NoResultsFn type
-type moqNoResultsFn_results struct {
-	params  moqNoResultsFn_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqNoResultsFn_doFn
-		doReturnFn moqNoResultsFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqNoResultsFn_fnRecorder routes recorded function calls to the
-// moqNoResultsFn moq
-type moqNoResultsFn_fnRecorder struct {
-	params    moqNoResultsFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqNoResultsFn_results
-	moq       *moqNoResultsFn
+// moqNoResultsFn_recorder routes recorded function calls to the moqNoResultsFn
+// moq
+type moqNoResultsFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqNoResultsFn_adaptor,
+		moqNoResultsFn_params,
+		moqNoResultsFn_paramsKey,
+		moqNoResultsFn_results,
+	]
 }
 
 // moqNoResultsFn_anyParams isolates the any params functions of the
 // NoResultsFn type
 type moqNoResultsFn_anyParams struct {
-	recorder *moqNoResultsFn_fnRecorder
+	recorder *moqNoResultsFn_recorder
 }
 
 // newMoqNoResultsFn creates a new moq of the NoResultsFn type
 func newMoqNoResultsFn(scene *moq.Scene, config *moq.Config) *moqNoResultsFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqNoResultsFn_adaptor{}
 	m := &moqNoResultsFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqNoResultsFn_mock{},
+		moq: impl.NewMoq[
+			*moqNoResultsFn_adaptor,
+			moqNoResultsFn_params,
+			moqNoResultsFn_paramsKey,
+			moqNoResultsFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}{
+		runtime: moqNoResultsFn_runtime{parameterIndexing: moqNoResultsFn_paramIndexing{
 			sParam: moq.ParamIndexByValue,
 			bParam: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -983,261 +591,102 @@ func newMoqNoResultsFn(scene *moq.Scene, config *moq.Config) *moqNoResultsFn {
 // mock returns the moq implementation of the NoResultsFn type
 func (m *moqNoResultsFn) mock() testmoqs.NoResultsFn {
 	return func(sParam string, bParam bool) {
-		m.scene.T.Helper()
-		moq := &moqNoResultsFn_mock{moq: m}
-		moq.fn(sParam, bParam)
-	}
-}
-
-func (m *moqNoResultsFn_mock) fn(sParam string, bParam bool) {
-	m.moq.scene.T.Helper()
-	params := moqNoResultsFn_params{
-		sParam: sParam,
-		bParam: bParam,
-	}
-	var results *moqNoResultsFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn(sParam, bParam)
-	}
-	return
-}
-
-func (m *moqNoResultsFn) onCall(sParam string, bParam bool) *moqNoResultsFn_fnRecorder {
-	return &moqNoResultsFn_fnRecorder{
-		params: moqNoResultsFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqNoResultsFn_params{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		m.moq.Function(params)
 	}
 }
 
-func (r *moqNoResultsFn_fnRecorder) any() *moqNoResultsFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqNoResultsFn) onCall(sParam string, bParam bool) *moqNoResultsFn_recorder {
+	return &moqNoResultsFn_recorder{
+		recorder: m.moq.OnCall(moqNoResultsFn_params{
+			sParam: sParam,
+			bParam: bParam,
+		}),
+	}
+}
+
+func (r *moqNoResultsFn_recorder) any() *moqNoResultsFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqNoResultsFn_anyParams{recorder: r}
 }
 
-func (a *moqNoResultsFn_anyParams) sParam() *moqNoResultsFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqNoResultsFn_anyParams) sParam() *moqNoResultsFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqNoResultsFn_anyParams) bParam() *moqNoResultsFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqNoResultsFn_anyParams) bParam() *moqNoResultsFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqNoResultsFn_fnRecorder) seq() *moqNoResultsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNoResultsFn_recorder) seq() *moqNoResultsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqNoResultsFn_fnRecorder) noSeq() *moqNoResultsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNoResultsFn_recorder) noSeq() *moqNoResultsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqNoResultsFn_fnRecorder) returnResults() *moqNoResultsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqNoResultsFn_recorder) returnResults() *moqNoResultsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqNoResultsFn_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqNoResultsFn_recorder) andDo(fn moqNoResultsFn_doFn) *moqNoResultsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqNoResultsFn_params) {
+		fn(params.sParam, params.bParam)
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqNoResultsFn_doFn
-		doReturnFn moqNoResultsFn_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqNoResultsFn_recorder) doReturnResults(fn moqNoResultsFn_doReturnFn) *moqNoResultsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqNoResultsFn_params) *moqNoResultsFn_results {
+		fn(params.sParam, params.bParam)
+		return &moqNoResultsFn_results{}
 	})
 	return r
 }
 
-func (r *moqNoResultsFn_fnRecorder) andDo(fn moqNoResultsFn_doFn) *moqNoResultsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqNoResultsFn_recorder) repeat(repeaters ...moq.Repeater) *moqNoResultsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqNoResultsFn_fnRecorder) doReturnResults(fn moqNoResultsFn_doReturnFn) *moqNoResultsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqNoResultsFn_doFn
-		doReturnFn moqNoResultsFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqNoResultsFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqNoResultsFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqNoResultsFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqNoResultsFn_paramsKey]*moqNoResultsFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqNoResultsFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqNoResultsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoResultsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqNoResultsFn_doFn
-				doReturnFn moqNoResultsFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqNoResultsFn) prettyParams(params moqNoResultsFn_params) string {
+func (*moqNoResultsFn_adaptor) PrettyParams(params moqNoResultsFn_params) string {
 	return fmt.Sprintf("NoResultsFn(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqNoResultsFn) paramsKey(params moqNoResultsFn_params, anyParams uint64) moqNoResultsFn_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqNoResultsFn_adaptor) ParamsKey(params moqNoResultsFn_params, anyParams uint64) moqNoResultsFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.bParam, anyParams)
 	return moqNoResultsFn_paramsKey{
 		params: struct {
 			sParam string
@@ -1257,36 +706,35 @@ func (m *moqNoResultsFn) paramsKey(params moqNoResultsFn_params, anyParams uint6
 }
 
 // Reset resets the state of the moq
-func (m *moqNoResultsFn) Reset() { m.resultsByParams = nil }
+func (m *moqNoResultsFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqNoResultsFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqNoParamsFn holds the state of a moq of the NoParamsFn type
 type moqNoParamsFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqNoParamsFn_mock
+	moq *impl.Moq[
+		*moqNoParamsFn_adaptor,
+		moqNoParamsFn_params,
+		moqNoParamsFn_paramsKey,
+		moqNoParamsFn_results,
+	]
 
-	resultsByParams []moqNoParamsFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct{}
-	}
+	runtime moqNoParamsFn_runtime
 }
 
-// moqNoParamsFn_mock isolates the mock interface of the NoParamsFn type
-type moqNoParamsFn_mock struct {
+// moqNoParamsFn_runtime holds runtime configuration for the NoParamsFn type
+type moqNoParamsFn_runtime struct {
+	parameterIndexing moqNoParamsFn_paramIndexing
+}
+
+// moqNoParamsFn_adaptor adapts moqNoParamsFn as needed by the runtime
+type moqNoParamsFn_adaptor struct {
 	moq *moqNoParamsFn
 }
 
@@ -1299,13 +747,15 @@ type moqNoParamsFn_paramsKey struct {
 	hashes struct{}
 }
 
-// moqNoParamsFn_resultsByParams contains the results for a given set of
-// parameters for the NoParamsFn type
-type moqNoParamsFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqNoParamsFn_paramsKey]*moqNoParamsFn_results
+// moqNoParamsFn_results holds the results of the NoParamsFn type
+type moqNoParamsFn_results struct {
+	sResult string
+	err     error
 }
+
+// moqNoParamsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the NoParamsFn type
+type moqNoParamsFn_paramIndexing struct{}
 
 // moqNoParamsFn_doFn defines the type of function needed when calling andDo
 // for the NoParamsFn type
@@ -1315,53 +765,37 @@ type moqNoParamsFn_doFn func()
 // doReturnResults for the NoParamsFn type
 type moqNoParamsFn_doReturnFn func() (sResult string, err error)
 
-// moqNoParamsFn_results holds the results of the NoParamsFn type
-type moqNoParamsFn_results struct {
-	params  moqNoParamsFn_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqNoParamsFn_doFn
-		doReturnFn moqNoParamsFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqNoParamsFn_fnRecorder routes recorded function calls to the moqNoParamsFn
+// moqNoParamsFn_recorder routes recorded function calls to the moqNoParamsFn
 // moq
-type moqNoParamsFn_fnRecorder struct {
-	params    moqNoParamsFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqNoParamsFn_results
-	moq       *moqNoParamsFn
+type moqNoParamsFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqNoParamsFn_adaptor,
+		moqNoParamsFn_params,
+		moqNoParamsFn_paramsKey,
+		moqNoParamsFn_results,
+	]
 }
 
 // moqNoParamsFn_anyParams isolates the any params functions of the NoParamsFn
 // type
 type moqNoParamsFn_anyParams struct {
-	recorder *moqNoParamsFn_fnRecorder
+	recorder *moqNoParamsFn_recorder
 }
 
 // newMoqNoParamsFn creates a new moq of the NoParamsFn type
 func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqNoParamsFn_adaptor{}
 	m := &moqNoParamsFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqNoParamsFn_mock{},
+		moq: impl.NewMoq[
+			*moqNoParamsFn_adaptor,
+			moqNoParamsFn_params,
+			moqNoParamsFn_paramsKey,
+			moqNoParamsFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct{}
-		}{parameterIndexing: struct{}{}},
+		runtime: moqNoParamsFn_runtime{parameterIndexing: moqNoParamsFn_paramIndexing{}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -1369,243 +803,95 @@ func newMoqNoParamsFn(scene *moq.Scene, config *moq.Config) *moqNoParamsFn {
 
 // mock returns the moq implementation of the NoParamsFn type
 func (m *moqNoParamsFn) mock() testmoqs.NoParamsFn {
-	return func() (_ string, _ error) { m.scene.T.Helper(); moq := &moqNoParamsFn_mock{moq: m}; return moq.fn() }
-}
+	return func() (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqNoParamsFn_params{}
 
-func (m *moqNoParamsFn_mock) fn() (sResult string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqNoParamsFn_params{}
-	var results *moqNoParamsFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
 		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn()
-	}
-	return
-}
-
-func (m *moqNoParamsFn) onCall() *moqNoParamsFn_fnRecorder {
-	return &moqNoParamsFn_fnRecorder{
-		params:   moqNoParamsFn_params{},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		return result1, result2
 	}
 }
 
-func (r *moqNoParamsFn_fnRecorder) any() *moqNoParamsFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqNoParamsFn) onCall() *moqNoParamsFn_recorder {
+	return &moqNoParamsFn_recorder{
+		recorder: m.moq.OnCall(moqNoParamsFn_params{}),
+	}
+}
+
+func (r *moqNoParamsFn_recorder) any() *moqNoParamsFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqNoParamsFn_anyParams{recorder: r}
 }
 
-func (r *moqNoParamsFn_fnRecorder) seq() *moqNoParamsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNoParamsFn_recorder) seq() *moqNoParamsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) noSeq() *moqNoParamsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNoParamsFn_recorder) noSeq() *moqNoParamsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) returnResults(sResult string, err error) *moqNoParamsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqNoParamsFn_doFn
-		doReturnFn moqNoParamsFn_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqNoParamsFn_recorder) returnResults(sResult string, err error) *moqNoParamsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqNoParamsFn_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) andDo(fn moqNoParamsFn_doFn) *moqNoParamsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqNoParamsFn_recorder) andDo(fn moqNoParamsFn_doFn) *moqNoParamsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqNoParamsFn_params) {
+		fn()
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) doReturnResults(fn moqNoParamsFn_doReturnFn) *moqNoParamsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqNoParamsFn_recorder) doReturnResults(fn moqNoParamsFn_doReturnFn) *moqNoParamsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqNoParamsFn_params) *moqNoParamsFn_results {
+		sResult, err := fn()
+		return &moqNoParamsFn_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqNoParamsFn_doFn
-		doReturnFn moqNoParamsFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqNoParamsFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqNoParamsFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqNoParamsFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqNoParamsFn_paramsKey]*moqNoParamsFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqNoParamsFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqNoParamsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNoParamsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqNoParamsFn_recorder) repeat(repeaters ...moq.Repeater) *moqNoParamsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqNoParamsFn_doFn
-				doReturnFn moqNoParamsFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqNoParamsFn) prettyParams(params moqNoParamsFn_params) string {
+func (*moqNoParamsFn_adaptor) PrettyParams(params moqNoParamsFn_params) string {
 	return fmt.Sprintf("NoParamsFn()")
 }
 
-func (m *moqNoParamsFn) paramsKey(params moqNoParamsFn_params, anyParams uint64) moqNoParamsFn_paramsKey {
-	m.scene.T.Helper()
+func (a *moqNoParamsFn_adaptor) ParamsKey(params moqNoParamsFn_params, anyParams uint64) moqNoParamsFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
 	return moqNoParamsFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -1613,36 +899,35 @@ func (m *moqNoParamsFn) paramsKey(params moqNoParamsFn_params, anyParams uint64)
 }
 
 // Reset resets the state of the moq
-func (m *moqNoParamsFn) Reset() { m.resultsByParams = nil }
+func (m *moqNoParamsFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqNoParamsFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqNothingFn holds the state of a moq of the NothingFn type
 type moqNothingFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqNothingFn_mock
+	moq *impl.Moq[
+		*moqNothingFn_adaptor,
+		moqNothingFn_params,
+		moqNothingFn_paramsKey,
+		moqNothingFn_results,
+	]
 
-	resultsByParams []moqNothingFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct{}
-	}
+	runtime moqNothingFn_runtime
 }
 
-// moqNothingFn_mock isolates the mock interface of the NothingFn type
-type moqNothingFn_mock struct {
+// moqNothingFn_runtime holds runtime configuration for the NothingFn type
+type moqNothingFn_runtime struct {
+	parameterIndexing moqNothingFn_paramIndexing
+}
+
+// moqNothingFn_adaptor adapts moqNothingFn as needed by the runtime
+type moqNothingFn_adaptor struct {
 	moq *moqNothingFn
 }
 
@@ -1655,13 +940,12 @@ type moqNothingFn_paramsKey struct {
 	hashes struct{}
 }
 
-// moqNothingFn_resultsByParams contains the results for a given set of
-// parameters for the NothingFn type
-type moqNothingFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqNothingFn_paramsKey]*moqNothingFn_results
-}
+// moqNothingFn_results holds the results of the NothingFn type
+type moqNothingFn_results struct{}
+
+// moqNothingFn_paramIndexing holds the parameter indexing runtime
+// configuration for the NothingFn type
+type moqNothingFn_paramIndexing struct{}
 
 // moqNothingFn_doFn defines the type of function needed when calling andDo for
 // the NothingFn type
@@ -1671,50 +955,36 @@ type moqNothingFn_doFn func()
 // doReturnResults for the NothingFn type
 type moqNothingFn_doReturnFn func()
 
-// moqNothingFn_results holds the results of the NothingFn type
-type moqNothingFn_results struct {
-	params  moqNothingFn_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqNothingFn_doFn
-		doReturnFn moqNothingFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqNothingFn_fnRecorder routes recorded function calls to the moqNothingFn
-// moq
-type moqNothingFn_fnRecorder struct {
-	params    moqNothingFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqNothingFn_results
-	moq       *moqNothingFn
+// moqNothingFn_recorder routes recorded function calls to the moqNothingFn moq
+type moqNothingFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqNothingFn_adaptor,
+		moqNothingFn_params,
+		moqNothingFn_paramsKey,
+		moqNothingFn_results,
+	]
 }
 
 // moqNothingFn_anyParams isolates the any params functions of the NothingFn
 // type
 type moqNothingFn_anyParams struct {
-	recorder *moqNothingFn_fnRecorder
+	recorder *moqNothingFn_recorder
 }
 
 // newMoqNothingFn creates a new moq of the NothingFn type
 func newMoqNothingFn(scene *moq.Scene, config *moq.Config) *moqNothingFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqNothingFn_adaptor{}
 	m := &moqNothingFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqNothingFn_mock{},
+		moq: impl.NewMoq[
+			*moqNothingFn_adaptor,
+			moqNothingFn_params,
+			moqNothingFn_paramsKey,
+			moqNothingFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct{}
-		}{parameterIndexing: struct{}{}},
+		runtime: moqNothingFn_runtime{parameterIndexing: moqNothingFn_paramIndexing{}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -1722,224 +992,83 @@ func newMoqNothingFn(scene *moq.Scene, config *moq.Config) *moqNothingFn {
 
 // mock returns the moq implementation of the NothingFn type
 func (m *moqNothingFn) mock() testmoqs.NothingFn {
-	return func() { m.scene.T.Helper(); moq := &moqNothingFn_mock{moq: m}; moq.fn() }
-}
+	return func() {
+		m.moq.Scene.T.Helper()
+		params := moqNothingFn_params{}
 
-func (m *moqNothingFn_mock) fn() {
-	m.moq.scene.T.Helper()
-	params := moqNothingFn_params{}
-	var results *moqNothingFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn()
-	}
-	return
-}
-
-func (m *moqNothingFn) onCall() *moqNothingFn_fnRecorder {
-	return &moqNothingFn_fnRecorder{
-		params:   moqNothingFn_params{},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		m.moq.Function(params)
 	}
 }
 
-func (r *moqNothingFn_fnRecorder) any() *moqNothingFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqNothingFn) onCall() *moqNothingFn_recorder {
+	return &moqNothingFn_recorder{
+		recorder: m.moq.OnCall(moqNothingFn_params{}),
+	}
+}
+
+func (r *moqNothingFn_recorder) any() *moqNothingFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqNothingFn_anyParams{recorder: r}
 }
 
-func (r *moqNothingFn_fnRecorder) seq() *moqNothingFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNothingFn_recorder) seq() *moqNothingFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqNothingFn_fnRecorder) noSeq() *moqNothingFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqNothingFn_recorder) noSeq() *moqNothingFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqNothingFn_fnRecorder) returnResults() *moqNothingFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqNothingFn_recorder) returnResults() *moqNothingFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqNothingFn_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqNothingFn_recorder) andDo(fn moqNothingFn_doFn) *moqNothingFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqNothingFn_params) {
+		fn()
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqNothingFn_doFn
-		doReturnFn moqNothingFn_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqNothingFn_recorder) doReturnResults(fn moqNothingFn_doReturnFn) *moqNothingFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqNothingFn_params) *moqNothingFn_results {
+		fn()
+		return &moqNothingFn_results{}
 	})
 	return r
 }
 
-func (r *moqNothingFn_fnRecorder) andDo(fn moqNothingFn_doFn) *moqNothingFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqNothingFn_recorder) repeat(repeaters ...moq.Repeater) *moqNothingFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqNothingFn_fnRecorder) doReturnResults(fn moqNothingFn_doReturnFn) *moqNothingFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqNothingFn_doFn
-		doReturnFn moqNothingFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqNothingFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqNothingFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqNothingFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqNothingFn_paramsKey]*moqNothingFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqNothingFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqNothingFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqNothingFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqNothingFn_doFn
-				doReturnFn moqNothingFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqNothingFn) prettyParams(params moqNothingFn_params) string {
+func (*moqNothingFn_adaptor) PrettyParams(params moqNothingFn_params) string {
 	return fmt.Sprintf("NothingFn()")
 }
 
-func (m *moqNothingFn) paramsKey(params moqNothingFn_params, anyParams uint64) moqNothingFn_paramsKey {
-	m.scene.T.Helper()
+func (a *moqNothingFn_adaptor) ParamsKey(params moqNothingFn_params, anyParams uint64) moqNothingFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
 	return moqNothingFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -1947,39 +1076,35 @@ func (m *moqNothingFn) paramsKey(params moqNothingFn_params, anyParams uint64) m
 }
 
 // Reset resets the state of the moq
-func (m *moqNothingFn) Reset() { m.resultsByParams = nil }
+func (m *moqNothingFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqNothingFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqVariadicFn holds the state of a moq of the VariadicFn type
 type moqVariadicFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqVariadicFn_mock
+	moq *impl.Moq[
+		*moqVariadicFn_adaptor,
+		moqVariadicFn_params,
+		moqVariadicFn_paramsKey,
+		moqVariadicFn_results,
+	]
 
-	resultsByParams []moqVariadicFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			other moq.ParamIndexing
-			args  moq.ParamIndexing
-		}
-	}
+	runtime moqVariadicFn_runtime
 }
 
-// moqVariadicFn_mock isolates the mock interface of the VariadicFn type
-type moqVariadicFn_mock struct {
+// moqVariadicFn_runtime holds runtime configuration for the VariadicFn type
+type moqVariadicFn_runtime struct {
+	parameterIndexing moqVariadicFn_paramIndexing
+}
+
+// moqVariadicFn_adaptor adapts moqVariadicFn as needed by the runtime
+type moqVariadicFn_adaptor struct {
 	moq *moqVariadicFn
 }
 
@@ -1998,12 +1123,17 @@ type moqVariadicFn_paramsKey struct {
 	}
 }
 
-// moqVariadicFn_resultsByParams contains the results for a given set of
-// parameters for the VariadicFn type
-type moqVariadicFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqVariadicFn_paramsKey]*moqVariadicFn_results
+// moqVariadicFn_results holds the results of the VariadicFn type
+type moqVariadicFn_results struct {
+	sResult string
+	err     error
+}
+
+// moqVariadicFn_paramIndexing holds the parameter indexing runtime
+// configuration for the VariadicFn type
+type moqVariadicFn_paramIndexing struct {
+	other moq.ParamIndexing
+	args  moq.ParamIndexing
 }
 
 // moqVariadicFn_doFn defines the type of function needed when calling andDo
@@ -2014,62 +1144,40 @@ type moqVariadicFn_doFn func(other bool, args ...string)
 // doReturnResults for the VariadicFn type
 type moqVariadicFn_doReturnFn func(other bool, args ...string) (sResult string, err error)
 
-// moqVariadicFn_results holds the results of the VariadicFn type
-type moqVariadicFn_results struct {
-	params  moqVariadicFn_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqVariadicFn_doFn
-		doReturnFn moqVariadicFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqVariadicFn_fnRecorder routes recorded function calls to the moqVariadicFn
+// moqVariadicFn_recorder routes recorded function calls to the moqVariadicFn
 // moq
-type moqVariadicFn_fnRecorder struct {
-	params    moqVariadicFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqVariadicFn_results
-	moq       *moqVariadicFn
+type moqVariadicFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqVariadicFn_adaptor,
+		moqVariadicFn_params,
+		moqVariadicFn_paramsKey,
+		moqVariadicFn_results,
+	]
 }
 
 // moqVariadicFn_anyParams isolates the any params functions of the VariadicFn
 // type
 type moqVariadicFn_anyParams struct {
-	recorder *moqVariadicFn_fnRecorder
+	recorder *moqVariadicFn_recorder
 }
 
 // newMoqVariadicFn creates a new moq of the VariadicFn type
 func newMoqVariadicFn(scene *moq.Scene, config *moq.Config) *moqVariadicFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqVariadicFn_adaptor{}
 	m := &moqVariadicFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqVariadicFn_mock{},
+		moq: impl.NewMoq[
+			*moqVariadicFn_adaptor,
+			moqVariadicFn_params,
+			moqVariadicFn_paramsKey,
+			moqVariadicFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				other moq.ParamIndexing
-				args  moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			other moq.ParamIndexing
-			args  moq.ParamIndexing
-		}{
+		runtime: moqVariadicFn_runtime{parameterIndexing: moqVariadicFn_paramIndexing{
 			other: moq.ParamIndexByValue,
 			args:  moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -2077,279 +1185,115 @@ func newMoqVariadicFn(scene *moq.Scene, config *moq.Config) *moqVariadicFn {
 
 // mock returns the moq implementation of the VariadicFn type
 func (m *moqVariadicFn) mock() testmoqs.VariadicFn {
-	return func(other bool, args ...string) (_ string, _ error) {
-		m.scene.T.Helper()
-		moq := &moqVariadicFn_mock{moq: m}
-		return moq.fn(other, args...)
-	}
-}
-
-func (m *moqVariadicFn_mock) fn(other bool, args ...string) (sResult string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqVariadicFn_params{
-		other: other,
-		args:  args,
-	}
-	var results *moqVariadicFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(other, args...)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(other, args...)
-	}
-	return
-}
-
-func (m *moqVariadicFn) onCall(other bool, args ...string) *moqVariadicFn_fnRecorder {
-	return &moqVariadicFn_fnRecorder{
-		params: moqVariadicFn_params{
+	return func(other bool, args ...string) (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqVariadicFn_params{
 			other: other,
 			args:  args,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqVariadicFn_fnRecorder) any() *moqVariadicFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqVariadicFn) onCall(other bool, args ...string) *moqVariadicFn_recorder {
+	return &moqVariadicFn_recorder{
+		recorder: m.moq.OnCall(moqVariadicFn_params{
+			other: other,
+			args:  args,
+		}),
+	}
+}
+
+func (r *moqVariadicFn_recorder) any() *moqVariadicFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqVariadicFn_anyParams{recorder: r}
 }
 
-func (a *moqVariadicFn_anyParams) other() *moqVariadicFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqVariadicFn_anyParams) other() *moqVariadicFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqVariadicFn_anyParams) args() *moqVariadicFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqVariadicFn_anyParams) args() *moqVariadicFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqVariadicFn_fnRecorder) seq() *moqVariadicFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqVariadicFn_recorder) seq() *moqVariadicFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqVariadicFn_fnRecorder) noSeq() *moqVariadicFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqVariadicFn_recorder) noSeq() *moqVariadicFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqVariadicFn_fnRecorder) returnResults(sResult string, err error) *moqVariadicFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqVariadicFn_doFn
-		doReturnFn moqVariadicFn_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqVariadicFn_recorder) returnResults(sResult string, err error) *moqVariadicFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqVariadicFn_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqVariadicFn_fnRecorder) andDo(fn moqVariadicFn_doFn) *moqVariadicFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqVariadicFn_recorder) andDo(fn moqVariadicFn_doFn) *moqVariadicFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqVariadicFn_params) {
+		fn(params.other, params.args...)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqVariadicFn_fnRecorder) doReturnResults(fn moqVariadicFn_doReturnFn) *moqVariadicFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqVariadicFn_recorder) doReturnResults(fn moqVariadicFn_doReturnFn) *moqVariadicFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqVariadicFn_params) *moqVariadicFn_results {
+		sResult, err := fn(params.other, params.args...)
+		return &moqVariadicFn_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqVariadicFn_doFn
-		doReturnFn moqVariadicFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqVariadicFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqVariadicFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqVariadicFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqVariadicFn_paramsKey]*moqVariadicFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqVariadicFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqVariadicFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqVariadicFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqVariadicFn_recorder) repeat(repeaters ...moq.Repeater) *moqVariadicFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqVariadicFn_doFn
-				doReturnFn moqVariadicFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqVariadicFn) prettyParams(params moqVariadicFn_params) string {
+func (*moqVariadicFn_adaptor) PrettyParams(params moqVariadicFn_params) string {
 	return fmt.Sprintf("VariadicFn(%#v, %#v)", params.other, params.args)
 }
 
-func (m *moqVariadicFn) paramsKey(params moqVariadicFn_params, anyParams uint64) moqVariadicFn_paramsKey {
-	m.scene.T.Helper()
-	var otherUsed bool
-	var otherUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.other == moq.ParamIndexByValue {
-			otherUsed = params.other
-		} else {
-			otherUsedHash = hash.DeepHash(params.other)
-		}
-	}
-	var argsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.args == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The args parameter can't be indexed by value")
-		}
-		argsUsedHash = hash.DeepHash(params.args)
-	}
+func (a *moqVariadicFn_adaptor) ParamsKey(params moqVariadicFn_params, anyParams uint64) moqVariadicFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	otherUsed, otherUsedHash := impl.ParamKey(
+		params.other, 1, a.moq.runtime.parameterIndexing.other, anyParams)
+	argsUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.args, "args", 2, a.moq.runtime.parameterIndexing.args, anyParams)
 	return moqVariadicFn_paramsKey{
 		params: struct{ other bool }{
 			other: otherUsed,
@@ -2365,40 +1309,36 @@ func (m *moqVariadicFn) paramsKey(params moqVariadicFn_params, anyParams uint64)
 }
 
 // Reset resets the state of the moq
-func (m *moqVariadicFn) Reset() { m.resultsByParams = nil }
+func (m *moqVariadicFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqVariadicFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqRepeatedIdsFn holds the state of a moq of the RepeatedIdsFn type
 type moqRepeatedIdsFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqRepeatedIdsFn_mock
+	moq *impl.Moq[
+		*moqRepeatedIdsFn_adaptor,
+		moqRepeatedIdsFn_params,
+		moqRepeatedIdsFn_paramsKey,
+		moqRepeatedIdsFn_results,
+	]
 
-	resultsByParams []moqRepeatedIdsFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			sParam1 moq.ParamIndexing
-			sParam2 moq.ParamIndexing
-			bParam  moq.ParamIndexing
-		}
-	}
+	runtime moqRepeatedIdsFn_runtime
 }
 
-// moqRepeatedIdsFn_mock isolates the mock interface of the RepeatedIdsFn type
-type moqRepeatedIdsFn_mock struct {
+// moqRepeatedIdsFn_runtime holds runtime configuration for the RepeatedIdsFn
+// type
+type moqRepeatedIdsFn_runtime struct {
+	parameterIndexing moqRepeatedIdsFn_paramIndexing
+}
+
+// moqRepeatedIdsFn_adaptor adapts moqRepeatedIdsFn as needed by the runtime
+type moqRepeatedIdsFn_adaptor struct {
 	moq *moqRepeatedIdsFn
 }
 
@@ -2421,12 +1361,17 @@ type moqRepeatedIdsFn_paramsKey struct {
 	}
 }
 
-// moqRepeatedIdsFn_resultsByParams contains the results for a given set of
-// parameters for the RepeatedIdsFn type
-type moqRepeatedIdsFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqRepeatedIdsFn_paramsKey]*moqRepeatedIdsFn_results
+// moqRepeatedIdsFn_results holds the results of the RepeatedIdsFn type
+type moqRepeatedIdsFn_results struct {
+	sResult1, sResult2 string
+	err                error
+}
+
+// moqRepeatedIdsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the RepeatedIdsFn type
+type moqRepeatedIdsFn_paramIndexing struct {
+	sParam1, sParam2 moq.ParamIndexing
+	bParam           moq.ParamIndexing
 }
 
 // moqRepeatedIdsFn_doFn defines the type of function needed when calling andDo
@@ -2437,65 +1382,41 @@ type moqRepeatedIdsFn_doFn func(sParam1, sParam2 string, bParam bool)
 // doReturnResults for the RepeatedIdsFn type
 type moqRepeatedIdsFn_doReturnFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 
-// moqRepeatedIdsFn_results holds the results of the RepeatedIdsFn type
-type moqRepeatedIdsFn_results struct {
-	params  moqRepeatedIdsFn_params
-	results []struct {
-		values *struct {
-			sResult1, sResult2 string
-			err                error
-		}
-		sequence   uint32
-		doFn       moqRepeatedIdsFn_doFn
-		doReturnFn moqRepeatedIdsFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqRepeatedIdsFn_fnRecorder routes recorded function calls to the
+// moqRepeatedIdsFn_recorder routes recorded function calls to the
 // moqRepeatedIdsFn moq
-type moqRepeatedIdsFn_fnRecorder struct {
-	params    moqRepeatedIdsFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqRepeatedIdsFn_results
-	moq       *moqRepeatedIdsFn
+type moqRepeatedIdsFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqRepeatedIdsFn_adaptor,
+		moqRepeatedIdsFn_params,
+		moqRepeatedIdsFn_paramsKey,
+		moqRepeatedIdsFn_results,
+	]
 }
 
 // moqRepeatedIdsFn_anyParams isolates the any params functions of the
 // RepeatedIdsFn type
 type moqRepeatedIdsFn_anyParams struct {
-	recorder *moqRepeatedIdsFn_fnRecorder
+	recorder *moqRepeatedIdsFn_recorder
 }
 
 // newMoqRepeatedIdsFn creates a new moq of the RepeatedIdsFn type
 func newMoqRepeatedIdsFn(scene *moq.Scene, config *moq.Config) *moqRepeatedIdsFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqRepeatedIdsFn_adaptor{}
 	m := &moqRepeatedIdsFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqRepeatedIdsFn_mock{},
+		moq: impl.NewMoq[
+			*moqRepeatedIdsFn_adaptor,
+			moqRepeatedIdsFn_params,
+			moqRepeatedIdsFn_paramsKey,
+			moqRepeatedIdsFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				sParam1 moq.ParamIndexing
-				sParam2 moq.ParamIndexing
-				bParam  moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			sParam1 moq.ParamIndexing
-			sParam2 moq.ParamIndexing
-			bParam  moq.ParamIndexing
-		}{
+		runtime: moqRepeatedIdsFn_runtime{parameterIndexing: moqRepeatedIdsFn_paramIndexing{
 			sParam1: moq.ParamIndexByValue,
 			sParam2: moq.ParamIndexByValue,
 			bParam:  moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -2503,299 +1424,128 @@ func newMoqRepeatedIdsFn(scene *moq.Scene, config *moq.Config) *moqRepeatedIdsFn
 
 // mock returns the moq implementation of the RepeatedIdsFn type
 func (m *moqRepeatedIdsFn) mock() testmoqs.RepeatedIdsFn {
-	return func(sParam1, sParam2 string, bParam bool) (_, _ string, _ error) {
-		m.scene.T.Helper()
-		moq := &moqRepeatedIdsFn_mock{moq: m}
-		return moq.fn(sParam1, sParam2, bParam)
-	}
-}
-
-func (m *moqRepeatedIdsFn_mock) fn(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqRepeatedIdsFn_params{
-		sParam1: sParam1,
-		sParam2: sParam2,
-		bParam:  bParam,
-	}
-	var results *moqRepeatedIdsFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam1, sParam2, bParam)
-	}
-
-	if result.values != nil {
-		sResult1 = result.values.sResult1
-		sResult2 = result.values.sResult2
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult1, sResult2, err = result.doReturnFn(sParam1, sParam2, bParam)
-	}
-	return
-}
-
-func (m *moqRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *moqRepeatedIdsFn_fnRecorder {
-	return &moqRepeatedIdsFn_fnRecorder{
-		params: moqRepeatedIdsFn_params{
+	return func(sParam1, sParam2 string, bParam bool) (string, string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqRepeatedIdsFn_params{
 			sParam1: sParam1,
 			sParam2: sParam2,
 			bParam:  bParam,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 string
+		var result3 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult1
+			result2 = result.sResult2
+			result3 = result.err
+		}
+		return result1, result2, result3
 	}
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) any() *moqRepeatedIdsFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqRepeatedIdsFn) onCall(sParam1, sParam2 string, bParam bool) *moqRepeatedIdsFn_recorder {
+	return &moqRepeatedIdsFn_recorder{
+		recorder: m.moq.OnCall(moqRepeatedIdsFn_params{
+			sParam1: sParam1,
+			sParam2: sParam2,
+			bParam:  bParam,
+		}),
+	}
+}
+
+func (r *moqRepeatedIdsFn_recorder) any() *moqRepeatedIdsFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqRepeatedIdsFn_anyParams{recorder: r}
 }
 
-func (a *moqRepeatedIdsFn_anyParams) sParam1() *moqRepeatedIdsFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqRepeatedIdsFn_anyParams) sParam1() *moqRepeatedIdsFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqRepeatedIdsFn_anyParams) sParam2() *moqRepeatedIdsFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqRepeatedIdsFn_anyParams) sParam2() *moqRepeatedIdsFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (a *moqRepeatedIdsFn_anyParams) bParam() *moqRepeatedIdsFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+func (a *moqRepeatedIdsFn_anyParams) bParam() *moqRepeatedIdsFn_recorder {
+	a.recorder.recorder.AnyParam(3)
 	return a.recorder
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) seq() *moqRepeatedIdsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqRepeatedIdsFn_recorder) seq() *moqRepeatedIdsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) noSeq() *moqRepeatedIdsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqRepeatedIdsFn_recorder) noSeq() *moqRepeatedIdsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) returnResults(sResult1, sResult2 string, err error) *moqRepeatedIdsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult1, sResult2 string
-			err                error
-		}
-		sequence   uint32
-		doFn       moqRepeatedIdsFn_doFn
-		doReturnFn moqRepeatedIdsFn_doReturnFn
-	}{
-		values: &struct {
-			sResult1, sResult2 string
-			err                error
-		}{
-			sResult1: sResult1,
-			sResult2: sResult2,
-			err:      err,
-		},
-		sequence: sequence,
+func (r *moqRepeatedIdsFn_recorder) returnResults(sResult1, sResult2 string, err error) *moqRepeatedIdsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqRepeatedIdsFn_results{
+		sResult1: sResult1,
+		sResult2: sResult2,
+		err:      err,
 	})
 	return r
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) andDo(fn moqRepeatedIdsFn_doFn) *moqRepeatedIdsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqRepeatedIdsFn_recorder) andDo(fn moqRepeatedIdsFn_doFn) *moqRepeatedIdsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqRepeatedIdsFn_params) {
+		fn(params.sParam1, params.sParam2, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) doReturnResults(fn moqRepeatedIdsFn_doReturnFn) *moqRepeatedIdsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult1, sResult2 string
-			err                error
+func (r *moqRepeatedIdsFn_recorder) doReturnResults(fn moqRepeatedIdsFn_doReturnFn) *moqRepeatedIdsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqRepeatedIdsFn_params) *moqRepeatedIdsFn_results {
+		sResult1, sResult2, err := fn(params.sParam1, params.sParam2, params.bParam)
+		return &moqRepeatedIdsFn_results{
+			sResult1: sResult1,
+			sResult2: sResult2,
+			err:      err,
 		}
-		sequence   uint32
-		doFn       moqRepeatedIdsFn_doFn
-		doReturnFn moqRepeatedIdsFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqRepeatedIdsFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqRepeatedIdsFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqRepeatedIdsFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqRepeatedIdsFn_paramsKey]*moqRepeatedIdsFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqRepeatedIdsFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqRepeatedIdsFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqRepeatedIdsFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqRepeatedIdsFn_recorder) repeat(repeaters ...moq.Repeater) *moqRepeatedIdsFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult1, sResult2 string
-					err                error
-				}
-				sequence   uint32
-				doFn       moqRepeatedIdsFn_doFn
-				doReturnFn moqRepeatedIdsFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqRepeatedIdsFn) prettyParams(params moqRepeatedIdsFn_params) string {
+func (*moqRepeatedIdsFn_adaptor) PrettyParams(params moqRepeatedIdsFn_params) string {
 	return fmt.Sprintf("RepeatedIdsFn(%#v, %#v, %#v)", params.sParam1, params.sParam2, params.bParam)
 }
 
-func (m *moqRepeatedIdsFn) paramsKey(params moqRepeatedIdsFn_params, anyParams uint64) moqRepeatedIdsFn_paramsKey {
-	m.scene.T.Helper()
-	var sParam1Used string
-	var sParam1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.sParam1 == moq.ParamIndexByValue {
-			sParam1Used = params.sParam1
-		} else {
-			sParam1UsedHash = hash.DeepHash(params.sParam1)
-		}
-	}
-	var sParam2Used string
-	var sParam2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.sParam2 == moq.ParamIndexByValue {
-			sParam2Used = params.sParam2
-		} else {
-			sParam2UsedHash = hash.DeepHash(params.sParam2)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
-		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqRepeatedIdsFn_adaptor) ParamsKey(params moqRepeatedIdsFn_params, anyParams uint64) moqRepeatedIdsFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	sParam1Used, sParam1UsedHash := impl.ParamKey(
+		params.sParam1, 1, a.moq.runtime.parameterIndexing.sParam1, anyParams)
+	sParam2Used, sParam2UsedHash := impl.ParamKey(
+		params.sParam2, 2, a.moq.runtime.parameterIndexing.sParam2, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 3, a.moq.runtime.parameterIndexing.bParam, anyParams)
 	return moqRepeatedIdsFn_paramsKey{
 		params: struct {
 			sParam1, sParam2 string
@@ -2817,39 +1567,35 @@ func (m *moqRepeatedIdsFn) paramsKey(params moqRepeatedIdsFn_params, anyParams u
 }
 
 // Reset resets the state of the moq
-func (m *moqRepeatedIdsFn) Reset() { m.resultsByParams = nil }
+func (m *moqRepeatedIdsFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqRepeatedIdsFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqTimesFn holds the state of a moq of the TimesFn type
 type moqTimesFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqTimesFn_mock
+	moq *impl.Moq[
+		*moqTimesFn_adaptor,
+		moqTimesFn_params,
+		moqTimesFn_paramsKey,
+		moqTimesFn_results,
+	]
 
-	resultsByParams []moqTimesFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			times  moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}
-	}
+	runtime moqTimesFn_runtime
 }
 
-// moqTimesFn_mock isolates the mock interface of the TimesFn type
-type moqTimesFn_mock struct {
+// moqTimesFn_runtime holds runtime configuration for the TimesFn type
+type moqTimesFn_runtime struct {
+	parameterIndexing moqTimesFn_paramIndexing
+}
+
+// moqTimesFn_adaptor adapts moqTimesFn as needed by the runtime
+type moqTimesFn_adaptor struct {
 	moq *moqTimesFn
 }
 
@@ -2871,12 +1617,17 @@ type moqTimesFn_paramsKey struct {
 	}
 }
 
-// moqTimesFn_resultsByParams contains the results for a given set of
-// parameters for the TimesFn type
-type moqTimesFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqTimesFn_paramsKey]*moqTimesFn_results
+// moqTimesFn_results holds the results of the TimesFn type
+type moqTimesFn_results struct {
+	sResult string
+	err     error
+}
+
+// moqTimesFn_paramIndexing holds the parameter indexing runtime configuration
+// for the TimesFn type
+type moqTimesFn_paramIndexing struct {
+	times  moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqTimesFn_doFn defines the type of function needed when calling andDo for
@@ -2887,60 +1638,38 @@ type moqTimesFn_doFn func(times string, bParam bool)
 // doReturnResults for the TimesFn type
 type moqTimesFn_doReturnFn func(times string, bParam bool) (sResult string, err error)
 
-// moqTimesFn_results holds the results of the TimesFn type
-type moqTimesFn_results struct {
-	params  moqTimesFn_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqTimesFn_doFn
-		doReturnFn moqTimesFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqTimesFn_fnRecorder routes recorded function calls to the moqTimesFn moq
-type moqTimesFn_fnRecorder struct {
-	params    moqTimesFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqTimesFn_results
-	moq       *moqTimesFn
+// moqTimesFn_recorder routes recorded function calls to the moqTimesFn moq
+type moqTimesFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqTimesFn_adaptor,
+		moqTimesFn_params,
+		moqTimesFn_paramsKey,
+		moqTimesFn_results,
+	]
 }
 
 // moqTimesFn_anyParams isolates the any params functions of the TimesFn type
 type moqTimesFn_anyParams struct {
-	recorder *moqTimesFn_fnRecorder
+	recorder *moqTimesFn_recorder
 }
 
 // newMoqTimesFn creates a new moq of the TimesFn type
 func newMoqTimesFn(scene *moq.Scene, config *moq.Config) *moqTimesFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqTimesFn_adaptor{}
 	m := &moqTimesFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqTimesFn_mock{},
+		moq: impl.NewMoq[
+			*moqTimesFn_adaptor,
+			moqTimesFn_params,
+			moqTimesFn_paramsKey,
+			moqTimesFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				times  moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			times  moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}{
+		runtime: moqTimesFn_runtime{parameterIndexing: moqTimesFn_paramIndexing{
 			times:  moq.ParamIndexByValue,
 			bParam: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -2948,281 +1677,115 @@ func newMoqTimesFn(scene *moq.Scene, config *moq.Config) *moqTimesFn {
 
 // mock returns the moq implementation of the TimesFn type
 func (m *moqTimesFn) mock() testmoqs.TimesFn {
-	return func(times string, bParam bool) (_ string, _ error) {
-		m.scene.T.Helper()
-		moq := &moqTimesFn_mock{moq: m}
-		return moq.fn(times, bParam)
-	}
-}
-
-func (m *moqTimesFn_mock) fn(times string, bParam bool) (sResult string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqTimesFn_params{
-		times:  times,
-		bParam: bParam,
-	}
-	var results *moqTimesFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(times, bParam)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(times, bParam)
-	}
-	return
-}
-
-func (m *moqTimesFn) onCall(times string, bParam bool) *moqTimesFn_fnRecorder {
-	return &moqTimesFn_fnRecorder{
-		params: moqTimesFn_params{
+	return func(times string, bParam bool) (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqTimesFn_params{
 			times:  times,
 			bParam: bParam,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqTimesFn_fnRecorder) any() *moqTimesFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqTimesFn) onCall(times string, bParam bool) *moqTimesFn_recorder {
+	return &moqTimesFn_recorder{
+		recorder: m.moq.OnCall(moqTimesFn_params{
+			times:  times,
+			bParam: bParam,
+		}),
+	}
+}
+
+func (r *moqTimesFn_recorder) any() *moqTimesFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqTimesFn_anyParams{recorder: r}
 }
 
-func (a *moqTimesFn_anyParams) times() *moqTimesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqTimesFn_anyParams) times() *moqTimesFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqTimesFn_anyParams) bParam() *moqTimesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqTimesFn_anyParams) bParam() *moqTimesFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqTimesFn_fnRecorder) seq() *moqTimesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqTimesFn_recorder) seq() *moqTimesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqTimesFn_fnRecorder) noSeq() *moqTimesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqTimesFn_recorder) noSeq() *moqTimesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqTimesFn_fnRecorder) returnResults(sResult string, err error) *moqTimesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqTimesFn_doFn
-		doReturnFn moqTimesFn_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqTimesFn_recorder) returnResults(sResult string, err error) *moqTimesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqTimesFn_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqTimesFn_fnRecorder) andDo(fn moqTimesFn_doFn) *moqTimesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqTimesFn_recorder) andDo(fn moqTimesFn_doFn) *moqTimesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqTimesFn_params) {
+		fn(params.times, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqTimesFn_fnRecorder) doReturnResults(fn moqTimesFn_doReturnFn) *moqTimesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqTimesFn_recorder) doReturnResults(fn moqTimesFn_doReturnFn) *moqTimesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqTimesFn_params) *moqTimesFn_results {
+		sResult, err := fn(params.times, params.bParam)
+		return &moqTimesFn_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqTimesFn_doFn
-		doReturnFn moqTimesFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqTimesFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqTimesFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqTimesFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqTimesFn_paramsKey]*moqTimesFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqTimesFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqTimesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqTimesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqTimesFn_recorder) repeat(repeaters ...moq.Repeater) *moqTimesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqTimesFn_doFn
-				doReturnFn moqTimesFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqTimesFn) prettyParams(params moqTimesFn_params) string {
+func (*moqTimesFn_adaptor) PrettyParams(params moqTimesFn_params) string {
 	return fmt.Sprintf("TimesFn(%#v, %#v)", params.times, params.bParam)
 }
 
-func (m *moqTimesFn) paramsKey(params moqTimesFn_params, anyParams uint64) moqTimesFn_paramsKey {
-	m.scene.T.Helper()
-	var timesUsed string
-	var timesUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.times == moq.ParamIndexByValue {
-			timesUsed = params.times
-		} else {
-			timesUsedHash = hash.DeepHash(params.times)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqTimesFn_adaptor) ParamsKey(params moqTimesFn_params, anyParams uint64) moqTimesFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	timesUsed, timesUsedHash := impl.ParamKey(
+		params.times, 1, a.moq.runtime.parameterIndexing.times, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.bParam, anyParams)
 	return moqTimesFn_paramsKey{
 		params: struct {
 			times  string
@@ -3242,48 +1805,38 @@ func (m *moqTimesFn) paramsKey(params moqTimesFn_params, anyParams uint64) moqTi
 }
 
 // Reset resets the state of the moq
-func (m *moqTimesFn) Reset() { m.resultsByParams = nil }
+func (m *moqTimesFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqTimesFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqDifficultParamNamesFn holds the state of a moq of the
 // DifficultParamNamesFn type
 type moqDifficultParamNamesFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqDifficultParamNamesFn_mock
+	moq *impl.Moq[
+		*moqDifficultParamNamesFn_adaptor,
+		moqDifficultParamNamesFn_params,
+		moqDifficultParamNamesFn_paramsKey,
+		moqDifficultParamNamesFn_results,
+	]
 
-	resultsByParams []moqDifficultParamNamesFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-			param3 moq.ParamIndexing
-			param  moq.ParamIndexing
-			param5 moq.ParamIndexing
-			param6 moq.ParamIndexing
-			param7 moq.ParamIndexing
-			param8 moq.ParamIndexing
-			param9 moq.ParamIndexing
-		}
-	}
+	runtime moqDifficultParamNamesFn_runtime
 }
 
-// moqDifficultParamNamesFn_mock isolates the mock interface of the
+// moqDifficultParamNamesFn_runtime holds runtime configuration for the
 // DifficultParamNamesFn type
-type moqDifficultParamNamesFn_mock struct {
+type moqDifficultParamNamesFn_runtime struct {
+	parameterIndexing moqDifficultParamNamesFn_paramIndexing
+}
+
+// moqDifficultParamNamesFn_adaptor adapts moqDifficultParamNamesFn as needed
+// by the runtime
+type moqDifficultParamNamesFn_adaptor struct {
 	moq *moqDifficultParamNamesFn
 }
 
@@ -3313,12 +1866,17 @@ type moqDifficultParamNamesFn_paramsKey struct {
 	}
 }
 
-// moqDifficultParamNamesFn_resultsByParams contains the results for a given
-// set of parameters for the DifficultParamNamesFn type
-type moqDifficultParamNamesFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqDifficultParamNamesFn_paramsKey]*moqDifficultParamNamesFn_results
+// moqDifficultParamNamesFn_results holds the results of the
+// DifficultParamNamesFn type
+type moqDifficultParamNamesFn_results struct{}
+
+// moqDifficultParamNamesFn_paramIndexing holds the parameter indexing runtime
+// configuration for the DifficultParamNamesFn type
+type moqDifficultParamNamesFn_paramIndexing struct {
+	param1, param2         moq.ParamIndexing
+	param3                 moq.ParamIndexing
+	param, param5, param6  moq.ParamIndexing
+	param7, param8, param9 moq.ParamIndexing
 }
 
 // moqDifficultParamNamesFn_doFn defines the type of function needed when
@@ -3329,70 +1887,36 @@ type moqDifficultParamNamesFn_doFn func(m, r bool, sequence string, param, param
 // calling doReturnResults for the DifficultParamNamesFn type
 type moqDifficultParamNamesFn_doReturnFn func(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 
-// moqDifficultParamNamesFn_results holds the results of the
-// DifficultParamNamesFn type
-type moqDifficultParamNamesFn_results struct {
-	params  moqDifficultParamNamesFn_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqDifficultParamNamesFn_doFn
-		doReturnFn moqDifficultParamNamesFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqDifficultParamNamesFn_fnRecorder routes recorded function calls to the
+// moqDifficultParamNamesFn_recorder routes recorded function calls to the
 // moqDifficultParamNamesFn moq
-type moqDifficultParamNamesFn_fnRecorder struct {
-	params    moqDifficultParamNamesFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqDifficultParamNamesFn_results
-	moq       *moqDifficultParamNamesFn
+type moqDifficultParamNamesFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqDifficultParamNamesFn_adaptor,
+		moqDifficultParamNamesFn_params,
+		moqDifficultParamNamesFn_paramsKey,
+		moqDifficultParamNamesFn_results,
+	]
 }
 
 // moqDifficultParamNamesFn_anyParams isolates the any params functions of the
 // DifficultParamNamesFn type
 type moqDifficultParamNamesFn_anyParams struct {
-	recorder *moqDifficultParamNamesFn_fnRecorder
+	recorder *moqDifficultParamNamesFn_recorder
 }
 
 // newMoqDifficultParamNamesFn creates a new moq of the DifficultParamNamesFn
 // type
 func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDifficultParamNamesFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqDifficultParamNamesFn_adaptor{}
 	m := &moqDifficultParamNamesFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqDifficultParamNamesFn_mock{},
+		moq: impl.NewMoq[
+			*moqDifficultParamNamesFn_adaptor,
+			moqDifficultParamNamesFn_params,
+			moqDifficultParamNamesFn_paramsKey,
+			moqDifficultParamNamesFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-				param3 moq.ParamIndexing
-				param  moq.ParamIndexing
-				param5 moq.ParamIndexing
-				param6 moq.ParamIndexing
-				param7 moq.ParamIndexing
-				param8 moq.ParamIndexing
-				param9 moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-			param3 moq.ParamIndexing
-			param  moq.ParamIndexing
-			param5 moq.ParamIndexing
-			param6 moq.ParamIndexing
-			param7 moq.ParamIndexing
-			param8 moq.ParamIndexing
-			param9 moq.ParamIndexing
-		}{
+		runtime: moqDifficultParamNamesFn_runtime{parameterIndexing: moqDifficultParamNamesFn_paramIndexing{
 			param1: moq.ParamIndexByValue,
 			param2: moq.ParamIndexByValue,
 			param3: moq.ParamIndexByValue,
@@ -3404,7 +1928,7 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 			param9: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -3413,73 +1937,8 @@ func newMoqDifficultParamNamesFn(scene *moq.Scene, config *moq.Config) *moqDiffi
 // mock returns the moq implementation of the DifficultParamNamesFn type
 func (m *moqDifficultParamNamesFn) mock() testmoqs.DifficultParamNamesFn {
 	return func(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) {
-		m.scene.T.Helper()
-		moq := &moqDifficultParamNamesFn_mock{moq: m}
-		moq.fn(param1, param2, param3, param, param5, param6, param7, param8, param9)
-	}
-}
-
-func (m *moqDifficultParamNamesFn_mock) fn(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) {
-	m.moq.scene.T.Helper()
-	params := moqDifficultParamNamesFn_params{
-		param1: param1,
-		param2: param2,
-		param3: param3,
-		param:  param,
-		param5: param5,
-		param6: param6,
-		param7: param7,
-		param8: param8,
-		param9: param9,
-	}
-	var results *moqDifficultParamNamesFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2, param3, param, param5, param6, param7, param8, param9)
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn(param1, param2, param3, param, param5, param6, param7, param8, param9)
-	}
-	return
-}
-
-func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) *moqDifficultParamNamesFn_fnRecorder {
-	return &moqDifficultParamNamesFn_fnRecorder{
-		params: moqDifficultParamNamesFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqDifficultParamNamesFn_params{
 			param1: param1,
 			param2: param2,
 			param3: param3,
@@ -3489,297 +1948,154 @@ func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, pa
 			param7: param7,
 			param8: param8,
 			param9: param9,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		m.moq.Function(params)
 	}
 }
 
-func (r *moqDifficultParamNamesFn_fnRecorder) any() *moqDifficultParamNamesFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqDifficultParamNamesFn) onCall(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) *moqDifficultParamNamesFn_recorder {
+	return &moqDifficultParamNamesFn_recorder{
+		recorder: m.moq.OnCall(moqDifficultParamNamesFn_params{
+			param1: param1,
+			param2: param2,
+			param3: param3,
+			param:  param,
+			param5: param5,
+			param6: param6,
+			param7: param7,
+			param8: param8,
+			param9: param9,
+		}),
+	}
+}
+
+func (r *moqDifficultParamNamesFn_recorder) any() *moqDifficultParamNamesFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqDifficultParamNamesFn_anyParams{recorder: r}
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param1() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqDifficultParamNamesFn_anyParams) param1() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param2() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqDifficultParamNamesFn_anyParams) param2() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param3() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+func (a *moqDifficultParamNamesFn_anyParams) param3() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(3)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 3
+func (a *moqDifficultParamNamesFn_anyParams) param() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(4)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param5() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 4
+func (a *moqDifficultParamNamesFn_anyParams) param5() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(5)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param6() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 5
+func (a *moqDifficultParamNamesFn_anyParams) param6() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(6)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param7() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 6
+func (a *moqDifficultParamNamesFn_anyParams) param7() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(7)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param8() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 7
+func (a *moqDifficultParamNamesFn_anyParams) param8() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(8)
 	return a.recorder
 }
 
-func (a *moqDifficultParamNamesFn_anyParams) param9() *moqDifficultParamNamesFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 8
+func (a *moqDifficultParamNamesFn_anyParams) param9() *moqDifficultParamNamesFn_recorder {
+	a.recorder.recorder.AnyParam(9)
 	return a.recorder
 }
 
-func (r *moqDifficultParamNamesFn_fnRecorder) seq() *moqDifficultParamNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqDifficultParamNamesFn_recorder) seq() *moqDifficultParamNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqDifficultParamNamesFn_fnRecorder) noSeq() *moqDifficultParamNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqDifficultParamNamesFn_recorder) noSeq() *moqDifficultParamNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqDifficultParamNamesFn_fnRecorder) returnResults() *moqDifficultParamNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqDifficultParamNamesFn_recorder) returnResults() *moqDifficultParamNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqDifficultParamNamesFn_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqDifficultParamNamesFn_recorder) andDo(fn moqDifficultParamNamesFn_doFn) *moqDifficultParamNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqDifficultParamNamesFn_params) {
+		fn(params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8, params.param9)
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqDifficultParamNamesFn_doFn
-		doReturnFn moqDifficultParamNamesFn_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqDifficultParamNamesFn_recorder) doReturnResults(fn moqDifficultParamNamesFn_doReturnFn) *moqDifficultParamNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqDifficultParamNamesFn_params) *moqDifficultParamNamesFn_results {
+		fn(params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8, params.param9)
+		return &moqDifficultParamNamesFn_results{}
 	})
 	return r
 }
 
-func (r *moqDifficultParamNamesFn_fnRecorder) andDo(fn moqDifficultParamNamesFn_doFn) *moqDifficultParamNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqDifficultParamNamesFn_recorder) repeat(repeaters ...moq.Repeater) *moqDifficultParamNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqDifficultParamNamesFn_fnRecorder) doReturnResults(fn moqDifficultParamNamesFn_doReturnFn) *moqDifficultParamNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqDifficultParamNamesFn_doFn
-		doReturnFn moqDifficultParamNamesFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqDifficultParamNamesFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqDifficultParamNamesFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqDifficultParamNamesFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqDifficultParamNamesFn_paramsKey]*moqDifficultParamNamesFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqDifficultParamNamesFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqDifficultParamNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqDifficultParamNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqDifficultParamNamesFn_doFn
-				doReturnFn moqDifficultParamNamesFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqDifficultParamNamesFn) prettyParams(params moqDifficultParamNamesFn_params) string {
+func (*moqDifficultParamNamesFn_adaptor) PrettyParams(params moqDifficultParamNamesFn_params) string {
 	return fmt.Sprintf("DifficultParamNamesFn(%#v, %#v, %#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8, params.param9)
 }
 
-func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_params, anyParams uint64) moqDifficultParamNamesFn_paramsKey {
-	m.scene.T.Helper()
-	var param1Used bool
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
-	var param3Used string
-	var param3UsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
-		if m.runtime.parameterIndexing.param3 == moq.ParamIndexByValue {
-			param3Used = params.param3
-		} else {
-			param3UsedHash = hash.DeepHash(params.param3)
-		}
-	}
-	var paramUsed int
-	var paramUsedHash hash.Hash
-	if anyParams&(1<<3) == 0 {
-		if m.runtime.parameterIndexing.param == moq.ParamIndexByValue {
-			paramUsed = params.param
-		} else {
-			paramUsedHash = hash.DeepHash(params.param)
-		}
-	}
-	var param5Used int
-	var param5UsedHash hash.Hash
-	if anyParams&(1<<4) == 0 {
-		if m.runtime.parameterIndexing.param5 == moq.ParamIndexByValue {
-			param5Used = params.param5
-		} else {
-			param5UsedHash = hash.DeepHash(params.param5)
-		}
-	}
-	var param6Used int
-	var param6UsedHash hash.Hash
-	if anyParams&(1<<5) == 0 {
-		if m.runtime.parameterIndexing.param6 == moq.ParamIndexByValue {
-			param6Used = params.param6
-		} else {
-			param6UsedHash = hash.DeepHash(params.param6)
-		}
-	}
-	var param7Used float32
-	var param7UsedHash hash.Hash
-	if anyParams&(1<<6) == 0 {
-		if m.runtime.parameterIndexing.param7 == moq.ParamIndexByValue {
-			param7Used = params.param7
-		} else {
-			param7UsedHash = hash.DeepHash(params.param7)
-		}
-	}
-	var param8Used float32
-	var param8UsedHash hash.Hash
-	if anyParams&(1<<7) == 0 {
-		if m.runtime.parameterIndexing.param8 == moq.ParamIndexByValue {
-			param8Used = params.param8
-		} else {
-			param8UsedHash = hash.DeepHash(params.param8)
-		}
-	}
-	var param9Used float32
-	var param9UsedHash hash.Hash
-	if anyParams&(1<<8) == 0 {
-		if m.runtime.parameterIndexing.param9 == moq.ParamIndexByValue {
-			param9Used = params.param9
-		} else {
-			param9UsedHash = hash.DeepHash(params.param9)
-		}
-	}
+func (a *moqDifficultParamNamesFn_adaptor) ParamsKey(params moqDifficultParamNamesFn_params, anyParams uint64) moqDifficultParamNamesFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.param2, anyParams)
+	param3Used, param3UsedHash := impl.ParamKey(
+		params.param3, 3, a.moq.runtime.parameterIndexing.param3, anyParams)
+	paramUsed, paramUsedHash := impl.ParamKey(
+		params.param, 4, a.moq.runtime.parameterIndexing.param, anyParams)
+	param5Used, param5UsedHash := impl.ParamKey(
+		params.param5, 5, a.moq.runtime.parameterIndexing.param5, anyParams)
+	param6Used, param6UsedHash := impl.ParamKey(
+		params.param6, 6, a.moq.runtime.parameterIndexing.param6, anyParams)
+	param7Used, param7UsedHash := impl.ParamKey(
+		params.param7, 7, a.moq.runtime.parameterIndexing.param7, anyParams)
+	param8Used, param8UsedHash := impl.ParamKey(
+		params.param8, 8, a.moq.runtime.parameterIndexing.param8, anyParams)
+	param9Used, param9UsedHash := impl.ParamKey(
+		params.param9, 9, a.moq.runtime.parameterIndexing.param9, anyParams)
 	return moqDifficultParamNamesFn_paramsKey{
 		params: struct {
 			param1, param2         bool
@@ -3817,38 +2133,38 @@ func (m *moqDifficultParamNamesFn) paramsKey(params moqDifficultParamNamesFn_par
 }
 
 // Reset resets the state of the moq
-func (m *moqDifficultParamNamesFn) Reset() { m.resultsByParams = nil }
+func (m *moqDifficultParamNamesFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqDifficultParamNamesFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqDifficultResultNamesFn holds the state of a moq of the
 // DifficultResultNamesFn type
 type moqDifficultResultNamesFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqDifficultResultNamesFn_mock
+	moq *impl.Moq[
+		*moqDifficultResultNamesFn_adaptor,
+		moqDifficultResultNamesFn_params,
+		moqDifficultResultNamesFn_paramsKey,
+		moqDifficultResultNamesFn_results,
+	]
 
-	resultsByParams []moqDifficultResultNamesFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct{}
-	}
+	runtime moqDifficultResultNamesFn_runtime
 }
 
-// moqDifficultResultNamesFn_mock isolates the mock interface of the
+// moqDifficultResultNamesFn_runtime holds runtime configuration for the
 // DifficultResultNamesFn type
-type moqDifficultResultNamesFn_mock struct {
+type moqDifficultResultNamesFn_runtime struct {
+	parameterIndexing moqDifficultResultNamesFn_paramIndexing
+}
+
+// moqDifficultResultNamesFn_adaptor adapts moqDifficultResultNamesFn as needed
+// by the runtime
+type moqDifficultResultNamesFn_adaptor struct {
 	moq *moqDifficultResultNamesFn
 }
 
@@ -3863,13 +2179,18 @@ type moqDifficultResultNamesFn_paramsKey struct {
 	hashes struct{}
 }
 
-// moqDifficultResultNamesFn_resultsByParams contains the results for a given
-// set of parameters for the DifficultResultNamesFn type
-type moqDifficultResultNamesFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqDifficultResultNamesFn_paramsKey]*moqDifficultResultNamesFn_results
+// moqDifficultResultNamesFn_results holds the results of the
+// DifficultResultNamesFn type
+type moqDifficultResultNamesFn_results struct {
+	result1, result2          string
+	result3                   error
+	param, result5, result6   int
+	result7, result8, result9 float32
 }
+
+// moqDifficultResultNamesFn_paramIndexing holds the parameter indexing runtime
+// configuration for the DifficultResultNamesFn type
+type moqDifficultResultNamesFn_paramIndexing struct{}
 
 // moqDifficultResultNamesFn_doFn defines the type of function needed when
 // calling andDo for the DifficultResultNamesFn type
@@ -3879,57 +2200,38 @@ type moqDifficultResultNamesFn_doFn func()
 // when calling doReturnResults for the DifficultResultNamesFn type
 type moqDifficultResultNamesFn_doReturnFn func() (m, r string, sequence error, param, params, i int, result, results, _ float32)
 
-// moqDifficultResultNamesFn_results holds the results of the
-// DifficultResultNamesFn type
-type moqDifficultResultNamesFn_results struct {
-	params  moqDifficultResultNamesFn_params
-	results []struct {
-		values *struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}
-		sequence   uint32
-		doFn       moqDifficultResultNamesFn_doFn
-		doReturnFn moqDifficultResultNamesFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqDifficultResultNamesFn_fnRecorder routes recorded function calls to the
+// moqDifficultResultNamesFn_recorder routes recorded function calls to the
 // moqDifficultResultNamesFn moq
-type moqDifficultResultNamesFn_fnRecorder struct {
-	params    moqDifficultResultNamesFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqDifficultResultNamesFn_results
-	moq       *moqDifficultResultNamesFn
+type moqDifficultResultNamesFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqDifficultResultNamesFn_adaptor,
+		moqDifficultResultNamesFn_params,
+		moqDifficultResultNamesFn_paramsKey,
+		moqDifficultResultNamesFn_results,
+	]
 }
 
 // moqDifficultResultNamesFn_anyParams isolates the any params functions of the
 // DifficultResultNamesFn type
 type moqDifficultResultNamesFn_anyParams struct {
-	recorder *moqDifficultResultNamesFn_fnRecorder
+	recorder *moqDifficultResultNamesFn_recorder
 }
 
 // newMoqDifficultResultNamesFn creates a new moq of the DifficultResultNamesFn
 // type
 func newMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *moqDifficultResultNamesFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqDifficultResultNamesFn_adaptor{}
 	m := &moqDifficultResultNamesFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqDifficultResultNamesFn_mock{},
+		moq: impl.NewMoq[
+			*moqDifficultResultNamesFn_adaptor,
+			moqDifficultResultNamesFn_params,
+			moqDifficultResultNamesFn_paramsKey,
+			moqDifficultResultNamesFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct{}
-		}{parameterIndexing: struct{}{}},
+		runtime: moqDifficultResultNamesFn_runtime{parameterIndexing: moqDifficultResultNamesFn_paramIndexing{}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -3937,135 +2239,95 @@ func newMoqDifficultResultNamesFn(scene *moq.Scene, config *moq.Config) *moqDiff
 
 // mock returns the moq implementation of the DifficultResultNamesFn type
 func (m *moqDifficultResultNamesFn) mock() testmoqs.DifficultResultNamesFn {
-	return func() (_, _ string, _ error, _, _, _ int, _, _, _ float32) {
-		m.scene.T.Helper()
-		moq := &moqDifficultResultNamesFn_mock{moq: m}
-		return moq.fn()
+	return func() (string, string, error, int, int, int, float32, float32, float32) {
+		m.moq.Scene.T.Helper()
+		params := moqDifficultResultNamesFn_params{}
+
+		var result1 string
+		var result2 string
+		var result3 error
+		var result4 int
+		var result5 int
+		var result6 int
+		var result7 float32
+		var result8 float32
+		var result9 float32
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+			result3 = result.result3
+			result4 = result.param
+			result5 = result.result5
+			result6 = result.result6
+			result7 = result.result7
+			result8 = result.result8
+			result9 = result.result9
+		}
+		return result1, result2, result3, result4, result5, result6, result7, result8, result9
 	}
 }
 
-func (m *moqDifficultResultNamesFn_mock) fn() (result1, result2 string, result3 error, param, result5, result6 int, result7, result8, result9 float32) {
-	m.moq.scene.T.Helper()
-	params := moqDifficultResultNamesFn_params{}
-	var results *moqDifficultResultNamesFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-		result3 = result.values.result3
-		param = result.values.param
-		result5 = result.values.result5
-		result6 = result.values.result6
-		result7 = result.values.result7
-		result8 = result.values.result8
-		result9 = result.values.result9
-	}
-	if result.doReturnFn != nil {
-		result1, result2, result3, param, result5, result6, result7, result8, result9 = result.doReturnFn()
-	}
-	return
-}
-
-func (m *moqDifficultResultNamesFn) onCall() *moqDifficultResultNamesFn_fnRecorder {
-	return &moqDifficultResultNamesFn_fnRecorder{
-		params:   moqDifficultResultNamesFn_params{},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+func (m *moqDifficultResultNamesFn) onCall() *moqDifficultResultNamesFn_recorder {
+	return &moqDifficultResultNamesFn_recorder{
+		recorder: m.moq.OnCall(moqDifficultResultNamesFn_params{}),
 	}
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) any() *moqDifficultResultNamesFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqDifficultResultNamesFn_recorder) any() *moqDifficultResultNamesFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqDifficultResultNamesFn_anyParams{recorder: r}
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) seq() *moqDifficultResultNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqDifficultResultNamesFn_recorder) seq() *moqDifficultResultNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) noSeq() *moqDifficultResultNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqDifficultResultNamesFn_recorder) noSeq() *moqDifficultResultNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5, result6 int, result7, result8, result9 float32) *moqDifficultResultNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqDifficultResultNamesFn_recorder) returnResults(result1, result2 string, result3 error, param, result5, result6 int, result7, result8, result9 float32) *moqDifficultResultNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqDifficultResultNamesFn_results{
+		result1: result1,
+		result2: result2,
+		result3: result3,
+		param:   param,
+		result5: result5,
+		result6: result6,
+		result7: result7,
+		result8: result8,
+		result9: result9,
+	})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqDifficultResultNamesFn_recorder) andDo(fn moqDifficultResultNamesFn_doFn) *moqDifficultResultNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqDifficultResultNamesFn_params) {
+		fn()
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}
-		sequence   uint32
-		doFn       moqDifficultResultNamesFn_doFn
-		doReturnFn moqDifficultResultNamesFn_doReturnFn
-	}{
-		values: &struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}{
+func (r *moqDifficultResultNamesFn_recorder) doReturnResults(fn moqDifficultResultNamesFn_doReturnFn) *moqDifficultResultNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqDifficultResultNamesFn_params) *moqDifficultResultNamesFn_results {
+		result1, result2, result3, param, result5, result6, result7, result8, result9 := fn()
+		return &moqDifficultResultNamesFn_results{
 			result1: result1,
 			result2: result2,
 			result3: result3,
@@ -4075,131 +2337,25 @@ func (r *moqDifficultResultNamesFn_fnRecorder) returnResults(result1, result2 st
 			result7: result7,
 			result8: result8,
 			result9: result9,
-		},
-		sequence: sequence,
+		}
 	})
 	return r
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) andDo(fn moqDifficultResultNamesFn_doFn) *moqDifficultResultNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqDifficultResultNamesFn_recorder) repeat(repeaters ...moq.Repeater) *moqDifficultResultNamesFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqDifficultResultNamesFn_fnRecorder) doReturnResults(fn moqDifficultResultNamesFn_doReturnFn) *moqDifficultResultNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}
-		sequence   uint32
-		doFn       moqDifficultResultNamesFn_doFn
-		doReturnFn moqDifficultResultNamesFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqDifficultResultNamesFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqDifficultResultNamesFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqDifficultResultNamesFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqDifficultResultNamesFn_paramsKey]*moqDifficultResultNamesFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqDifficultResultNamesFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqDifficultResultNamesFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqDifficultResultNamesFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1, result2          string
-					result3                   error
-					param, result5, result6   int
-					result7, result8, result9 float32
-				}
-				sequence   uint32
-				doFn       moqDifficultResultNamesFn_doFn
-				doReturnFn moqDifficultResultNamesFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqDifficultResultNamesFn) prettyParams(params moqDifficultResultNamesFn_params) string {
+func (*moqDifficultResultNamesFn_adaptor) PrettyParams(params moqDifficultResultNamesFn_params) string {
 	return fmt.Sprintf("DifficultResultNamesFn()")
 }
 
-func (m *moqDifficultResultNamesFn) paramsKey(params moqDifficultResultNamesFn_params, anyParams uint64) moqDifficultResultNamesFn_paramsKey {
-	m.scene.T.Helper()
+func (a *moqDifficultResultNamesFn_adaptor) ParamsKey(params moqDifficultResultNamesFn_params, anyParams uint64) moqDifficultResultNamesFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
 	return moqDifficultResultNamesFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -4207,38 +2363,36 @@ func (m *moqDifficultResultNamesFn) paramsKey(params moqDifficultResultNamesFn_p
 }
 
 // Reset resets the state of the moq
-func (m *moqDifficultResultNamesFn) Reset() { m.resultsByParams = nil }
+func (m *moqDifficultResultNamesFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqDifficultResultNamesFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassByArrayFn holds the state of a moq of the PassByArrayFn type
 type moqPassByArrayFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassByArrayFn_mock
+	moq *impl.Moq[
+		*moqPassByArrayFn_adaptor,
+		moqPassByArrayFn_params,
+		moqPassByArrayFn_paramsKey,
+		moqPassByArrayFn_results,
+	]
 
-	resultsByParams []moqPassByArrayFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassByArrayFn_runtime
 }
 
-// moqPassByArrayFn_mock isolates the mock interface of the PassByArrayFn type
-type moqPassByArrayFn_mock struct {
+// moqPassByArrayFn_runtime holds runtime configuration for the PassByArrayFn
+// type
+type moqPassByArrayFn_runtime struct {
+	parameterIndexing moqPassByArrayFn_paramIndexing
+}
+
+// moqPassByArrayFn_adaptor adapts moqPassByArrayFn as needed by the runtime
+type moqPassByArrayFn_adaptor struct {
 	moq *moqPassByArrayFn
 }
 
@@ -4252,12 +2406,15 @@ type moqPassByArrayFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassByArrayFn_resultsByParams contains the results for a given set of
-// parameters for the PassByArrayFn type
-type moqPassByArrayFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassByArrayFn_paramsKey]*moqPassByArrayFn_results
+// moqPassByArrayFn_results holds the results of the PassByArrayFn type
+type moqPassByArrayFn_results struct {
+	result1 [3]testmoqs.Results
+}
+
+// moqPassByArrayFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassByArrayFn type
+type moqPassByArrayFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassByArrayFn_doFn defines the type of function needed when calling andDo
@@ -4268,58 +2425,39 @@ type moqPassByArrayFn_doFn func(p [3]testmoqs.Params)
 // doReturnResults for the PassByArrayFn type
 type moqPassByArrayFn_doReturnFn func(p [3]testmoqs.Params) [3]testmoqs.Results
 
-// moqPassByArrayFn_results holds the results of the PassByArrayFn type
-type moqPassByArrayFn_results struct {
-	params  moqPassByArrayFn_params
-	results []struct {
-		values *struct {
-			result1 [3]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByArrayFn_doFn
-		doReturnFn moqPassByArrayFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassByArrayFn_fnRecorder routes recorded function calls to the
+// moqPassByArrayFn_recorder routes recorded function calls to the
 // moqPassByArrayFn moq
-type moqPassByArrayFn_fnRecorder struct {
-	params    moqPassByArrayFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassByArrayFn_results
-	moq       *moqPassByArrayFn
+type moqPassByArrayFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassByArrayFn_adaptor,
+		moqPassByArrayFn_params,
+		moqPassByArrayFn_paramsKey,
+		moqPassByArrayFn_results,
+	]
 }
 
 // moqPassByArrayFn_anyParams isolates the any params functions of the
 // PassByArrayFn type
 type moqPassByArrayFn_anyParams struct {
-	recorder *moqPassByArrayFn_fnRecorder
+	recorder *moqPassByArrayFn_recorder
 }
 
 // newMoqPassByArrayFn creates a new moq of the PassByArrayFn type
 func newMoqPassByArrayFn(scene *moq.Scene, config *moq.Config) *moqPassByArrayFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassByArrayFn_adaptor{}
 	m := &moqPassByArrayFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassByArrayFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassByArrayFn_adaptor,
+			moqPassByArrayFn_params,
+			moqPassByArrayFn_paramsKey,
+			moqPassByArrayFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassByArrayFn_runtime{parameterIndexing: moqPassByArrayFn_paramIndexing{
 			p: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -4328,258 +2466,101 @@ func newMoqPassByArrayFn(scene *moq.Scene, config *moq.Config) *moqPassByArrayFn
 // mock returns the moq implementation of the PassByArrayFn type
 func (m *moqPassByArrayFn) mock() testmoqs.PassByArrayFn {
 	return func(p [3]testmoqs.Params) [3]testmoqs.Results {
-		m.scene.T.Helper()
-		moq := &moqPassByArrayFn_mock{moq: m}
-		return moq.fn(p)
-	}
-}
-
-func (m *moqPassByArrayFn_mock) fn(p [3]testmoqs.Params) (result1 [3]testmoqs.Results) {
-	m.moq.scene.T.Helper()
-	params := moqPassByArrayFn_params{
-		p: p,
-	}
-	var results *moqPassByArrayFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
-}
-
-func (m *moqPassByArrayFn) onCall(p [3]testmoqs.Params) *moqPassByArrayFn_fnRecorder {
-	return &moqPassByArrayFn_fnRecorder{
-		params: moqPassByArrayFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassByArrayFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 [3]testmoqs.Results
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqPassByArrayFn_fnRecorder) any() *moqPassByArrayFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassByArrayFn) onCall(p [3]testmoqs.Params) *moqPassByArrayFn_recorder {
+	return &moqPassByArrayFn_recorder{
+		recorder: m.moq.OnCall(moqPassByArrayFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassByArrayFn_recorder) any() *moqPassByArrayFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassByArrayFn_anyParams{recorder: r}
 }
 
-func (a *moqPassByArrayFn_anyParams) p() *moqPassByArrayFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassByArrayFn_anyParams) p() *moqPassByArrayFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassByArrayFn_fnRecorder) seq() *moqPassByArrayFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByArrayFn_recorder) seq() *moqPassByArrayFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassByArrayFn_fnRecorder) noSeq() *moqPassByArrayFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByArrayFn_recorder) noSeq() *moqPassByArrayFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassByArrayFn_fnRecorder) returnResults(result1 [3]testmoqs.Results) *moqPassByArrayFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 [3]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByArrayFn_doFn
-		doReturnFn moqPassByArrayFn_doReturnFn
-	}{
-		values: &struct {
-			result1 [3]testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqPassByArrayFn_recorder) returnResults(result1 [3]testmoqs.Results) *moqPassByArrayFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassByArrayFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqPassByArrayFn_fnRecorder) andDo(fn moqPassByArrayFn_doFn) *moqPassByArrayFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassByArrayFn_recorder) andDo(fn moqPassByArrayFn_doFn) *moqPassByArrayFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassByArrayFn_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassByArrayFn_fnRecorder) doReturnResults(fn moqPassByArrayFn_doReturnFn) *moqPassByArrayFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 [3]testmoqs.Results
+func (r *moqPassByArrayFn_recorder) doReturnResults(fn moqPassByArrayFn_doReturnFn) *moqPassByArrayFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassByArrayFn_params) *moqPassByArrayFn_results {
+		result1 := fn(params.p)
+		return &moqPassByArrayFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqPassByArrayFn_doFn
-		doReturnFn moqPassByArrayFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassByArrayFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassByArrayFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassByArrayFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassByArrayFn_paramsKey]*moqPassByArrayFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassByArrayFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassByArrayFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassByArrayFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassByArrayFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassByArrayFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 [3]testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqPassByArrayFn_doFn
-				doReturnFn moqPassByArrayFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassByArrayFn) prettyParams(params moqPassByArrayFn_params) string {
+func (*moqPassByArrayFn_adaptor) PrettyParams(params moqPassByArrayFn_params) string {
 	return fmt.Sprintf("PassByArrayFn(%#v)", params.p)
 }
 
-func (m *moqPassByArrayFn) paramsKey(params moqPassByArrayFn_params, anyParams uint64) moqPassByArrayFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsed [3]testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqPassByArrayFn_adaptor) ParamsKey(params moqPassByArrayFn_params, anyParams uint64) moqPassByArrayFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassByArrayFn_paramsKey{
 		params: struct{ p [3]testmoqs.Params }{
 			p: pUsed,
@@ -4591,38 +2572,36 @@ func (m *moqPassByArrayFn) paramsKey(params moqPassByArrayFn_params, anyParams u
 }
 
 // Reset resets the state of the moq
-func (m *moqPassByArrayFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassByArrayFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassByArrayFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassByChanFn holds the state of a moq of the PassByChanFn type
 type moqPassByChanFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassByChanFn_mock
+	moq *impl.Moq[
+		*moqPassByChanFn_adaptor,
+		moqPassByChanFn_params,
+		moqPassByChanFn_paramsKey,
+		moqPassByChanFn_results,
+	]
 
-	resultsByParams []moqPassByChanFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassByChanFn_runtime
 }
 
-// moqPassByChanFn_mock isolates the mock interface of the PassByChanFn type
-type moqPassByChanFn_mock struct {
+// moqPassByChanFn_runtime holds runtime configuration for the PassByChanFn
+// type
+type moqPassByChanFn_runtime struct {
+	parameterIndexing moqPassByChanFn_paramIndexing
+}
+
+// moqPassByChanFn_adaptor adapts moqPassByChanFn as needed by the runtime
+type moqPassByChanFn_adaptor struct {
 	moq *moqPassByChanFn
 }
 
@@ -4635,12 +2614,15 @@ type moqPassByChanFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassByChanFn_resultsByParams contains the results for a given set of
-// parameters for the PassByChanFn type
-type moqPassByChanFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassByChanFn_paramsKey]*moqPassByChanFn_results
+// moqPassByChanFn_results holds the results of the PassByChanFn type
+type moqPassByChanFn_results struct {
+	result1 chan testmoqs.Results
+}
+
+// moqPassByChanFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassByChanFn type
+type moqPassByChanFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassByChanFn_doFn defines the type of function needed when calling andDo
@@ -4651,58 +2633,39 @@ type moqPassByChanFn_doFn func(p chan testmoqs.Params)
 // doReturnResults for the PassByChanFn type
 type moqPassByChanFn_doReturnFn func(p chan testmoqs.Params) chan testmoqs.Results
 
-// moqPassByChanFn_results holds the results of the PassByChanFn type
-type moqPassByChanFn_results struct {
-	params  moqPassByChanFn_params
-	results []struct {
-		values *struct {
-			result1 chan testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByChanFn_doFn
-		doReturnFn moqPassByChanFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassByChanFn_fnRecorder routes recorded function calls to the
+// moqPassByChanFn_recorder routes recorded function calls to the
 // moqPassByChanFn moq
-type moqPassByChanFn_fnRecorder struct {
-	params    moqPassByChanFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassByChanFn_results
-	moq       *moqPassByChanFn
+type moqPassByChanFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassByChanFn_adaptor,
+		moqPassByChanFn_params,
+		moqPassByChanFn_paramsKey,
+		moqPassByChanFn_results,
+	]
 }
 
 // moqPassByChanFn_anyParams isolates the any params functions of the
 // PassByChanFn type
 type moqPassByChanFn_anyParams struct {
-	recorder *moqPassByChanFn_fnRecorder
+	recorder *moqPassByChanFn_recorder
 }
 
 // newMoqPassByChanFn creates a new moq of the PassByChanFn type
 func newMoqPassByChanFn(scene *moq.Scene, config *moq.Config) *moqPassByChanFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassByChanFn_adaptor{}
 	m := &moqPassByChanFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassByChanFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassByChanFn_adaptor,
+			moqPassByChanFn_params,
+			moqPassByChanFn_paramsKey,
+			moqPassByChanFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassByChanFn_runtime{parameterIndexing: moqPassByChanFn_paramIndexing{
 			p: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -4711,258 +2674,101 @@ func newMoqPassByChanFn(scene *moq.Scene, config *moq.Config) *moqPassByChanFn {
 // mock returns the moq implementation of the PassByChanFn type
 func (m *moqPassByChanFn) mock() testmoqs.PassByChanFn {
 	return func(p chan testmoqs.Params) chan testmoqs.Results {
-		m.scene.T.Helper()
-		moq := &moqPassByChanFn_mock{moq: m}
-		return moq.fn(p)
-	}
-}
-
-func (m *moqPassByChanFn_mock) fn(p chan testmoqs.Params) (result1 chan testmoqs.Results) {
-	m.moq.scene.T.Helper()
-	params := moqPassByChanFn_params{
-		p: p,
-	}
-	var results *moqPassByChanFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
-}
-
-func (m *moqPassByChanFn) onCall(p chan testmoqs.Params) *moqPassByChanFn_fnRecorder {
-	return &moqPassByChanFn_fnRecorder{
-		params: moqPassByChanFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassByChanFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 chan testmoqs.Results
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqPassByChanFn_fnRecorder) any() *moqPassByChanFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassByChanFn) onCall(p chan testmoqs.Params) *moqPassByChanFn_recorder {
+	return &moqPassByChanFn_recorder{
+		recorder: m.moq.OnCall(moqPassByChanFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassByChanFn_recorder) any() *moqPassByChanFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassByChanFn_anyParams{recorder: r}
 }
 
-func (a *moqPassByChanFn_anyParams) p() *moqPassByChanFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassByChanFn_anyParams) p() *moqPassByChanFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassByChanFn_fnRecorder) seq() *moqPassByChanFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByChanFn_recorder) seq() *moqPassByChanFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassByChanFn_fnRecorder) noSeq() *moqPassByChanFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByChanFn_recorder) noSeq() *moqPassByChanFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassByChanFn_fnRecorder) returnResults(result1 chan testmoqs.Results) *moqPassByChanFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 chan testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByChanFn_doFn
-		doReturnFn moqPassByChanFn_doReturnFn
-	}{
-		values: &struct {
-			result1 chan testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqPassByChanFn_recorder) returnResults(result1 chan testmoqs.Results) *moqPassByChanFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassByChanFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqPassByChanFn_fnRecorder) andDo(fn moqPassByChanFn_doFn) *moqPassByChanFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassByChanFn_recorder) andDo(fn moqPassByChanFn_doFn) *moqPassByChanFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassByChanFn_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassByChanFn_fnRecorder) doReturnResults(fn moqPassByChanFn_doReturnFn) *moqPassByChanFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 chan testmoqs.Results
+func (r *moqPassByChanFn_recorder) doReturnResults(fn moqPassByChanFn_doReturnFn) *moqPassByChanFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassByChanFn_params) *moqPassByChanFn_results {
+		result1 := fn(params.p)
+		return &moqPassByChanFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqPassByChanFn_doFn
-		doReturnFn moqPassByChanFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassByChanFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassByChanFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassByChanFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassByChanFn_paramsKey]*moqPassByChanFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassByChanFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassByChanFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassByChanFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassByChanFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassByChanFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 chan testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqPassByChanFn_doFn
-				doReturnFn moqPassByChanFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassByChanFn) prettyParams(params moqPassByChanFn_params) string {
+func (*moqPassByChanFn_adaptor) PrettyParams(params moqPassByChanFn_params) string {
 	return fmt.Sprintf("PassByChanFn(%#v)", params.p)
 }
 
-func (m *moqPassByChanFn) paramsKey(params moqPassByChanFn_params, anyParams uint64) moqPassByChanFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsed chan testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqPassByChanFn_adaptor) ParamsKey(params moqPassByChanFn_params, anyParams uint64) moqPassByChanFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassByChanFn_paramsKey{
 		params: struct{ p chan testmoqs.Params }{
 			p: pUsed,
@@ -4974,39 +2780,37 @@ func (m *moqPassByChanFn) paramsKey(params moqPassByChanFn_params, anyParams uin
 }
 
 // Reset resets the state of the moq
-func (m *moqPassByChanFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassByChanFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassByChanFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassByEllipsisFn holds the state of a moq of the PassByEllipsisFn type
 type moqPassByEllipsisFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassByEllipsisFn_mock
+	moq *impl.Moq[
+		*moqPassByEllipsisFn_adaptor,
+		moqPassByEllipsisFn_params,
+		moqPassByEllipsisFn_paramsKey,
+		moqPassByEllipsisFn_results,
+	]
 
-	resultsByParams []moqPassByEllipsisFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassByEllipsisFn_runtime
 }
 
-// moqPassByEllipsisFn_mock isolates the mock interface of the PassByEllipsisFn
-// type
-type moqPassByEllipsisFn_mock struct {
+// moqPassByEllipsisFn_runtime holds runtime configuration for the
+// PassByEllipsisFn type
+type moqPassByEllipsisFn_runtime struct {
+	parameterIndexing moqPassByEllipsisFn_paramIndexing
+}
+
+// moqPassByEllipsisFn_adaptor adapts moqPassByEllipsisFn as needed by the
+// runtime
+type moqPassByEllipsisFn_adaptor struct {
 	moq *moqPassByEllipsisFn
 }
 
@@ -5020,12 +2824,16 @@ type moqPassByEllipsisFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassByEllipsisFn_resultsByParams contains the results for a given set of
-// parameters for the PassByEllipsisFn type
-type moqPassByEllipsisFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassByEllipsisFn_paramsKey]*moqPassByEllipsisFn_results
+// moqPassByEllipsisFn_results holds the results of the PassByEllipsisFn type
+type moqPassByEllipsisFn_results struct {
+	result1 string
+	result2 error
+}
+
+// moqPassByEllipsisFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassByEllipsisFn type
+type moqPassByEllipsisFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassByEllipsisFn_doFn defines the type of function needed when calling
@@ -5036,59 +2844,39 @@ type moqPassByEllipsisFn_doFn func(p ...testmoqs.Params)
 // calling doReturnResults for the PassByEllipsisFn type
 type moqPassByEllipsisFn_doReturnFn func(p ...testmoqs.Params) (string, error)
 
-// moqPassByEllipsisFn_results holds the results of the PassByEllipsisFn type
-type moqPassByEllipsisFn_results struct {
-	params  moqPassByEllipsisFn_params
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPassByEllipsisFn_doFn
-		doReturnFn moqPassByEllipsisFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassByEllipsisFn_fnRecorder routes recorded function calls to the
+// moqPassByEllipsisFn_recorder routes recorded function calls to the
 // moqPassByEllipsisFn moq
-type moqPassByEllipsisFn_fnRecorder struct {
-	params    moqPassByEllipsisFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassByEllipsisFn_results
-	moq       *moqPassByEllipsisFn
+type moqPassByEllipsisFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassByEllipsisFn_adaptor,
+		moqPassByEllipsisFn_params,
+		moqPassByEllipsisFn_paramsKey,
+		moqPassByEllipsisFn_results,
+	]
 }
 
 // moqPassByEllipsisFn_anyParams isolates the any params functions of the
 // PassByEllipsisFn type
 type moqPassByEllipsisFn_anyParams struct {
-	recorder *moqPassByEllipsisFn_fnRecorder
+	recorder *moqPassByEllipsisFn_recorder
 }
 
 // newMoqPassByEllipsisFn creates a new moq of the PassByEllipsisFn type
 func newMoqPassByEllipsisFn(scene *moq.Scene, config *moq.Config) *moqPassByEllipsisFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassByEllipsisFn_adaptor{}
 	m := &moqPassByEllipsisFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassByEllipsisFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassByEllipsisFn_adaptor,
+			moqPassByEllipsisFn_params,
+			moqPassByEllipsisFn_paramsKey,
+			moqPassByEllipsisFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassByEllipsisFn_runtime{parameterIndexing: moqPassByEllipsisFn_paramIndexing{
 			p: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -5097,262 +2885,105 @@ func newMoqPassByEllipsisFn(scene *moq.Scene, config *moq.Config) *moqPassByElli
 // mock returns the moq implementation of the PassByEllipsisFn type
 func (m *moqPassByEllipsisFn) mock() testmoqs.PassByEllipsisFn {
 	return func(p ...testmoqs.Params) (string, error) {
-		m.scene.T.Helper()
-		moq := &moqPassByEllipsisFn_mock{moq: m}
-		return moq.fn(p...)
-	}
-}
-
-func (m *moqPassByEllipsisFn_mock) fn(p ...testmoqs.Params) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqPassByEllipsisFn_params{
-		p: p,
-	}
-	var results *moqPassByEllipsisFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p...)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(p...)
-	}
-	return
-}
-
-func (m *moqPassByEllipsisFn) onCall(p ...testmoqs.Params) *moqPassByEllipsisFn_fnRecorder {
-	return &moqPassByEllipsisFn_fnRecorder{
-		params: moqPassByEllipsisFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassByEllipsisFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) any() *moqPassByEllipsisFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassByEllipsisFn) onCall(p ...testmoqs.Params) *moqPassByEllipsisFn_recorder {
+	return &moqPassByEllipsisFn_recorder{
+		recorder: m.moq.OnCall(moqPassByEllipsisFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassByEllipsisFn_recorder) any() *moqPassByEllipsisFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassByEllipsisFn_anyParams{recorder: r}
 }
 
-func (a *moqPassByEllipsisFn_anyParams) p() *moqPassByEllipsisFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassByEllipsisFn_anyParams) p() *moqPassByEllipsisFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) seq() *moqPassByEllipsisFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByEllipsisFn_recorder) seq() *moqPassByEllipsisFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) noSeq() *moqPassByEllipsisFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByEllipsisFn_recorder) noSeq() *moqPassByEllipsisFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) returnResults(result1 string, result2 error) *moqPassByEllipsisFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPassByEllipsisFn_doFn
-		doReturnFn moqPassByEllipsisFn_doReturnFn
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqPassByEllipsisFn_recorder) returnResults(result1 string, result2 error) *moqPassByEllipsisFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassByEllipsisFn_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) andDo(fn moqPassByEllipsisFn_doFn) *moqPassByEllipsisFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassByEllipsisFn_recorder) andDo(fn moqPassByEllipsisFn_doFn) *moqPassByEllipsisFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassByEllipsisFn_params) {
+		fn(params.p...)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) doReturnResults(fn moqPassByEllipsisFn_doReturnFn) *moqPassByEllipsisFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqPassByEllipsisFn_recorder) doReturnResults(fn moqPassByEllipsisFn_doReturnFn) *moqPassByEllipsisFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassByEllipsisFn_params) *moqPassByEllipsisFn_results {
+		result1, result2 := fn(params.p...)
+		return &moqPassByEllipsisFn_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqPassByEllipsisFn_doFn
-		doReturnFn moqPassByEllipsisFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassByEllipsisFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassByEllipsisFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassByEllipsisFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassByEllipsisFn_paramsKey]*moqPassByEllipsisFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassByEllipsisFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassByEllipsisFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassByEllipsisFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassByEllipsisFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassByEllipsisFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqPassByEllipsisFn_doFn
-				doReturnFn moqPassByEllipsisFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassByEllipsisFn) prettyParams(params moqPassByEllipsisFn_params) string {
+func (*moqPassByEllipsisFn_adaptor) PrettyParams(params moqPassByEllipsisFn_params) string {
 	return fmt.Sprintf("PassByEllipsisFn(%#v)", params.p)
 }
 
-func (m *moqPassByEllipsisFn) paramsKey(params moqPassByEllipsisFn_params, anyParams uint64) moqPassByEllipsisFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqPassByEllipsisFn_adaptor) ParamsKey(params moqPassByEllipsisFn_params, anyParams uint64) moqPassByEllipsisFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassByEllipsisFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -5362,38 +2993,35 @@ func (m *moqPassByEllipsisFn) paramsKey(params moqPassByEllipsisFn_params, anyPa
 }
 
 // Reset resets the state of the moq
-func (m *moqPassByEllipsisFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassByEllipsisFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassByEllipsisFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassByMapFn holds the state of a moq of the PassByMapFn type
 type moqPassByMapFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassByMapFn_mock
+	moq *impl.Moq[
+		*moqPassByMapFn_adaptor,
+		moqPassByMapFn_params,
+		moqPassByMapFn_paramsKey,
+		moqPassByMapFn_results,
+	]
 
-	resultsByParams []moqPassByMapFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassByMapFn_runtime
 }
 
-// moqPassByMapFn_mock isolates the mock interface of the PassByMapFn type
-type moqPassByMapFn_mock struct {
+// moqPassByMapFn_runtime holds runtime configuration for the PassByMapFn type
+type moqPassByMapFn_runtime struct {
+	parameterIndexing moqPassByMapFn_paramIndexing
+}
+
+// moqPassByMapFn_adaptor adapts moqPassByMapFn as needed by the runtime
+type moqPassByMapFn_adaptor struct {
 	moq *moqPassByMapFn
 }
 
@@ -5406,12 +3034,15 @@ type moqPassByMapFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassByMapFn_resultsByParams contains the results for a given set of
-// parameters for the PassByMapFn type
-type moqPassByMapFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassByMapFn_paramsKey]*moqPassByMapFn_results
+// moqPassByMapFn_results holds the results of the PassByMapFn type
+type moqPassByMapFn_results struct {
+	result1 map[string]testmoqs.Results
+}
+
+// moqPassByMapFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassByMapFn type
+type moqPassByMapFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassByMapFn_doFn defines the type of function needed when calling andDo
@@ -5422,58 +3053,39 @@ type moqPassByMapFn_doFn func(p map[string]testmoqs.Params)
 // doReturnResults for the PassByMapFn type
 type moqPassByMapFn_doReturnFn func(p map[string]testmoqs.Params) map[string]testmoqs.Results
 
-// moqPassByMapFn_results holds the results of the PassByMapFn type
-type moqPassByMapFn_results struct {
-	params  moqPassByMapFn_params
-	results []struct {
-		values *struct {
-			result1 map[string]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByMapFn_doFn
-		doReturnFn moqPassByMapFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassByMapFn_fnRecorder routes recorded function calls to the
-// moqPassByMapFn moq
-type moqPassByMapFn_fnRecorder struct {
-	params    moqPassByMapFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassByMapFn_results
-	moq       *moqPassByMapFn
+// moqPassByMapFn_recorder routes recorded function calls to the moqPassByMapFn
+// moq
+type moqPassByMapFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassByMapFn_adaptor,
+		moqPassByMapFn_params,
+		moqPassByMapFn_paramsKey,
+		moqPassByMapFn_results,
+	]
 }
 
 // moqPassByMapFn_anyParams isolates the any params functions of the
 // PassByMapFn type
 type moqPassByMapFn_anyParams struct {
-	recorder *moqPassByMapFn_fnRecorder
+	recorder *moqPassByMapFn_recorder
 }
 
 // newMoqPassByMapFn creates a new moq of the PassByMapFn type
 func newMoqPassByMapFn(scene *moq.Scene, config *moq.Config) *moqPassByMapFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassByMapFn_adaptor{}
 	m := &moqPassByMapFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassByMapFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassByMapFn_adaptor,
+			moqPassByMapFn_params,
+			moqPassByMapFn_paramsKey,
+			moqPassByMapFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassByMapFn_runtime{parameterIndexing: moqPassByMapFn_paramIndexing{
 			p: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -5482,256 +3094,101 @@ func newMoqPassByMapFn(scene *moq.Scene, config *moq.Config) *moqPassByMapFn {
 // mock returns the moq implementation of the PassByMapFn type
 func (m *moqPassByMapFn) mock() testmoqs.PassByMapFn {
 	return func(p map[string]testmoqs.Params) map[string]testmoqs.Results {
-		m.scene.T.Helper()
-		moq := &moqPassByMapFn_mock{moq: m}
-		return moq.fn(p)
-	}
-}
-
-func (m *moqPassByMapFn_mock) fn(p map[string]testmoqs.Params) (result1 map[string]testmoqs.Results) {
-	m.moq.scene.T.Helper()
-	params := moqPassByMapFn_params{
-		p: p,
-	}
-	var results *moqPassByMapFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
-}
-
-func (m *moqPassByMapFn) onCall(p map[string]testmoqs.Params) *moqPassByMapFn_fnRecorder {
-	return &moqPassByMapFn_fnRecorder{
-		params: moqPassByMapFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassByMapFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 map[string]testmoqs.Results
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqPassByMapFn_fnRecorder) any() *moqPassByMapFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassByMapFn) onCall(p map[string]testmoqs.Params) *moqPassByMapFn_recorder {
+	return &moqPassByMapFn_recorder{
+		recorder: m.moq.OnCall(moqPassByMapFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassByMapFn_recorder) any() *moqPassByMapFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassByMapFn_anyParams{recorder: r}
 }
 
-func (a *moqPassByMapFn_anyParams) p() *moqPassByMapFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassByMapFn_anyParams) p() *moqPassByMapFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassByMapFn_fnRecorder) seq() *moqPassByMapFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByMapFn_recorder) seq() *moqPassByMapFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassByMapFn_fnRecorder) noSeq() *moqPassByMapFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByMapFn_recorder) noSeq() *moqPassByMapFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassByMapFn_fnRecorder) returnResults(result1 map[string]testmoqs.Results) *moqPassByMapFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 map[string]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByMapFn_doFn
-		doReturnFn moqPassByMapFn_doReturnFn
-	}{
-		values: &struct {
-			result1 map[string]testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqPassByMapFn_recorder) returnResults(result1 map[string]testmoqs.Results) *moqPassByMapFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassByMapFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqPassByMapFn_fnRecorder) andDo(fn moqPassByMapFn_doFn) *moqPassByMapFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassByMapFn_recorder) andDo(fn moqPassByMapFn_doFn) *moqPassByMapFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassByMapFn_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassByMapFn_fnRecorder) doReturnResults(fn moqPassByMapFn_doReturnFn) *moqPassByMapFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 map[string]testmoqs.Results
+func (r *moqPassByMapFn_recorder) doReturnResults(fn moqPassByMapFn_doReturnFn) *moqPassByMapFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassByMapFn_params) *moqPassByMapFn_results {
+		result1 := fn(params.p)
+		return &moqPassByMapFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqPassByMapFn_doFn
-		doReturnFn moqPassByMapFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassByMapFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassByMapFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassByMapFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassByMapFn_paramsKey]*moqPassByMapFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassByMapFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassByMapFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassByMapFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassByMapFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassByMapFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 map[string]testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqPassByMapFn_doFn
-				doReturnFn moqPassByMapFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassByMapFn) prettyParams(params moqPassByMapFn_params) string {
+func (*moqPassByMapFn_adaptor) PrettyParams(params moqPassByMapFn_params) string {
 	return fmt.Sprintf("PassByMapFn(%#v)", params.p)
 }
 
-func (m *moqPassByMapFn) paramsKey(params moqPassByMapFn_params, anyParams uint64) moqPassByMapFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqPassByMapFn_adaptor) ParamsKey(params moqPassByMapFn_params, anyParams uint64) moqPassByMapFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassByMapFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -5741,39 +3198,37 @@ func (m *moqPassByMapFn) paramsKey(params moqPassByMapFn_params, anyParams uint6
 }
 
 // Reset resets the state of the moq
-func (m *moqPassByMapFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassByMapFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassByMapFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassByReferenceFn holds the state of a moq of the PassByReferenceFn type
 type moqPassByReferenceFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassByReferenceFn_mock
+	moq *impl.Moq[
+		*moqPassByReferenceFn_adaptor,
+		moqPassByReferenceFn_params,
+		moqPassByReferenceFn_paramsKey,
+		moqPassByReferenceFn_results,
+	]
 
-	resultsByParams []moqPassByReferenceFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassByReferenceFn_runtime
 }
 
-// moqPassByReferenceFn_mock isolates the mock interface of the
+// moqPassByReferenceFn_runtime holds runtime configuration for the
 // PassByReferenceFn type
-type moqPassByReferenceFn_mock struct {
+type moqPassByReferenceFn_runtime struct {
+	parameterIndexing moqPassByReferenceFn_paramIndexing
+}
+
+// moqPassByReferenceFn_adaptor adapts moqPassByReferenceFn as needed by the
+// runtime
+type moqPassByReferenceFn_adaptor struct {
 	moq *moqPassByReferenceFn
 }
 
@@ -5787,12 +3242,15 @@ type moqPassByReferenceFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassByReferenceFn_resultsByParams contains the results for a given set of
-// parameters for the PassByReferenceFn type
-type moqPassByReferenceFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassByReferenceFn_paramsKey]*moqPassByReferenceFn_results
+// moqPassByReferenceFn_results holds the results of the PassByReferenceFn type
+type moqPassByReferenceFn_results struct {
+	result1 *testmoqs.Results
+}
+
+// moqPassByReferenceFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassByReferenceFn type
+type moqPassByReferenceFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassByReferenceFn_doFn defines the type of function needed when calling
@@ -5803,58 +3261,39 @@ type moqPassByReferenceFn_doFn func(p *testmoqs.Params)
 // calling doReturnResults for the PassByReferenceFn type
 type moqPassByReferenceFn_doReturnFn func(p *testmoqs.Params) *testmoqs.Results
 
-// moqPassByReferenceFn_results holds the results of the PassByReferenceFn type
-type moqPassByReferenceFn_results struct {
-	params  moqPassByReferenceFn_params
-	results []struct {
-		values *struct {
-			result1 *testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByReferenceFn_doFn
-		doReturnFn moqPassByReferenceFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassByReferenceFn_fnRecorder routes recorded function calls to the
+// moqPassByReferenceFn_recorder routes recorded function calls to the
 // moqPassByReferenceFn moq
-type moqPassByReferenceFn_fnRecorder struct {
-	params    moqPassByReferenceFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassByReferenceFn_results
-	moq       *moqPassByReferenceFn
+type moqPassByReferenceFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassByReferenceFn_adaptor,
+		moqPassByReferenceFn_params,
+		moqPassByReferenceFn_paramsKey,
+		moqPassByReferenceFn_results,
+	]
 }
 
 // moqPassByReferenceFn_anyParams isolates the any params functions of the
 // PassByReferenceFn type
 type moqPassByReferenceFn_anyParams struct {
-	recorder *moqPassByReferenceFn_fnRecorder
+	recorder *moqPassByReferenceFn_recorder
 }
 
 // newMoqPassByReferenceFn creates a new moq of the PassByReferenceFn type
 func newMoqPassByReferenceFn(scene *moq.Scene, config *moq.Config) *moqPassByReferenceFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassByReferenceFn_adaptor{}
 	m := &moqPassByReferenceFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassByReferenceFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassByReferenceFn_adaptor,
+			moqPassByReferenceFn_params,
+			moqPassByReferenceFn_paramsKey,
+			moqPassByReferenceFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassByReferenceFn_runtime{parameterIndexing: moqPassByReferenceFn_paramIndexing{
 			p: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -5863,258 +3302,101 @@ func newMoqPassByReferenceFn(scene *moq.Scene, config *moq.Config) *moqPassByRef
 // mock returns the moq implementation of the PassByReferenceFn type
 func (m *moqPassByReferenceFn) mock() testmoqs.PassByReferenceFn {
 	return func(p *testmoqs.Params) *testmoqs.Results {
-		m.scene.T.Helper()
-		moq := &moqPassByReferenceFn_mock{moq: m}
-		return moq.fn(p)
-	}
-}
-
-func (m *moqPassByReferenceFn_mock) fn(p *testmoqs.Params) (result1 *testmoqs.Results) {
-	m.moq.scene.T.Helper()
-	params := moqPassByReferenceFn_params{
-		p: p,
-	}
-	var results *moqPassByReferenceFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
-}
-
-func (m *moqPassByReferenceFn) onCall(p *testmoqs.Params) *moqPassByReferenceFn_fnRecorder {
-	return &moqPassByReferenceFn_fnRecorder{
-		params: moqPassByReferenceFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassByReferenceFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 *testmoqs.Results
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) any() *moqPassByReferenceFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassByReferenceFn) onCall(p *testmoqs.Params) *moqPassByReferenceFn_recorder {
+	return &moqPassByReferenceFn_recorder{
+		recorder: m.moq.OnCall(moqPassByReferenceFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassByReferenceFn_recorder) any() *moqPassByReferenceFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassByReferenceFn_anyParams{recorder: r}
 }
 
-func (a *moqPassByReferenceFn_anyParams) p() *moqPassByReferenceFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassByReferenceFn_anyParams) p() *moqPassByReferenceFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) seq() *moqPassByReferenceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByReferenceFn_recorder) seq() *moqPassByReferenceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) noSeq() *moqPassByReferenceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByReferenceFn_recorder) noSeq() *moqPassByReferenceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) returnResults(result1 *testmoqs.Results) *moqPassByReferenceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 *testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByReferenceFn_doFn
-		doReturnFn moqPassByReferenceFn_doReturnFn
-	}{
-		values: &struct {
-			result1 *testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqPassByReferenceFn_recorder) returnResults(result1 *testmoqs.Results) *moqPassByReferenceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassByReferenceFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) andDo(fn moqPassByReferenceFn_doFn) *moqPassByReferenceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassByReferenceFn_recorder) andDo(fn moqPassByReferenceFn_doFn) *moqPassByReferenceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassByReferenceFn_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) doReturnResults(fn moqPassByReferenceFn_doReturnFn) *moqPassByReferenceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 *testmoqs.Results
+func (r *moqPassByReferenceFn_recorder) doReturnResults(fn moqPassByReferenceFn_doReturnFn) *moqPassByReferenceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassByReferenceFn_params) *moqPassByReferenceFn_results {
+		result1 := fn(params.p)
+		return &moqPassByReferenceFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqPassByReferenceFn_doFn
-		doReturnFn moqPassByReferenceFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassByReferenceFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassByReferenceFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassByReferenceFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassByReferenceFn_paramsKey]*moqPassByReferenceFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassByReferenceFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassByReferenceFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassByReferenceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassByReferenceFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassByReferenceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 *testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqPassByReferenceFn_doFn
-				doReturnFn moqPassByReferenceFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassByReferenceFn) prettyParams(params moqPassByReferenceFn_params) string {
+func (*moqPassByReferenceFn_adaptor) PrettyParams(params moqPassByReferenceFn_params) string {
 	return fmt.Sprintf("PassByReferenceFn(%#v)", params.p)
 }
 
-func (m *moqPassByReferenceFn) paramsKey(params moqPassByReferenceFn_params, anyParams uint64) moqPassByReferenceFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsed *testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqPassByReferenceFn_adaptor) ParamsKey(params moqPassByReferenceFn_params, anyParams uint64) moqPassByReferenceFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassByReferenceFn_paramsKey{
 		params: struct{ p *testmoqs.Params }{
 			p: pUsed,
@@ -6126,38 +3408,36 @@ func (m *moqPassByReferenceFn) paramsKey(params moqPassByReferenceFn_params, any
 }
 
 // Reset resets the state of the moq
-func (m *moqPassByReferenceFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassByReferenceFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassByReferenceFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassBySliceFn holds the state of a moq of the PassBySliceFn type
 type moqPassBySliceFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassBySliceFn_mock
+	moq *impl.Moq[
+		*moqPassBySliceFn_adaptor,
+		moqPassBySliceFn_params,
+		moqPassBySliceFn_paramsKey,
+		moqPassBySliceFn_results,
+	]
 
-	resultsByParams []moqPassBySliceFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassBySliceFn_runtime
 }
 
-// moqPassBySliceFn_mock isolates the mock interface of the PassBySliceFn type
-type moqPassBySliceFn_mock struct {
+// moqPassBySliceFn_runtime holds runtime configuration for the PassBySliceFn
+// type
+type moqPassBySliceFn_runtime struct {
+	parameterIndexing moqPassBySliceFn_paramIndexing
+}
+
+// moqPassBySliceFn_adaptor adapts moqPassBySliceFn as needed by the runtime
+type moqPassBySliceFn_adaptor struct {
 	moq *moqPassBySliceFn
 }
 
@@ -6171,12 +3451,15 @@ type moqPassBySliceFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassBySliceFn_resultsByParams contains the results for a given set of
-// parameters for the PassBySliceFn type
-type moqPassBySliceFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassBySliceFn_paramsKey]*moqPassBySliceFn_results
+// moqPassBySliceFn_results holds the results of the PassBySliceFn type
+type moqPassBySliceFn_results struct {
+	result1 []testmoqs.Results
+}
+
+// moqPassBySliceFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassBySliceFn type
+type moqPassBySliceFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassBySliceFn_doFn defines the type of function needed when calling andDo
@@ -6187,58 +3470,39 @@ type moqPassBySliceFn_doFn func(p []testmoqs.Params)
 // doReturnResults for the PassBySliceFn type
 type moqPassBySliceFn_doReturnFn func(p []testmoqs.Params) []testmoqs.Results
 
-// moqPassBySliceFn_results holds the results of the PassBySliceFn type
-type moqPassBySliceFn_results struct {
-	params  moqPassBySliceFn_params
-	results []struct {
-		values *struct {
-			result1 []testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassBySliceFn_doFn
-		doReturnFn moqPassBySliceFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassBySliceFn_fnRecorder routes recorded function calls to the
+// moqPassBySliceFn_recorder routes recorded function calls to the
 // moqPassBySliceFn moq
-type moqPassBySliceFn_fnRecorder struct {
-	params    moqPassBySliceFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassBySliceFn_results
-	moq       *moqPassBySliceFn
+type moqPassBySliceFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassBySliceFn_adaptor,
+		moqPassBySliceFn_params,
+		moqPassBySliceFn_paramsKey,
+		moqPassBySliceFn_results,
+	]
 }
 
 // moqPassBySliceFn_anyParams isolates the any params functions of the
 // PassBySliceFn type
 type moqPassBySliceFn_anyParams struct {
-	recorder *moqPassBySliceFn_fnRecorder
+	recorder *moqPassBySliceFn_recorder
 }
 
 // newMoqPassBySliceFn creates a new moq of the PassBySliceFn type
 func newMoqPassBySliceFn(scene *moq.Scene, config *moq.Config) *moqPassBySliceFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassBySliceFn_adaptor{}
 	m := &moqPassBySliceFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassBySliceFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassBySliceFn_adaptor,
+			moqPassBySliceFn_params,
+			moqPassBySliceFn_paramsKey,
+			moqPassBySliceFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassBySliceFn_runtime{parameterIndexing: moqPassBySliceFn_paramIndexing{
 			p: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -6247,256 +3511,101 @@ func newMoqPassBySliceFn(scene *moq.Scene, config *moq.Config) *moqPassBySliceFn
 // mock returns the moq implementation of the PassBySliceFn type
 func (m *moqPassBySliceFn) mock() testmoqs.PassBySliceFn {
 	return func(p []testmoqs.Params) []testmoqs.Results {
-		m.scene.T.Helper()
-		moq := &moqPassBySliceFn_mock{moq: m}
-		return moq.fn(p)
-	}
-}
-
-func (m *moqPassBySliceFn_mock) fn(p []testmoqs.Params) (result1 []testmoqs.Results) {
-	m.moq.scene.T.Helper()
-	params := moqPassBySliceFn_params{
-		p: p,
-	}
-	var results *moqPassBySliceFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
-}
-
-func (m *moqPassBySliceFn) onCall(p []testmoqs.Params) *moqPassBySliceFn_fnRecorder {
-	return &moqPassBySliceFn_fnRecorder{
-		params: moqPassBySliceFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassBySliceFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 []testmoqs.Results
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqPassBySliceFn_fnRecorder) any() *moqPassBySliceFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassBySliceFn) onCall(p []testmoqs.Params) *moqPassBySliceFn_recorder {
+	return &moqPassBySliceFn_recorder{
+		recorder: m.moq.OnCall(moqPassBySliceFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassBySliceFn_recorder) any() *moqPassBySliceFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassBySliceFn_anyParams{recorder: r}
 }
 
-func (a *moqPassBySliceFn_anyParams) p() *moqPassBySliceFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassBySliceFn_anyParams) p() *moqPassBySliceFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassBySliceFn_fnRecorder) seq() *moqPassBySliceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassBySliceFn_recorder) seq() *moqPassBySliceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassBySliceFn_fnRecorder) noSeq() *moqPassBySliceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassBySliceFn_recorder) noSeq() *moqPassBySliceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassBySliceFn_fnRecorder) returnResults(result1 []testmoqs.Results) *moqPassBySliceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassBySliceFn_doFn
-		doReturnFn moqPassBySliceFn_doReturnFn
-	}{
-		values: &struct {
-			result1 []testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqPassBySliceFn_recorder) returnResults(result1 []testmoqs.Results) *moqPassBySliceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassBySliceFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqPassBySliceFn_fnRecorder) andDo(fn moqPassBySliceFn_doFn) *moqPassBySliceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassBySliceFn_recorder) andDo(fn moqPassBySliceFn_doFn) *moqPassBySliceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassBySliceFn_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassBySliceFn_fnRecorder) doReturnResults(fn moqPassBySliceFn_doReturnFn) *moqPassBySliceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []testmoqs.Results
+func (r *moqPassBySliceFn_recorder) doReturnResults(fn moqPassBySliceFn_doReturnFn) *moqPassBySliceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassBySliceFn_params) *moqPassBySliceFn_results {
+		result1 := fn(params.p)
+		return &moqPassBySliceFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqPassBySliceFn_doFn
-		doReturnFn moqPassBySliceFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassBySliceFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassBySliceFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassBySliceFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassBySliceFn_paramsKey]*moqPassBySliceFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassBySliceFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassBySliceFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassBySliceFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassBySliceFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassBySliceFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 []testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqPassBySliceFn_doFn
-				doReturnFn moqPassBySliceFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassBySliceFn) prettyParams(params moqPassBySliceFn_params) string {
+func (*moqPassBySliceFn_adaptor) PrettyParams(params moqPassBySliceFn_params) string {
 	return fmt.Sprintf("PassBySliceFn(%#v)", params.p)
 }
 
-func (m *moqPassBySliceFn) paramsKey(params moqPassBySliceFn_params, anyParams uint64) moqPassBySliceFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqPassBySliceFn_adaptor) ParamsKey(params moqPassBySliceFn_params, anyParams uint64) moqPassBySliceFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassBySliceFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -6506,38 +3615,36 @@ func (m *moqPassBySliceFn) paramsKey(params moqPassBySliceFn_params, anyParams u
 }
 
 // Reset resets the state of the moq
-func (m *moqPassBySliceFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassBySliceFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassBySliceFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPassByValueFn holds the state of a moq of the PassByValueFn type
 type moqPassByValueFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPassByValueFn_mock
+	moq *impl.Moq[
+		*moqPassByValueFn_adaptor,
+		moqPassByValueFn_params,
+		moqPassByValueFn_paramsKey,
+		moqPassByValueFn_results,
+	]
 
-	resultsByParams []moqPassByValueFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			p moq.ParamIndexing
-		}
-	}
+	runtime moqPassByValueFn_runtime
 }
 
-// moqPassByValueFn_mock isolates the mock interface of the PassByValueFn type
-type moqPassByValueFn_mock struct {
+// moqPassByValueFn_runtime holds runtime configuration for the PassByValueFn
+// type
+type moqPassByValueFn_runtime struct {
+	parameterIndexing moqPassByValueFn_paramIndexing
+}
+
+// moqPassByValueFn_adaptor adapts moqPassByValueFn as needed by the runtime
+type moqPassByValueFn_adaptor struct {
 	moq *moqPassByValueFn
 }
 
@@ -6551,12 +3658,15 @@ type moqPassByValueFn_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqPassByValueFn_resultsByParams contains the results for a given set of
-// parameters for the PassByValueFn type
-type moqPassByValueFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPassByValueFn_paramsKey]*moqPassByValueFn_results
+// moqPassByValueFn_results holds the results of the PassByValueFn type
+type moqPassByValueFn_results struct {
+	result1 testmoqs.Results
+}
+
+// moqPassByValueFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PassByValueFn type
+type moqPassByValueFn_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqPassByValueFn_doFn defines the type of function needed when calling andDo
@@ -6567,58 +3677,39 @@ type moqPassByValueFn_doFn func(p testmoqs.Params)
 // doReturnResults for the PassByValueFn type
 type moqPassByValueFn_doReturnFn func(p testmoqs.Params) testmoqs.Results
 
-// moqPassByValueFn_results holds the results of the PassByValueFn type
-type moqPassByValueFn_results struct {
-	params  moqPassByValueFn_params
-	results []struct {
-		values *struct {
-			result1 testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByValueFn_doFn
-		doReturnFn moqPassByValueFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPassByValueFn_fnRecorder routes recorded function calls to the
+// moqPassByValueFn_recorder routes recorded function calls to the
 // moqPassByValueFn moq
-type moqPassByValueFn_fnRecorder struct {
-	params    moqPassByValueFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqPassByValueFn_results
-	moq       *moqPassByValueFn
+type moqPassByValueFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqPassByValueFn_adaptor,
+		moqPassByValueFn_params,
+		moqPassByValueFn_paramsKey,
+		moqPassByValueFn_results,
+	]
 }
 
 // moqPassByValueFn_anyParams isolates the any params functions of the
 // PassByValueFn type
 type moqPassByValueFn_anyParams struct {
-	recorder *moqPassByValueFn_fnRecorder
+	recorder *moqPassByValueFn_recorder
 }
 
 // newMoqPassByValueFn creates a new moq of the PassByValueFn type
 func newMoqPassByValueFn(scene *moq.Scene, config *moq.Config) *moqPassByValueFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPassByValueFn_adaptor{}
 	m := &moqPassByValueFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPassByValueFn_mock{},
+		moq: impl.NewMoq[
+			*moqPassByValueFn_adaptor,
+			moqPassByValueFn_params,
+			moqPassByValueFn_paramsKey,
+			moqPassByValueFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				p moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			p moq.ParamIndexing
-		}{
+		runtime: moqPassByValueFn_runtime{parameterIndexing: moqPassByValueFn_paramIndexing{
 			p: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -6627,258 +3718,101 @@ func newMoqPassByValueFn(scene *moq.Scene, config *moq.Config) *moqPassByValueFn
 // mock returns the moq implementation of the PassByValueFn type
 func (m *moqPassByValueFn) mock() testmoqs.PassByValueFn {
 	return func(p testmoqs.Params) testmoqs.Results {
-		m.scene.T.Helper()
-		moq := &moqPassByValueFn_mock{moq: m}
-		return moq.fn(p)
-	}
-}
-
-func (m *moqPassByValueFn_mock) fn(p testmoqs.Params) (result1 testmoqs.Results) {
-	m.moq.scene.T.Helper()
-	params := moqPassByValueFn_params{
-		p: p,
-	}
-	var results *moqPassByValueFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
-}
-
-func (m *moqPassByValueFn) onCall(p testmoqs.Params) *moqPassByValueFn_fnRecorder {
-	return &moqPassByValueFn_fnRecorder{
-		params: moqPassByValueFn_params{
+		m.moq.Scene.T.Helper()
+		params := moqPassByValueFn_params{
 			p: p,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 testmoqs.Results
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqPassByValueFn_fnRecorder) any() *moqPassByValueFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPassByValueFn) onCall(p testmoqs.Params) *moqPassByValueFn_recorder {
+	return &moqPassByValueFn_recorder{
+		recorder: m.moq.OnCall(moqPassByValueFn_params{
+			p: p,
+		}),
+	}
+}
+
+func (r *moqPassByValueFn_recorder) any() *moqPassByValueFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPassByValueFn_anyParams{recorder: r}
 }
 
-func (a *moqPassByValueFn_anyParams) p() *moqPassByValueFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPassByValueFn_anyParams) p() *moqPassByValueFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqPassByValueFn_fnRecorder) seq() *moqPassByValueFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByValueFn_recorder) seq() *moqPassByValueFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPassByValueFn_fnRecorder) noSeq() *moqPassByValueFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPassByValueFn_recorder) noSeq() *moqPassByValueFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPassByValueFn_fnRecorder) returnResults(result1 testmoqs.Results) *moqPassByValueFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqPassByValueFn_doFn
-		doReturnFn moqPassByValueFn_doReturnFn
-	}{
-		values: &struct {
-			result1 testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqPassByValueFn_recorder) returnResults(result1 testmoqs.Results) *moqPassByValueFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPassByValueFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqPassByValueFn_fnRecorder) andDo(fn moqPassByValueFn_doFn) *moqPassByValueFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPassByValueFn_recorder) andDo(fn moqPassByValueFn_doFn) *moqPassByValueFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPassByValueFn_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPassByValueFn_fnRecorder) doReturnResults(fn moqPassByValueFn_doReturnFn) *moqPassByValueFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 testmoqs.Results
+func (r *moqPassByValueFn_recorder) doReturnResults(fn moqPassByValueFn_doReturnFn) *moqPassByValueFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPassByValueFn_params) *moqPassByValueFn_results {
+		result1 := fn(params.p)
+		return &moqPassByValueFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqPassByValueFn_doFn
-		doReturnFn moqPassByValueFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPassByValueFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPassByValueFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPassByValueFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPassByValueFn_paramsKey]*moqPassByValueFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPassByValueFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPassByValueFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqPassByValueFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPassByValueFn_recorder) repeat(repeaters ...moq.Repeater) *moqPassByValueFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqPassByValueFn_doFn
-				doReturnFn moqPassByValueFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPassByValueFn) prettyParams(params moqPassByValueFn_params) string {
+func (*moqPassByValueFn_adaptor) PrettyParams(params moqPassByValueFn_params) string {
 	return fmt.Sprintf("PassByValueFn(%#v)", params.p)
 }
 
-func (m *moqPassByValueFn) paramsKey(params moqPassByValueFn_params, anyParams uint64) moqPassByValueFn_paramsKey {
-	m.scene.T.Helper()
-	var pUsed testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqPassByValueFn_adaptor) ParamsKey(params moqPassByValueFn_params, anyParams uint64) moqPassByValueFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.p, anyParams)
 	return moqPassByValueFn_paramsKey{
 		params: struct{ p testmoqs.Params }{
 			p: pUsed,
@@ -6890,39 +3824,37 @@ func (m *moqPassByValueFn) paramsKey(params moqPassByValueFn_params, anyParams u
 }
 
 // Reset resets the state of the moq
-func (m *moqPassByValueFn) Reset() { m.resultsByParams = nil }
+func (m *moqPassByValueFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPassByValueFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqInterfaceParamFn holds the state of a moq of the InterfaceParamFn type
 type moqInterfaceParamFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqInterfaceParamFn_mock
+	moq *impl.Moq[
+		*moqInterfaceParamFn_adaptor,
+		moqInterfaceParamFn_params,
+		moqInterfaceParamFn_paramsKey,
+		moqInterfaceParamFn_results,
+	]
 
-	resultsByParams []moqInterfaceParamFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			w moq.ParamIndexing
-		}
-	}
+	runtime moqInterfaceParamFn_runtime
 }
 
-// moqInterfaceParamFn_mock isolates the mock interface of the InterfaceParamFn
-// type
-type moqInterfaceParamFn_mock struct {
+// moqInterfaceParamFn_runtime holds runtime configuration for the
+// InterfaceParamFn type
+type moqInterfaceParamFn_runtime struct {
+	parameterIndexing moqInterfaceParamFn_paramIndexing
+}
+
+// moqInterfaceParamFn_adaptor adapts moqInterfaceParamFn as needed by the
+// runtime
+type moqInterfaceParamFn_adaptor struct {
 	moq *moqInterfaceParamFn
 }
 
@@ -6936,12 +3868,16 @@ type moqInterfaceParamFn_paramsKey struct {
 	hashes struct{ w hash.Hash }
 }
 
-// moqInterfaceParamFn_resultsByParams contains the results for a given set of
-// parameters for the InterfaceParamFn type
-type moqInterfaceParamFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqInterfaceParamFn_paramsKey]*moqInterfaceParamFn_results
+// moqInterfaceParamFn_results holds the results of the InterfaceParamFn type
+type moqInterfaceParamFn_results struct {
+	sResult string
+	err     error
+}
+
+// moqInterfaceParamFn_paramIndexing holds the parameter indexing runtime
+// configuration for the InterfaceParamFn type
+type moqInterfaceParamFn_paramIndexing struct {
+	w moq.ParamIndexing
 }
 
 // moqInterfaceParamFn_doFn defines the type of function needed when calling
@@ -6952,59 +3888,39 @@ type moqInterfaceParamFn_doFn func(w io.Writer)
 // calling doReturnResults for the InterfaceParamFn type
 type moqInterfaceParamFn_doReturnFn func(w io.Writer) (sResult string, err error)
 
-// moqInterfaceParamFn_results holds the results of the InterfaceParamFn type
-type moqInterfaceParamFn_results struct {
-	params  moqInterfaceParamFn_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqInterfaceParamFn_doFn
-		doReturnFn moqInterfaceParamFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqInterfaceParamFn_fnRecorder routes recorded function calls to the
+// moqInterfaceParamFn_recorder routes recorded function calls to the
 // moqInterfaceParamFn moq
-type moqInterfaceParamFn_fnRecorder struct {
-	params    moqInterfaceParamFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqInterfaceParamFn_results
-	moq       *moqInterfaceParamFn
+type moqInterfaceParamFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqInterfaceParamFn_adaptor,
+		moqInterfaceParamFn_params,
+		moqInterfaceParamFn_paramsKey,
+		moqInterfaceParamFn_results,
+	]
 }
 
 // moqInterfaceParamFn_anyParams isolates the any params functions of the
 // InterfaceParamFn type
 type moqInterfaceParamFn_anyParams struct {
-	recorder *moqInterfaceParamFn_fnRecorder
+	recorder *moqInterfaceParamFn_recorder
 }
 
 // newMoqInterfaceParamFn creates a new moq of the InterfaceParamFn type
 func newMoqInterfaceParamFn(scene *moq.Scene, config *moq.Config) *moqInterfaceParamFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqInterfaceParamFn_adaptor{}
 	m := &moqInterfaceParamFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqInterfaceParamFn_mock{},
+		moq: impl.NewMoq[
+			*moqInterfaceParamFn_adaptor,
+			moqInterfaceParamFn_params,
+			moqInterfaceParamFn_paramsKey,
+			moqInterfaceParamFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				w moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			w moq.ParamIndexing
-		}{
+		runtime: moqInterfaceParamFn_runtime{parameterIndexing: moqInterfaceParamFn_paramIndexing{
 			w: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -7012,265 +3928,106 @@ func newMoqInterfaceParamFn(scene *moq.Scene, config *moq.Config) *moqInterfaceP
 
 // mock returns the moq implementation of the InterfaceParamFn type
 func (m *moqInterfaceParamFn) mock() testmoqs.InterfaceParamFn {
-	return func(w io.Writer) (_ string, _ error) {
-		m.scene.T.Helper()
-		moq := &moqInterfaceParamFn_mock{moq: m}
-		return moq.fn(w)
-	}
-}
-
-func (m *moqInterfaceParamFn_mock) fn(w io.Writer) (sResult string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqInterfaceParamFn_params{
-		w: w,
-	}
-	var results *moqInterfaceParamFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(w)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(w)
-	}
-	return
-}
-
-func (m *moqInterfaceParamFn) onCall(w io.Writer) *moqInterfaceParamFn_fnRecorder {
-	return &moqInterfaceParamFn_fnRecorder{
-		params: moqInterfaceParamFn_params{
+	return func(w io.Writer) (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqInterfaceParamFn_params{
 			w: w,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) any() *moqInterfaceParamFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqInterfaceParamFn) onCall(w io.Writer) *moqInterfaceParamFn_recorder {
+	return &moqInterfaceParamFn_recorder{
+		recorder: m.moq.OnCall(moqInterfaceParamFn_params{
+			w: w,
+		}),
+	}
+}
+
+func (r *moqInterfaceParamFn_recorder) any() *moqInterfaceParamFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqInterfaceParamFn_anyParams{recorder: r}
 }
 
-func (a *moqInterfaceParamFn_anyParams) w() *moqInterfaceParamFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqInterfaceParamFn_anyParams) w() *moqInterfaceParamFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) seq() *moqInterfaceParamFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqInterfaceParamFn_recorder) seq() *moqInterfaceParamFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) noSeq() *moqInterfaceParamFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqInterfaceParamFn_recorder) noSeq() *moqInterfaceParamFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) returnResults(sResult string, err error) *moqInterfaceParamFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqInterfaceParamFn_doFn
-		doReturnFn moqInterfaceParamFn_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqInterfaceParamFn_recorder) returnResults(sResult string, err error) *moqInterfaceParamFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqInterfaceParamFn_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) andDo(fn moqInterfaceParamFn_doFn) *moqInterfaceParamFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqInterfaceParamFn_recorder) andDo(fn moqInterfaceParamFn_doFn) *moqInterfaceParamFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqInterfaceParamFn_params) {
+		fn(params.w)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) doReturnResults(fn moqInterfaceParamFn_doReturnFn) *moqInterfaceParamFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqInterfaceParamFn_recorder) doReturnResults(fn moqInterfaceParamFn_doReturnFn) *moqInterfaceParamFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqInterfaceParamFn_params) *moqInterfaceParamFn_results {
+		sResult, err := fn(params.w)
+		return &moqInterfaceParamFn_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqInterfaceParamFn_doFn
-		doReturnFn moqInterfaceParamFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqInterfaceParamFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqInterfaceParamFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqInterfaceParamFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqInterfaceParamFn_paramsKey]*moqInterfaceParamFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqInterfaceParamFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqInterfaceParamFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqInterfaceParamFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqInterfaceParamFn_recorder) repeat(repeaters ...moq.Repeater) *moqInterfaceParamFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqInterfaceParamFn_doFn
-				doReturnFn moqInterfaceParamFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqInterfaceParamFn) prettyParams(params moqInterfaceParamFn_params) string {
+func (*moqInterfaceParamFn_adaptor) PrettyParams(params moqInterfaceParamFn_params) string {
 	return fmt.Sprintf("InterfaceParamFn(%#v)", params.w)
 }
 
-func (m *moqInterfaceParamFn) paramsKey(params moqInterfaceParamFn_params, anyParams uint64) moqInterfaceParamFn_paramsKey {
-	m.scene.T.Helper()
-	var wUsed io.Writer
-	var wUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.w == moq.ParamIndexByValue {
-			wUsed = params.w
-		} else {
-			wUsedHash = hash.DeepHash(params.w)
-		}
-	}
+func (a *moqInterfaceParamFn_adaptor) ParamsKey(params moqInterfaceParamFn_params, anyParams uint64) moqInterfaceParamFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	wUsed, wUsedHash := impl.ParamKey(
+		params.w, 1, a.moq.runtime.parameterIndexing.w, anyParams)
 	return moqInterfaceParamFn_paramsKey{
 		params: struct{ w io.Writer }{
 			w: wUsed,
@@ -7282,40 +4039,37 @@ func (m *moqInterfaceParamFn) paramsKey(params moqInterfaceParamFn_params, anyPa
 }
 
 // Reset resets the state of the moq
-func (m *moqInterfaceParamFn) Reset() { m.resultsByParams = nil }
+func (m *moqInterfaceParamFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqInterfaceParamFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqInterfaceResultFn holds the state of a moq of the InterfaceResultFn type
 type moqInterfaceResultFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqInterfaceResultFn_mock
+	moq *impl.Moq[
+		*moqInterfaceResultFn_adaptor,
+		moqInterfaceResultFn_params,
+		moqInterfaceResultFn_paramsKey,
+		moqInterfaceResultFn_results,
+	]
 
-	resultsByParams []moqInterfaceResultFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}
-	}
+	runtime moqInterfaceResultFn_runtime
 }
 
-// moqInterfaceResultFn_mock isolates the mock interface of the
+// moqInterfaceResultFn_runtime holds runtime configuration for the
 // InterfaceResultFn type
-type moqInterfaceResultFn_mock struct {
+type moqInterfaceResultFn_runtime struct {
+	parameterIndexing moqInterfaceResultFn_paramIndexing
+}
+
+// moqInterfaceResultFn_adaptor adapts moqInterfaceResultFn as needed by the
+// runtime
+type moqInterfaceResultFn_adaptor struct {
 	moq *moqInterfaceResultFn
 }
 
@@ -7338,12 +4092,14 @@ type moqInterfaceResultFn_paramsKey struct {
 	}
 }
 
-// moqInterfaceResultFn_resultsByParams contains the results for a given set of
-// parameters for the InterfaceResultFn type
-type moqInterfaceResultFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqInterfaceResultFn_paramsKey]*moqInterfaceResultFn_results
+// moqInterfaceResultFn_results holds the results of the InterfaceResultFn type
+type moqInterfaceResultFn_results struct{ result1 io.Reader }
+
+// moqInterfaceResultFn_paramIndexing holds the parameter indexing runtime
+// configuration for the InterfaceResultFn type
+type moqInterfaceResultFn_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqInterfaceResultFn_doFn defines the type of function needed when calling
@@ -7354,59 +4110,40 @@ type moqInterfaceResultFn_doFn func(sParam string, bParam bool)
 // calling doReturnResults for the InterfaceResultFn type
 type moqInterfaceResultFn_doReturnFn func(sParam string, bParam bool) (r io.Reader)
 
-// moqInterfaceResultFn_results holds the results of the InterfaceResultFn type
-type moqInterfaceResultFn_results struct {
-	params  moqInterfaceResultFn_params
-	results []struct {
-		values     *struct{ result1 io.Reader }
-		sequence   uint32
-		doFn       moqInterfaceResultFn_doFn
-		doReturnFn moqInterfaceResultFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqInterfaceResultFn_fnRecorder routes recorded function calls to the
+// moqInterfaceResultFn_recorder routes recorded function calls to the
 // moqInterfaceResultFn moq
-type moqInterfaceResultFn_fnRecorder struct {
-	params    moqInterfaceResultFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqInterfaceResultFn_results
-	moq       *moqInterfaceResultFn
+type moqInterfaceResultFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqInterfaceResultFn_adaptor,
+		moqInterfaceResultFn_params,
+		moqInterfaceResultFn_paramsKey,
+		moqInterfaceResultFn_results,
+	]
 }
 
 // moqInterfaceResultFn_anyParams isolates the any params functions of the
 // InterfaceResultFn type
 type moqInterfaceResultFn_anyParams struct {
-	recorder *moqInterfaceResultFn_fnRecorder
+	recorder *moqInterfaceResultFn_recorder
 }
 
 // newMoqInterfaceResultFn creates a new moq of the InterfaceResultFn type
 func newMoqInterfaceResultFn(scene *moq.Scene, config *moq.Config) *moqInterfaceResultFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqInterfaceResultFn_adaptor{}
 	m := &moqInterfaceResultFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqInterfaceResultFn_mock{},
+		moq: impl.NewMoq[
+			*moqInterfaceResultFn_adaptor,
+			moqInterfaceResultFn_params,
+			moqInterfaceResultFn_paramsKey,
+			moqInterfaceResultFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}{
+		runtime: moqInterfaceResultFn_runtime{parameterIndexing: moqInterfaceResultFn_paramIndexing{
 			sParam: moq.ParamIndexByValue,
 			bParam: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -7414,267 +4151,111 @@ func newMoqInterfaceResultFn(scene *moq.Scene, config *moq.Config) *moqInterface
 
 // mock returns the moq implementation of the InterfaceResultFn type
 func (m *moqInterfaceResultFn) mock() testmoqs.InterfaceResultFn {
-	return func(sParam string, bParam bool) (_ io.Reader) {
-		m.scene.T.Helper()
-		moq := &moqInterfaceResultFn_mock{moq: m}
-		return moq.fn(sParam, bParam)
-	}
-}
-
-func (m *moqInterfaceResultFn_mock) fn(sParam string, bParam bool) (result1 io.Reader) {
-	m.moq.scene.T.Helper()
-	params := moqInterfaceResultFn_params{
-		sParam: sParam,
-		bParam: bParam,
-	}
-	var results *moqInterfaceResultFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(sParam, bParam)
-	}
-	return
-}
-
-func (m *moqInterfaceResultFn) onCall(sParam string, bParam bool) *moqInterfaceResultFn_fnRecorder {
-	return &moqInterfaceResultFn_fnRecorder{
-		params: moqInterfaceResultFn_params{
+	return func(sParam string, bParam bool) io.Reader {
+		m.moq.Scene.T.Helper()
+		params := moqInterfaceResultFn_params{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 io.Reader
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) any() *moqInterfaceResultFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqInterfaceResultFn) onCall(sParam string, bParam bool) *moqInterfaceResultFn_recorder {
+	return &moqInterfaceResultFn_recorder{
+		recorder: m.moq.OnCall(moqInterfaceResultFn_params{
+			sParam: sParam,
+			bParam: bParam,
+		}),
+	}
+}
+
+func (r *moqInterfaceResultFn_recorder) any() *moqInterfaceResultFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqInterfaceResultFn_anyParams{recorder: r}
 }
 
-func (a *moqInterfaceResultFn_anyParams) sParam() *moqInterfaceResultFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqInterfaceResultFn_anyParams) sParam() *moqInterfaceResultFn_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqInterfaceResultFn_anyParams) bParam() *moqInterfaceResultFn_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqInterfaceResultFn_anyParams) bParam() *moqInterfaceResultFn_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) seq() *moqInterfaceResultFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqInterfaceResultFn_recorder) seq() *moqInterfaceResultFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) noSeq() *moqInterfaceResultFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqInterfaceResultFn_recorder) noSeq() *moqInterfaceResultFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) returnResults(result1 io.Reader) *moqInterfaceResultFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 io.Reader }
-		sequence   uint32
-		doFn       moqInterfaceResultFn_doFn
-		doReturnFn moqInterfaceResultFn_doReturnFn
-	}{
-		values: &struct{ result1 io.Reader }{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqInterfaceResultFn_recorder) returnResults(result1 io.Reader) *moqInterfaceResultFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqInterfaceResultFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) andDo(fn moqInterfaceResultFn_doFn) *moqInterfaceResultFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqInterfaceResultFn_recorder) andDo(fn moqInterfaceResultFn_doFn) *moqInterfaceResultFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqInterfaceResultFn_params) {
+		fn(params.sParam, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) doReturnResults(fn moqInterfaceResultFn_doReturnFn) *moqInterfaceResultFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 io.Reader }
-		sequence   uint32
-		doFn       moqInterfaceResultFn_doFn
-		doReturnFn moqInterfaceResultFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+func (r *moqInterfaceResultFn_recorder) doReturnResults(fn moqInterfaceResultFn_doReturnFn) *moqInterfaceResultFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqInterfaceResultFn_params) *moqInterfaceResultFn_results {
+		result1 := fn(params.sParam, params.bParam)
+		return &moqInterfaceResultFn_results{
+			result1: result1,
+		}
+	})
 	return r
 }
 
-func (r *moqInterfaceResultFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqInterfaceResultFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqInterfaceResultFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqInterfaceResultFn_paramsKey]*moqInterfaceResultFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqInterfaceResultFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqInterfaceResultFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqInterfaceResultFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqInterfaceResultFn_recorder) repeat(repeaters ...moq.Repeater) *moqInterfaceResultFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{ result1 io.Reader }
-				sequence   uint32
-				doFn       moqInterfaceResultFn_doFn
-				doReturnFn moqInterfaceResultFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqInterfaceResultFn) prettyParams(params moqInterfaceResultFn_params) string {
+func (*moqInterfaceResultFn_adaptor) PrettyParams(params moqInterfaceResultFn_params) string {
 	return fmt.Sprintf("InterfaceResultFn(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqInterfaceResultFn) paramsKey(params moqInterfaceResultFn_params, anyParams uint64) moqInterfaceResultFn_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqInterfaceResultFn_adaptor) ParamsKey(params moqInterfaceResultFn_params, anyParams uint64) moqInterfaceResultFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.bParam, anyParams)
 	return moqInterfaceResultFn_paramsKey{
 		params: struct {
 			sParam string
@@ -7694,40 +4275,36 @@ func (m *moqInterfaceResultFn) paramsKey(params moqInterfaceResultFn_params, any
 }
 
 // Reset resets the state of the moq
-func (m *moqInterfaceResultFn) Reset() { m.resultsByParams = nil }
+func (m *moqInterfaceResultFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqInterfaceResultFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqGenericParamsFn holds the state of a moq of the GenericParamsFn type
 type moqGenericParamsFn[S, B any] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericParamsFn_mock[S, B]
+	moq *impl.Moq[
+		*moqGenericParamsFn_adaptor[S, B],
+		moqGenericParamsFn_params[S, B],
+		moqGenericParamsFn_paramsKey[S, B],
+		moqGenericParamsFn_results[S, B]]
 
-	resultsByParams []moqGenericParamsFn_resultsByParams[S, B]
-
-	runtime struct {
-		parameterIndexing struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}
-	}
+	runtime moqGenericParamsFn_runtime
 }
 
-// moqGenericParamsFn_mock isolates the mock interface of the GenericParamsFn
-// type
-type moqGenericParamsFn_mock[S, B any] struct {
+// moqGenericParamsFn_runtime holds runtime configuration for the
+// GenericParamsFn type
+type moqGenericParamsFn_runtime struct {
+	parameterIndexing moqGenericParamsFn_paramIndexing
+}
+
+// moqGenericParamsFn_adaptor adapts moqGenericParamsFn as needed by the
+// runtime
+type moqGenericParamsFn_adaptor[S, B any] struct {
 	moq *moqGenericParamsFn[S, B]
 }
 
@@ -7747,12 +4324,17 @@ type moqGenericParamsFn_paramsKey[S, B any] struct {
 	}
 }
 
-// moqGenericParamsFn_resultsByParams contains the results for a given set of
-// parameters for the GenericParamsFn type
-type moqGenericParamsFn_resultsByParams[S, B any] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericParamsFn_paramsKey[S, B]]*moqGenericParamsFn_results[S, B]
+// moqGenericParamsFn_results holds the results of the GenericParamsFn type
+type moqGenericParamsFn_results[S, B any] struct {
+	result1 string
+	result2 error
+}
+
+// moqGenericParamsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the GenericParamsFn type
+type moqGenericParamsFn_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqGenericParamsFn_doFn defines the type of function needed when calling
@@ -7763,62 +4345,38 @@ type moqGenericParamsFn_doFn[S, B any] func(S, B)
 // calling doReturnResults for the GenericParamsFn type
 type moqGenericParamsFn_doReturnFn[S, B any] func(S, B) (string, error)
 
-// moqGenericParamsFn_results holds the results of the GenericParamsFn type
-type moqGenericParamsFn_results[S, B any] struct {
-	params  moqGenericParamsFn_params[S, B]
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqGenericParamsFn_doFn[S, B]
-		doReturnFn moqGenericParamsFn_doReturnFn[S, B]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericParamsFn_fnRecorder routes recorded function calls to the
+// moqGenericParamsFn_recorder routes recorded function calls to the
 // moqGenericParamsFn moq
-type moqGenericParamsFn_fnRecorder[S, B any] struct {
-	params    moqGenericParamsFn_params[S, B]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericParamsFn_results[S, B]
-	moq       *moqGenericParamsFn[S, B]
+type moqGenericParamsFn_recorder[S, B any] struct {
+	recorder *impl.Recorder[
+		*moqGenericParamsFn_adaptor[S, B],
+		moqGenericParamsFn_params[S, B],
+		moqGenericParamsFn_paramsKey[S, B],
+		moqGenericParamsFn_results[S, B]]
 }
 
 // moqGenericParamsFn_anyParams isolates the any params functions of the
 // GenericParamsFn type
 type moqGenericParamsFn_anyParams[S, B any] struct {
-	recorder *moqGenericParamsFn_fnRecorder[S, B]
+	recorder *moqGenericParamsFn_recorder[S, B]
 }
 
 // newMoqGenericParamsFn creates a new moq of the GenericParamsFn type
 func newMoqGenericParamsFn[S, B any](scene *moq.Scene, config *moq.Config) *moqGenericParamsFn[S, B] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericParamsFn_adaptor[S, B]{}
 	m := &moqGenericParamsFn[S, B]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericParamsFn_mock[S, B]{},
+		moq: impl.NewMoq[
+			*moqGenericParamsFn_adaptor[S, B],
+			moqGenericParamsFn_params[S, B],
+			moqGenericParamsFn_paramsKey[S, B],
+			moqGenericParamsFn_results[S, B]](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}{
+		runtime: moqGenericParamsFn_runtime{parameterIndexing: moqGenericParamsFn_paramIndexing{
 			param1: moq.ParamIndexByHash,
 			param2: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -7827,276 +4385,114 @@ func newMoqGenericParamsFn[S, B any](scene *moq.Scene, config *moq.Config) *moqG
 // mock returns the moq implementation of the GenericParamsFn type
 func (m *moqGenericParamsFn[S, B]) mock() testmoqs.GenericParamsFn[S, B] {
 	return func(param1 S, param2 B) (string, error) {
-		m.scene.T.Helper()
-		moq := &moqGenericParamsFn_mock[S, B]{moq: m}
-		return moq.fn(param1, param2)
-	}
-}
-
-func (m *moqGenericParamsFn_mock[S, B]) fn(param1 S, param2 B) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqGenericParamsFn_params[S, B]{
-		param1: param1,
-		param2: param2,
-	}
-	var results *moqGenericParamsFn_results[S, B]
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
-}
-
-func (m *moqGenericParamsFn[S, B]) onCall(param1 S, param2 B) *moqGenericParamsFn_fnRecorder[S, B] {
-	return &moqGenericParamsFn_fnRecorder[S, B]{
-		params: moqGenericParamsFn_params[S, B]{
+		m.moq.Scene.T.Helper()
+		params := moqGenericParamsFn_params[S, B]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) any() *moqGenericParamsFn_anyParams[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqGenericParamsFn[S, B]) onCall(param1 S, param2 B) *moqGenericParamsFn_recorder[S, B] {
+	return &moqGenericParamsFn_recorder[S, B]{
+		recorder: m.moq.OnCall(moqGenericParamsFn_params[S, B]{
+			param1: param1,
+			param2: param2,
+		}),
+	}
+}
+
+func (r *moqGenericParamsFn_recorder[S, B]) any() *moqGenericParamsFn_anyParams[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericParamsFn_anyParams[S, B]{recorder: r}
 }
 
-func (a *moqGenericParamsFn_anyParams[S, B]) param1() *moqGenericParamsFn_fnRecorder[S, B] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericParamsFn_anyParams[S, B]) param1() *moqGenericParamsFn_recorder[S, B] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqGenericParamsFn_anyParams[S, B]) param2() *moqGenericParamsFn_fnRecorder[S, B] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqGenericParamsFn_anyParams[S, B]) param2() *moqGenericParamsFn_recorder[S, B] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) seq() *moqGenericParamsFn_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericParamsFn_recorder[S, B]) seq() *moqGenericParamsFn_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) noSeq() *moqGenericParamsFn_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericParamsFn_recorder[S, B]) noSeq() *moqGenericParamsFn_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) returnResults(result1 string, result2 error) *moqGenericParamsFn_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqGenericParamsFn_doFn[S, B]
-		doReturnFn moqGenericParamsFn_doReturnFn[S, B]
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqGenericParamsFn_recorder[S, B]) returnResults(result1 string, result2 error) *moqGenericParamsFn_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericParamsFn_results[S, B]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) andDo(fn moqGenericParamsFn_doFn[S, B]) *moqGenericParamsFn_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericParamsFn_recorder[S, B]) andDo(fn moqGenericParamsFn_doFn[S, B]) *moqGenericParamsFn_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericParamsFn_params[S, B]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) doReturnResults(fn moqGenericParamsFn_doReturnFn[S, B]) *moqGenericParamsFn_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqGenericParamsFn_recorder[S, B]) doReturnResults(fn moqGenericParamsFn_doReturnFn[S, B]) *moqGenericParamsFn_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericParamsFn_params[S, B]) *moqGenericParamsFn_results[S, B] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqGenericParamsFn_results[S, B]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqGenericParamsFn_doFn[S, B]
-		doReturnFn moqGenericParamsFn_doReturnFn[S, B]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGenericParamsFn_fnRecorder[S, B]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericParamsFn_resultsByParams[S, B]
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericParamsFn_resultsByParams[S, B]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericParamsFn_paramsKey[S, B]]*moqGenericParamsFn_results[S, B]{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericParamsFn_results[S, B]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericParamsFn_fnRecorder[S, B]) repeat(repeaters ...moq.Repeater) *moqGenericParamsFn_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericParamsFn_recorder[S, B]) repeat(repeaters ...moq.Repeater) *moqGenericParamsFn_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqGenericParamsFn_doFn[S, B]
-				doReturnFn moqGenericParamsFn_doReturnFn[S, B]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericParamsFn[S, B]) prettyParams(params moqGenericParamsFn_params[S, B]) string {
+func (*moqGenericParamsFn_adaptor[S, B]) PrettyParams(params moqGenericParamsFn_params[S, B]) string {
 	return fmt.Sprintf("GenericParamsFn(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqGenericParamsFn[S, B]) paramsKey(params moqGenericParamsFn_params[S, B], anyParams uint64) moqGenericParamsFn_paramsKey[S, B] {
-	m.scene.T.Helper()
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The param1 parameter can't be indexed by value")
-		}
-		param1UsedHash = hash.DeepHash(params.param1)
-	}
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The param2 parameter can't be indexed by value")
-		}
-		param2UsedHash = hash.DeepHash(params.param2)
-	}
+func (a *moqGenericParamsFn_adaptor[S, B]) ParamsKey(params moqGenericParamsFn_params[S, B], anyParams uint64) moqGenericParamsFn_paramsKey[S, B] {
+	a.moq.moq.Scene.T.Helper()
+	param1UsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.param1, "param1", 1, a.moq.runtime.parameterIndexing.param1, anyParams)
+	param2UsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.param2, "param2", 2, a.moq.runtime.parameterIndexing.param2, anyParams)
 	return moqGenericParamsFn_paramsKey[S, B]{
 		params: struct{}{},
 		hashes: struct {
@@ -8110,41 +4506,37 @@ func (m *moqGenericParamsFn[S, B]) paramsKey(params moqGenericParamsFn_params[S,
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericParamsFn[S, B]) Reset() { m.resultsByParams = nil }
+func (m *moqGenericParamsFn[S, B]) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericParamsFn[S, B]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPartialGenericParamsFn holds the state of a moq of the
 // PartialGenericParamsFn type
 type moqPartialGenericParamsFn[S any] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPartialGenericParamsFn_mock[S]
+	moq *impl.Moq[
+		*moqPartialGenericParamsFn_adaptor[S],
+		moqPartialGenericParamsFn_params[S],
+		moqPartialGenericParamsFn_paramsKey[S],
+		moqPartialGenericParamsFn_results[S]]
 
-	resultsByParams []moqPartialGenericParamsFn_resultsByParams[S]
-
-	runtime struct {
-		parameterIndexing struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}
-	}
+	runtime moqPartialGenericParamsFn_runtime
 }
 
-// moqPartialGenericParamsFn_mock isolates the mock interface of the
+// moqPartialGenericParamsFn_runtime holds runtime configuration for the
 // PartialGenericParamsFn type
-type moqPartialGenericParamsFn_mock[S any] struct {
+type moqPartialGenericParamsFn_runtime struct {
+	parameterIndexing moqPartialGenericParamsFn_paramIndexing
+}
+
+// moqPartialGenericParamsFn_adaptor adapts moqPartialGenericParamsFn as needed
+// by the runtime
+type moqPartialGenericParamsFn_adaptor[S any] struct {
 	moq *moqPartialGenericParamsFn[S]
 }
 
@@ -8165,12 +4557,18 @@ type moqPartialGenericParamsFn_paramsKey[S any] struct {
 	}
 }
 
-// moqPartialGenericParamsFn_resultsByParams contains the results for a given
-// set of parameters for the PartialGenericParamsFn type
-type moqPartialGenericParamsFn_resultsByParams[S any] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPartialGenericParamsFn_paramsKey[S]]*moqPartialGenericParamsFn_results[S]
+// moqPartialGenericParamsFn_results holds the results of the
+// PartialGenericParamsFn type
+type moqPartialGenericParamsFn_results[S any] struct {
+	result1 string
+	result2 error
+}
+
+// moqPartialGenericParamsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the PartialGenericParamsFn type
+type moqPartialGenericParamsFn_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqPartialGenericParamsFn_doFn defines the type of function needed when
@@ -8181,64 +4579,39 @@ type moqPartialGenericParamsFn_doFn[S any] func(S, bool)
 // when calling doReturnResults for the PartialGenericParamsFn type
 type moqPartialGenericParamsFn_doReturnFn[S any] func(S, bool) (string, error)
 
-// moqPartialGenericParamsFn_results holds the results of the
-// PartialGenericParamsFn type
-type moqPartialGenericParamsFn_results[S any] struct {
-	params  moqPartialGenericParamsFn_params[S]
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericParamsFn_doFn[S]
-		doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPartialGenericParamsFn_fnRecorder routes recorded function calls to the
+// moqPartialGenericParamsFn_recorder routes recorded function calls to the
 // moqPartialGenericParamsFn moq
-type moqPartialGenericParamsFn_fnRecorder[S any] struct {
-	params    moqPartialGenericParamsFn_params[S]
-	anyParams uint64
-	sequence  bool
-	results   *moqPartialGenericParamsFn_results[S]
-	moq       *moqPartialGenericParamsFn[S]
+type moqPartialGenericParamsFn_recorder[S any] struct {
+	recorder *impl.Recorder[
+		*moqPartialGenericParamsFn_adaptor[S],
+		moqPartialGenericParamsFn_params[S],
+		moqPartialGenericParamsFn_paramsKey[S],
+		moqPartialGenericParamsFn_results[S]]
 }
 
 // moqPartialGenericParamsFn_anyParams isolates the any params functions of the
 // PartialGenericParamsFn type
 type moqPartialGenericParamsFn_anyParams[S any] struct {
-	recorder *moqPartialGenericParamsFn_fnRecorder[S]
+	recorder *moqPartialGenericParamsFn_recorder[S]
 }
 
 // newMoqPartialGenericParamsFn creates a new moq of the PartialGenericParamsFn
 // type
 func newMoqPartialGenericParamsFn[S any](scene *moq.Scene, config *moq.Config) *moqPartialGenericParamsFn[S] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPartialGenericParamsFn_adaptor[S]{}
 	m := &moqPartialGenericParamsFn[S]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPartialGenericParamsFn_mock[S]{},
+		moq: impl.NewMoq[
+			*moqPartialGenericParamsFn_adaptor[S],
+			moqPartialGenericParamsFn_params[S],
+			moqPartialGenericParamsFn_paramsKey[S],
+			moqPartialGenericParamsFn_results[S]](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}{
+		runtime: moqPartialGenericParamsFn_runtime{parameterIndexing: moqPartialGenericParamsFn_paramIndexing{
 			param1: moq.ParamIndexByHash,
 			param2: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -8247,278 +4620,114 @@ func newMoqPartialGenericParamsFn[S any](scene *moq.Scene, config *moq.Config) *
 // mock returns the moq implementation of the PartialGenericParamsFn type
 func (m *moqPartialGenericParamsFn[S]) mock() testmoqs.PartialGenericParamsFn[S] {
 	return func(param1 S, param2 bool) (string, error) {
-		m.scene.T.Helper()
-		moq := &moqPartialGenericParamsFn_mock[S]{moq: m}
-		return moq.fn(param1, param2)
-	}
-}
-
-func (m *moqPartialGenericParamsFn_mock[S]) fn(param1 S, param2 bool) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqPartialGenericParamsFn_params[S]{
-		param1: param1,
-		param2: param2,
-	}
-	var results *moqPartialGenericParamsFn_results[S]
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
-}
-
-func (m *moqPartialGenericParamsFn[S]) onCall(param1 S, param2 bool) *moqPartialGenericParamsFn_fnRecorder[S] {
-	return &moqPartialGenericParamsFn_fnRecorder[S]{
-		params: moqPartialGenericParamsFn_params[S]{
+		m.moq.Scene.T.Helper()
+		params := moqPartialGenericParamsFn_params[S]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) any() *moqPartialGenericParamsFn_anyParams[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPartialGenericParamsFn[S]) onCall(param1 S, param2 bool) *moqPartialGenericParamsFn_recorder[S] {
+	return &moqPartialGenericParamsFn_recorder[S]{
+		recorder: m.moq.OnCall(moqPartialGenericParamsFn_params[S]{
+			param1: param1,
+			param2: param2,
+		}),
+	}
+}
+
+func (r *moqPartialGenericParamsFn_recorder[S]) any() *moqPartialGenericParamsFn_anyParams[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPartialGenericParamsFn_anyParams[S]{recorder: r}
 }
 
-func (a *moqPartialGenericParamsFn_anyParams[S]) param1() *moqPartialGenericParamsFn_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPartialGenericParamsFn_anyParams[S]) param1() *moqPartialGenericParamsFn_recorder[S] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqPartialGenericParamsFn_anyParams[S]) param2() *moqPartialGenericParamsFn_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqPartialGenericParamsFn_anyParams[S]) param2() *moqPartialGenericParamsFn_recorder[S] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) seq() *moqPartialGenericParamsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPartialGenericParamsFn_recorder[S]) seq() *moqPartialGenericParamsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) noSeq() *moqPartialGenericParamsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPartialGenericParamsFn_recorder[S]) noSeq() *moqPartialGenericParamsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) returnResults(result1 string, result2 error) *moqPartialGenericParamsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericParamsFn_doFn[S]
-		doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqPartialGenericParamsFn_recorder[S]) returnResults(result1 string, result2 error) *moqPartialGenericParamsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPartialGenericParamsFn_results[S]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) andDo(fn moqPartialGenericParamsFn_doFn[S]) *moqPartialGenericParamsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPartialGenericParamsFn_recorder[S]) andDo(fn moqPartialGenericParamsFn_doFn[S]) *moqPartialGenericParamsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPartialGenericParamsFn_params[S]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) doReturnResults(fn moqPartialGenericParamsFn_doReturnFn[S]) *moqPartialGenericParamsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqPartialGenericParamsFn_recorder[S]) doReturnResults(fn moqPartialGenericParamsFn_doReturnFn[S]) *moqPartialGenericParamsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPartialGenericParamsFn_params[S]) *moqPartialGenericParamsFn_results[S] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqPartialGenericParamsFn_results[S]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqPartialGenericParamsFn_doFn[S]
-		doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPartialGenericParamsFn_resultsByParams[S]
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPartialGenericParamsFn_resultsByParams[S]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPartialGenericParamsFn_paramsKey[S]]*moqPartialGenericParamsFn_results[S]{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPartialGenericParamsFn_results[S]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPartialGenericParamsFn_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericParamsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPartialGenericParamsFn_recorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericParamsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqPartialGenericParamsFn_doFn[S]
-				doReturnFn moqPartialGenericParamsFn_doReturnFn[S]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPartialGenericParamsFn[S]) prettyParams(params moqPartialGenericParamsFn_params[S]) string {
+func (*moqPartialGenericParamsFn_adaptor[S]) PrettyParams(params moqPartialGenericParamsFn_params[S]) string {
 	return fmt.Sprintf("PartialGenericParamsFn(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqPartialGenericParamsFn[S]) paramsKey(params moqPartialGenericParamsFn_params[S], anyParams uint64) moqPartialGenericParamsFn_paramsKey[S] {
-	m.scene.T.Helper()
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The param1 parameter can't be indexed by value")
-		}
-		param1UsedHash = hash.DeepHash(params.param1)
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqPartialGenericParamsFn_adaptor[S]) ParamsKey(params moqPartialGenericParamsFn_params[S], anyParams uint64) moqPartialGenericParamsFn_paramsKey[S] {
+	a.moq.moq.Scene.T.Helper()
+	param1UsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.param1, "param1", 1, a.moq.runtime.parameterIndexing.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.param2, anyParams)
 	return moqPartialGenericParamsFn_paramsKey[S]{
 		params: struct{ param2 bool }{
 			param2: param2Used,
@@ -8534,40 +4743,36 @@ func (m *moqPartialGenericParamsFn[S]) paramsKey(params moqPartialGenericParamsF
 }
 
 // Reset resets the state of the moq
-func (m *moqPartialGenericParamsFn[S]) Reset() { m.resultsByParams = nil }
+func (m *moqPartialGenericParamsFn[S]) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPartialGenericParamsFn[S]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqGenericResultsFn holds the state of a moq of the GenericResultsFn type
 type moqGenericResultsFn[S ~string, E error] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericResultsFn_mock[S, E]
+	moq *impl.Moq[
+		*moqGenericResultsFn_adaptor[S, E],
+		moqGenericResultsFn_params[S, E],
+		moqGenericResultsFn_paramsKey[S, E],
+		moqGenericResultsFn_results[S, E]]
 
-	resultsByParams []moqGenericResultsFn_resultsByParams[S, E]
-
-	runtime struct {
-		parameterIndexing struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}
-	}
+	runtime moqGenericResultsFn_runtime
 }
 
-// moqGenericResultsFn_mock isolates the mock interface of the GenericResultsFn
-// type
-type moqGenericResultsFn_mock[S ~string, E error] struct {
+// moqGenericResultsFn_runtime holds runtime configuration for the
+// GenericResultsFn type
+type moqGenericResultsFn_runtime struct {
+	parameterIndexing moqGenericResultsFn_paramIndexing
+}
+
+// moqGenericResultsFn_adaptor adapts moqGenericResultsFn as needed by the
+// runtime
+type moqGenericResultsFn_adaptor[S ~string, E error] struct {
 	moq *moqGenericResultsFn[S, E]
 }
 
@@ -8590,12 +4795,17 @@ type moqGenericResultsFn_paramsKey[S ~string, E error] struct {
 	}
 }
 
-// moqGenericResultsFn_resultsByParams contains the results for a given set of
-// parameters for the GenericResultsFn type
-type moqGenericResultsFn_resultsByParams[S ~string, E error] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericResultsFn_paramsKey[S, E]]*moqGenericResultsFn_results[S, E]
+// moqGenericResultsFn_results holds the results of the GenericResultsFn type
+type moqGenericResultsFn_results[S ~string, E error] struct {
+	result1 S
+	result2 E
+}
+
+// moqGenericResultsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the GenericResultsFn type
+type moqGenericResultsFn_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqGenericResultsFn_doFn defines the type of function needed when calling
@@ -8606,62 +4816,38 @@ type moqGenericResultsFn_doFn[S ~string, E error] func(string, bool)
 // calling doReturnResults for the GenericResultsFn type
 type moqGenericResultsFn_doReturnFn[S ~string, E error] func(string, bool) (S, E)
 
-// moqGenericResultsFn_results holds the results of the GenericResultsFn type
-type moqGenericResultsFn_results[S ~string, E error] struct {
-	params  moqGenericResultsFn_params[S, E]
-	results []struct {
-		values *struct {
-			result1 S
-			result2 E
-		}
-		sequence   uint32
-		doFn       moqGenericResultsFn_doFn[S, E]
-		doReturnFn moqGenericResultsFn_doReturnFn[S, E]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericResultsFn_fnRecorder routes recorded function calls to the
+// moqGenericResultsFn_recorder routes recorded function calls to the
 // moqGenericResultsFn moq
-type moqGenericResultsFn_fnRecorder[S ~string, E error] struct {
-	params    moqGenericResultsFn_params[S, E]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericResultsFn_results[S, E]
-	moq       *moqGenericResultsFn[S, E]
+type moqGenericResultsFn_recorder[S ~string, E error] struct {
+	recorder *impl.Recorder[
+		*moqGenericResultsFn_adaptor[S, E],
+		moqGenericResultsFn_params[S, E],
+		moqGenericResultsFn_paramsKey[S, E],
+		moqGenericResultsFn_results[S, E]]
 }
 
 // moqGenericResultsFn_anyParams isolates the any params functions of the
 // GenericResultsFn type
 type moqGenericResultsFn_anyParams[S ~string, E error] struct {
-	recorder *moqGenericResultsFn_fnRecorder[S, E]
+	recorder *moqGenericResultsFn_recorder[S, E]
 }
 
 // newMoqGenericResultsFn creates a new moq of the GenericResultsFn type
 func newMoqGenericResultsFn[S ~string, E error](scene *moq.Scene, config *moq.Config) *moqGenericResultsFn[S, E] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericResultsFn_adaptor[S, E]{}
 	m := &moqGenericResultsFn[S, E]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericResultsFn_mock[S, E]{},
+		moq: impl.NewMoq[
+			*moqGenericResultsFn_adaptor[S, E],
+			moqGenericResultsFn_params[S, E],
+			moqGenericResultsFn_paramsKey[S, E],
+			moqGenericResultsFn_results[S, E]](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}{
+		runtime: moqGenericResultsFn_runtime{parameterIndexing: moqGenericResultsFn_paramIndexing{
 			param1: moq.ParamIndexByValue,
 			param2: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -8670,280 +4856,114 @@ func newMoqGenericResultsFn[S ~string, E error](scene *moq.Scene, config *moq.Co
 // mock returns the moq implementation of the GenericResultsFn type
 func (m *moqGenericResultsFn[S, E]) mock() testmoqs.GenericResultsFn[S, E] {
 	return func(param1 string, param2 bool) (S, E) {
-		m.scene.T.Helper()
-		moq := &moqGenericResultsFn_mock[S, E]{moq: m}
-		return moq.fn(param1, param2)
-	}
-}
-
-func (m *moqGenericResultsFn_mock[S, E]) fn(param1 string, param2 bool) (result1 S, result2 E) {
-	m.moq.scene.T.Helper()
-	params := moqGenericResultsFn_params[S, E]{
-		param1: param1,
-		param2: param2,
-	}
-	var results *moqGenericResultsFn_results[S, E]
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
-}
-
-func (m *moqGenericResultsFn[S, E]) onCall(param1 string, param2 bool) *moqGenericResultsFn_fnRecorder[S, E] {
-	return &moqGenericResultsFn_fnRecorder[S, E]{
-		params: moqGenericResultsFn_params[S, E]{
+		m.moq.Scene.T.Helper()
+		params := moqGenericResultsFn_params[S, E]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 S
+		var result2 E
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) any() *moqGenericResultsFn_anyParams[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqGenericResultsFn[S, E]) onCall(param1 string, param2 bool) *moqGenericResultsFn_recorder[S, E] {
+	return &moqGenericResultsFn_recorder[S, E]{
+		recorder: m.moq.OnCall(moqGenericResultsFn_params[S, E]{
+			param1: param1,
+			param2: param2,
+		}),
+	}
+}
+
+func (r *moqGenericResultsFn_recorder[S, E]) any() *moqGenericResultsFn_anyParams[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericResultsFn_anyParams[S, E]{recorder: r}
 }
 
-func (a *moqGenericResultsFn_anyParams[S, E]) param1() *moqGenericResultsFn_fnRecorder[S, E] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericResultsFn_anyParams[S, E]) param1() *moqGenericResultsFn_recorder[S, E] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqGenericResultsFn_anyParams[S, E]) param2() *moqGenericResultsFn_fnRecorder[S, E] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqGenericResultsFn_anyParams[S, E]) param2() *moqGenericResultsFn_recorder[S, E] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) seq() *moqGenericResultsFn_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericResultsFn_recorder[S, E]) seq() *moqGenericResultsFn_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) noSeq() *moqGenericResultsFn_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericResultsFn_recorder[S, E]) noSeq() *moqGenericResultsFn_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) returnResults(result1 S, result2 E) *moqGenericResultsFn_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 E
-		}
-		sequence   uint32
-		doFn       moqGenericResultsFn_doFn[S, E]
-		doReturnFn moqGenericResultsFn_doReturnFn[S, E]
-	}{
-		values: &struct {
-			result1 S
-			result2 E
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqGenericResultsFn_recorder[S, E]) returnResults(result1 S, result2 E) *moqGenericResultsFn_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericResultsFn_results[S, E]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) andDo(fn moqGenericResultsFn_doFn[S, E]) *moqGenericResultsFn_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericResultsFn_recorder[S, E]) andDo(fn moqGenericResultsFn_doFn[S, E]) *moqGenericResultsFn_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericResultsFn_params[S, E]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) doReturnResults(fn moqGenericResultsFn_doReturnFn[S, E]) *moqGenericResultsFn_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 E
+func (r *moqGenericResultsFn_recorder[S, E]) doReturnResults(fn moqGenericResultsFn_doReturnFn[S, E]) *moqGenericResultsFn_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericResultsFn_params[S, E]) *moqGenericResultsFn_results[S, E] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqGenericResultsFn_results[S, E]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqGenericResultsFn_doFn[S, E]
-		doReturnFn moqGenericResultsFn_doReturnFn[S, E]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGenericResultsFn_fnRecorder[S, E]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericResultsFn_resultsByParams[S, E]
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericResultsFn_resultsByParams[S, E]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericResultsFn_paramsKey[S, E]]*moqGenericResultsFn_results[S, E]{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericResultsFn_results[S, E]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericResultsFn_fnRecorder[S, E]) repeat(repeaters ...moq.Repeater) *moqGenericResultsFn_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericResultsFn_recorder[S, E]) repeat(repeaters ...moq.Repeater) *moqGenericResultsFn_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 S
-					result2 E
-				}
-				sequence   uint32
-				doFn       moqGenericResultsFn_doFn[S, E]
-				doReturnFn moqGenericResultsFn_doReturnFn[S, E]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericResultsFn[S, E]) prettyParams(params moqGenericResultsFn_params[S, E]) string {
+func (*moqGenericResultsFn_adaptor[S, E]) PrettyParams(params moqGenericResultsFn_params[S, E]) string {
 	return fmt.Sprintf("GenericResultsFn(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqGenericResultsFn[S, E]) paramsKey(params moqGenericResultsFn_params[S, E], anyParams uint64) moqGenericResultsFn_paramsKey[S, E] {
-	m.scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqGenericResultsFn_adaptor[S, E]) ParamsKey(params moqGenericResultsFn_params[S, E], anyParams uint64) moqGenericResultsFn_paramsKey[S, E] {
+	a.moq.moq.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.param2, anyParams)
 	return moqGenericResultsFn_paramsKey[S, E]{
 		params: struct {
 			param1 string
@@ -8963,41 +4983,37 @@ func (m *moqGenericResultsFn[S, E]) paramsKey(params moqGenericResultsFn_params[
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericResultsFn[S, E]) Reset() { m.resultsByParams = nil }
+func (m *moqGenericResultsFn[S, E]) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericResultsFn[S, E]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqPartialGenericResultsFn holds the state of a moq of the
 // PartialGenericResultsFn type
 type moqPartialGenericResultsFn[S ~string] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPartialGenericResultsFn_mock[S]
+	moq *impl.Moq[
+		*moqPartialGenericResultsFn_adaptor[S],
+		moqPartialGenericResultsFn_params[S],
+		moqPartialGenericResultsFn_paramsKey[S],
+		moqPartialGenericResultsFn_results[S]]
 
-	resultsByParams []moqPartialGenericResultsFn_resultsByParams[S]
-
-	runtime struct {
-		parameterIndexing struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}
-	}
+	runtime moqPartialGenericResultsFn_runtime
 }
 
-// moqPartialGenericResultsFn_mock isolates the mock interface of the
+// moqPartialGenericResultsFn_runtime holds runtime configuration for the
 // PartialGenericResultsFn type
-type moqPartialGenericResultsFn_mock[S ~string] struct {
+type moqPartialGenericResultsFn_runtime struct {
+	parameterIndexing moqPartialGenericResultsFn_paramIndexing
+}
+
+// moqPartialGenericResultsFn_adaptor adapts moqPartialGenericResultsFn as
+// needed by the runtime
+type moqPartialGenericResultsFn_adaptor[S ~string] struct {
 	moq *moqPartialGenericResultsFn[S]
 }
 
@@ -9021,12 +5037,18 @@ type moqPartialGenericResultsFn_paramsKey[S ~string] struct {
 	}
 }
 
-// moqPartialGenericResultsFn_resultsByParams contains the results for a given
-// set of parameters for the PartialGenericResultsFn type
-type moqPartialGenericResultsFn_resultsByParams[S ~string] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPartialGenericResultsFn_paramsKey[S]]*moqPartialGenericResultsFn_results[S]
+// moqPartialGenericResultsFn_results holds the results of the
+// PartialGenericResultsFn type
+type moqPartialGenericResultsFn_results[S ~string] struct {
+	result1 S
+	result2 error
+}
+
+// moqPartialGenericResultsFn_paramIndexing holds the parameter indexing
+// runtime configuration for the PartialGenericResultsFn type
+type moqPartialGenericResultsFn_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqPartialGenericResultsFn_doFn defines the type of function needed when
@@ -9037,64 +5059,39 @@ type moqPartialGenericResultsFn_doFn[S ~string] func(string, bool)
 // when calling doReturnResults for the PartialGenericResultsFn type
 type moqPartialGenericResultsFn_doReturnFn[S ~string] func(string, bool) (S, error)
 
-// moqPartialGenericResultsFn_results holds the results of the
-// PartialGenericResultsFn type
-type moqPartialGenericResultsFn_results[S ~string] struct {
-	params  moqPartialGenericResultsFn_params[S]
-	results []struct {
-		values *struct {
-			result1 S
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericResultsFn_doFn[S]
-		doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPartialGenericResultsFn_fnRecorder routes recorded function calls to the
+// moqPartialGenericResultsFn_recorder routes recorded function calls to the
 // moqPartialGenericResultsFn moq
-type moqPartialGenericResultsFn_fnRecorder[S ~string] struct {
-	params    moqPartialGenericResultsFn_params[S]
-	anyParams uint64
-	sequence  bool
-	results   *moqPartialGenericResultsFn_results[S]
-	moq       *moqPartialGenericResultsFn[S]
+type moqPartialGenericResultsFn_recorder[S ~string] struct {
+	recorder *impl.Recorder[
+		*moqPartialGenericResultsFn_adaptor[S],
+		moqPartialGenericResultsFn_params[S],
+		moqPartialGenericResultsFn_paramsKey[S],
+		moqPartialGenericResultsFn_results[S]]
 }
 
 // moqPartialGenericResultsFn_anyParams isolates the any params functions of
 // the PartialGenericResultsFn type
 type moqPartialGenericResultsFn_anyParams[S ~string] struct {
-	recorder *moqPartialGenericResultsFn_fnRecorder[S]
+	recorder *moqPartialGenericResultsFn_recorder[S]
 }
 
 // newMoqPartialGenericResultsFn creates a new moq of the
 // PartialGenericResultsFn type
 func newMoqPartialGenericResultsFn[S ~string](scene *moq.Scene, config *moq.Config) *moqPartialGenericResultsFn[S] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPartialGenericResultsFn_adaptor[S]{}
 	m := &moqPartialGenericResultsFn[S]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPartialGenericResultsFn_mock[S]{},
+		moq: impl.NewMoq[
+			*moqPartialGenericResultsFn_adaptor[S],
+			moqPartialGenericResultsFn_params[S],
+			moqPartialGenericResultsFn_paramsKey[S],
+			moqPartialGenericResultsFn_results[S]](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			param1 moq.ParamIndexing
-			param2 moq.ParamIndexing
-		}{
+		runtime: moqPartialGenericResultsFn_runtime{parameterIndexing: moqPartialGenericResultsFn_paramIndexing{
 			param1: moq.ParamIndexByValue,
 			param2: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -9103,280 +5100,114 @@ func newMoqPartialGenericResultsFn[S ~string](scene *moq.Scene, config *moq.Conf
 // mock returns the moq implementation of the PartialGenericResultsFn type
 func (m *moqPartialGenericResultsFn[S]) mock() testmoqs.PartialGenericResultsFn[S] {
 	return func(param1 string, param2 bool) (S, error) {
-		m.scene.T.Helper()
-		moq := &moqPartialGenericResultsFn_mock[S]{moq: m}
-		return moq.fn(param1, param2)
-	}
-}
-
-func (m *moqPartialGenericResultsFn_mock[S]) fn(param1 string, param2 bool) (result1 S, result2 error) {
-	m.moq.scene.T.Helper()
-	params := moqPartialGenericResultsFn_params[S]{
-		param1: param1,
-		param2: param2,
-	}
-	var results *moqPartialGenericResultsFn_results[S]
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
-}
-
-func (m *moqPartialGenericResultsFn[S]) onCall(param1 string, param2 bool) *moqPartialGenericResultsFn_fnRecorder[S] {
-	return &moqPartialGenericResultsFn_fnRecorder[S]{
-		params: moqPartialGenericResultsFn_params[S]{
+		m.moq.Scene.T.Helper()
+		params := moqPartialGenericResultsFn_params[S]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 S
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+			result2 = result.result2
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) any() *moqPartialGenericResultsFn_anyParams[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqPartialGenericResultsFn[S]) onCall(param1 string, param2 bool) *moqPartialGenericResultsFn_recorder[S] {
+	return &moqPartialGenericResultsFn_recorder[S]{
+		recorder: m.moq.OnCall(moqPartialGenericResultsFn_params[S]{
+			param1: param1,
+			param2: param2,
+		}),
+	}
+}
+
+func (r *moqPartialGenericResultsFn_recorder[S]) any() *moqPartialGenericResultsFn_anyParams[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPartialGenericResultsFn_anyParams[S]{recorder: r}
 }
 
-func (a *moqPartialGenericResultsFn_anyParams[S]) param1() *moqPartialGenericResultsFn_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPartialGenericResultsFn_anyParams[S]) param1() *moqPartialGenericResultsFn_recorder[S] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqPartialGenericResultsFn_anyParams[S]) param2() *moqPartialGenericResultsFn_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqPartialGenericResultsFn_anyParams[S]) param2() *moqPartialGenericResultsFn_recorder[S] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) seq() *moqPartialGenericResultsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPartialGenericResultsFn_recorder[S]) seq() *moqPartialGenericResultsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) noSeq() *moqPartialGenericResultsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqPartialGenericResultsFn_recorder[S]) noSeq() *moqPartialGenericResultsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) returnResults(result1 S, result2 error) *moqPartialGenericResultsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericResultsFn_doFn[S]
-		doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
-	}{
-		values: &struct {
-			result1 S
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqPartialGenericResultsFn_recorder[S]) returnResults(result1 S, result2 error) *moqPartialGenericResultsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPartialGenericResultsFn_results[S]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) andDo(fn moqPartialGenericResultsFn_doFn[S]) *moqPartialGenericResultsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPartialGenericResultsFn_recorder[S]) andDo(fn moqPartialGenericResultsFn_doFn[S]) *moqPartialGenericResultsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPartialGenericResultsFn_params[S]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) doReturnResults(fn moqPartialGenericResultsFn_doReturnFn[S]) *moqPartialGenericResultsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 error
+func (r *moqPartialGenericResultsFn_recorder[S]) doReturnResults(fn moqPartialGenericResultsFn_doReturnFn[S]) *moqPartialGenericResultsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPartialGenericResultsFn_params[S]) *moqPartialGenericResultsFn_results[S] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqPartialGenericResultsFn_results[S]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqPartialGenericResultsFn_doFn[S]
-		doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPartialGenericResultsFn_resultsByParams[S]
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPartialGenericResultsFn_resultsByParams[S]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPartialGenericResultsFn_paramsKey[S]]*moqPartialGenericResultsFn_results[S]{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPartialGenericResultsFn_results[S]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPartialGenericResultsFn_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericResultsFn_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPartialGenericResultsFn_recorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericResultsFn_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 S
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqPartialGenericResultsFn_doFn[S]
-				doReturnFn moqPartialGenericResultsFn_doReturnFn[S]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPartialGenericResultsFn[S]) prettyParams(params moqPartialGenericResultsFn_params[S]) string {
+func (*moqPartialGenericResultsFn_adaptor[S]) PrettyParams(params moqPartialGenericResultsFn_params[S]) string {
 	return fmt.Sprintf("PartialGenericResultsFn(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqPartialGenericResultsFn[S]) paramsKey(params moqPartialGenericResultsFn_params[S], anyParams uint64) moqPartialGenericResultsFn_paramsKey[S] {
-	m.scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqPartialGenericResultsFn_adaptor[S]) ParamsKey(params moqPartialGenericResultsFn_params[S], anyParams uint64) moqPartialGenericResultsFn_paramsKey[S] {
+	a.moq.moq.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.param2, anyParams)
 	return moqPartialGenericResultsFn_paramsKey[S]{
 		params: struct {
 			param1 string
@@ -9396,40 +5227,37 @@ func (m *moqPartialGenericResultsFn[S]) paramsKey(params moqPartialGenericResult
 }
 
 // Reset resets the state of the moq
-func (m *moqPartialGenericResultsFn[S]) Reset() { m.resultsByParams = nil }
+func (m *moqPartialGenericResultsFn[S]) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPartialGenericResultsFn[S]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqGenericInterfaceParamFn holds the state of a moq of the
 // GenericInterfaceParamFn type
 type moqGenericInterfaceParamFn[W testmoqs.MyWriter] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericInterfaceParamFn_mock[W]
+	moq *impl.Moq[
+		*moqGenericInterfaceParamFn_adaptor[W],
+		moqGenericInterfaceParamFn_params[W],
+		moqGenericInterfaceParamFn_paramsKey[W],
+		moqGenericInterfaceParamFn_results[W]]
 
-	resultsByParams []moqGenericInterfaceParamFn_resultsByParams[W]
-
-	runtime struct {
-		parameterIndexing struct {
-			w moq.ParamIndexing
-		}
-	}
+	runtime moqGenericInterfaceParamFn_runtime
 }
 
-// moqGenericInterfaceParamFn_mock isolates the mock interface of the
+// moqGenericInterfaceParamFn_runtime holds runtime configuration for the
 // GenericInterfaceParamFn type
-type moqGenericInterfaceParamFn_mock[W testmoqs.MyWriter] struct {
+type moqGenericInterfaceParamFn_runtime struct {
+	parameterIndexing moqGenericInterfaceParamFn_paramIndexing
+}
+
+// moqGenericInterfaceParamFn_adaptor adapts moqGenericInterfaceParamFn as
+// needed by the runtime
+type moqGenericInterfaceParamFn_adaptor[W testmoqs.MyWriter] struct {
 	moq *moqGenericInterfaceParamFn[W]
 }
 
@@ -9444,12 +5272,17 @@ type moqGenericInterfaceParamFn_paramsKey[W testmoqs.MyWriter] struct {
 	hashes struct{ w hash.Hash }
 }
 
-// moqGenericInterfaceParamFn_resultsByParams contains the results for a given
-// set of parameters for the GenericInterfaceParamFn type
-type moqGenericInterfaceParamFn_resultsByParams[W testmoqs.MyWriter] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericInterfaceParamFn_paramsKey[W]]*moqGenericInterfaceParamFn_results[W]
+// moqGenericInterfaceParamFn_results holds the results of the
+// GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_results[W testmoqs.MyWriter] struct {
+	sResult string
+	err     error
+}
+
+// moqGenericInterfaceParamFn_paramIndexing holds the parameter indexing
+// runtime configuration for the GenericInterfaceParamFn type
+type moqGenericInterfaceParamFn_paramIndexing struct {
+	w moq.ParamIndexing
 }
 
 // moqGenericInterfaceParamFn_doFn defines the type of function needed when
@@ -9460,61 +5293,38 @@ type moqGenericInterfaceParamFn_doFn[W testmoqs.MyWriter] func(w W)
 // when calling doReturnResults for the GenericInterfaceParamFn type
 type moqGenericInterfaceParamFn_doReturnFn[W testmoqs.MyWriter] func(w W) (sResult string, err error)
 
-// moqGenericInterfaceParamFn_results holds the results of the
-// GenericInterfaceParamFn type
-type moqGenericInterfaceParamFn_results[W testmoqs.MyWriter] struct {
-	params  moqGenericInterfaceParamFn_params[W]
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqGenericInterfaceParamFn_doFn[W]
-		doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericInterfaceParamFn_fnRecorder routes recorded function calls to the
+// moqGenericInterfaceParamFn_recorder routes recorded function calls to the
 // moqGenericInterfaceParamFn moq
-type moqGenericInterfaceParamFn_fnRecorder[W testmoqs.MyWriter] struct {
-	params    moqGenericInterfaceParamFn_params[W]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericInterfaceParamFn_results[W]
-	moq       *moqGenericInterfaceParamFn[W]
+type moqGenericInterfaceParamFn_recorder[W testmoqs.MyWriter] struct {
+	recorder *impl.Recorder[
+		*moqGenericInterfaceParamFn_adaptor[W],
+		moqGenericInterfaceParamFn_params[W],
+		moqGenericInterfaceParamFn_paramsKey[W],
+		moqGenericInterfaceParamFn_results[W]]
 }
 
 // moqGenericInterfaceParamFn_anyParams isolates the any params functions of
 // the GenericInterfaceParamFn type
 type moqGenericInterfaceParamFn_anyParams[W testmoqs.MyWriter] struct {
-	recorder *moqGenericInterfaceParamFn_fnRecorder[W]
+	recorder *moqGenericInterfaceParamFn_recorder[W]
 }
 
 // newMoqGenericInterfaceParamFn creates a new moq of the
 // GenericInterfaceParamFn type
 func newMoqGenericInterfaceParamFn[W testmoqs.MyWriter](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceParamFn[W] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericInterfaceParamFn_adaptor[W]{}
 	m := &moqGenericInterfaceParamFn[W]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericInterfaceParamFn_mock[W]{},
+		moq: impl.NewMoq[
+			*moqGenericInterfaceParamFn_adaptor[W],
+			moqGenericInterfaceParamFn_params[W],
+			moqGenericInterfaceParamFn_paramsKey[W],
+			moqGenericInterfaceParamFn_results[W]](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				w moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			w moq.ParamIndexing
-		}{
+		runtime: moqGenericInterfaceParamFn_runtime{parameterIndexing: moqGenericInterfaceParamFn_paramIndexing{
 			w: moq.ParamIndexByHash,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -9522,263 +5332,106 @@ func newMoqGenericInterfaceParamFn[W testmoqs.MyWriter](scene *moq.Scene, config
 
 // mock returns the moq implementation of the GenericInterfaceParamFn type
 func (m *moqGenericInterfaceParamFn[W]) mock() testmoqs.GenericInterfaceParamFn[W] {
-	return func(w W) (_ string, _ error) {
-		m.scene.T.Helper()
-		moq := &moqGenericInterfaceParamFn_mock[W]{moq: m}
-		return moq.fn(w)
-	}
-}
-
-func (m *moqGenericInterfaceParamFn_mock[W]) fn(w W) (sResult string, err error) {
-	m.moq.scene.T.Helper()
-	params := moqGenericInterfaceParamFn_params[W]{
-		w: w,
-	}
-	var results *moqGenericInterfaceParamFn_results[W]
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(w)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(w)
-	}
-	return
-}
-
-func (m *moqGenericInterfaceParamFn[W]) onCall(w W) *moqGenericInterfaceParamFn_fnRecorder[W] {
-	return &moqGenericInterfaceParamFn_fnRecorder[W]{
-		params: moqGenericInterfaceParamFn_params[W]{
+	return func(w W) (string, error) {
+		m.moq.Scene.T.Helper()
+		params := moqGenericInterfaceParamFn_params[W]{
 			w: w,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 string
+		var result2 error
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
+		}
+		return result1, result2
 	}
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) any() *moqGenericInterfaceParamFn_anyParams[W] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqGenericInterfaceParamFn[W]) onCall(w W) *moqGenericInterfaceParamFn_recorder[W] {
+	return &moqGenericInterfaceParamFn_recorder[W]{
+		recorder: m.moq.OnCall(moqGenericInterfaceParamFn_params[W]{
+			w: w,
+		}),
+	}
+}
+
+func (r *moqGenericInterfaceParamFn_recorder[W]) any() *moqGenericInterfaceParamFn_anyParams[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericInterfaceParamFn_anyParams[W]{recorder: r}
 }
 
-func (a *moqGenericInterfaceParamFn_anyParams[W]) w() *moqGenericInterfaceParamFn_fnRecorder[W] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericInterfaceParamFn_anyParams[W]) w() *moqGenericInterfaceParamFn_recorder[W] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) seq() *moqGenericInterfaceParamFn_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericInterfaceParamFn_recorder[W]) seq() *moqGenericInterfaceParamFn_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) noSeq() *moqGenericInterfaceParamFn_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericInterfaceParamFn_recorder[W]) noSeq() *moqGenericInterfaceParamFn_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) returnResults(sResult string, err error) *moqGenericInterfaceParamFn_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqGenericInterfaceParamFn_doFn[W]
-		doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqGenericInterfaceParamFn_recorder[W]) returnResults(sResult string, err error) *moqGenericInterfaceParamFn_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericInterfaceParamFn_results[W]{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) andDo(fn moqGenericInterfaceParamFn_doFn[W]) *moqGenericInterfaceParamFn_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericInterfaceParamFn_recorder[W]) andDo(fn moqGenericInterfaceParamFn_doFn[W]) *moqGenericInterfaceParamFn_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericInterfaceParamFn_params[W]) {
+		fn(params.w)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) doReturnResults(fn moqGenericInterfaceParamFn_doReturnFn[W]) *moqGenericInterfaceParamFn_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqGenericInterfaceParamFn_recorder[W]) doReturnResults(fn moqGenericInterfaceParamFn_doReturnFn[W]) *moqGenericInterfaceParamFn_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericInterfaceParamFn_params[W]) *moqGenericInterfaceParamFn_results[W] {
+		sResult, err := fn(params.w)
+		return &moqGenericInterfaceParamFn_results[W]{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqGenericInterfaceParamFn_doFn[W]
-		doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericInterfaceParamFn_resultsByParams[W]
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericInterfaceParamFn_resultsByParams[W]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericInterfaceParamFn_paramsKey[W]]*moqGenericInterfaceParamFn_results[W]{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericInterfaceParamFn_results[W]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericInterfaceParamFn_fnRecorder[W]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceParamFn_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericInterfaceParamFn_recorder[W]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceParamFn_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqGenericInterfaceParamFn_doFn[W]
-				doReturnFn moqGenericInterfaceParamFn_doReturnFn[W]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericInterfaceParamFn[W]) prettyParams(params moqGenericInterfaceParamFn_params[W]) string {
+func (*moqGenericInterfaceParamFn_adaptor[W]) PrettyParams(params moqGenericInterfaceParamFn_params[W]) string {
 	return fmt.Sprintf("GenericInterfaceParamFn(%#v)", params.w)
 }
 
-func (m *moqGenericInterfaceParamFn[W]) paramsKey(params moqGenericInterfaceParamFn_params[W], anyParams uint64) moqGenericInterfaceParamFn_paramsKey[W] {
-	m.scene.T.Helper()
-	var wUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.w == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The w parameter can't be indexed by value")
-		}
-		wUsedHash = hash.DeepHash(params.w)
-	}
+func (a *moqGenericInterfaceParamFn_adaptor[W]) ParamsKey(params moqGenericInterfaceParamFn_params[W], anyParams uint64) moqGenericInterfaceParamFn_paramsKey[W] {
+	a.moq.moq.Scene.T.Helper()
+	wUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.w, "w", 1, a.moq.runtime.parameterIndexing.w, anyParams)
 	return moqGenericInterfaceParamFn_paramsKey[W]{
 		params: struct{}{},
 		hashes: struct{ w hash.Hash }{
@@ -9788,41 +5441,37 @@ func (m *moqGenericInterfaceParamFn[W]) paramsKey(params moqGenericInterfacePara
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericInterfaceParamFn[W]) Reset() { m.resultsByParams = nil }
+func (m *moqGenericInterfaceParamFn[W]) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericInterfaceParamFn[W]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // moqGenericInterfaceResultFn holds the state of a moq of the
 // GenericInterfaceResultFn type
 type moqGenericInterfaceResultFn[R testmoqs.MyReader] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericInterfaceResultFn_mock[R]
+	moq *impl.Moq[
+		*moqGenericInterfaceResultFn_adaptor[R],
+		moqGenericInterfaceResultFn_params[R],
+		moqGenericInterfaceResultFn_paramsKey[R],
+		moqGenericInterfaceResultFn_results[R]]
 
-	resultsByParams []moqGenericInterfaceResultFn_resultsByParams[R]
-
-	runtime struct {
-		parameterIndexing struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}
-	}
+	runtime moqGenericInterfaceResultFn_runtime
 }
 
-// moqGenericInterfaceResultFn_mock isolates the mock interface of the
+// moqGenericInterfaceResultFn_runtime holds runtime configuration for the
 // GenericInterfaceResultFn type
-type moqGenericInterfaceResultFn_mock[R testmoqs.MyReader] struct {
+type moqGenericInterfaceResultFn_runtime struct {
+	parameterIndexing moqGenericInterfaceResultFn_paramIndexing
+}
+
+// moqGenericInterfaceResultFn_adaptor adapts moqGenericInterfaceResultFn as
+// needed by the runtime
+type moqGenericInterfaceResultFn_adaptor[R testmoqs.MyReader] struct {
 	moq *moqGenericInterfaceResultFn[R]
 }
 
@@ -9846,12 +5495,15 @@ type moqGenericInterfaceResultFn_paramsKey[R testmoqs.MyReader] struct {
 	}
 }
 
-// moqGenericInterfaceResultFn_resultsByParams contains the results for a given
-// set of parameters for the GenericInterfaceResultFn type
-type moqGenericInterfaceResultFn_resultsByParams[R testmoqs.MyReader] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericInterfaceResultFn_paramsKey[R]]*moqGenericInterfaceResultFn_results[R]
+// moqGenericInterfaceResultFn_results holds the results of the
+// GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_results[R testmoqs.MyReader] struct{ result1 R }
+
+// moqGenericInterfaceResultFn_paramIndexing holds the parameter indexing
+// runtime configuration for the GenericInterfaceResultFn type
+type moqGenericInterfaceResultFn_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqGenericInterfaceResultFn_doFn defines the type of function needed when
@@ -9862,61 +5514,39 @@ type moqGenericInterfaceResultFn_doFn[R testmoqs.MyReader] func(sParam string, b
 // when calling doReturnResults for the GenericInterfaceResultFn type
 type moqGenericInterfaceResultFn_doReturnFn[R testmoqs.MyReader] func(sParam string, bParam bool) (r R)
 
-// moqGenericInterfaceResultFn_results holds the results of the
-// GenericInterfaceResultFn type
-type moqGenericInterfaceResultFn_results[R testmoqs.MyReader] struct {
-	params  moqGenericInterfaceResultFn_params[R]
-	results []struct {
-		values     *struct{ result1 R }
-		sequence   uint32
-		doFn       moqGenericInterfaceResultFn_doFn[R]
-		doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericInterfaceResultFn_fnRecorder routes recorded function calls to the
+// moqGenericInterfaceResultFn_recorder routes recorded function calls to the
 // moqGenericInterfaceResultFn moq
-type moqGenericInterfaceResultFn_fnRecorder[R testmoqs.MyReader] struct {
-	params    moqGenericInterfaceResultFn_params[R]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericInterfaceResultFn_results[R]
-	moq       *moqGenericInterfaceResultFn[R]
+type moqGenericInterfaceResultFn_recorder[R testmoqs.MyReader] struct {
+	recorder *impl.Recorder[
+		*moqGenericInterfaceResultFn_adaptor[R],
+		moqGenericInterfaceResultFn_params[R],
+		moqGenericInterfaceResultFn_paramsKey[R],
+		moqGenericInterfaceResultFn_results[R]]
 }
 
 // moqGenericInterfaceResultFn_anyParams isolates the any params functions of
 // the GenericInterfaceResultFn type
 type moqGenericInterfaceResultFn_anyParams[R testmoqs.MyReader] struct {
-	recorder *moqGenericInterfaceResultFn_fnRecorder[R]
+	recorder *moqGenericInterfaceResultFn_recorder[R]
 }
 
 // newMoqGenericInterfaceResultFn creates a new moq of the
 // GenericInterfaceResultFn type
 func newMoqGenericInterfaceResultFn[R testmoqs.MyReader](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceResultFn[R] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericInterfaceResultFn_adaptor[R]{}
 	m := &moqGenericInterfaceResultFn[R]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericInterfaceResultFn_mock[R]{},
+		moq: impl.NewMoq[
+			*moqGenericInterfaceResultFn_adaptor[R],
+			moqGenericInterfaceResultFn_params[R],
+			moqGenericInterfaceResultFn_paramsKey[R],
+			moqGenericInterfaceResultFn_results[R]](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-		}{parameterIndexing: struct {
-			sParam moq.ParamIndexing
-			bParam moq.ParamIndexing
-		}{
+		runtime: moqGenericInterfaceResultFn_runtime{parameterIndexing: moqGenericInterfaceResultFn_paramIndexing{
 			sParam: moq.ParamIndexByValue,
 			bParam: moq.ParamIndexByValue,
 		}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -9924,267 +5554,111 @@ func newMoqGenericInterfaceResultFn[R testmoqs.MyReader](scene *moq.Scene, confi
 
 // mock returns the moq implementation of the GenericInterfaceResultFn type
 func (m *moqGenericInterfaceResultFn[R]) mock() testmoqs.GenericInterfaceResultFn[R] {
-	return func(sParam string, bParam bool) (_ R) {
-		m.scene.T.Helper()
-		moq := &moqGenericInterfaceResultFn_mock[R]{moq: m}
-		return moq.fn(sParam, bParam)
-	}
-}
-
-func (m *moqGenericInterfaceResultFn_mock[R]) fn(sParam string, bParam bool) (result1 R) {
-	m.moq.scene.T.Helper()
-	params := moqGenericInterfaceResultFn_params[R]{
-		sParam: sParam,
-		bParam: bParam,
-	}
-	var results *moqGenericInterfaceResultFn_results[R]
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(sParam, bParam)
-	}
-	return
-}
-
-func (m *moqGenericInterfaceResultFn[R]) onCall(sParam string, bParam bool) *moqGenericInterfaceResultFn_fnRecorder[R] {
-	return &moqGenericInterfaceResultFn_fnRecorder[R]{
-		params: moqGenericInterfaceResultFn_params[R]{
+	return func(sParam string, bParam bool) R {
+		m.moq.Scene.T.Helper()
+		params := moqGenericInterfaceResultFn_params[R]{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		}
+
+		var result1 R
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
+		}
+		return result1
 	}
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) any() *moqGenericInterfaceResultFn_anyParams[R] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqGenericInterfaceResultFn[R]) onCall(sParam string, bParam bool) *moqGenericInterfaceResultFn_recorder[R] {
+	return &moqGenericInterfaceResultFn_recorder[R]{
+		recorder: m.moq.OnCall(moqGenericInterfaceResultFn_params[R]{
+			sParam: sParam,
+			bParam: bParam,
+		}),
+	}
+}
+
+func (r *moqGenericInterfaceResultFn_recorder[R]) any() *moqGenericInterfaceResultFn_anyParams[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericInterfaceResultFn_anyParams[R]{recorder: r}
 }
 
-func (a *moqGenericInterfaceResultFn_anyParams[R]) sParam() *moqGenericInterfaceResultFn_fnRecorder[R] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericInterfaceResultFn_anyParams[R]) sParam() *moqGenericInterfaceResultFn_recorder[R] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqGenericInterfaceResultFn_anyParams[R]) bParam() *moqGenericInterfaceResultFn_fnRecorder[R] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqGenericInterfaceResultFn_anyParams[R]) bParam() *moqGenericInterfaceResultFn_recorder[R] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) seq() *moqGenericInterfaceResultFn_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericInterfaceResultFn_recorder[R]) seq() *moqGenericInterfaceResultFn_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) noSeq() *moqGenericInterfaceResultFn_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqGenericInterfaceResultFn_recorder[R]) noSeq() *moqGenericInterfaceResultFn_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) returnResults(result1 R) *moqGenericInterfaceResultFn_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 R }
-		sequence   uint32
-		doFn       moqGenericInterfaceResultFn_doFn[R]
-		doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
-	}{
-		values: &struct{ result1 R }{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqGenericInterfaceResultFn_recorder[R]) returnResults(result1 R) *moqGenericInterfaceResultFn_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericInterfaceResultFn_results[R]{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) andDo(fn moqGenericInterfaceResultFn_doFn[R]) *moqGenericInterfaceResultFn_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericInterfaceResultFn_recorder[R]) andDo(fn moqGenericInterfaceResultFn_doFn[R]) *moqGenericInterfaceResultFn_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericInterfaceResultFn_params[R]) {
+		fn(params.sParam, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) doReturnResults(fn moqGenericInterfaceResultFn_doReturnFn[R]) *moqGenericInterfaceResultFn_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 R }
-		sequence   uint32
-		doFn       moqGenericInterfaceResultFn_doFn[R]
-		doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
-	}{sequence: sequence, doReturnFn: fn})
+func (r *moqGenericInterfaceResultFn_recorder[R]) doReturnResults(fn moqGenericInterfaceResultFn_doReturnFn[R]) *moqGenericInterfaceResultFn_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericInterfaceResultFn_params[R]) *moqGenericInterfaceResultFn_results[R] {
+		result1 := fn(params.sParam, params.bParam)
+		return &moqGenericInterfaceResultFn_results[R]{
+			result1: result1,
+		}
+	})
 	return r
 }
 
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericInterfaceResultFn_resultsByParams[R]
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericInterfaceResultFn_resultsByParams[R]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericInterfaceResultFn_paramsKey[R]]*moqGenericInterfaceResultFn_results[R]{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericInterfaceResultFn_results[R]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericInterfaceResultFn_fnRecorder[R]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceResultFn_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericInterfaceResultFn_recorder[R]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceResultFn_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{ result1 R }
-				sequence   uint32
-				doFn       moqGenericInterfaceResultFn_doFn[R]
-				doReturnFn moqGenericInterfaceResultFn_doReturnFn[R]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericInterfaceResultFn[R]) prettyParams(params moqGenericInterfaceResultFn_params[R]) string {
+func (*moqGenericInterfaceResultFn_adaptor[R]) PrettyParams(params moqGenericInterfaceResultFn_params[R]) string {
 	return fmt.Sprintf("GenericInterfaceResultFn(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqGenericInterfaceResultFn[R]) paramsKey(params moqGenericInterfaceResultFn_params[R], anyParams uint64) moqGenericInterfaceResultFn_paramsKey[R] {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqGenericInterfaceResultFn_adaptor[R]) ParamsKey(params moqGenericInterfaceResultFn_params[R], anyParams uint64) moqGenericInterfaceResultFn_paramsKey[R] {
+	a.moq.moq.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.bParam, anyParams)
 	return moqGenericInterfaceResultFn_paramsKey[R]{
 		params: struct {
 			sParam string
@@ -10204,19 +5678,14 @@ func (m *moqGenericInterfaceResultFn[R]) paramsKey(params moqGenericInterfaceRes
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericInterfaceResultFn[R]) Reset() { m.resultsByParams = nil }
+func (m *moqGenericInterfaceResultFn[R]) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericInterfaceResultFn[R]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.Usual is mocked
@@ -10225,118 +5694,177 @@ var _ testmoqs.Usual = (*moqUsual_mock)(nil)
 
 // moqUsual holds the state of a moq of the Usual type
 type moqUsual struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqUsual_mock
+	moq *moqUsual_mock
 
-	resultsByParams_Usual                []moqUsual_Usual_resultsByParams
-	resultsByParams_NoNames              []moqUsual_NoNames_resultsByParams
-	resultsByParams_NoResults            []moqUsual_NoResults_resultsByParams
-	resultsByParams_NoParams             []moqUsual_NoParams_resultsByParams
-	resultsByParams_Nothing              []moqUsual_Nothing_resultsByParams
-	resultsByParams_Variadic             []moqUsual_Variadic_resultsByParams
-	resultsByParams_RepeatedIds          []moqUsual_RepeatedIds_resultsByParams
-	resultsByParams_Times                []moqUsual_Times_resultsByParams
-	resultsByParams_DifficultParamNames  []moqUsual_DifficultParamNames_resultsByParams
-	resultsByParams_DifficultResultNames []moqUsual_DifficultResultNames_resultsByParams
-	resultsByParams_PassByArray          []moqUsual_PassByArray_resultsByParams
-	resultsByParams_PassByChan           []moqUsual_PassByChan_resultsByParams
-	resultsByParams_PassByEllipsis       []moqUsual_PassByEllipsis_resultsByParams
-	resultsByParams_PassByMap            []moqUsual_PassByMap_resultsByParams
-	resultsByParams_PassByReference      []moqUsual_PassByReference_resultsByParams
-	resultsByParams_PassBySlice          []moqUsual_PassBySlice_resultsByParams
-	resultsByParams_PassByValue          []moqUsual_PassByValue_resultsByParams
-	resultsByParams_InterfaceParam       []moqUsual_InterfaceParam_resultsByParams
-	resultsByParams_InterfaceResult      []moqUsual_InterfaceResult_resultsByParams
-	resultsByParams_FnParam              []moqUsual_FnParam_resultsByParams
-	resultsByParams_Other                []moqUsual_Other_resultsByParams
+	moq_Usual *impl.Moq[
+		*moqUsual_Usual_adaptor,
+		moqUsual_Usual_params,
+		moqUsual_Usual_paramsKey,
+		moqUsual_Usual_results,
+	]
+	moq_NoNames *impl.Moq[
+		*moqUsual_NoNames_adaptor,
+		moqUsual_NoNames_params,
+		moqUsual_NoNames_paramsKey,
+		moqUsual_NoNames_results,
+	]
+	moq_NoResults *impl.Moq[
+		*moqUsual_NoResults_adaptor,
+		moqUsual_NoResults_params,
+		moqUsual_NoResults_paramsKey,
+		moqUsual_NoResults_results,
+	]
+	moq_NoParams *impl.Moq[
+		*moqUsual_NoParams_adaptor,
+		moqUsual_NoParams_params,
+		moqUsual_NoParams_paramsKey,
+		moqUsual_NoParams_results,
+	]
+	moq_Nothing *impl.Moq[
+		*moqUsual_Nothing_adaptor,
+		moqUsual_Nothing_params,
+		moqUsual_Nothing_paramsKey,
+		moqUsual_Nothing_results,
+	]
+	moq_Variadic *impl.Moq[
+		*moqUsual_Variadic_adaptor,
+		moqUsual_Variadic_params,
+		moqUsual_Variadic_paramsKey,
+		moqUsual_Variadic_results,
+	]
+	moq_RepeatedIds *impl.Moq[
+		*moqUsual_RepeatedIds_adaptor,
+		moqUsual_RepeatedIds_params,
+		moqUsual_RepeatedIds_paramsKey,
+		moqUsual_RepeatedIds_results,
+	]
+	moq_Times *impl.Moq[
+		*moqUsual_Times_adaptor,
+		moqUsual_Times_params,
+		moqUsual_Times_paramsKey,
+		moqUsual_Times_results,
+	]
+	moq_DifficultParamNames *impl.Moq[
+		*moqUsual_DifficultParamNames_adaptor,
+		moqUsual_DifficultParamNames_params,
+		moqUsual_DifficultParamNames_paramsKey,
+		moqUsual_DifficultParamNames_results,
+	]
+	moq_DifficultResultNames *impl.Moq[
+		*moqUsual_DifficultResultNames_adaptor,
+		moqUsual_DifficultResultNames_params,
+		moqUsual_DifficultResultNames_paramsKey,
+		moqUsual_DifficultResultNames_results,
+	]
+	moq_PassByArray *impl.Moq[
+		*moqUsual_PassByArray_adaptor,
+		moqUsual_PassByArray_params,
+		moqUsual_PassByArray_paramsKey,
+		moqUsual_PassByArray_results,
+	]
+	moq_PassByChan *impl.Moq[
+		*moqUsual_PassByChan_adaptor,
+		moqUsual_PassByChan_params,
+		moqUsual_PassByChan_paramsKey,
+		moqUsual_PassByChan_results,
+	]
+	moq_PassByEllipsis *impl.Moq[
+		*moqUsual_PassByEllipsis_adaptor,
+		moqUsual_PassByEllipsis_params,
+		moqUsual_PassByEllipsis_paramsKey,
+		moqUsual_PassByEllipsis_results,
+	]
+	moq_PassByMap *impl.Moq[
+		*moqUsual_PassByMap_adaptor,
+		moqUsual_PassByMap_params,
+		moqUsual_PassByMap_paramsKey,
+		moqUsual_PassByMap_results,
+	]
+	moq_PassByReference *impl.Moq[
+		*moqUsual_PassByReference_adaptor,
+		moqUsual_PassByReference_params,
+		moqUsual_PassByReference_paramsKey,
+		moqUsual_PassByReference_results,
+	]
+	moq_PassBySlice *impl.Moq[
+		*moqUsual_PassBySlice_adaptor,
+		moqUsual_PassBySlice_params,
+		moqUsual_PassBySlice_paramsKey,
+		moqUsual_PassBySlice_results,
+	]
+	moq_PassByValue *impl.Moq[
+		*moqUsual_PassByValue_adaptor,
+		moqUsual_PassByValue_params,
+		moqUsual_PassByValue_paramsKey,
+		moqUsual_PassByValue_results,
+	]
+	moq_InterfaceParam *impl.Moq[
+		*moqUsual_InterfaceParam_adaptor,
+		moqUsual_InterfaceParam_params,
+		moqUsual_InterfaceParam_paramsKey,
+		moqUsual_InterfaceParam_results,
+	]
+	moq_InterfaceResult *impl.Moq[
+		*moqUsual_InterfaceResult_adaptor,
+		moqUsual_InterfaceResult_params,
+		moqUsual_InterfaceResult_paramsKey,
+		moqUsual_InterfaceResult_results,
+	]
+	moq_FnParam *impl.Moq[
+		*moqUsual_FnParam_adaptor,
+		moqUsual_FnParam_params,
+		moqUsual_FnParam_paramsKey,
+		moqUsual_FnParam_results,
+	]
+	moq_Other *impl.Moq[
+		*moqUsual_Other_adaptor,
+		moqUsual_Other_params,
+		moqUsual_Other_paramsKey,
+		moqUsual_Other_results,
+	]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-			NoNames struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-			NoResults struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-			NoParams struct{}
-			Nothing  struct{}
-			Variadic struct {
-				other moq.ParamIndexing
-				args  moq.ParamIndexing
-			}
-			RepeatedIds struct {
-				sParam1 moq.ParamIndexing
-				sParam2 moq.ParamIndexing
-				bParam  moq.ParamIndexing
-			}
-			Times struct {
-				sParam moq.ParamIndexing
-				times  moq.ParamIndexing
-			}
-			DifficultParamNames struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-				param3 moq.ParamIndexing
-				param  moq.ParamIndexing
-				param5 moq.ParamIndexing
-				param6 moq.ParamIndexing
-				param7 moq.ParamIndexing
-				param8 moq.ParamIndexing
-				param9 moq.ParamIndexing
-			}
-			DifficultResultNames struct{}
-			PassByArray          struct {
-				p moq.ParamIndexing
-			}
-			PassByChan struct {
-				p moq.ParamIndexing
-			}
-			PassByEllipsis struct {
-				p moq.ParamIndexing
-			}
-			PassByMap struct {
-				p moq.ParamIndexing
-			}
-			PassByReference struct {
-				p moq.ParamIndexing
-			}
-			PassBySlice struct {
-				p moq.ParamIndexing
-			}
-			PassByValue struct {
-				p moq.ParamIndexing
-			}
-			InterfaceParam struct {
-				w moq.ParamIndexing
-			}
-			InterfaceResult struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-			FnParam struct {
-				fn moq.ParamIndexing
-			}
-			Other struct {
-				param1 moq.ParamIndexing
-			}
-		}
-	}
-	// moqUsual_mock isolates the mock interface of the Usual type
+	runtime moqUsual_runtime
 }
 
+// moqUsual_mock isolates the mock interface of the Usual type
 type moqUsual_mock struct {
 	moq *moqUsual
 }
 
 // moqUsual_recorder isolates the recorder interface of the Usual type
 type moqUsual_recorder struct {
+	moq *moqUsual
+}
+
+// moqUsual_runtime holds runtime configuration for the Usual type
+type moqUsual_runtime struct {
+	parameterIndexing struct {
+		Usual                moqUsual_Usual_paramIndexing
+		NoNames              moqUsual_NoNames_paramIndexing
+		NoResults            moqUsual_NoResults_paramIndexing
+		NoParams             moqUsual_NoParams_paramIndexing
+		Nothing              moqUsual_Nothing_paramIndexing
+		Variadic             moqUsual_Variadic_paramIndexing
+		RepeatedIds          moqUsual_RepeatedIds_paramIndexing
+		Times                moqUsual_Times_paramIndexing
+		DifficultParamNames  moqUsual_DifficultParamNames_paramIndexing
+		DifficultResultNames moqUsual_DifficultResultNames_paramIndexing
+		PassByArray          moqUsual_PassByArray_paramIndexing
+		PassByChan           moqUsual_PassByChan_paramIndexing
+		PassByEllipsis       moqUsual_PassByEllipsis_paramIndexing
+		PassByMap            moqUsual_PassByMap_paramIndexing
+		PassByReference      moqUsual_PassByReference_paramIndexing
+		PassBySlice          moqUsual_PassBySlice_paramIndexing
+		PassByValue          moqUsual_PassByValue_paramIndexing
+		InterfaceParam       moqUsual_InterfaceParam_paramIndexing
+		InterfaceResult      moqUsual_InterfaceResult_paramIndexing
+		FnParam              moqUsual_FnParam_paramIndexing
+		Other                moqUsual_Other_paramIndexing
+	}
+}
+
+// moqUsual_Usual_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_Usual_adaptor struct {
 	moq *moqUsual
 }
 
@@ -10358,12 +5886,17 @@ type moqUsual_Usual_paramsKey struct {
 	}
 }
 
-// moqUsual_Usual_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_Usual_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_Usual_paramsKey]*moqUsual_Usual_results
+// moqUsual_Usual_results holds the results of the Usual type
+type moqUsual_Usual_results struct {
+	sResult string
+	err     error
+}
+
+// moqUsual_Usual_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_Usual_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqUsual_Usual_doFn defines the type of function needed when calling andDo
@@ -10374,34 +5907,24 @@ type moqUsual_Usual_doFn func(sParam string, bParam bool)
 // doReturnResults for the Usual type
 type moqUsual_Usual_doReturnFn func(sParam string, bParam bool) (sResult string, err error)
 
-// moqUsual_Usual_results holds the results of the Usual type
-type moqUsual_Usual_results struct {
-	params  moqUsual_Usual_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_Usual_doFn
-		doReturnFn moqUsual_Usual_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_Usual_fnRecorder routes recorded function calls to the moqUsual moq
-type moqUsual_Usual_fnRecorder struct {
-	params    moqUsual_Usual_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_Usual_results
-	moq       *moqUsual
+// moqUsual_Usual_recorder routes recorded function calls to the moqUsual moq
+type moqUsual_Usual_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_Usual_adaptor,
+		moqUsual_Usual_params,
+		moqUsual_Usual_paramsKey,
+		moqUsual_Usual_results,
+	]
 }
 
 // moqUsual_Usual_anyParams isolates the any params functions of the Usual type
 type moqUsual_Usual_anyParams struct {
-	recorder *moqUsual_Usual_fnRecorder
+	recorder *moqUsual_Usual_recorder
+}
+
+// moqUsual_NoNames_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_NoNames_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_NoNames_params holds the params of the Usual type
@@ -10422,12 +5945,17 @@ type moqUsual_NoNames_paramsKey struct {
 	}
 }
 
-// moqUsual_NoNames_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_NoNames_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_NoNames_paramsKey]*moqUsual_NoNames_results
+// moqUsual_NoNames_results holds the results of the Usual type
+type moqUsual_NoNames_results struct {
+	result1 string
+	result2 error
+}
+
+// moqUsual_NoNames_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_NoNames_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqUsual_NoNames_doFn defines the type of function needed when calling andDo
@@ -10438,36 +5966,25 @@ type moqUsual_NoNames_doFn func(string, bool)
 // doReturnResults for the Usual type
 type moqUsual_NoNames_doReturnFn func(string, bool) (string, error)
 
-// moqUsual_NoNames_results holds the results of the Usual type
-type moqUsual_NoNames_results struct {
-	params  moqUsual_NoNames_params
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqUsual_NoNames_doFn
-		doReturnFn moqUsual_NoNames_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_NoNames_fnRecorder routes recorded function calls to the moqUsual
-// moq
-type moqUsual_NoNames_fnRecorder struct {
-	params    moqUsual_NoNames_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_NoNames_results
-	moq       *moqUsual
+// moqUsual_NoNames_recorder routes recorded function calls to the moqUsual moq
+type moqUsual_NoNames_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_NoNames_adaptor,
+		moqUsual_NoNames_params,
+		moqUsual_NoNames_paramsKey,
+		moqUsual_NoNames_results,
+	]
 }
 
 // moqUsual_NoNames_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_NoNames_anyParams struct {
-	recorder *moqUsual_NoNames_fnRecorder
+	recorder *moqUsual_NoNames_recorder
+}
+
+// moqUsual_NoResults_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_NoResults_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_NoResults_params holds the params of the Usual type
@@ -10488,12 +6005,14 @@ type moqUsual_NoResults_paramsKey struct {
 	}
 }
 
-// moqUsual_NoResults_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_NoResults_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_NoResults_paramsKey]*moqUsual_NoResults_results
+// moqUsual_NoResults_results holds the results of the Usual type
+type moqUsual_NoResults_results struct{}
+
+// moqUsual_NoResults_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_NoResults_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqUsual_NoResults_doFn defines the type of function needed when calling
@@ -10504,33 +6023,26 @@ type moqUsual_NoResults_doFn func(sParam string, bParam bool)
 // calling doReturnResults for the Usual type
 type moqUsual_NoResults_doReturnFn func(sParam string, bParam bool)
 
-// moqUsual_NoResults_results holds the results of the Usual type
-type moqUsual_NoResults_results struct {
-	params  moqUsual_NoResults_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_NoResults_doFn
-		doReturnFn moqUsual_NoResults_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_NoResults_fnRecorder routes recorded function calls to the moqUsual
+// moqUsual_NoResults_recorder routes recorded function calls to the moqUsual
 // moq
-type moqUsual_NoResults_fnRecorder struct {
-	params    moqUsual_NoResults_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_NoResults_results
-	moq       *moqUsual
+type moqUsual_NoResults_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_NoResults_adaptor,
+		moqUsual_NoResults_params,
+		moqUsual_NoResults_paramsKey,
+		moqUsual_NoResults_results,
+	]
 }
 
 // moqUsual_NoResults_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_NoResults_anyParams struct {
-	recorder *moqUsual_NoResults_fnRecorder
+	recorder *moqUsual_NoResults_recorder
+}
+
+// moqUsual_NoParams_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_NoParams_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_NoParams_params holds the params of the Usual type
@@ -10542,13 +6054,15 @@ type moqUsual_NoParams_paramsKey struct {
 	hashes struct{}
 }
 
-// moqUsual_NoParams_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_NoParams_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_NoParams_paramsKey]*moqUsual_NoParams_results
+// moqUsual_NoParams_results holds the results of the Usual type
+type moqUsual_NoParams_results struct {
+	sResult string
+	err     error
 }
+
+// moqUsual_NoParams_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_NoParams_paramIndexing struct{}
 
 // moqUsual_NoParams_doFn defines the type of function needed when calling
 // andDo for the Usual type
@@ -10558,36 +6072,26 @@ type moqUsual_NoParams_doFn func()
 // calling doReturnResults for the Usual type
 type moqUsual_NoParams_doReturnFn func() (sResult string, err error)
 
-// moqUsual_NoParams_results holds the results of the Usual type
-type moqUsual_NoParams_results struct {
-	params  moqUsual_NoParams_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_NoParams_doFn
-		doReturnFn moqUsual_NoParams_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_NoParams_fnRecorder routes recorded function calls to the moqUsual
+// moqUsual_NoParams_recorder routes recorded function calls to the moqUsual
 // moq
-type moqUsual_NoParams_fnRecorder struct {
-	params    moqUsual_NoParams_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_NoParams_results
-	moq       *moqUsual
+type moqUsual_NoParams_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_NoParams_adaptor,
+		moqUsual_NoParams_params,
+		moqUsual_NoParams_paramsKey,
+		moqUsual_NoParams_results,
+	]
 }
 
 // moqUsual_NoParams_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_NoParams_anyParams struct {
-	recorder *moqUsual_NoParams_fnRecorder
+	recorder *moqUsual_NoParams_recorder
+}
+
+// moqUsual_Nothing_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_Nothing_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_Nothing_params holds the params of the Usual type
@@ -10599,13 +6103,12 @@ type moqUsual_Nothing_paramsKey struct {
 	hashes struct{}
 }
 
-// moqUsual_Nothing_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_Nothing_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_Nothing_paramsKey]*moqUsual_Nothing_results
-}
+// moqUsual_Nothing_results holds the results of the Usual type
+type moqUsual_Nothing_results struct{}
+
+// moqUsual_Nothing_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_Nothing_paramIndexing struct{}
 
 // moqUsual_Nothing_doFn defines the type of function needed when calling andDo
 // for the Usual type
@@ -10615,33 +6118,25 @@ type moqUsual_Nothing_doFn func()
 // doReturnResults for the Usual type
 type moqUsual_Nothing_doReturnFn func()
 
-// moqUsual_Nothing_results holds the results of the Usual type
-type moqUsual_Nothing_results struct {
-	params  moqUsual_Nothing_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_Nothing_doFn
-		doReturnFn moqUsual_Nothing_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_Nothing_fnRecorder routes recorded function calls to the moqUsual
-// moq
-type moqUsual_Nothing_fnRecorder struct {
-	params    moqUsual_Nothing_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_Nothing_results
-	moq       *moqUsual
+// moqUsual_Nothing_recorder routes recorded function calls to the moqUsual moq
+type moqUsual_Nothing_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_Nothing_adaptor,
+		moqUsual_Nothing_params,
+		moqUsual_Nothing_paramsKey,
+		moqUsual_Nothing_results,
+	]
 }
 
 // moqUsual_Nothing_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_Nothing_anyParams struct {
-	recorder *moqUsual_Nothing_fnRecorder
+	recorder *moqUsual_Nothing_recorder
+}
+
+// moqUsual_Variadic_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_Variadic_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_Variadic_params holds the params of the Usual type
@@ -10659,12 +6154,17 @@ type moqUsual_Variadic_paramsKey struct {
 	}
 }
 
-// moqUsual_Variadic_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_Variadic_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_Variadic_paramsKey]*moqUsual_Variadic_results
+// moqUsual_Variadic_results holds the results of the Usual type
+type moqUsual_Variadic_results struct {
+	sResult string
+	err     error
+}
+
+// moqUsual_Variadic_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_Variadic_paramIndexing struct {
+	other moq.ParamIndexing
+	args  moq.ParamIndexing
 }
 
 // moqUsual_Variadic_doFn defines the type of function needed when calling
@@ -10675,36 +6175,26 @@ type moqUsual_Variadic_doFn func(other bool, args ...string)
 // calling doReturnResults for the Usual type
 type moqUsual_Variadic_doReturnFn func(other bool, args ...string) (sResult string, err error)
 
-// moqUsual_Variadic_results holds the results of the Usual type
-type moqUsual_Variadic_results struct {
-	params  moqUsual_Variadic_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_Variadic_doFn
-		doReturnFn moqUsual_Variadic_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_Variadic_fnRecorder routes recorded function calls to the moqUsual
+// moqUsual_Variadic_recorder routes recorded function calls to the moqUsual
 // moq
-type moqUsual_Variadic_fnRecorder struct {
-	params    moqUsual_Variadic_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_Variadic_results
-	moq       *moqUsual
+type moqUsual_Variadic_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_Variadic_adaptor,
+		moqUsual_Variadic_params,
+		moqUsual_Variadic_paramsKey,
+		moqUsual_Variadic_results,
+	]
 }
 
 // moqUsual_Variadic_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_Variadic_anyParams struct {
-	recorder *moqUsual_Variadic_fnRecorder
+	recorder *moqUsual_Variadic_recorder
+}
+
+// moqUsual_RepeatedIds_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_RepeatedIds_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_RepeatedIds_params holds the params of the Usual type
@@ -10725,12 +6215,17 @@ type moqUsual_RepeatedIds_paramsKey struct {
 	}
 }
 
-// moqUsual_RepeatedIds_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_RepeatedIds_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_RepeatedIds_paramsKey]*moqUsual_RepeatedIds_results
+// moqUsual_RepeatedIds_results holds the results of the Usual type
+type moqUsual_RepeatedIds_results struct {
+	sResult1, sResult2 string
+	err                error
+}
+
+// moqUsual_RepeatedIds_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_RepeatedIds_paramIndexing struct {
+	sParam1, sParam2 moq.ParamIndexing
+	bParam           moq.ParamIndexing
 }
 
 // moqUsual_RepeatedIds_doFn defines the type of function needed when calling
@@ -10741,36 +6236,26 @@ type moqUsual_RepeatedIds_doFn func(sParam1, sParam2 string, bParam bool)
 // calling doReturnResults for the Usual type
 type moqUsual_RepeatedIds_doReturnFn func(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error)
 
-// moqUsual_RepeatedIds_results holds the results of the Usual type
-type moqUsual_RepeatedIds_results struct {
-	params  moqUsual_RepeatedIds_params
-	results []struct {
-		values *struct {
-			sResult1, sResult2 string
-			err                error
-		}
-		sequence   uint32
-		doFn       moqUsual_RepeatedIds_doFn
-		doReturnFn moqUsual_RepeatedIds_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_RepeatedIds_fnRecorder routes recorded function calls to the
-// moqUsual moq
-type moqUsual_RepeatedIds_fnRecorder struct {
-	params    moqUsual_RepeatedIds_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_RepeatedIds_results
-	moq       *moqUsual
+// moqUsual_RepeatedIds_recorder routes recorded function calls to the moqUsual
+// moq
+type moqUsual_RepeatedIds_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_RepeatedIds_adaptor,
+		moqUsual_RepeatedIds_params,
+		moqUsual_RepeatedIds_paramsKey,
+		moqUsual_RepeatedIds_results,
+	]
 }
 
 // moqUsual_RepeatedIds_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_RepeatedIds_anyParams struct {
-	recorder *moqUsual_RepeatedIds_fnRecorder
+	recorder *moqUsual_RepeatedIds_recorder
+}
+
+// moqUsual_Times_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_Times_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_Times_params holds the params of the Usual type
@@ -10791,12 +6276,17 @@ type moqUsual_Times_paramsKey struct {
 	}
 }
 
-// moqUsual_Times_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_Times_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_Times_paramsKey]*moqUsual_Times_results
+// moqUsual_Times_results holds the results of the Usual type
+type moqUsual_Times_results struct {
+	sResult string
+	err     error
+}
+
+// moqUsual_Times_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_Times_paramIndexing struct {
+	sParam moq.ParamIndexing
+	times  moq.ParamIndexing
 }
 
 // moqUsual_Times_doFn defines the type of function needed when calling andDo
@@ -10807,34 +6297,25 @@ type moqUsual_Times_doFn func(sParam string, times bool)
 // doReturnResults for the Usual type
 type moqUsual_Times_doReturnFn func(sParam string, times bool) (sResult string, err error)
 
-// moqUsual_Times_results holds the results of the Usual type
-type moqUsual_Times_results struct {
-	params  moqUsual_Times_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_Times_doFn
-		doReturnFn moqUsual_Times_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_Times_fnRecorder routes recorded function calls to the moqUsual moq
-type moqUsual_Times_fnRecorder struct {
-	params    moqUsual_Times_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_Times_results
-	moq       *moqUsual
+// moqUsual_Times_recorder routes recorded function calls to the moqUsual moq
+type moqUsual_Times_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_Times_adaptor,
+		moqUsual_Times_params,
+		moqUsual_Times_paramsKey,
+		moqUsual_Times_results,
+	]
 }
 
 // moqUsual_Times_anyParams isolates the any params functions of the Usual type
 type moqUsual_Times_anyParams struct {
-	recorder *moqUsual_Times_fnRecorder
+	recorder *moqUsual_Times_recorder
+}
+
+// moqUsual_DifficultParamNames_adaptor adapts moqUsual as needed by the
+// runtime
+type moqUsual_DifficultParamNames_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_DifficultParamNames_params holds the params of the Usual type
@@ -10862,12 +6343,16 @@ type moqUsual_DifficultParamNames_paramsKey struct {
 	}
 }
 
-// moqUsual_DifficultParamNames_resultsByParams contains the results for a
-// given set of parameters for the Usual type
-type moqUsual_DifficultParamNames_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_DifficultParamNames_paramsKey]*moqUsual_DifficultParamNames_results
+// moqUsual_DifficultParamNames_results holds the results of the Usual type
+type moqUsual_DifficultParamNames_results struct{}
+
+// moqUsual_DifficultParamNames_paramIndexing holds the parameter indexing
+// runtime configuration for the Usual type
+type moqUsual_DifficultParamNames_paramIndexing struct {
+	param1, param2         moq.ParamIndexing
+	param3                 moq.ParamIndexing
+	param, param5, param6  moq.ParamIndexing
+	param7, param8, param9 moq.ParamIndexing
 }
 
 // moqUsual_DifficultParamNames_doFn defines the type of function needed when
@@ -10878,33 +6363,27 @@ type moqUsual_DifficultParamNames_doFn func(m, r bool, sequence string, param, p
 // when calling doReturnResults for the Usual type
 type moqUsual_DifficultParamNames_doReturnFn func(m, r bool, sequence string, param, params, i int, result, results, _ float32)
 
-// moqUsual_DifficultParamNames_results holds the results of the Usual type
-type moqUsual_DifficultParamNames_results struct {
-	params  moqUsual_DifficultParamNames_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_DifficultParamNames_doFn
-		doReturnFn moqUsual_DifficultParamNames_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_DifficultParamNames_fnRecorder routes recorded function calls to
-// the moqUsual moq
-type moqUsual_DifficultParamNames_fnRecorder struct {
-	params    moqUsual_DifficultParamNames_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_DifficultParamNames_results
-	moq       *moqUsual
+// moqUsual_DifficultParamNames_recorder routes recorded function calls to the
+// moqUsual moq
+type moqUsual_DifficultParamNames_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_DifficultParamNames_adaptor,
+		moqUsual_DifficultParamNames_params,
+		moqUsual_DifficultParamNames_paramsKey,
+		moqUsual_DifficultParamNames_results,
+	]
 }
 
 // moqUsual_DifficultParamNames_anyParams isolates the any params functions of
 // the Usual type
 type moqUsual_DifficultParamNames_anyParams struct {
-	recorder *moqUsual_DifficultParamNames_fnRecorder
+	recorder *moqUsual_DifficultParamNames_recorder
+}
+
+// moqUsual_DifficultResultNames_adaptor adapts moqUsual as needed by the
+// runtime
+type moqUsual_DifficultResultNames_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_DifficultResultNames_params holds the params of the Usual type
@@ -10917,13 +6396,17 @@ type moqUsual_DifficultResultNames_paramsKey struct {
 	hashes struct{}
 }
 
-// moqUsual_DifficultResultNames_resultsByParams contains the results for a
-// given set of parameters for the Usual type
-type moqUsual_DifficultResultNames_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_DifficultResultNames_paramsKey]*moqUsual_DifficultResultNames_results
+// moqUsual_DifficultResultNames_results holds the results of the Usual type
+type moqUsual_DifficultResultNames_results struct {
+	result1, result2          string
+	result3                   error
+	param, result5, result6   int
+	result7, result8, result9 float32
 }
+
+// moqUsual_DifficultResultNames_paramIndexing holds the parameter indexing
+// runtime configuration for the Usual type
+type moqUsual_DifficultResultNames_paramIndexing struct{}
 
 // moqUsual_DifficultResultNames_doFn defines the type of function needed when
 // calling andDo for the Usual type
@@ -10933,38 +6416,26 @@ type moqUsual_DifficultResultNames_doFn func()
 // when calling doReturnResults for the Usual type
 type moqUsual_DifficultResultNames_doReturnFn func() (m, r string, sequence error, param, params, i int, result, results, _ float32)
 
-// moqUsual_DifficultResultNames_results holds the results of the Usual type
-type moqUsual_DifficultResultNames_results struct {
-	params  moqUsual_DifficultResultNames_params
-	results []struct {
-		values *struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}
-		sequence   uint32
-		doFn       moqUsual_DifficultResultNames_doFn
-		doReturnFn moqUsual_DifficultResultNames_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_DifficultResultNames_fnRecorder routes recorded function calls to
-// the moqUsual moq
-type moqUsual_DifficultResultNames_fnRecorder struct {
-	params    moqUsual_DifficultResultNames_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_DifficultResultNames_results
-	moq       *moqUsual
+// moqUsual_DifficultResultNames_recorder routes recorded function calls to the
+// moqUsual moq
+type moqUsual_DifficultResultNames_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_DifficultResultNames_adaptor,
+		moqUsual_DifficultResultNames_params,
+		moqUsual_DifficultResultNames_paramsKey,
+		moqUsual_DifficultResultNames_results,
+	]
 }
 
 // moqUsual_DifficultResultNames_anyParams isolates the any params functions of
 // the Usual type
 type moqUsual_DifficultResultNames_anyParams struct {
-	recorder *moqUsual_DifficultResultNames_fnRecorder
+	recorder *moqUsual_DifficultResultNames_recorder
+}
+
+// moqUsual_PassByArray_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassByArray_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassByArray_params holds the params of the Usual type
@@ -10976,12 +6447,15 @@ type moqUsual_PassByArray_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassByArray_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_PassByArray_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassByArray_paramsKey]*moqUsual_PassByArray_results
+// moqUsual_PassByArray_results holds the results of the Usual type
+type moqUsual_PassByArray_results struct {
+	result1 [3]testmoqs.Results
+}
+
+// moqUsual_PassByArray_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassByArray_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassByArray_doFn defines the type of function needed when calling
@@ -10992,35 +6466,26 @@ type moqUsual_PassByArray_doFn func(p [3]testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassByArray_doReturnFn func(p [3]testmoqs.Params) [3]testmoqs.Results
 
-// moqUsual_PassByArray_results holds the results of the Usual type
-type moqUsual_PassByArray_results struct {
-	params  moqUsual_PassByArray_params
-	results []struct {
-		values *struct {
-			result1 [3]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByArray_doFn
-		doReturnFn moqUsual_PassByArray_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassByArray_fnRecorder routes recorded function calls to the
-// moqUsual moq
-type moqUsual_PassByArray_fnRecorder struct {
-	params    moqUsual_PassByArray_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassByArray_results
-	moq       *moqUsual
+// moqUsual_PassByArray_recorder routes recorded function calls to the moqUsual
+// moq
+type moqUsual_PassByArray_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassByArray_adaptor,
+		moqUsual_PassByArray_params,
+		moqUsual_PassByArray_paramsKey,
+		moqUsual_PassByArray_results,
+	]
 }
 
 // moqUsual_PassByArray_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_PassByArray_anyParams struct {
-	recorder *moqUsual_PassByArray_fnRecorder
+	recorder *moqUsual_PassByArray_recorder
+}
+
+// moqUsual_PassByChan_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassByChan_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassByChan_params holds the params of the Usual type
@@ -11032,12 +6497,15 @@ type moqUsual_PassByChan_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassByChan_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_PassByChan_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassByChan_paramsKey]*moqUsual_PassByChan_results
+// moqUsual_PassByChan_results holds the results of the Usual type
+type moqUsual_PassByChan_results struct {
+	result1 chan testmoqs.Results
+}
+
+// moqUsual_PassByChan_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassByChan_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassByChan_doFn defines the type of function needed when calling
@@ -11048,35 +6516,26 @@ type moqUsual_PassByChan_doFn func(p chan testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassByChan_doReturnFn func(p chan testmoqs.Params) chan testmoqs.Results
 
-// moqUsual_PassByChan_results holds the results of the Usual type
-type moqUsual_PassByChan_results struct {
-	params  moqUsual_PassByChan_params
-	results []struct {
-		values *struct {
-			result1 chan testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByChan_doFn
-		doReturnFn moqUsual_PassByChan_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassByChan_fnRecorder routes recorded function calls to the
-// moqUsual moq
-type moqUsual_PassByChan_fnRecorder struct {
-	params    moqUsual_PassByChan_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassByChan_results
-	moq       *moqUsual
+// moqUsual_PassByChan_recorder routes recorded function calls to the moqUsual
+// moq
+type moqUsual_PassByChan_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassByChan_adaptor,
+		moqUsual_PassByChan_params,
+		moqUsual_PassByChan_paramsKey,
+		moqUsual_PassByChan_results,
+	]
 }
 
 // moqUsual_PassByChan_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_PassByChan_anyParams struct {
-	recorder *moqUsual_PassByChan_fnRecorder
+	recorder *moqUsual_PassByChan_recorder
+}
+
+// moqUsual_PassByEllipsis_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassByEllipsis_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassByEllipsis_params holds the params of the Usual type
@@ -11088,12 +6547,16 @@ type moqUsual_PassByEllipsis_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassByEllipsis_resultsByParams contains the results for a given set
-// of parameters for the Usual type
-type moqUsual_PassByEllipsis_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassByEllipsis_paramsKey]*moqUsual_PassByEllipsis_results
+// moqUsual_PassByEllipsis_results holds the results of the Usual type
+type moqUsual_PassByEllipsis_results struct {
+	result1 string
+	result2 error
+}
+
+// moqUsual_PassByEllipsis_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassByEllipsis_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassByEllipsis_doFn defines the type of function needed when
@@ -11104,36 +6567,26 @@ type moqUsual_PassByEllipsis_doFn func(p ...testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassByEllipsis_doReturnFn func(p ...testmoqs.Params) (string, error)
 
-// moqUsual_PassByEllipsis_results holds the results of the Usual type
-type moqUsual_PassByEllipsis_results struct {
-	params  moqUsual_PassByEllipsis_params
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByEllipsis_doFn
-		doReturnFn moqUsual_PassByEllipsis_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassByEllipsis_fnRecorder routes recorded function calls to the
+// moqUsual_PassByEllipsis_recorder routes recorded function calls to the
 // moqUsual moq
-type moqUsual_PassByEllipsis_fnRecorder struct {
-	params    moqUsual_PassByEllipsis_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassByEllipsis_results
-	moq       *moqUsual
+type moqUsual_PassByEllipsis_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassByEllipsis_adaptor,
+		moqUsual_PassByEllipsis_params,
+		moqUsual_PassByEllipsis_paramsKey,
+		moqUsual_PassByEllipsis_results,
+	]
 }
 
 // moqUsual_PassByEllipsis_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_PassByEllipsis_anyParams struct {
-	recorder *moqUsual_PassByEllipsis_fnRecorder
+	recorder *moqUsual_PassByEllipsis_recorder
+}
+
+// moqUsual_PassByMap_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassByMap_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassByMap_params holds the params of the Usual type
@@ -11145,12 +6598,15 @@ type moqUsual_PassByMap_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassByMap_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_PassByMap_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassByMap_paramsKey]*moqUsual_PassByMap_results
+// moqUsual_PassByMap_results holds the results of the Usual type
+type moqUsual_PassByMap_results struct {
+	result1 map[string]testmoqs.Results
+}
+
+// moqUsual_PassByMap_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassByMap_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassByMap_doFn defines the type of function needed when calling
@@ -11161,35 +6617,26 @@ type moqUsual_PassByMap_doFn func(p map[string]testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassByMap_doReturnFn func(p map[string]testmoqs.Params) map[string]testmoqs.Results
 
-// moqUsual_PassByMap_results holds the results of the Usual type
-type moqUsual_PassByMap_results struct {
-	params  moqUsual_PassByMap_params
-	results []struct {
-		values *struct {
-			result1 map[string]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByMap_doFn
-		doReturnFn moqUsual_PassByMap_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassByMap_fnRecorder routes recorded function calls to the moqUsual
+// moqUsual_PassByMap_recorder routes recorded function calls to the moqUsual
 // moq
-type moqUsual_PassByMap_fnRecorder struct {
-	params    moqUsual_PassByMap_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassByMap_results
-	moq       *moqUsual
+type moqUsual_PassByMap_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassByMap_adaptor,
+		moqUsual_PassByMap_params,
+		moqUsual_PassByMap_paramsKey,
+		moqUsual_PassByMap_results,
+	]
 }
 
 // moqUsual_PassByMap_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_PassByMap_anyParams struct {
-	recorder *moqUsual_PassByMap_fnRecorder
+	recorder *moqUsual_PassByMap_recorder
+}
+
+// moqUsual_PassByReference_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassByReference_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassByReference_params holds the params of the Usual type
@@ -11202,12 +6649,15 @@ type moqUsual_PassByReference_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassByReference_resultsByParams contains the results for a given
-// set of parameters for the Usual type
-type moqUsual_PassByReference_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassByReference_paramsKey]*moqUsual_PassByReference_results
+// moqUsual_PassByReference_results holds the results of the Usual type
+type moqUsual_PassByReference_results struct {
+	result1 *testmoqs.Results
+}
+
+// moqUsual_PassByReference_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassByReference_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassByReference_doFn defines the type of function needed when
@@ -11218,35 +6668,26 @@ type moqUsual_PassByReference_doFn func(p *testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassByReference_doReturnFn func(p *testmoqs.Params) *testmoqs.Results
 
-// moqUsual_PassByReference_results holds the results of the Usual type
-type moqUsual_PassByReference_results struct {
-	params  moqUsual_PassByReference_params
-	results []struct {
-		values *struct {
-			result1 *testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByReference_doFn
-		doReturnFn moqUsual_PassByReference_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassByReference_fnRecorder routes recorded function calls to the
+// moqUsual_PassByReference_recorder routes recorded function calls to the
 // moqUsual moq
-type moqUsual_PassByReference_fnRecorder struct {
-	params    moqUsual_PassByReference_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassByReference_results
-	moq       *moqUsual
+type moqUsual_PassByReference_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassByReference_adaptor,
+		moqUsual_PassByReference_params,
+		moqUsual_PassByReference_paramsKey,
+		moqUsual_PassByReference_results,
+	]
 }
 
 // moqUsual_PassByReference_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_PassByReference_anyParams struct {
-	recorder *moqUsual_PassByReference_fnRecorder
+	recorder *moqUsual_PassByReference_recorder
+}
+
+// moqUsual_PassBySlice_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassBySlice_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassBySlice_params holds the params of the Usual type
@@ -11258,12 +6699,15 @@ type moqUsual_PassBySlice_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassBySlice_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_PassBySlice_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassBySlice_paramsKey]*moqUsual_PassBySlice_results
+// moqUsual_PassBySlice_results holds the results of the Usual type
+type moqUsual_PassBySlice_results struct {
+	result1 []testmoqs.Results
+}
+
+// moqUsual_PassBySlice_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassBySlice_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassBySlice_doFn defines the type of function needed when calling
@@ -11274,35 +6718,26 @@ type moqUsual_PassBySlice_doFn func(p []testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassBySlice_doReturnFn func(p []testmoqs.Params) []testmoqs.Results
 
-// moqUsual_PassBySlice_results holds the results of the Usual type
-type moqUsual_PassBySlice_results struct {
-	params  moqUsual_PassBySlice_params
-	results []struct {
-		values *struct {
-			result1 []testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassBySlice_doFn
-		doReturnFn moqUsual_PassBySlice_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassBySlice_fnRecorder routes recorded function calls to the
-// moqUsual moq
-type moqUsual_PassBySlice_fnRecorder struct {
-	params    moqUsual_PassBySlice_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassBySlice_results
-	moq       *moqUsual
+// moqUsual_PassBySlice_recorder routes recorded function calls to the moqUsual
+// moq
+type moqUsual_PassBySlice_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassBySlice_adaptor,
+		moqUsual_PassBySlice_params,
+		moqUsual_PassBySlice_paramsKey,
+		moqUsual_PassBySlice_results,
+	]
 }
 
 // moqUsual_PassBySlice_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_PassBySlice_anyParams struct {
-	recorder *moqUsual_PassBySlice_fnRecorder
+	recorder *moqUsual_PassBySlice_recorder
+}
+
+// moqUsual_PassByValue_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_PassByValue_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_PassByValue_params holds the params of the Usual type
@@ -11314,12 +6749,15 @@ type moqUsual_PassByValue_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqUsual_PassByValue_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_PassByValue_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_PassByValue_paramsKey]*moqUsual_PassByValue_results
+// moqUsual_PassByValue_results holds the results of the Usual type
+type moqUsual_PassByValue_results struct {
+	result1 testmoqs.Results
+}
+
+// moqUsual_PassByValue_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_PassByValue_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqUsual_PassByValue_doFn defines the type of function needed when calling
@@ -11330,35 +6768,26 @@ type moqUsual_PassByValue_doFn func(p testmoqs.Params)
 // calling doReturnResults for the Usual type
 type moqUsual_PassByValue_doReturnFn func(p testmoqs.Params) testmoqs.Results
 
-// moqUsual_PassByValue_results holds the results of the Usual type
-type moqUsual_PassByValue_results struct {
-	params  moqUsual_PassByValue_params
-	results []struct {
-		values *struct {
-			result1 testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByValue_doFn
-		doReturnFn moqUsual_PassByValue_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_PassByValue_fnRecorder routes recorded function calls to the
-// moqUsual moq
-type moqUsual_PassByValue_fnRecorder struct {
-	params    moqUsual_PassByValue_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_PassByValue_results
-	moq       *moqUsual
+// moqUsual_PassByValue_recorder routes recorded function calls to the moqUsual
+// moq
+type moqUsual_PassByValue_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_PassByValue_adaptor,
+		moqUsual_PassByValue_params,
+		moqUsual_PassByValue_paramsKey,
+		moqUsual_PassByValue_results,
+	]
 }
 
 // moqUsual_PassByValue_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_PassByValue_anyParams struct {
-	recorder *moqUsual_PassByValue_fnRecorder
+	recorder *moqUsual_PassByValue_recorder
+}
+
+// moqUsual_InterfaceParam_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_InterfaceParam_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_InterfaceParam_params holds the params of the Usual type
@@ -11370,12 +6799,16 @@ type moqUsual_InterfaceParam_paramsKey struct {
 	hashes struct{ w hash.Hash }
 }
 
-// moqUsual_InterfaceParam_resultsByParams contains the results for a given set
-// of parameters for the Usual type
-type moqUsual_InterfaceParam_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_InterfaceParam_paramsKey]*moqUsual_InterfaceParam_results
+// moqUsual_InterfaceParam_results holds the results of the Usual type
+type moqUsual_InterfaceParam_results struct {
+	sResult string
+	err     error
+}
+
+// moqUsual_InterfaceParam_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_InterfaceParam_paramIndexing struct {
+	w moq.ParamIndexing
 }
 
 // moqUsual_InterfaceParam_doFn defines the type of function needed when
@@ -11386,36 +6819,26 @@ type moqUsual_InterfaceParam_doFn func(w io.Writer)
 // calling doReturnResults for the Usual type
 type moqUsual_InterfaceParam_doReturnFn func(w io.Writer) (sResult string, err error)
 
-// moqUsual_InterfaceParam_results holds the results of the Usual type
-type moqUsual_InterfaceParam_results struct {
-	params  moqUsual_InterfaceParam_params
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_InterfaceParam_doFn
-		doReturnFn moqUsual_InterfaceParam_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_InterfaceParam_fnRecorder routes recorded function calls to the
+// moqUsual_InterfaceParam_recorder routes recorded function calls to the
 // moqUsual moq
-type moqUsual_InterfaceParam_fnRecorder struct {
-	params    moqUsual_InterfaceParam_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_InterfaceParam_results
-	moq       *moqUsual
+type moqUsual_InterfaceParam_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_InterfaceParam_adaptor,
+		moqUsual_InterfaceParam_params,
+		moqUsual_InterfaceParam_paramsKey,
+		moqUsual_InterfaceParam_results,
+	]
 }
 
 // moqUsual_InterfaceParam_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_InterfaceParam_anyParams struct {
-	recorder *moqUsual_InterfaceParam_fnRecorder
+	recorder *moqUsual_InterfaceParam_recorder
+}
+
+// moqUsual_InterfaceResult_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_InterfaceResult_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_InterfaceResult_params holds the params of the Usual type
@@ -11437,12 +6860,14 @@ type moqUsual_InterfaceResult_paramsKey struct {
 	}
 }
 
-// moqUsual_InterfaceResult_resultsByParams contains the results for a given
-// set of parameters for the Usual type
-type moqUsual_InterfaceResult_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_InterfaceResult_paramsKey]*moqUsual_InterfaceResult_results
+// moqUsual_InterfaceResult_results holds the results of the Usual type
+type moqUsual_InterfaceResult_results struct{ result1 io.Reader }
+
+// moqUsual_InterfaceResult_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_InterfaceResult_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqUsual_InterfaceResult_doFn defines the type of function needed when
@@ -11453,33 +6878,26 @@ type moqUsual_InterfaceResult_doFn func(sParam string, bParam bool)
 // calling doReturnResults for the Usual type
 type moqUsual_InterfaceResult_doReturnFn func(sParam string, bParam bool) (r io.Reader)
 
-// moqUsual_InterfaceResult_results holds the results of the Usual type
-type moqUsual_InterfaceResult_results struct {
-	params  moqUsual_InterfaceResult_params
-	results []struct {
-		values     *struct{ result1 io.Reader }
-		sequence   uint32
-		doFn       moqUsual_InterfaceResult_doFn
-		doReturnFn moqUsual_InterfaceResult_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_InterfaceResult_fnRecorder routes recorded function calls to the
+// moqUsual_InterfaceResult_recorder routes recorded function calls to the
 // moqUsual moq
-type moqUsual_InterfaceResult_fnRecorder struct {
-	params    moqUsual_InterfaceResult_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_InterfaceResult_results
-	moq       *moqUsual
+type moqUsual_InterfaceResult_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_InterfaceResult_adaptor,
+		moqUsual_InterfaceResult_params,
+		moqUsual_InterfaceResult_paramsKey,
+		moqUsual_InterfaceResult_results,
+	]
 }
 
 // moqUsual_InterfaceResult_anyParams isolates the any params functions of the
 // Usual type
 type moqUsual_InterfaceResult_anyParams struct {
-	recorder *moqUsual_InterfaceResult_fnRecorder
+	recorder *moqUsual_InterfaceResult_recorder
+}
+
+// moqUsual_FnParam_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_FnParam_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_FnParam_params holds the params of the Usual type
@@ -11491,12 +6909,13 @@ type moqUsual_FnParam_paramsKey struct {
 	hashes struct{ fn hash.Hash }
 }
 
-// moqUsual_FnParam_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_FnParam_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_FnParam_paramsKey]*moqUsual_FnParam_results
+// moqUsual_FnParam_results holds the results of the Usual type
+type moqUsual_FnParam_results struct{}
+
+// moqUsual_FnParam_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_FnParam_paramIndexing struct {
+	fn moq.ParamIndexing
 }
 
 // moqUsual_FnParam_doFn defines the type of function needed when calling andDo
@@ -11507,33 +6926,25 @@ type moqUsual_FnParam_doFn func(fn func())
 // doReturnResults for the Usual type
 type moqUsual_FnParam_doReturnFn func(fn func())
 
-// moqUsual_FnParam_results holds the results of the Usual type
-type moqUsual_FnParam_results struct {
-	params  moqUsual_FnParam_params
-	results []struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_FnParam_doFn
-		doReturnFn moqUsual_FnParam_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_FnParam_fnRecorder routes recorded function calls to the moqUsual
-// moq
-type moqUsual_FnParam_fnRecorder struct {
-	params    moqUsual_FnParam_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_FnParam_results
-	moq       *moqUsual
+// moqUsual_FnParam_recorder routes recorded function calls to the moqUsual moq
+type moqUsual_FnParam_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_FnParam_adaptor,
+		moqUsual_FnParam_params,
+		moqUsual_FnParam_paramsKey,
+		moqUsual_FnParam_results,
+	]
 }
 
 // moqUsual_FnParam_anyParams isolates the any params functions of the Usual
 // type
 type moqUsual_FnParam_anyParams struct {
-	recorder *moqUsual_FnParam_fnRecorder
+	recorder *moqUsual_FnParam_recorder
+}
+
+// moqUsual_Other_adaptor adapts moqUsual as needed by the runtime
+type moqUsual_Other_adaptor struct {
+	moq *moqUsual
 }
 
 // moqUsual_Other_params holds the params of the Usual type
@@ -11545,12 +6956,15 @@ type moqUsual_Other_paramsKey struct {
 	hashes struct{ param1 hash.Hash }
 }
 
-// moqUsual_Other_resultsByParams contains the results for a given set of
-// parameters for the Usual type
-type moqUsual_Other_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUsual_Other_paramsKey]*moqUsual_Other_results
+// moqUsual_Other_results holds the results of the Usual type
+type moqUsual_Other_results struct {
+	result1 other.Results
+}
+
+// moqUsual_Other_paramIndexing holds the parameter indexing runtime
+// configuration for the Usual type
+type moqUsual_Other_paramIndexing struct {
+	param1 moq.ParamIndexing
 }
 
 // moqUsual_Other_doFn defines the type of function needed when calling andDo
@@ -11561,253 +6975,225 @@ type moqUsual_Other_doFn func(other.Params)
 // doReturnResults for the Usual type
 type moqUsual_Other_doReturnFn func(other.Params) other.Results
 
-// moqUsual_Other_results holds the results of the Usual type
-type moqUsual_Other_results struct {
-	params  moqUsual_Other_params
-	results []struct {
-		values *struct {
-			result1 other.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_Other_doFn
-		doReturnFn moqUsual_Other_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUsual_Other_fnRecorder routes recorded function calls to the moqUsual moq
-type moqUsual_Other_fnRecorder struct {
-	params    moqUsual_Other_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUsual_Other_results
-	moq       *moqUsual
+// moqUsual_Other_recorder routes recorded function calls to the moqUsual moq
+type moqUsual_Other_recorder struct {
+	recorder *impl.Recorder[
+		*moqUsual_Other_adaptor,
+		moqUsual_Other_params,
+		moqUsual_Other_paramsKey,
+		moqUsual_Other_results,
+	]
 }
 
 // moqUsual_Other_anyParams isolates the any params functions of the Usual type
 type moqUsual_Other_anyParams struct {
-	recorder *moqUsual_Other_fnRecorder
+	recorder *moqUsual_Other_recorder
 }
 
 // newMoqUsual creates a new moq of the Usual type
 func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqUsual_Usual_adaptor{}
+	adaptor2 := &moqUsual_NoNames_adaptor{}
+	adaptor3 := &moqUsual_NoResults_adaptor{}
+	adaptor4 := &moqUsual_NoParams_adaptor{}
+	adaptor5 := &moqUsual_Nothing_adaptor{}
+	adaptor6 := &moqUsual_Variadic_adaptor{}
+	adaptor7 := &moqUsual_RepeatedIds_adaptor{}
+	adaptor8 := &moqUsual_Times_adaptor{}
+	adaptor9 := &moqUsual_DifficultParamNames_adaptor{}
+	adaptor10 := &moqUsual_DifficultResultNames_adaptor{}
+	adaptor11 := &moqUsual_PassByArray_adaptor{}
+	adaptor12 := &moqUsual_PassByChan_adaptor{}
+	adaptor13 := &moqUsual_PassByEllipsis_adaptor{}
+	adaptor14 := &moqUsual_PassByMap_adaptor{}
+	adaptor15 := &moqUsual_PassByReference_adaptor{}
+	adaptor16 := &moqUsual_PassBySlice_adaptor{}
+	adaptor17 := &moqUsual_PassByValue_adaptor{}
+	adaptor18 := &moqUsual_InterfaceParam_adaptor{}
+	adaptor19 := &moqUsual_InterfaceResult_adaptor{}
+	adaptor20 := &moqUsual_FnParam_adaptor{}
+	adaptor21 := &moqUsual_Other_adaptor{}
 	m := &moqUsual{
-		scene:  scene,
-		config: *config,
-		moq:    &moqUsual_mock{},
+		moq: &moqUsual_mock{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					sParam moq.ParamIndexing
-					bParam moq.ParamIndexing
-				}
-				NoNames struct {
-					param1 moq.ParamIndexing
-					param2 moq.ParamIndexing
-				}
-				NoResults struct {
-					sParam moq.ParamIndexing
-					bParam moq.ParamIndexing
-				}
-				NoParams struct{}
-				Nothing  struct{}
-				Variadic struct {
-					other moq.ParamIndexing
-					args  moq.ParamIndexing
-				}
-				RepeatedIds struct {
-					sParam1 moq.ParamIndexing
-					sParam2 moq.ParamIndexing
-					bParam  moq.ParamIndexing
-				}
-				Times struct {
-					sParam moq.ParamIndexing
-					times  moq.ParamIndexing
-				}
-				DifficultParamNames struct {
-					param1 moq.ParamIndexing
-					param2 moq.ParamIndexing
-					param3 moq.ParamIndexing
-					param  moq.ParamIndexing
-					param5 moq.ParamIndexing
-					param6 moq.ParamIndexing
-					param7 moq.ParamIndexing
-					param8 moq.ParamIndexing
-					param9 moq.ParamIndexing
-				}
-				DifficultResultNames struct{}
-				PassByArray          struct {
-					p moq.ParamIndexing
-				}
-				PassByChan struct {
-					p moq.ParamIndexing
-				}
-				PassByEllipsis struct {
-					p moq.ParamIndexing
-				}
-				PassByMap struct {
-					p moq.ParamIndexing
-				}
-				PassByReference struct {
-					p moq.ParamIndexing
-				}
-				PassBySlice struct {
-					p moq.ParamIndexing
-				}
-				PassByValue struct {
-					p moq.ParamIndexing
-				}
-				InterfaceParam struct {
-					w moq.ParamIndexing
-				}
-				InterfaceResult struct {
-					sParam moq.ParamIndexing
-					bParam moq.ParamIndexing
-				}
-				FnParam struct {
-					fn moq.ParamIndexing
-				}
-				Other struct {
-					param1 moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-			NoNames struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-			NoResults struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-			NoParams struct{}
-			Nothing  struct{}
-			Variadic struct {
-				other moq.ParamIndexing
-				args  moq.ParamIndexing
-			}
-			RepeatedIds struct {
-				sParam1 moq.ParamIndexing
-				sParam2 moq.ParamIndexing
-				bParam  moq.ParamIndexing
-			}
-			Times struct {
-				sParam moq.ParamIndexing
-				times  moq.ParamIndexing
-			}
-			DifficultParamNames struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-				param3 moq.ParamIndexing
-				param  moq.ParamIndexing
-				param5 moq.ParamIndexing
-				param6 moq.ParamIndexing
-				param7 moq.ParamIndexing
-				param8 moq.ParamIndexing
-				param9 moq.ParamIndexing
-			}
-			DifficultResultNames struct{}
-			PassByArray          struct {
-				p moq.ParamIndexing
-			}
-			PassByChan struct {
-				p moq.ParamIndexing
-			}
-			PassByEllipsis struct {
-				p moq.ParamIndexing
-			}
-			PassByMap struct {
-				p moq.ParamIndexing
-			}
-			PassByReference struct {
-				p moq.ParamIndexing
-			}
-			PassBySlice struct {
-				p moq.ParamIndexing
-			}
-			PassByValue struct {
-				p moq.ParamIndexing
-			}
-			InterfaceParam struct {
-				w moq.ParamIndexing
-			}
-			InterfaceResult struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-			FnParam struct {
-				fn moq.ParamIndexing
-			}
-			Other struct {
-				param1 moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqUsual_Usual_adaptor,
+			moqUsual_Usual_params,
+			moqUsual_Usual_paramsKey,
+			moqUsual_Usual_results,
+		](scene, adaptor1, config),
+		moq_NoNames: impl.NewMoq[
+			*moqUsual_NoNames_adaptor,
+			moqUsual_NoNames_params,
+			moqUsual_NoNames_paramsKey,
+			moqUsual_NoNames_results,
+		](scene, adaptor2, config),
+		moq_NoResults: impl.NewMoq[
+			*moqUsual_NoResults_adaptor,
+			moqUsual_NoResults_params,
+			moqUsual_NoResults_paramsKey,
+			moqUsual_NoResults_results,
+		](scene, adaptor3, config),
+		moq_NoParams: impl.NewMoq[
+			*moqUsual_NoParams_adaptor,
+			moqUsual_NoParams_params,
+			moqUsual_NoParams_paramsKey,
+			moqUsual_NoParams_results,
+		](scene, adaptor4, config),
+		moq_Nothing: impl.NewMoq[
+			*moqUsual_Nothing_adaptor,
+			moqUsual_Nothing_params,
+			moqUsual_Nothing_paramsKey,
+			moqUsual_Nothing_results,
+		](scene, adaptor5, config),
+		moq_Variadic: impl.NewMoq[
+			*moqUsual_Variadic_adaptor,
+			moqUsual_Variadic_params,
+			moqUsual_Variadic_paramsKey,
+			moqUsual_Variadic_results,
+		](scene, adaptor6, config),
+		moq_RepeatedIds: impl.NewMoq[
+			*moqUsual_RepeatedIds_adaptor,
+			moqUsual_RepeatedIds_params,
+			moqUsual_RepeatedIds_paramsKey,
+			moqUsual_RepeatedIds_results,
+		](scene, adaptor7, config),
+		moq_Times: impl.NewMoq[
+			*moqUsual_Times_adaptor,
+			moqUsual_Times_params,
+			moqUsual_Times_paramsKey,
+			moqUsual_Times_results,
+		](scene, adaptor8, config),
+		moq_DifficultParamNames: impl.NewMoq[
+			*moqUsual_DifficultParamNames_adaptor,
+			moqUsual_DifficultParamNames_params,
+			moqUsual_DifficultParamNames_paramsKey,
+			moqUsual_DifficultParamNames_results,
+		](scene, adaptor9, config),
+		moq_DifficultResultNames: impl.NewMoq[
+			*moqUsual_DifficultResultNames_adaptor,
+			moqUsual_DifficultResultNames_params,
+			moqUsual_DifficultResultNames_paramsKey,
+			moqUsual_DifficultResultNames_results,
+		](scene, adaptor10, config),
+		moq_PassByArray: impl.NewMoq[
+			*moqUsual_PassByArray_adaptor,
+			moqUsual_PassByArray_params,
+			moqUsual_PassByArray_paramsKey,
+			moqUsual_PassByArray_results,
+		](scene, adaptor11, config),
+		moq_PassByChan: impl.NewMoq[
+			*moqUsual_PassByChan_adaptor,
+			moqUsual_PassByChan_params,
+			moqUsual_PassByChan_paramsKey,
+			moqUsual_PassByChan_results,
+		](scene, adaptor12, config),
+		moq_PassByEllipsis: impl.NewMoq[
+			*moqUsual_PassByEllipsis_adaptor,
+			moqUsual_PassByEllipsis_params,
+			moqUsual_PassByEllipsis_paramsKey,
+			moqUsual_PassByEllipsis_results,
+		](scene, adaptor13, config),
+		moq_PassByMap: impl.NewMoq[
+			*moqUsual_PassByMap_adaptor,
+			moqUsual_PassByMap_params,
+			moqUsual_PassByMap_paramsKey,
+			moqUsual_PassByMap_results,
+		](scene, adaptor14, config),
+		moq_PassByReference: impl.NewMoq[
+			*moqUsual_PassByReference_adaptor,
+			moqUsual_PassByReference_params,
+			moqUsual_PassByReference_paramsKey,
+			moqUsual_PassByReference_results,
+		](scene, adaptor15, config),
+		moq_PassBySlice: impl.NewMoq[
+			*moqUsual_PassBySlice_adaptor,
+			moqUsual_PassBySlice_params,
+			moqUsual_PassBySlice_paramsKey,
+			moqUsual_PassBySlice_results,
+		](scene, adaptor16, config),
+		moq_PassByValue: impl.NewMoq[
+			*moqUsual_PassByValue_adaptor,
+			moqUsual_PassByValue_params,
+			moqUsual_PassByValue_paramsKey,
+			moqUsual_PassByValue_results,
+		](scene, adaptor17, config),
+		moq_InterfaceParam: impl.NewMoq[
+			*moqUsual_InterfaceParam_adaptor,
+			moqUsual_InterfaceParam_params,
+			moqUsual_InterfaceParam_paramsKey,
+			moqUsual_InterfaceParam_results,
+		](scene, adaptor18, config),
+		moq_InterfaceResult: impl.NewMoq[
+			*moqUsual_InterfaceResult_adaptor,
+			moqUsual_InterfaceResult_params,
+			moqUsual_InterfaceResult_paramsKey,
+			moqUsual_InterfaceResult_results,
+		](scene, adaptor19, config),
+		moq_FnParam: impl.NewMoq[
+			*moqUsual_FnParam_adaptor,
+			moqUsual_FnParam_params,
+			moqUsual_FnParam_paramsKey,
+			moqUsual_FnParam_results,
+		](scene, adaptor20, config),
+		moq_Other: impl.NewMoq[
+			*moqUsual_Other_adaptor,
+			moqUsual_Other_params,
+			moqUsual_Other_paramsKey,
+			moqUsual_Other_results,
+		](scene, adaptor21, config),
+
+		runtime: moqUsual_runtime{parameterIndexing: struct {
+			Usual                moqUsual_Usual_paramIndexing
+			NoNames              moqUsual_NoNames_paramIndexing
+			NoResults            moqUsual_NoResults_paramIndexing
+			NoParams             moqUsual_NoParams_paramIndexing
+			Nothing              moqUsual_Nothing_paramIndexing
+			Variadic             moqUsual_Variadic_paramIndexing
+			RepeatedIds          moqUsual_RepeatedIds_paramIndexing
+			Times                moqUsual_Times_paramIndexing
+			DifficultParamNames  moqUsual_DifficultParamNames_paramIndexing
+			DifficultResultNames moqUsual_DifficultResultNames_paramIndexing
+			PassByArray          moqUsual_PassByArray_paramIndexing
+			PassByChan           moqUsual_PassByChan_paramIndexing
+			PassByEllipsis       moqUsual_PassByEllipsis_paramIndexing
+			PassByMap            moqUsual_PassByMap_paramIndexing
+			PassByReference      moqUsual_PassByReference_paramIndexing
+			PassBySlice          moqUsual_PassBySlice_paramIndexing
+			PassByValue          moqUsual_PassByValue_paramIndexing
+			InterfaceParam       moqUsual_InterfaceParam_paramIndexing
+			InterfaceResult      moqUsual_InterfaceResult_paramIndexing
+			FnParam              moqUsual_FnParam_paramIndexing
+			Other                moqUsual_Other_paramIndexing
 		}{
-			Usual: struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}{
+			Usual: moqUsual_Usual_paramIndexing{
 				sParam: moq.ParamIndexByValue,
 				bParam: moq.ParamIndexByValue,
 			},
-			NoNames: struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}{
+			NoNames: moqUsual_NoNames_paramIndexing{
 				param1: moq.ParamIndexByValue,
 				param2: moq.ParamIndexByValue,
 			},
-			NoResults: struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}{
+			NoResults: moqUsual_NoResults_paramIndexing{
 				sParam: moq.ParamIndexByValue,
 				bParam: moq.ParamIndexByValue,
 			},
-			NoParams: struct{}{},
-			Nothing:  struct{}{},
-			Variadic: struct {
-				other moq.ParamIndexing
-				args  moq.ParamIndexing
-			}{
+			NoParams: moqUsual_NoParams_paramIndexing{},
+			Nothing:  moqUsual_Nothing_paramIndexing{},
+			Variadic: moqUsual_Variadic_paramIndexing{
 				other: moq.ParamIndexByValue,
 				args:  moq.ParamIndexByHash,
 			},
-			RepeatedIds: struct {
-				sParam1 moq.ParamIndexing
-				sParam2 moq.ParamIndexing
-				bParam  moq.ParamIndexing
-			}{
+			RepeatedIds: moqUsual_RepeatedIds_paramIndexing{
 				sParam1: moq.ParamIndexByValue,
 				sParam2: moq.ParamIndexByValue,
 				bParam:  moq.ParamIndexByValue,
 			},
-			Times: struct {
-				sParam moq.ParamIndexing
-				times  moq.ParamIndexing
-			}{
+			Times: moqUsual_Times_paramIndexing{
 				sParam: moq.ParamIndexByValue,
 				times:  moq.ParamIndexByValue,
 			},
-			DifficultParamNames: struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-				param3 moq.ParamIndexing
-				param  moq.ParamIndexing
-				param5 moq.ParamIndexing
-				param6 moq.ParamIndexing
-				param7 moq.ParamIndexing
-				param8 moq.ParamIndexing
-				param9 moq.ParamIndexing
-			}{
+			DifficultParamNames: moqUsual_DifficultParamNames_paramIndexing{
 				param1: moq.ParamIndexByValue,
 				param2: moq.ParamIndexByValue,
 				param3: moq.ParamIndexByValue,
@@ -11818,67 +7204,66 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 				param8: moq.ParamIndexByValue,
 				param9: moq.ParamIndexByValue,
 			},
-			DifficultResultNames: struct{}{},
-			PassByArray: struct {
-				p moq.ParamIndexing
-			}{
+			DifficultResultNames: moqUsual_DifficultResultNames_paramIndexing{},
+			PassByArray: moqUsual_PassByArray_paramIndexing{
 				p: moq.ParamIndexByValue,
 			},
-			PassByChan: struct {
-				p moq.ParamIndexing
-			}{
+			PassByChan: moqUsual_PassByChan_paramIndexing{
 				p: moq.ParamIndexByValue,
 			},
-			PassByEllipsis: struct {
-				p moq.ParamIndexing
-			}{
+			PassByEllipsis: moqUsual_PassByEllipsis_paramIndexing{
 				p: moq.ParamIndexByHash,
 			},
-			PassByMap: struct {
-				p moq.ParamIndexing
-			}{
+			PassByMap: moqUsual_PassByMap_paramIndexing{
 				p: moq.ParamIndexByHash,
 			},
-			PassByReference: struct {
-				p moq.ParamIndexing
-			}{
+			PassByReference: moqUsual_PassByReference_paramIndexing{
 				p: moq.ParamIndexByHash,
 			},
-			PassBySlice: struct {
-				p moq.ParamIndexing
-			}{
+			PassBySlice: moqUsual_PassBySlice_paramIndexing{
 				p: moq.ParamIndexByHash,
 			},
-			PassByValue: struct {
-				p moq.ParamIndexing
-			}{
+			PassByValue: moqUsual_PassByValue_paramIndexing{
 				p: moq.ParamIndexByValue,
 			},
-			InterfaceParam: struct {
-				w moq.ParamIndexing
-			}{
+			InterfaceParam: moqUsual_InterfaceParam_paramIndexing{
 				w: moq.ParamIndexByHash,
 			},
-			InterfaceResult: struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}{
+			InterfaceResult: moqUsual_InterfaceResult_paramIndexing{
 				sParam: moq.ParamIndexByValue,
 				bParam: moq.ParamIndexByValue,
 			},
-			FnParam: struct {
-				fn moq.ParamIndexing
-			}{
+			FnParam: moqUsual_FnParam_paramIndexing{
 				fn: moq.ParamIndexByHash,
 			},
-			Other: struct {
-				param1 moq.ParamIndexing
-			}{
+			Other: moqUsual_Other_paramIndexing{
 				param1: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
+	adaptor2.moq = m
+	adaptor3.moq = m
+	adaptor4.moq = m
+	adaptor5.moq = m
+	adaptor6.moq = m
+	adaptor7.moq = m
+	adaptor8.moq = m
+	adaptor9.moq = m
+	adaptor10.moq = m
+	adaptor11.moq = m
+	adaptor12.moq = m
+	adaptor13.moq = m
+	adaptor14.moq = m
+	adaptor15.moq = m
+	adaptor16.moq = m
+	adaptor17.moq = m
+	adaptor18.moq = m
+	adaptor19.moq = m
+	adaptor20.moq = m
+	adaptor21.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -11887,436 +7272,121 @@ func newMoqUsual(scene *moq.Scene, config *moq.Config) *moqUsual {
 // mock returns the mock implementation of the Usual type
 func (m *moqUsual) mock() *moqUsual_mock { return m.moq }
 
-func (m *moqUsual_mock) Usual(sParam string, bParam bool) (sResult string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) Usual(sParam string, bParam bool) (string, error) {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqUsual_Usual_params{
 		sParam: sParam,
 		bParam: bParam,
 	}
-	var results *moqUsual_Usual_results
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.sResult
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(sParam, bParam)
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) NoNames(param1 string, param2 bool) (string, error) {
+	m.moq.moq_NoNames.Scene.T.Helper()
 	params := moqUsual_NoNames_params{
 		param1: param1,
 		param2: param2,
 	}
-	var results *moqUsual_NoNames_results
-	for _, resultsByParams := range m.moq.resultsByParams_NoNames {
-		paramsKey := m.moq.paramsKey_NoNames(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NoNames(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NoNames(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_NoNames.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NoNames(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
+	return result1, result2
 }
 
 func (m *moqUsual_mock) NoResults(sParam string, bParam bool) {
-	m.moq.scene.T.Helper()
+	m.moq.moq_NoResults.Scene.T.Helper()
 	params := moqUsual_NoResults_params{
 		sParam: sParam,
 		bParam: bParam,
 	}
-	var results *moqUsual_NoResults_results
-	for _, resultsByParams := range m.moq.resultsByParams_NoResults {
-		paramsKey := m.moq.paramsKey_NoResults(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NoResults(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NoResults(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NoResults(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn(sParam, bParam)
-	}
-	return
+	m.moq.moq_NoResults.Function(params)
 }
 
-func (m *moqUsual_mock) NoParams() (sResult string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) NoParams() (string, error) {
+	m.moq.moq_NoParams.Scene.T.Helper()
 	params := moqUsual_NoParams_params{}
-	var results *moqUsual_NoParams_results
-	for _, resultsByParams := range m.moq.resultsByParams_NoParams {
-		paramsKey := m.moq.paramsKey_NoParams(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_NoParams(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_NoParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_NoParams.Function(params); result != nil {
+		result1 = result.sResult
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_NoParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn()
-	}
-	return
+	return result1, result2
 }
 
 func (m *moqUsual_mock) Nothing() {
-	m.moq.scene.T.Helper()
+	m.moq.moq_Nothing.Scene.T.Helper()
 	params := moqUsual_Nothing_params{}
-	var results *moqUsual_Nothing_results
-	for _, resultsByParams := range m.moq.resultsByParams_Nothing {
-		paramsKey := m.moq.paramsKey_Nothing(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Nothing(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Nothing(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Nothing(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn()
-	}
-	return
+	m.moq.moq_Nothing.Function(params)
 }
 
-func (m *moqUsual_mock) Variadic(other bool, args ...string) (sResult string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) Variadic(other bool, args ...string) (string, error) {
+	m.moq.moq_Variadic.Scene.T.Helper()
 	params := moqUsual_Variadic_params{
 		other: other,
 		args:  args,
 	}
-	var results *moqUsual_Variadic_results
-	for _, resultsByParams := range m.moq.resultsByParams_Variadic {
-		paramsKey := m.moq.paramsKey_Variadic(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Variadic(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Variadic(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_Variadic.Function(params); result != nil {
+		result1 = result.sResult
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Variadic(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(other, args...)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(other, args...)
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (sResult1, sResult2 string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) RepeatedIds(sParam1, sParam2 string, bParam bool) (string, string, error) {
+	m.moq.moq_RepeatedIds.Scene.T.Helper()
 	params := moqUsual_RepeatedIds_params{
 		sParam1: sParam1,
 		sParam2: sParam2,
 		bParam:  bParam,
 	}
-	var results *moqUsual_RepeatedIds_results
-	for _, resultsByParams := range m.moq.resultsByParams_RepeatedIds {
-		paramsKey := m.moq.paramsKey_RepeatedIds(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_RepeatedIds(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_RepeatedIds(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 string
+	var result3 error
+	if result := m.moq.moq_RepeatedIds.Function(params); result != nil {
+		result1 = result.sResult1
+		result2 = result.sResult2
+		result3 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_RepeatedIds(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam1, sParam2, bParam)
-	}
-
-	if result.values != nil {
-		sResult1 = result.values.sResult1
-		sResult2 = result.values.sResult2
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult1, sResult2, err = result.doReturnFn(sParam1, sParam2, bParam)
-	}
-	return
+	return result1, result2, result3
 }
 
-func (m *moqUsual_mock) Times(sParam string, times bool) (sResult string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) Times(sParam string, times bool) (string, error) {
+	m.moq.moq_Times.Scene.T.Helper()
 	params := moqUsual_Times_params{
 		sParam: sParam,
 		times:  times,
 	}
-	var results *moqUsual_Times_results
-	for _, resultsByParams := range m.moq.resultsByParams_Times {
-		paramsKey := m.moq.paramsKey_Times(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Times(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Times(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_Times.Function(params); result != nil {
+		result1 = result.sResult
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Times(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, times)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(sParam, times)
-	}
-	return
+	return result1, result2
 }
 
 func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) {
-	m.moq.scene.T.Helper()
+	m.moq.moq_DifficultParamNames.Scene.T.Helper()
 	params := moqUsual_DifficultParamNames_params{
 		param1: param1,
 		param2: param2,
@@ -12328,691 +7398,179 @@ func (m *moqUsual_mock) DifficultParamNames(param1, param2 bool, param3 string, 
 		param8: param8,
 		param9: param9,
 	}
-	var results *moqUsual_DifficultParamNames_results
-	for _, resultsByParams := range m.moq.resultsByParams_DifficultParamNames {
-		paramsKey := m.moq.paramsKey_DifficultParamNames(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_DifficultParamNames(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_DifficultParamNames(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_DifficultParamNames(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2, param3, param, param5, param6, param7, param8, param9)
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn(param1, param2, param3, param, param5, param6, param7, param8, param9)
-	}
-	return
+	m.moq.moq_DifficultParamNames.Function(params)
 }
 
-func (m *moqUsual_mock) DifficultResultNames() (result1, result2 string, result3 error, param, result5, result6 int, result7, result8, result9 float32) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) DifficultResultNames() (string, string, error, int, int, int, float32, float32, float32) {
+	m.moq.moq_DifficultResultNames.Scene.T.Helper()
 	params := moqUsual_DifficultResultNames_params{}
-	var results *moqUsual_DifficultResultNames_results
-	for _, resultsByParams := range m.moq.resultsByParams_DifficultResultNames {
-		paramsKey := m.moq.paramsKey_DifficultResultNames(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_DifficultResultNames(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_DifficultResultNames(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 string
+	var result3 error
+	var result4 int
+	var result5 int
+	var result6 int
+	var result7 float32
+	var result8 float32
+	var result9 float32
+	if result := m.moq.moq_DifficultResultNames.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
+		result3 = result.result3
+		result4 = result.param
+		result5 = result.result5
+		result6 = result.result6
+		result7 = result.result7
+		result8 = result.result8
+		result9 = result.result9
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_DifficultResultNames(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-		result3 = result.values.result3
-		param = result.values.param
-		result5 = result.values.result5
-		result6 = result.values.result6
-		result7 = result.values.result7
-		result8 = result.values.result8
-		result9 = result.values.result9
-	}
-	if result.doReturnFn != nil {
-		result1, result2, result3, param, result5, result6, result7, result8, result9 = result.doReturnFn()
-	}
-	return
+	return result1, result2, result3, result4, result5, result6, result7, result8, result9
 }
 
-func (m *moqUsual_mock) PassByArray(p [3]testmoqs.Params) (result1 [3]testmoqs.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassByArray(p [3]testmoqs.Params) [3]testmoqs.Results {
+	m.moq.moq_PassByArray.Scene.T.Helper()
 	params := moqUsual_PassByArray_params{
 		p: p,
 	}
-	var results *moqUsual_PassByArray_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassByArray {
-		paramsKey := m.moq.paramsKey_PassByArray(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByArray(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByArray(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 [3]testmoqs.Results
+	if result := m.moq.moq_PassByArray.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByArray(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
+	return result1
 }
 
-func (m *moqUsual_mock) PassByChan(p chan testmoqs.Params) (result1 chan testmoqs.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassByChan(p chan testmoqs.Params) chan testmoqs.Results {
+	m.moq.moq_PassByChan.Scene.T.Helper()
 	params := moqUsual_PassByChan_params{
 		p: p,
 	}
-	var results *moqUsual_PassByChan_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassByChan {
-		paramsKey := m.moq.paramsKey_PassByChan(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByChan(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByChan(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 chan testmoqs.Results
+	if result := m.moq.moq_PassByChan.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByChan(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
+	return result1
 }
 
-func (m *moqUsual_mock) PassByEllipsis(p ...testmoqs.Params) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassByEllipsis(p ...testmoqs.Params) (string, error) {
+	m.moq.moq_PassByEllipsis.Scene.T.Helper()
 	params := moqUsual_PassByEllipsis_params{
 		p: p,
 	}
-	var results *moqUsual_PassByEllipsis_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassByEllipsis {
-		paramsKey := m.moq.paramsKey_PassByEllipsis(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByEllipsis(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByEllipsis(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_PassByEllipsis.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByEllipsis(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p...)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(p...)
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqUsual_mock) PassByMap(p map[string]testmoqs.Params) (result1 map[string]testmoqs.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassByMap(p map[string]testmoqs.Params) map[string]testmoqs.Results {
+	m.moq.moq_PassByMap.Scene.T.Helper()
 	params := moqUsual_PassByMap_params{
 		p: p,
 	}
-	var results *moqUsual_PassByMap_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassByMap {
-		paramsKey := m.moq.paramsKey_PassByMap(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByMap(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByMap(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 map[string]testmoqs.Results
+	if result := m.moq.moq_PassByMap.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByMap(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
+	return result1
 }
 
-func (m *moqUsual_mock) PassByReference(p *testmoqs.Params) (result1 *testmoqs.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassByReference(p *testmoqs.Params) *testmoqs.Results {
+	m.moq.moq_PassByReference.Scene.T.Helper()
 	params := moqUsual_PassByReference_params{
 		p: p,
 	}
-	var results *moqUsual_PassByReference_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassByReference {
-		paramsKey := m.moq.paramsKey_PassByReference(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByReference(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByReference(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 *testmoqs.Results
+	if result := m.moq.moq_PassByReference.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByReference(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
+	return result1
 }
 
-func (m *moqUsual_mock) PassBySlice(p []testmoqs.Params) (result1 []testmoqs.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassBySlice(p []testmoqs.Params) []testmoqs.Results {
+	m.moq.moq_PassBySlice.Scene.T.Helper()
 	params := moqUsual_PassBySlice_params{
 		p: p,
 	}
-	var results *moqUsual_PassBySlice_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassBySlice {
-		paramsKey := m.moq.paramsKey_PassBySlice(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassBySlice(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassBySlice(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 []testmoqs.Results
+	if result := m.moq.moq_PassBySlice.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassBySlice(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
+	return result1
 }
 
-func (m *moqUsual_mock) PassByValue(p testmoqs.Params) (result1 testmoqs.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) PassByValue(p testmoqs.Params) testmoqs.Results {
+	m.moq.moq_PassByValue.Scene.T.Helper()
 	params := moqUsual_PassByValue_params{
 		p: p,
 	}
-	var results *moqUsual_PassByValue_results
-	for _, resultsByParams := range m.moq.resultsByParams_PassByValue {
-		paramsKey := m.moq.paramsKey_PassByValue(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_PassByValue(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_PassByValue(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 testmoqs.Results
+	if result := m.moq.moq_PassByValue.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_PassByValue(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(p)
-	}
-	return
+	return result1
 }
 
-func (m *moqUsual_mock) InterfaceParam(w io.Writer) (sResult string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) InterfaceParam(w io.Writer) (string, error) {
+	m.moq.moq_InterfaceParam.Scene.T.Helper()
 	params := moqUsual_InterfaceParam_params{
 		w: w,
 	}
-	var results *moqUsual_InterfaceParam_results
-	for _, resultsByParams := range m.moq.resultsByParams_InterfaceParam {
-		paramsKey := m.moq.paramsKey_InterfaceParam(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_InterfaceParam(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_InterfaceParam(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_InterfaceParam.Function(params); result != nil {
+		result1 = result.sResult
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_InterfaceParam(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(w)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(w)
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqUsual_mock) InterfaceResult(sParam string, bParam bool) (result1 io.Reader) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) InterfaceResult(sParam string, bParam bool) io.Reader {
+	m.moq.moq_InterfaceResult.Scene.T.Helper()
 	params := moqUsual_InterfaceResult_params{
 		sParam: sParam,
 		bParam: bParam,
 	}
-	var results *moqUsual_InterfaceResult_results
-	for _, resultsByParams := range m.moq.resultsByParams_InterfaceResult {
-		paramsKey := m.moq.paramsKey_InterfaceResult(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_InterfaceResult(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_InterfaceResult(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 io.Reader
+	if result := m.moq.moq_InterfaceResult.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_InterfaceResult(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(sParam, bParam)
-	}
-	return
+	return result1
 }
 
 func (m *moqUsual_mock) FnParam(fn func()) {
-	m.moq.scene.T.Helper()
+	m.moq.moq_FnParam.Scene.T.Helper()
 	params := moqUsual_FnParam_params{
 		fn: fn,
 	}
-	var results *moqUsual_FnParam_results
-	for _, resultsByParams := range m.moq.resultsByParams_FnParam {
-		paramsKey := m.moq.paramsKey_FnParam(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_FnParam(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_FnParam(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_FnParam(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(fn)
-	}
-
-	if result.doReturnFn != nil {
-		result.doReturnFn(fn)
-	}
-	return
+	m.moq.moq_FnParam.Function(params)
 }
 
-func (m *moqUsual_mock) Other(param1 other.Params) (result1 other.Results) {
-	m.moq.scene.T.Helper()
+func (m *moqUsual_mock) Other(param1 other.Params) other.Results {
+	m.moq.moq_Other.Scene.T.Helper()
 	params := moqUsual_Other_params{
 		param1: param1,
 	}
-	var results *moqUsual_Other_results
-	for _, resultsByParams := range m.moq.resultsByParams_Other {
-		paramsKey := m.moq.paramsKey_Other(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Other(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Other(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 other.Results
+	if result := m.moq.moq_Other.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Other(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(param1)
-	}
-	return
+	return result1
 }
 
 // onCall returns the recorder implementation of the Usual type
@@ -13022,219 +7580,98 @@ func (m *moqUsual) onCall() *moqUsual_recorder {
 	}
 }
 
-func (m *moqUsual_recorder) Usual(sParam string, bParam bool) *moqUsual_Usual_fnRecorder {
-	return &moqUsual_Usual_fnRecorder{
-		params: moqUsual_Usual_params{
+func (m *moqUsual_recorder) Usual(sParam string, bParam bool) *moqUsual_Usual_recorder {
+	return &moqUsual_Usual_recorder{
+		recorder: m.moq.moq_Usual.OnCall(moqUsual_Usual_params{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_Usual_fnRecorder) any() *moqUsual_Usual_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqUsual_Usual_recorder) any() *moqUsual_Usual_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_Usual_anyParams{recorder: r}
 }
 
-func (a *moqUsual_Usual_anyParams) sParam() *moqUsual_Usual_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_Usual_anyParams) sParam() *moqUsual_Usual_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_Usual_anyParams) bParam() *moqUsual_Usual_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_Usual_anyParams) bParam() *moqUsual_Usual_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsual_Usual_fnRecorder) seq() *moqUsual_Usual_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqUsual_Usual_recorder) seq() *moqUsual_Usual_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_Usual_fnRecorder) noSeq() *moqUsual_Usual_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqUsual_Usual_recorder) noSeq() *moqUsual_Usual_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_Usual_fnRecorder) returnResults(sResult string, err error) *moqUsual_Usual_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_Usual_doFn
-		doReturnFn moqUsual_Usual_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqUsual_Usual_recorder) returnResults(sResult string, err error) *moqUsual_Usual_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_Usual_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqUsual_Usual_fnRecorder) andDo(fn moqUsual_Usual_doFn) *moqUsual_Usual_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_Usual_recorder) andDo(fn moqUsual_Usual_doFn) *moqUsual_Usual_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_Usual_params) {
+		fn(params.sParam, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_Usual_fnRecorder) doReturnResults(fn moqUsual_Usual_doReturnFn) *moqUsual_Usual_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqUsual_Usual_recorder) doReturnResults(fn moqUsual_Usual_doReturnFn) *moqUsual_Usual_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_Usual_params) *moqUsual_Usual_results {
+		sResult, err := fn(params.sParam, params.bParam)
+		return &moqUsual_Usual_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqUsual_Usual_doFn
-		doReturnFn moqUsual_Usual_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_Usual_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_Usual_resultsByParams
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_Usual_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_Usual_paramsKey]*moqUsual_Usual_results{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_Usual_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_Usual_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Usual_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_Usual_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_Usual_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqUsual_Usual_doFn
-				doReturnFn moqUsual_Usual_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_Usual(params moqUsual_Usual_params) string {
+func (*moqUsual_Usual_adaptor) PrettyParams(params moqUsual_Usual_params) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqUsual) paramsKey_Usual(params moqUsual_Usual_params, anyParams uint64) moqUsual_Usual_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Usual.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqUsual_Usual_adaptor) ParamsKey(params moqUsual_Usual_params, anyParams uint64) moqUsual_Usual_paramsKey {
+	a.moq.moq_Usual.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.Usual.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.Usual.bParam, anyParams)
 	return moqUsual_Usual_paramsKey{
 		params: struct {
 			sParam string
@@ -13253,219 +7690,98 @@ func (m *moqUsual) paramsKey_Usual(params moqUsual_Usual_params, anyParams uint6
 	}
 }
 
-func (m *moqUsual_recorder) NoNames(param1 string, param2 bool) *moqUsual_NoNames_fnRecorder {
-	return &moqUsual_NoNames_fnRecorder{
-		params: moqUsual_NoNames_params{
+func (m *moqUsual_recorder) NoNames(param1 string, param2 bool) *moqUsual_NoNames_recorder {
+	return &moqUsual_NoNames_recorder{
+		recorder: m.moq.moq_NoNames.OnCall(moqUsual_NoNames_params{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_NoNames_fnRecorder) any() *moqUsual_NoNames_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoNames(r.params))
+func (r *moqUsual_NoNames_recorder) any() *moqUsual_NoNames_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_NoNames_anyParams{recorder: r}
 }
 
-func (a *moqUsual_NoNames_anyParams) param1() *moqUsual_NoNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_NoNames_anyParams) param1() *moqUsual_NoNames_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_NoNames_anyParams) param2() *moqUsual_NoNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_NoNames_anyParams) param2() *moqUsual_NoNames_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsual_NoNames_fnRecorder) seq() *moqUsual_NoNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoNames(r.params))
+func (r *moqUsual_NoNames_recorder) seq() *moqUsual_NoNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_NoNames_fnRecorder) noSeq() *moqUsual_NoNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoNames(r.params))
+func (r *moqUsual_NoNames_recorder) noSeq() *moqUsual_NoNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_NoNames_fnRecorder) returnResults(result1 string, result2 error) *moqUsual_NoNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqUsual_NoNames_doFn
-		doReturnFn moqUsual_NoNames_doReturnFn
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqUsual_NoNames_recorder) returnResults(result1 string, result2 error) *moqUsual_NoNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_NoNames_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqUsual_NoNames_fnRecorder) andDo(fn moqUsual_NoNames_doFn) *moqUsual_NoNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_NoNames_recorder) andDo(fn moqUsual_NoNames_doFn) *moqUsual_NoNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_NoNames_params) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_NoNames_fnRecorder) doReturnResults(fn moqUsual_NoNames_doReturnFn) *moqUsual_NoNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqUsual_NoNames_recorder) doReturnResults(fn moqUsual_NoNames_doReturnFn) *moqUsual_NoNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_NoNames_params) *moqUsual_NoNames_results {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqUsual_NoNames_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqUsual_NoNames_doFn
-		doReturnFn moqUsual_NoNames_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_NoNames_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_NoNames_resultsByParams
-	for n, res := range r.moq.resultsByParams_NoNames {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_NoNames_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_NoNames_paramsKey]*moqUsual_NoNames_results{},
-		}
-		r.moq.resultsByParams_NoNames = append(r.moq.resultsByParams_NoNames, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_NoNames) {
-			copy(r.moq.resultsByParams_NoNames[insertAt+1:], r.moq.resultsByParams_NoNames[insertAt:0])
-			r.moq.resultsByParams_NoNames[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_NoNames(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_NoNames_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_NoNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_NoNames_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqUsual_NoNames_doFn
-				doReturnFn moqUsual_NoNames_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_NoNames(params moqUsual_NoNames_params) string {
+func (*moqUsual_NoNames_adaptor) PrettyParams(params moqUsual_NoNames_params) string {
 	return fmt.Sprintf("NoNames(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqUsual) paramsKey_NoNames(params moqUsual_NoNames_params, anyParams uint64) moqUsual_NoNames_paramsKey {
-	m.scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.NoNames.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.NoNames.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqUsual_NoNames_adaptor) ParamsKey(params moqUsual_NoNames_params, anyParams uint64) moqUsual_NoNames_paramsKey {
+	a.moq.moq_NoNames.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.NoNames.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.NoNames.param2, anyParams)
 	return moqUsual_NoNames_paramsKey{
 		params: struct {
 			param1 string
@@ -13484,204 +7800,92 @@ func (m *moqUsual) paramsKey_NoNames(params moqUsual_NoNames_params, anyParams u
 	}
 }
 
-func (m *moqUsual_recorder) NoResults(sParam string, bParam bool) *moqUsual_NoResults_fnRecorder {
-	return &moqUsual_NoResults_fnRecorder{
-		params: moqUsual_NoResults_params{
+func (m *moqUsual_recorder) NoResults(sParam string, bParam bool) *moqUsual_NoResults_recorder {
+	return &moqUsual_NoResults_recorder{
+		recorder: m.moq.moq_NoResults.OnCall(moqUsual_NoResults_params{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_NoResults_fnRecorder) any() *moqUsual_NoResults_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoResults(r.params))
+func (r *moqUsual_NoResults_recorder) any() *moqUsual_NoResults_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_NoResults_anyParams{recorder: r}
 }
 
-func (a *moqUsual_NoResults_anyParams) sParam() *moqUsual_NoResults_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_NoResults_anyParams) sParam() *moqUsual_NoResults_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_NoResults_anyParams) bParam() *moqUsual_NoResults_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_NoResults_anyParams) bParam() *moqUsual_NoResults_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsual_NoResults_fnRecorder) seq() *moqUsual_NoResults_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoResults(r.params))
+func (r *moqUsual_NoResults_recorder) seq() *moqUsual_NoResults_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_NoResults_fnRecorder) noSeq() *moqUsual_NoResults_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoResults(r.params))
+func (r *moqUsual_NoResults_recorder) noSeq() *moqUsual_NoResults_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_NoResults_fnRecorder) returnResults() *moqUsual_NoResults_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqUsual_NoResults_recorder) returnResults() *moqUsual_NoResults_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_NoResults_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqUsual_NoResults_recorder) andDo(fn moqUsual_NoResults_doFn) *moqUsual_NoResults_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_NoResults_params) {
+		fn(params.sParam, params.bParam)
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_NoResults_doFn
-		doReturnFn moqUsual_NoResults_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqUsual_NoResults_recorder) doReturnResults(fn moqUsual_NoResults_doReturnFn) *moqUsual_NoResults_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_NoResults_params) *moqUsual_NoResults_results {
+		fn(params.sParam, params.bParam)
+		return &moqUsual_NoResults_results{}
 	})
 	return r
 }
 
-func (r *moqUsual_NoResults_fnRecorder) andDo(fn moqUsual_NoResults_doFn) *moqUsual_NoResults_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_NoResults_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoResults_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_NoResults_fnRecorder) doReturnResults(fn moqUsual_NoResults_doReturnFn) *moqUsual_NoResults_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_NoResults_doFn
-		doReturnFn moqUsual_NoResults_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqUsual_NoResults_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_NoResults_resultsByParams
-	for n, res := range r.moq.resultsByParams_NoResults {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_NoResults_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_NoResults_paramsKey]*moqUsual_NoResults_results{},
-		}
-		r.moq.resultsByParams_NoResults = append(r.moq.resultsByParams_NoResults, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_NoResults) {
-			copy(r.moq.resultsByParams_NoResults[insertAt+1:], r.moq.resultsByParams_NoResults[insertAt:0])
-			r.moq.resultsByParams_NoResults[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_NoResults(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_NoResults_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_NoResults_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoResults_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqUsual_NoResults_doFn
-				doReturnFn moqUsual_NoResults_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqUsual) prettyParams_NoResults(params moqUsual_NoResults_params) string {
+func (*moqUsual_NoResults_adaptor) PrettyParams(params moqUsual_NoResults_params) string {
 	return fmt.Sprintf("NoResults(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqUsual) paramsKey_NoResults(params moqUsual_NoResults_params, anyParams uint64) moqUsual_NoResults_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.NoResults.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.NoResults.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqUsual_NoResults_adaptor) ParamsKey(params moqUsual_NoResults_params, anyParams uint64) moqUsual_NoResults_paramsKey {
+	a.moq.moq_NoResults.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.NoResults.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.NoResults.bParam, anyParams)
 	return moqUsual_NoResults_paramsKey{
 		params: struct {
 			sParam string
@@ -13700,578 +7904,254 @@ func (m *moqUsual) paramsKey_NoResults(params moqUsual_NoResults_params, anyPara
 	}
 }
 
-func (m *moqUsual_recorder) NoParams() *moqUsual_NoParams_fnRecorder {
-	return &moqUsual_NoParams_fnRecorder{
-		params:   moqUsual_NoParams_params{},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+func (m *moqUsual_recorder) NoParams() *moqUsual_NoParams_recorder {
+	return &moqUsual_NoParams_recorder{
+		recorder: m.moq.moq_NoParams.OnCall(moqUsual_NoParams_params{}),
 	}
 }
 
-func (r *moqUsual_NoParams_fnRecorder) any() *moqUsual_NoParams_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoParams(r.params))
+func (r *moqUsual_NoParams_recorder) any() *moqUsual_NoParams_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_NoParams_anyParams{recorder: r}
 }
 
-func (r *moqUsual_NoParams_fnRecorder) seq() *moqUsual_NoParams_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoParams(r.params))
+func (r *moqUsual_NoParams_recorder) seq() *moqUsual_NoParams_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_NoParams_fnRecorder) noSeq() *moqUsual_NoParams_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_NoParams(r.params))
+func (r *moqUsual_NoParams_recorder) noSeq() *moqUsual_NoParams_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_NoParams_fnRecorder) returnResults(sResult string, err error) *moqUsual_NoParams_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_NoParams_doFn
-		doReturnFn moqUsual_NoParams_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqUsual_NoParams_recorder) returnResults(sResult string, err error) *moqUsual_NoParams_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_NoParams_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqUsual_NoParams_fnRecorder) andDo(fn moqUsual_NoParams_doFn) *moqUsual_NoParams_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_NoParams_recorder) andDo(fn moqUsual_NoParams_doFn) *moqUsual_NoParams_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_NoParams_params) {
+		fn()
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_NoParams_fnRecorder) doReturnResults(fn moqUsual_NoParams_doReturnFn) *moqUsual_NoParams_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqUsual_NoParams_recorder) doReturnResults(fn moqUsual_NoParams_doReturnFn) *moqUsual_NoParams_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_NoParams_params) *moqUsual_NoParams_results {
+		sResult, err := fn()
+		return &moqUsual_NoParams_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqUsual_NoParams_doFn
-		doReturnFn moqUsual_NoParams_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_NoParams_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_NoParams_resultsByParams
-	for n, res := range r.moq.resultsByParams_NoParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_NoParams_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_NoParams_paramsKey]*moqUsual_NoParams_results{},
-		}
-		r.moq.resultsByParams_NoParams = append(r.moq.resultsByParams_NoParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_NoParams) {
-			copy(r.moq.resultsByParams_NoParams[insertAt+1:], r.moq.resultsByParams_NoParams[insertAt:0])
-			r.moq.resultsByParams_NoParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_NoParams(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_NoParams_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_NoParams_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoParams_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_NoParams_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_NoParams_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqUsual_NoParams_doFn
-				doReturnFn moqUsual_NoParams_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_NoParams(params moqUsual_NoParams_params) string {
+func (*moqUsual_NoParams_adaptor) PrettyParams(params moqUsual_NoParams_params) string {
 	return fmt.Sprintf("NoParams()")
 }
 
-func (m *moqUsual) paramsKey_NoParams(params moqUsual_NoParams_params, anyParams uint64) moqUsual_NoParams_paramsKey {
-	m.scene.T.Helper()
+func (a *moqUsual_NoParams_adaptor) ParamsKey(params moqUsual_NoParams_params, anyParams uint64) moqUsual_NoParams_paramsKey {
+	a.moq.moq_NoParams.Scene.T.Helper()
 	return moqUsual_NoParams_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
 	}
 }
 
-func (m *moqUsual_recorder) Nothing() *moqUsual_Nothing_fnRecorder {
-	return &moqUsual_Nothing_fnRecorder{
-		params:   moqUsual_Nothing_params{},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+func (m *moqUsual_recorder) Nothing() *moqUsual_Nothing_recorder {
+	return &moqUsual_Nothing_recorder{
+		recorder: m.moq.moq_Nothing.OnCall(moqUsual_Nothing_params{}),
 	}
 }
 
-func (r *moqUsual_Nothing_fnRecorder) any() *moqUsual_Nothing_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Nothing(r.params))
+func (r *moqUsual_Nothing_recorder) any() *moqUsual_Nothing_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_Nothing_anyParams{recorder: r}
 }
 
-func (r *moqUsual_Nothing_fnRecorder) seq() *moqUsual_Nothing_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Nothing(r.params))
+func (r *moqUsual_Nothing_recorder) seq() *moqUsual_Nothing_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_Nothing_fnRecorder) noSeq() *moqUsual_Nothing_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Nothing(r.params))
+func (r *moqUsual_Nothing_recorder) noSeq() *moqUsual_Nothing_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_Nothing_fnRecorder) returnResults() *moqUsual_Nothing_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqUsual_Nothing_recorder) returnResults() *moqUsual_Nothing_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_Nothing_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqUsual_Nothing_recorder) andDo(fn moqUsual_Nothing_doFn) *moqUsual_Nothing_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_Nothing_params) {
+		fn()
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_Nothing_doFn
-		doReturnFn moqUsual_Nothing_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqUsual_Nothing_recorder) doReturnResults(fn moqUsual_Nothing_doReturnFn) *moqUsual_Nothing_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_Nothing_params) *moqUsual_Nothing_results {
+		fn()
+		return &moqUsual_Nothing_results{}
 	})
 	return r
 }
 
-func (r *moqUsual_Nothing_fnRecorder) andDo(fn moqUsual_Nothing_doFn) *moqUsual_Nothing_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_Nothing_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_Nothing_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_Nothing_fnRecorder) doReturnResults(fn moqUsual_Nothing_doReturnFn) *moqUsual_Nothing_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_Nothing_doFn
-		doReturnFn moqUsual_Nothing_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqUsual_Nothing_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_Nothing_resultsByParams
-	for n, res := range r.moq.resultsByParams_Nothing {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_Nothing_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_Nothing_paramsKey]*moqUsual_Nothing_results{},
-		}
-		r.moq.resultsByParams_Nothing = append(r.moq.resultsByParams_Nothing, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Nothing) {
-			copy(r.moq.resultsByParams_Nothing[insertAt+1:], r.moq.resultsByParams_Nothing[insertAt:0])
-			r.moq.resultsByParams_Nothing[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Nothing(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_Nothing_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_Nothing_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Nothing_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqUsual_Nothing_doFn
-				doReturnFn moqUsual_Nothing_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqUsual) prettyParams_Nothing(params moqUsual_Nothing_params) string {
+func (*moqUsual_Nothing_adaptor) PrettyParams(params moqUsual_Nothing_params) string {
 	return fmt.Sprintf("Nothing()")
 }
 
-func (m *moqUsual) paramsKey_Nothing(params moqUsual_Nothing_params, anyParams uint64) moqUsual_Nothing_paramsKey {
-	m.scene.T.Helper()
+func (a *moqUsual_Nothing_adaptor) ParamsKey(params moqUsual_Nothing_params, anyParams uint64) moqUsual_Nothing_paramsKey {
+	a.moq.moq_Nothing.Scene.T.Helper()
 	return moqUsual_Nothing_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
 	}
 }
 
-func (m *moqUsual_recorder) Variadic(other bool, args ...string) *moqUsual_Variadic_fnRecorder {
-	return &moqUsual_Variadic_fnRecorder{
-		params: moqUsual_Variadic_params{
+func (m *moqUsual_recorder) Variadic(other bool, args ...string) *moqUsual_Variadic_recorder {
+	return &moqUsual_Variadic_recorder{
+		recorder: m.moq.moq_Variadic.OnCall(moqUsual_Variadic_params{
 			other: other,
 			args:  args,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_Variadic_fnRecorder) any() *moqUsual_Variadic_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Variadic(r.params))
+func (r *moqUsual_Variadic_recorder) any() *moqUsual_Variadic_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_Variadic_anyParams{recorder: r}
 }
 
-func (a *moqUsual_Variadic_anyParams) other() *moqUsual_Variadic_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_Variadic_anyParams) other() *moqUsual_Variadic_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_Variadic_anyParams) args() *moqUsual_Variadic_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_Variadic_anyParams) args() *moqUsual_Variadic_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsual_Variadic_fnRecorder) seq() *moqUsual_Variadic_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Variadic(r.params))
+func (r *moqUsual_Variadic_recorder) seq() *moqUsual_Variadic_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_Variadic_fnRecorder) noSeq() *moqUsual_Variadic_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Variadic(r.params))
+func (r *moqUsual_Variadic_recorder) noSeq() *moqUsual_Variadic_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_Variadic_fnRecorder) returnResults(sResult string, err error) *moqUsual_Variadic_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_Variadic_doFn
-		doReturnFn moqUsual_Variadic_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqUsual_Variadic_recorder) returnResults(sResult string, err error) *moqUsual_Variadic_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_Variadic_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqUsual_Variadic_fnRecorder) andDo(fn moqUsual_Variadic_doFn) *moqUsual_Variadic_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_Variadic_recorder) andDo(fn moqUsual_Variadic_doFn) *moqUsual_Variadic_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_Variadic_params) {
+		fn(params.other, params.args...)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_Variadic_fnRecorder) doReturnResults(fn moqUsual_Variadic_doReturnFn) *moqUsual_Variadic_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqUsual_Variadic_recorder) doReturnResults(fn moqUsual_Variadic_doReturnFn) *moqUsual_Variadic_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_Variadic_params) *moqUsual_Variadic_results {
+		sResult, err := fn(params.other, params.args...)
+		return &moqUsual_Variadic_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqUsual_Variadic_doFn
-		doReturnFn moqUsual_Variadic_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_Variadic_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_Variadic_resultsByParams
-	for n, res := range r.moq.resultsByParams_Variadic {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_Variadic_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_Variadic_paramsKey]*moqUsual_Variadic_results{},
-		}
-		r.moq.resultsByParams_Variadic = append(r.moq.resultsByParams_Variadic, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Variadic) {
-			copy(r.moq.resultsByParams_Variadic[insertAt+1:], r.moq.resultsByParams_Variadic[insertAt:0])
-			r.moq.resultsByParams_Variadic[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Variadic(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_Variadic_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_Variadic_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Variadic_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_Variadic_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_Variadic_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqUsual_Variadic_doFn
-				doReturnFn moqUsual_Variadic_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_Variadic(params moqUsual_Variadic_params) string {
+func (*moqUsual_Variadic_adaptor) PrettyParams(params moqUsual_Variadic_params) string {
 	return fmt.Sprintf("Variadic(%#v, %#v)", params.other, params.args)
 }
 
-func (m *moqUsual) paramsKey_Variadic(params moqUsual_Variadic_params, anyParams uint64) moqUsual_Variadic_paramsKey {
-	m.scene.T.Helper()
-	var otherUsed bool
-	var otherUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Variadic.other == moq.ParamIndexByValue {
-			otherUsed = params.other
-		} else {
-			otherUsedHash = hash.DeepHash(params.other)
-		}
-	}
-	var argsUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Variadic.args == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The args parameter of the Variadic function can't be indexed by value")
-		}
-		argsUsedHash = hash.DeepHash(params.args)
-	}
+func (a *moqUsual_Variadic_adaptor) ParamsKey(params moqUsual_Variadic_params, anyParams uint64) moqUsual_Variadic_paramsKey {
+	a.moq.moq_Variadic.Scene.T.Helper()
+	otherUsed, otherUsedHash := impl.ParamKey(
+		params.other, 1, a.moq.runtime.parameterIndexing.Variadic.other, anyParams)
+	argsUsedHash := impl.HashOnlyParamKey(a.moq.moq_Variadic.Scene.T,
+		params.args, "args", 2, a.moq.runtime.parameterIndexing.Variadic.args, anyParams)
 	return moqUsual_Variadic_paramsKey{
 		params: struct{ other bool }{
 			other: otherUsed,
@@ -14286,235 +8166,108 @@ func (m *moqUsual) paramsKey_Variadic(params moqUsual_Variadic_params, anyParams
 	}
 }
 
-func (m *moqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *moqUsual_RepeatedIds_fnRecorder {
-	return &moqUsual_RepeatedIds_fnRecorder{
-		params: moqUsual_RepeatedIds_params{
+func (m *moqUsual_recorder) RepeatedIds(sParam1, sParam2 string, bParam bool) *moqUsual_RepeatedIds_recorder {
+	return &moqUsual_RepeatedIds_recorder{
+		recorder: m.moq.moq_RepeatedIds.OnCall(moqUsual_RepeatedIds_params{
 			sParam1: sParam1,
 			sParam2: sParam2,
 			bParam:  bParam,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) any() *moqUsual_RepeatedIds_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RepeatedIds(r.params))
+func (r *moqUsual_RepeatedIds_recorder) any() *moqUsual_RepeatedIds_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_RepeatedIds_anyParams{recorder: r}
 }
 
-func (a *moqUsual_RepeatedIds_anyParams) sParam1() *moqUsual_RepeatedIds_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_RepeatedIds_anyParams) sParam1() *moqUsual_RepeatedIds_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_RepeatedIds_anyParams) sParam2() *moqUsual_RepeatedIds_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_RepeatedIds_anyParams) sParam2() *moqUsual_RepeatedIds_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (a *moqUsual_RepeatedIds_anyParams) bParam() *moqUsual_RepeatedIds_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+func (a *moqUsual_RepeatedIds_anyParams) bParam() *moqUsual_RepeatedIds_recorder {
+	a.recorder.recorder.AnyParam(3)
 	return a.recorder
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) seq() *moqUsual_RepeatedIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RepeatedIds(r.params))
+func (r *moqUsual_RepeatedIds_recorder) seq() *moqUsual_RepeatedIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) noSeq() *moqUsual_RepeatedIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_RepeatedIds(r.params))
+func (r *moqUsual_RepeatedIds_recorder) noSeq() *moqUsual_RepeatedIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) returnResults(sResult1, sResult2 string, err error) *moqUsual_RepeatedIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult1, sResult2 string
-			err                error
-		}
-		sequence   uint32
-		doFn       moqUsual_RepeatedIds_doFn
-		doReturnFn moqUsual_RepeatedIds_doReturnFn
-	}{
-		values: &struct {
-			sResult1, sResult2 string
-			err                error
-		}{
-			sResult1: sResult1,
-			sResult2: sResult2,
-			err:      err,
-		},
-		sequence: sequence,
+func (r *moqUsual_RepeatedIds_recorder) returnResults(sResult1, sResult2 string, err error) *moqUsual_RepeatedIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_RepeatedIds_results{
+		sResult1: sResult1,
+		sResult2: sResult2,
+		err:      err,
 	})
 	return r
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) andDo(fn moqUsual_RepeatedIds_doFn) *moqUsual_RepeatedIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_RepeatedIds_recorder) andDo(fn moqUsual_RepeatedIds_doFn) *moqUsual_RepeatedIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_RepeatedIds_params) {
+		fn(params.sParam1, params.sParam2, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) doReturnResults(fn moqUsual_RepeatedIds_doReturnFn) *moqUsual_RepeatedIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult1, sResult2 string
-			err                error
+func (r *moqUsual_RepeatedIds_recorder) doReturnResults(fn moqUsual_RepeatedIds_doReturnFn) *moqUsual_RepeatedIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_RepeatedIds_params) *moqUsual_RepeatedIds_results {
+		sResult1, sResult2, err := fn(params.sParam1, params.sParam2, params.bParam)
+		return &moqUsual_RepeatedIds_results{
+			sResult1: sResult1,
+			sResult2: sResult2,
+			err:      err,
 		}
-		sequence   uint32
-		doFn       moqUsual_RepeatedIds_doFn
-		doReturnFn moqUsual_RepeatedIds_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_RepeatedIds_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_RepeatedIds_resultsByParams
-	for n, res := range r.moq.resultsByParams_RepeatedIds {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_RepeatedIds_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_RepeatedIds_paramsKey]*moqUsual_RepeatedIds_results{},
-		}
-		r.moq.resultsByParams_RepeatedIds = append(r.moq.resultsByParams_RepeatedIds, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_RepeatedIds) {
-			copy(r.moq.resultsByParams_RepeatedIds[insertAt+1:], r.moq.resultsByParams_RepeatedIds[insertAt:0])
-			r.moq.resultsByParams_RepeatedIds[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_RepeatedIds(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_RepeatedIds_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_RepeatedIds_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_RepeatedIds_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_RepeatedIds_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_RepeatedIds_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult1, sResult2 string
-					err                error
-				}
-				sequence   uint32
-				doFn       moqUsual_RepeatedIds_doFn
-				doReturnFn moqUsual_RepeatedIds_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_RepeatedIds(params moqUsual_RepeatedIds_params) string {
+func (*moqUsual_RepeatedIds_adaptor) PrettyParams(params moqUsual_RepeatedIds_params) string {
 	return fmt.Sprintf("RepeatedIds(%#v, %#v, %#v)", params.sParam1, params.sParam2, params.bParam)
 }
 
-func (m *moqUsual) paramsKey_RepeatedIds(params moqUsual_RepeatedIds_params, anyParams uint64) moqUsual_RepeatedIds_paramsKey {
-	m.scene.T.Helper()
-	var sParam1Used string
-	var sParam1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.RepeatedIds.sParam1 == moq.ParamIndexByValue {
-			sParam1Used = params.sParam1
-		} else {
-			sParam1UsedHash = hash.DeepHash(params.sParam1)
-		}
-	}
-	var sParam2Used string
-	var sParam2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.RepeatedIds.sParam2 == moq.ParamIndexByValue {
-			sParam2Used = params.sParam2
-		} else {
-			sParam2UsedHash = hash.DeepHash(params.sParam2)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
-		if m.runtime.parameterIndexing.RepeatedIds.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqUsual_RepeatedIds_adaptor) ParamsKey(params moqUsual_RepeatedIds_params, anyParams uint64) moqUsual_RepeatedIds_paramsKey {
+	a.moq.moq_RepeatedIds.Scene.T.Helper()
+	sParam1Used, sParam1UsedHash := impl.ParamKey(
+		params.sParam1, 1, a.moq.runtime.parameterIndexing.RepeatedIds.sParam1, anyParams)
+	sParam2Used, sParam2UsedHash := impl.ParamKey(
+		params.sParam2, 2, a.moq.runtime.parameterIndexing.RepeatedIds.sParam2, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 3, a.moq.runtime.parameterIndexing.RepeatedIds.bParam, anyParams)
 	return moqUsual_RepeatedIds_paramsKey{
 		params: struct {
 			sParam1, sParam2 string
@@ -14535,219 +8288,98 @@ func (m *moqUsual) paramsKey_RepeatedIds(params moqUsual_RepeatedIds_params, any
 	}
 }
 
-func (m *moqUsual_recorder) Times(sParam string, times bool) *moqUsual_Times_fnRecorder {
-	return &moqUsual_Times_fnRecorder{
-		params: moqUsual_Times_params{
+func (m *moqUsual_recorder) Times(sParam string, times bool) *moqUsual_Times_recorder {
+	return &moqUsual_Times_recorder{
+		recorder: m.moq.moq_Times.OnCall(moqUsual_Times_params{
 			sParam: sParam,
 			times:  times,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_Times_fnRecorder) any() *moqUsual_Times_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Times(r.params))
+func (r *moqUsual_Times_recorder) any() *moqUsual_Times_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_Times_anyParams{recorder: r}
 }
 
-func (a *moqUsual_Times_anyParams) sParam() *moqUsual_Times_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_Times_anyParams) sParam() *moqUsual_Times_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_Times_anyParams) times() *moqUsual_Times_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_Times_anyParams) times() *moqUsual_Times_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsual_Times_fnRecorder) seq() *moqUsual_Times_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Times(r.params))
+func (r *moqUsual_Times_recorder) seq() *moqUsual_Times_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_Times_fnRecorder) noSeq() *moqUsual_Times_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Times(r.params))
+func (r *moqUsual_Times_recorder) noSeq() *moqUsual_Times_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_Times_fnRecorder) returnResults(sResult string, err error) *moqUsual_Times_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_Times_doFn
-		doReturnFn moqUsual_Times_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqUsual_Times_recorder) returnResults(sResult string, err error) *moqUsual_Times_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_Times_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqUsual_Times_fnRecorder) andDo(fn moqUsual_Times_doFn) *moqUsual_Times_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_Times_recorder) andDo(fn moqUsual_Times_doFn) *moqUsual_Times_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_Times_params) {
+		fn(params.sParam, params.times)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_Times_fnRecorder) doReturnResults(fn moqUsual_Times_doReturnFn) *moqUsual_Times_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqUsual_Times_recorder) doReturnResults(fn moqUsual_Times_doReturnFn) *moqUsual_Times_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_Times_params) *moqUsual_Times_results {
+		sResult, err := fn(params.sParam, params.times)
+		return &moqUsual_Times_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqUsual_Times_doFn
-		doReturnFn moqUsual_Times_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_Times_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_Times_resultsByParams
-	for n, res := range r.moq.resultsByParams_Times {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_Times_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_Times_paramsKey]*moqUsual_Times_results{},
-		}
-		r.moq.resultsByParams_Times = append(r.moq.resultsByParams_Times, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Times) {
-			copy(r.moq.resultsByParams_Times[insertAt+1:], r.moq.resultsByParams_Times[insertAt:0])
-			r.moq.resultsByParams_Times[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Times(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_Times_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_Times_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Times_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_Times_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_Times_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqUsual_Times_doFn
-				doReturnFn moqUsual_Times_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_Times(params moqUsual_Times_params) string {
+func (*moqUsual_Times_adaptor) PrettyParams(params moqUsual_Times_params) string {
 	return fmt.Sprintf("Times(%#v, %#v)", params.sParam, params.times)
 }
 
-func (m *moqUsual) paramsKey_Times(params moqUsual_Times_params, anyParams uint64) moqUsual_Times_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Times.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var timesUsed bool
-	var timesUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Times.times == moq.ParamIndexByValue {
-			timesUsed = params.times
-		} else {
-			timesUsedHash = hash.DeepHash(params.times)
-		}
-	}
+func (a *moqUsual_Times_adaptor) ParamsKey(params moqUsual_Times_params, anyParams uint64) moqUsual_Times_paramsKey {
+	a.moq.moq_Times.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.Times.sParam, anyParams)
+	timesUsed, timesUsedHash := impl.ParamKey(
+		params.times, 2, a.moq.runtime.parameterIndexing.Times.times, anyParams)
 	return moqUsual_Times_paramsKey{
 		params: struct {
 			sParam string
@@ -14766,9 +8398,9 @@ func (m *moqUsual) paramsKey_Times(params moqUsual_Times_params, anyParams uint6
 	}
 }
 
-func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) *moqUsual_DifficultParamNames_fnRecorder {
-	return &moqUsual_DifficultParamNames_fnRecorder{
-		params: moqUsual_DifficultParamNames_params{
+func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 string, param, param5, param6 int, param7, param8, param9 float32) *moqUsual_DifficultParamNames_recorder {
+	return &moqUsual_DifficultParamNames_recorder{
+		recorder: m.moq.moq_DifficultParamNames.OnCall(moqUsual_DifficultParamNames_params{
 			param1: param1,
 			param2: param2,
 			param3: param3,
@@ -14778,297 +8410,136 @@ func (m *moqUsual_recorder) DifficultParamNames(param1, param2 bool, param3 stri
 			param7: param7,
 			param8: param8,
 			param9: param9,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_DifficultParamNames_fnRecorder) any() *moqUsual_DifficultParamNames_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultParamNames(r.params))
+func (r *moqUsual_DifficultParamNames_recorder) any() *moqUsual_DifficultParamNames_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_DifficultParamNames_anyParams{recorder: r}
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param1() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_DifficultParamNames_anyParams) param1() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param2() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_DifficultParamNames_anyParams) param2() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param3() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 2
+func (a *moqUsual_DifficultParamNames_anyParams) param3() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(3)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 3
+func (a *moqUsual_DifficultParamNames_anyParams) param() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(4)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param5() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 4
+func (a *moqUsual_DifficultParamNames_anyParams) param5() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(5)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param6() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 5
+func (a *moqUsual_DifficultParamNames_anyParams) param6() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(6)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param7() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 6
+func (a *moqUsual_DifficultParamNames_anyParams) param7() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(7)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param8() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 7
+func (a *moqUsual_DifficultParamNames_anyParams) param8() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(8)
 	return a.recorder
 }
 
-func (a *moqUsual_DifficultParamNames_anyParams) param9() *moqUsual_DifficultParamNames_fnRecorder {
-	a.recorder.anyParams |= 1 << 8
+func (a *moqUsual_DifficultParamNames_anyParams) param9() *moqUsual_DifficultParamNames_recorder {
+	a.recorder.recorder.AnyParam(9)
 	return a.recorder
 }
 
-func (r *moqUsual_DifficultParamNames_fnRecorder) seq() *moqUsual_DifficultParamNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultParamNames(r.params))
+func (r *moqUsual_DifficultParamNames_recorder) seq() *moqUsual_DifficultParamNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_DifficultParamNames_fnRecorder) noSeq() *moqUsual_DifficultParamNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultParamNames(r.params))
+func (r *moqUsual_DifficultParamNames_recorder) noSeq() *moqUsual_DifficultParamNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_DifficultParamNames_fnRecorder) returnResults() *moqUsual_DifficultParamNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqUsual_DifficultParamNames_recorder) returnResults() *moqUsual_DifficultParamNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_DifficultParamNames_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqUsual_DifficultParamNames_recorder) andDo(fn moqUsual_DifficultParamNames_doFn) *moqUsual_DifficultParamNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_DifficultParamNames_params) {
+		fn(params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8, params.param9)
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_DifficultParamNames_doFn
-		doReturnFn moqUsual_DifficultParamNames_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqUsual_DifficultParamNames_recorder) doReturnResults(fn moqUsual_DifficultParamNames_doReturnFn) *moqUsual_DifficultParamNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_DifficultParamNames_params) *moqUsual_DifficultParamNames_results {
+		fn(params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8, params.param9)
+		return &moqUsual_DifficultParamNames_results{}
 	})
 	return r
 }
 
-func (r *moqUsual_DifficultParamNames_fnRecorder) andDo(fn moqUsual_DifficultParamNames_doFn) *moqUsual_DifficultParamNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_DifficultParamNames_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_DifficultParamNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_DifficultParamNames_fnRecorder) doReturnResults(fn moqUsual_DifficultParamNames_doReturnFn) *moqUsual_DifficultParamNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_DifficultParamNames_doFn
-		doReturnFn moqUsual_DifficultParamNames_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqUsual_DifficultParamNames_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_DifficultParamNames_resultsByParams
-	for n, res := range r.moq.resultsByParams_DifficultParamNames {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_DifficultParamNames_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_DifficultParamNames_paramsKey]*moqUsual_DifficultParamNames_results{},
-		}
-		r.moq.resultsByParams_DifficultParamNames = append(r.moq.resultsByParams_DifficultParamNames, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_DifficultParamNames) {
-			copy(r.moq.resultsByParams_DifficultParamNames[insertAt+1:], r.moq.resultsByParams_DifficultParamNames[insertAt:0])
-			r.moq.resultsByParams_DifficultParamNames[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_DifficultParamNames(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_DifficultParamNames_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_DifficultParamNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_DifficultParamNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqUsual_DifficultParamNames_doFn
-				doReturnFn moqUsual_DifficultParamNames_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqUsual) prettyParams_DifficultParamNames(params moqUsual_DifficultParamNames_params) string {
+func (*moqUsual_DifficultParamNames_adaptor) PrettyParams(params moqUsual_DifficultParamNames_params) string {
 	return fmt.Sprintf("DifficultParamNames(%#v, %#v, %#v, %#v, %#v, %#v, %#v, %#v, %#v)", params.param1, params.param2, params.param3, params.param, params.param5, params.param6, params.param7, params.param8, params.param9)
 }
 
-func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamNames_params, anyParams uint64) moqUsual_DifficultParamNames_paramsKey {
-	m.scene.T.Helper()
-	var param1Used bool
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
-	var param3Used string
-	var param3UsedHash hash.Hash
-	if anyParams&(1<<2) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param3 == moq.ParamIndexByValue {
-			param3Used = params.param3
-		} else {
-			param3UsedHash = hash.DeepHash(params.param3)
-		}
-	}
-	var paramUsed int
-	var paramUsedHash hash.Hash
-	if anyParams&(1<<3) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param == moq.ParamIndexByValue {
-			paramUsed = params.param
-		} else {
-			paramUsedHash = hash.DeepHash(params.param)
-		}
-	}
-	var param5Used int
-	var param5UsedHash hash.Hash
-	if anyParams&(1<<4) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param5 == moq.ParamIndexByValue {
-			param5Used = params.param5
-		} else {
-			param5UsedHash = hash.DeepHash(params.param5)
-		}
-	}
-	var param6Used int
-	var param6UsedHash hash.Hash
-	if anyParams&(1<<5) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param6 == moq.ParamIndexByValue {
-			param6Used = params.param6
-		} else {
-			param6UsedHash = hash.DeepHash(params.param6)
-		}
-	}
-	var param7Used float32
-	var param7UsedHash hash.Hash
-	if anyParams&(1<<6) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param7 == moq.ParamIndexByValue {
-			param7Used = params.param7
-		} else {
-			param7UsedHash = hash.DeepHash(params.param7)
-		}
-	}
-	var param8Used float32
-	var param8UsedHash hash.Hash
-	if anyParams&(1<<7) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param8 == moq.ParamIndexByValue {
-			param8Used = params.param8
-		} else {
-			param8UsedHash = hash.DeepHash(params.param8)
-		}
-	}
-	var param9Used float32
-	var param9UsedHash hash.Hash
-	if anyParams&(1<<8) == 0 {
-		if m.runtime.parameterIndexing.DifficultParamNames.param9 == moq.ParamIndexByValue {
-			param9Used = params.param9
-		} else {
-			param9UsedHash = hash.DeepHash(params.param9)
-		}
-	}
+func (a *moqUsual_DifficultParamNames_adaptor) ParamsKey(params moqUsual_DifficultParamNames_params, anyParams uint64) moqUsual_DifficultParamNames_paramsKey {
+	a.moq.moq_DifficultParamNames.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.DifficultParamNames.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.DifficultParamNames.param2, anyParams)
+	param3Used, param3UsedHash := impl.ParamKey(
+		params.param3, 3, a.moq.runtime.parameterIndexing.DifficultParamNames.param3, anyParams)
+	paramUsed, paramUsedHash := impl.ParamKey(
+		params.param, 4, a.moq.runtime.parameterIndexing.DifficultParamNames.param, anyParams)
+	param5Used, param5UsedHash := impl.ParamKey(
+		params.param5, 5, a.moq.runtime.parameterIndexing.DifficultParamNames.param5, anyParams)
+	param6Used, param6UsedHash := impl.ParamKey(
+		params.param6, 6, a.moq.runtime.parameterIndexing.DifficultParamNames.param6, anyParams)
+	param7Used, param7UsedHash := impl.ParamKey(
+		params.param7, 7, a.moq.runtime.parameterIndexing.DifficultParamNames.param7, anyParams)
+	param8Used, param8UsedHash := impl.ParamKey(
+		params.param8, 8, a.moq.runtime.parameterIndexing.DifficultParamNames.param8, anyParams)
+	param9Used, param9UsedHash := impl.ParamKey(
+		params.param9, 9, a.moq.runtime.parameterIndexing.DifficultParamNames.param9, anyParams)
 	return moqUsual_DifficultParamNames_paramsKey{
 		params: struct {
 			param1, param2         bool
@@ -15105,69 +8576,67 @@ func (m *moqUsual) paramsKey_DifficultParamNames(params moqUsual_DifficultParamN
 	}
 }
 
-func (m *moqUsual_recorder) DifficultResultNames() *moqUsual_DifficultResultNames_fnRecorder {
-	return &moqUsual_DifficultResultNames_fnRecorder{
-		params:   moqUsual_DifficultResultNames_params{},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+func (m *moqUsual_recorder) DifficultResultNames() *moqUsual_DifficultResultNames_recorder {
+	return &moqUsual_DifficultResultNames_recorder{
+		recorder: m.moq.moq_DifficultResultNames.OnCall(moqUsual_DifficultResultNames_params{}),
 	}
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) any() *moqUsual_DifficultResultNames_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultResultNames(r.params))
+func (r *moqUsual_DifficultResultNames_recorder) any() *moqUsual_DifficultResultNames_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_DifficultResultNames_anyParams{recorder: r}
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) seq() *moqUsual_DifficultResultNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultResultNames(r.params))
+func (r *moqUsual_DifficultResultNames_recorder) seq() *moqUsual_DifficultResultNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) noSeq() *moqUsual_DifficultResultNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_DifficultResultNames(r.params))
+func (r *moqUsual_DifficultResultNames_recorder) noSeq() *moqUsual_DifficultResultNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result2 string, result3 error, param, result5, result6 int, result7, result8, result9 float32) *moqUsual_DifficultResultNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqUsual_DifficultResultNames_recorder) returnResults(result1, result2 string, result3 error, param, result5, result6 int, result7, result8, result9 float32) *moqUsual_DifficultResultNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_DifficultResultNames_results{
+		result1: result1,
+		result2: result2,
+		result3: result3,
+		param:   param,
+		result5: result5,
+		result6: result6,
+		result7: result7,
+		result8: result8,
+		result9: result9,
+	})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqUsual_DifficultResultNames_recorder) andDo(fn moqUsual_DifficultResultNames_doFn) *moqUsual_DifficultResultNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_DifficultResultNames_params) {
+		fn()
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}
-		sequence   uint32
-		doFn       moqUsual_DifficultResultNames_doFn
-		doReturnFn moqUsual_DifficultResultNames_doReturnFn
-	}{
-		values: &struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}{
+func (r *moqUsual_DifficultResultNames_recorder) doReturnResults(fn moqUsual_DifficultResultNames_doReturnFn) *moqUsual_DifficultResultNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_DifficultResultNames_params) *moqUsual_DifficultResultNames_results {
+		result1, result2, result3, param, result5, result6, result7, result8, result9 := fn()
+		return &moqUsual_DifficultResultNames_results{
 			result1: result1,
 			result2: result2,
 			result3: result3,
@@ -15177,330 +8646,113 @@ func (r *moqUsual_DifficultResultNames_fnRecorder) returnResults(result1, result
 			result7: result7,
 			result8: result8,
 			result9: result9,
-		},
-		sequence: sequence,
+		}
 	})
 	return r
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) andDo(fn moqUsual_DifficultResultNames_doFn) *moqUsual_DifficultResultNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_DifficultResultNames_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_DifficultResultNames_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_DifficultResultNames_fnRecorder) doReturnResults(fn moqUsual_DifficultResultNames_doReturnFn) *moqUsual_DifficultResultNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1, result2          string
-			result3                   error
-			param, result5, result6   int
-			result7, result8, result9 float32
-		}
-		sequence   uint32
-		doFn       moqUsual_DifficultResultNames_doFn
-		doReturnFn moqUsual_DifficultResultNames_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqUsual_DifficultResultNames_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_DifficultResultNames_resultsByParams
-	for n, res := range r.moq.resultsByParams_DifficultResultNames {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_DifficultResultNames_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_DifficultResultNames_paramsKey]*moqUsual_DifficultResultNames_results{},
-		}
-		r.moq.resultsByParams_DifficultResultNames = append(r.moq.resultsByParams_DifficultResultNames, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_DifficultResultNames) {
-			copy(r.moq.resultsByParams_DifficultResultNames[insertAt+1:], r.moq.resultsByParams_DifficultResultNames[insertAt:0])
-			r.moq.resultsByParams_DifficultResultNames[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_DifficultResultNames(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_DifficultResultNames_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_DifficultResultNames_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_DifficultResultNames_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1, result2          string
-					result3                   error
-					param, result5, result6   int
-					result7, result8, result9 float32
-				}
-				sequence   uint32
-				doFn       moqUsual_DifficultResultNames_doFn
-				doReturnFn moqUsual_DifficultResultNames_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqUsual) prettyParams_DifficultResultNames(params moqUsual_DifficultResultNames_params) string {
+func (*moqUsual_DifficultResultNames_adaptor) PrettyParams(params moqUsual_DifficultResultNames_params) string {
 	return fmt.Sprintf("DifficultResultNames()")
 }
 
-func (m *moqUsual) paramsKey_DifficultResultNames(params moqUsual_DifficultResultNames_params, anyParams uint64) moqUsual_DifficultResultNames_paramsKey {
-	m.scene.T.Helper()
+func (a *moqUsual_DifficultResultNames_adaptor) ParamsKey(params moqUsual_DifficultResultNames_params, anyParams uint64) moqUsual_DifficultResultNames_paramsKey {
+	a.moq.moq_DifficultResultNames.Scene.T.Helper()
 	return moqUsual_DifficultResultNames_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
 	}
 }
 
-func (m *moqUsual_recorder) PassByArray(p [3]testmoqs.Params) *moqUsual_PassByArray_fnRecorder {
-	return &moqUsual_PassByArray_fnRecorder{
-		params: moqUsual_PassByArray_params{
+func (m *moqUsual_recorder) PassByArray(p [3]testmoqs.Params) *moqUsual_PassByArray_recorder {
+	return &moqUsual_PassByArray_recorder{
+		recorder: m.moq.moq_PassByArray.OnCall(moqUsual_PassByArray_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) any() *moqUsual_PassByArray_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByArray(r.params))
+func (r *moqUsual_PassByArray_recorder) any() *moqUsual_PassByArray_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassByArray_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassByArray_anyParams) p() *moqUsual_PassByArray_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassByArray_anyParams) p() *moqUsual_PassByArray_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) seq() *moqUsual_PassByArray_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByArray(r.params))
+func (r *moqUsual_PassByArray_recorder) seq() *moqUsual_PassByArray_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) noSeq() *moqUsual_PassByArray_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByArray(r.params))
+func (r *moqUsual_PassByArray_recorder) noSeq() *moqUsual_PassByArray_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) returnResults(result1 [3]testmoqs.Results) *moqUsual_PassByArray_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 [3]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByArray_doFn
-		doReturnFn moqUsual_PassByArray_doReturnFn
-	}{
-		values: &struct {
-			result1 [3]testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassByArray_recorder) returnResults(result1 [3]testmoqs.Results) *moqUsual_PassByArray_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassByArray_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) andDo(fn moqUsual_PassByArray_doFn) *moqUsual_PassByArray_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassByArray_recorder) andDo(fn moqUsual_PassByArray_doFn) *moqUsual_PassByArray_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassByArray_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) doReturnResults(fn moqUsual_PassByArray_doReturnFn) *moqUsual_PassByArray_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 [3]testmoqs.Results
+func (r *moqUsual_PassByArray_recorder) doReturnResults(fn moqUsual_PassByArray_doReturnFn) *moqUsual_PassByArray_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassByArray_params) *moqUsual_PassByArray_results {
+		result1 := fn(params.p)
+		return &moqUsual_PassByArray_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassByArray_doFn
-		doReturnFn moqUsual_PassByArray_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassByArray_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassByArray_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassByArray {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassByArray_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassByArray_paramsKey]*moqUsual_PassByArray_results{},
-		}
-		r.moq.resultsByParams_PassByArray = append(r.moq.resultsByParams_PassByArray, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassByArray) {
-			copy(r.moq.resultsByParams_PassByArray[insertAt+1:], r.moq.resultsByParams_PassByArray[insertAt:0])
-			r.moq.resultsByParams_PassByArray[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassByArray(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassByArray_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassByArray_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByArray_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassByArray_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByArray_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 [3]testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_PassByArray_doFn
-				doReturnFn moqUsual_PassByArray_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassByArray(params moqUsual_PassByArray_params) string {
+func (*moqUsual_PassByArray_adaptor) PrettyParams(params moqUsual_PassByArray_params) string {
 	return fmt.Sprintf("PassByArray(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassByArray(params moqUsual_PassByArray_params, anyParams uint64) moqUsual_PassByArray_paramsKey {
-	m.scene.T.Helper()
-	var pUsed [3]testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassByArray.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqUsual_PassByArray_adaptor) ParamsKey(params moqUsual_PassByArray_params, anyParams uint64) moqUsual_PassByArray_paramsKey {
+	a.moq.moq_PassByArray.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.PassByArray.p, anyParams)
 	return moqUsual_PassByArray_paramsKey{
 		params: struct{ p [3]testmoqs.Params }{
 			p: pUsed,
@@ -15511,199 +8763,88 @@ func (m *moqUsual) paramsKey_PassByArray(params moqUsual_PassByArray_params, any
 	}
 }
 
-func (m *moqUsual_recorder) PassByChan(p chan testmoqs.Params) *moqUsual_PassByChan_fnRecorder {
-	return &moqUsual_PassByChan_fnRecorder{
-		params: moqUsual_PassByChan_params{
+func (m *moqUsual_recorder) PassByChan(p chan testmoqs.Params) *moqUsual_PassByChan_recorder {
+	return &moqUsual_PassByChan_recorder{
+		recorder: m.moq.moq_PassByChan.OnCall(moqUsual_PassByChan_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) any() *moqUsual_PassByChan_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByChan(r.params))
+func (r *moqUsual_PassByChan_recorder) any() *moqUsual_PassByChan_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassByChan_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassByChan_anyParams) p() *moqUsual_PassByChan_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassByChan_anyParams) p() *moqUsual_PassByChan_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) seq() *moqUsual_PassByChan_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByChan(r.params))
+func (r *moqUsual_PassByChan_recorder) seq() *moqUsual_PassByChan_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) noSeq() *moqUsual_PassByChan_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByChan(r.params))
+func (r *moqUsual_PassByChan_recorder) noSeq() *moqUsual_PassByChan_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) returnResults(result1 chan testmoqs.Results) *moqUsual_PassByChan_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 chan testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByChan_doFn
-		doReturnFn moqUsual_PassByChan_doReturnFn
-	}{
-		values: &struct {
-			result1 chan testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassByChan_recorder) returnResults(result1 chan testmoqs.Results) *moqUsual_PassByChan_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassByChan_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) andDo(fn moqUsual_PassByChan_doFn) *moqUsual_PassByChan_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassByChan_recorder) andDo(fn moqUsual_PassByChan_doFn) *moqUsual_PassByChan_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassByChan_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) doReturnResults(fn moqUsual_PassByChan_doReturnFn) *moqUsual_PassByChan_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 chan testmoqs.Results
+func (r *moqUsual_PassByChan_recorder) doReturnResults(fn moqUsual_PassByChan_doReturnFn) *moqUsual_PassByChan_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassByChan_params) *moqUsual_PassByChan_results {
+		result1 := fn(params.p)
+		return &moqUsual_PassByChan_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassByChan_doFn
-		doReturnFn moqUsual_PassByChan_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassByChan_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassByChan_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassByChan {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassByChan_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassByChan_paramsKey]*moqUsual_PassByChan_results{},
-		}
-		r.moq.resultsByParams_PassByChan = append(r.moq.resultsByParams_PassByChan, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassByChan) {
-			copy(r.moq.resultsByParams_PassByChan[insertAt+1:], r.moq.resultsByParams_PassByChan[insertAt:0])
-			r.moq.resultsByParams_PassByChan[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassByChan(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassByChan_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassByChan_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByChan_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassByChan_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByChan_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 chan testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_PassByChan_doFn
-				doReturnFn moqUsual_PassByChan_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassByChan(params moqUsual_PassByChan_params) string {
+func (*moqUsual_PassByChan_adaptor) PrettyParams(params moqUsual_PassByChan_params) string {
 	return fmt.Sprintf("PassByChan(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassByChan(params moqUsual_PassByChan_params, anyParams uint64) moqUsual_PassByChan_paramsKey {
-	m.scene.T.Helper()
-	var pUsed chan testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassByChan.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqUsual_PassByChan_adaptor) ParamsKey(params moqUsual_PassByChan_params, anyParams uint64) moqUsual_PassByChan_paramsKey {
+	a.moq.moq_PassByChan.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.PassByChan.p, anyParams)
 	return moqUsual_PassByChan_paramsKey{
 		params: struct{ p chan testmoqs.Params }{
 			p: pUsed,
@@ -15714,202 +8855,90 @@ func (m *moqUsual) paramsKey_PassByChan(params moqUsual_PassByChan_params, anyPa
 	}
 }
 
-func (m *moqUsual_recorder) PassByEllipsis(p ...testmoqs.Params) *moqUsual_PassByEllipsis_fnRecorder {
-	return &moqUsual_PassByEllipsis_fnRecorder{
-		params: moqUsual_PassByEllipsis_params{
+func (m *moqUsual_recorder) PassByEllipsis(p ...testmoqs.Params) *moqUsual_PassByEllipsis_recorder {
+	return &moqUsual_PassByEllipsis_recorder{
+		recorder: m.moq.moq_PassByEllipsis.OnCall(moqUsual_PassByEllipsis_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) any() *moqUsual_PassByEllipsis_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByEllipsis(r.params))
+func (r *moqUsual_PassByEllipsis_recorder) any() *moqUsual_PassByEllipsis_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassByEllipsis_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassByEllipsis_anyParams) p() *moqUsual_PassByEllipsis_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassByEllipsis_anyParams) p() *moqUsual_PassByEllipsis_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) seq() *moqUsual_PassByEllipsis_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByEllipsis(r.params))
+func (r *moqUsual_PassByEllipsis_recorder) seq() *moqUsual_PassByEllipsis_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) noSeq() *moqUsual_PassByEllipsis_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByEllipsis(r.params))
+func (r *moqUsual_PassByEllipsis_recorder) noSeq() *moqUsual_PassByEllipsis_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) returnResults(result1 string, result2 error) *moqUsual_PassByEllipsis_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByEllipsis_doFn
-		doReturnFn moqUsual_PassByEllipsis_doReturnFn
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassByEllipsis_recorder) returnResults(result1 string, result2 error) *moqUsual_PassByEllipsis_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassByEllipsis_results{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) andDo(fn moqUsual_PassByEllipsis_doFn) *moqUsual_PassByEllipsis_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassByEllipsis_recorder) andDo(fn moqUsual_PassByEllipsis_doFn) *moqUsual_PassByEllipsis_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassByEllipsis_params) {
+		fn(params.p...)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) doReturnResults(fn moqUsual_PassByEllipsis_doReturnFn) *moqUsual_PassByEllipsis_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqUsual_PassByEllipsis_recorder) doReturnResults(fn moqUsual_PassByEllipsis_doReturnFn) *moqUsual_PassByEllipsis_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassByEllipsis_params) *moqUsual_PassByEllipsis_results {
+		result1, result2 := fn(params.p...)
+		return &moqUsual_PassByEllipsis_results{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassByEllipsis_doFn
-		doReturnFn moqUsual_PassByEllipsis_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassByEllipsis_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassByEllipsis_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassByEllipsis {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassByEllipsis_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassByEllipsis_paramsKey]*moqUsual_PassByEllipsis_results{},
-		}
-		r.moq.resultsByParams_PassByEllipsis = append(r.moq.resultsByParams_PassByEllipsis, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassByEllipsis) {
-			copy(r.moq.resultsByParams_PassByEllipsis[insertAt+1:], r.moq.resultsByParams_PassByEllipsis[insertAt:0])
-			r.moq.resultsByParams_PassByEllipsis[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassByEllipsis(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassByEllipsis_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassByEllipsis_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByEllipsis_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassByEllipsis_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByEllipsis_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqUsual_PassByEllipsis_doFn
-				doReturnFn moqUsual_PassByEllipsis_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassByEllipsis(params moqUsual_PassByEllipsis_params) string {
+func (*moqUsual_PassByEllipsis_adaptor) PrettyParams(params moqUsual_PassByEllipsis_params) string {
 	return fmt.Sprintf("PassByEllipsis(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassByEllipsis(params moqUsual_PassByEllipsis_params, anyParams uint64) moqUsual_PassByEllipsis_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassByEllipsis.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter of the PassByEllipsis function can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqUsual_PassByEllipsis_adaptor) ParamsKey(params moqUsual_PassByEllipsis_params, anyParams uint64) moqUsual_PassByEllipsis_paramsKey {
+	a.moq.moq_PassByEllipsis.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq_PassByEllipsis.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.PassByEllipsis.p, anyParams)
 	return moqUsual_PassByEllipsis_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -15918,197 +8947,88 @@ func (m *moqUsual) paramsKey_PassByEllipsis(params moqUsual_PassByEllipsis_param
 	}
 }
 
-func (m *moqUsual_recorder) PassByMap(p map[string]testmoqs.Params) *moqUsual_PassByMap_fnRecorder {
-	return &moqUsual_PassByMap_fnRecorder{
-		params: moqUsual_PassByMap_params{
+func (m *moqUsual_recorder) PassByMap(p map[string]testmoqs.Params) *moqUsual_PassByMap_recorder {
+	return &moqUsual_PassByMap_recorder{
+		recorder: m.moq.moq_PassByMap.OnCall(moqUsual_PassByMap_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) any() *moqUsual_PassByMap_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByMap(r.params))
+func (r *moqUsual_PassByMap_recorder) any() *moqUsual_PassByMap_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassByMap_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassByMap_anyParams) p() *moqUsual_PassByMap_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassByMap_anyParams) p() *moqUsual_PassByMap_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) seq() *moqUsual_PassByMap_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByMap(r.params))
+func (r *moqUsual_PassByMap_recorder) seq() *moqUsual_PassByMap_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) noSeq() *moqUsual_PassByMap_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByMap(r.params))
+func (r *moqUsual_PassByMap_recorder) noSeq() *moqUsual_PassByMap_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) returnResults(result1 map[string]testmoqs.Results) *moqUsual_PassByMap_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 map[string]testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByMap_doFn
-		doReturnFn moqUsual_PassByMap_doReturnFn
-	}{
-		values: &struct {
-			result1 map[string]testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassByMap_recorder) returnResults(result1 map[string]testmoqs.Results) *moqUsual_PassByMap_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassByMap_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) andDo(fn moqUsual_PassByMap_doFn) *moqUsual_PassByMap_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassByMap_recorder) andDo(fn moqUsual_PassByMap_doFn) *moqUsual_PassByMap_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassByMap_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) doReturnResults(fn moqUsual_PassByMap_doReturnFn) *moqUsual_PassByMap_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 map[string]testmoqs.Results
+func (r *moqUsual_PassByMap_recorder) doReturnResults(fn moqUsual_PassByMap_doReturnFn) *moqUsual_PassByMap_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassByMap_params) *moqUsual_PassByMap_results {
+		result1 := fn(params.p)
+		return &moqUsual_PassByMap_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassByMap_doFn
-		doReturnFn moqUsual_PassByMap_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassByMap_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassByMap_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassByMap {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassByMap_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassByMap_paramsKey]*moqUsual_PassByMap_results{},
-		}
-		r.moq.resultsByParams_PassByMap = append(r.moq.resultsByParams_PassByMap, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassByMap) {
-			copy(r.moq.resultsByParams_PassByMap[insertAt+1:], r.moq.resultsByParams_PassByMap[insertAt:0])
-			r.moq.resultsByParams_PassByMap[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassByMap(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassByMap_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassByMap_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByMap_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassByMap_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByMap_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 map[string]testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_PassByMap_doFn
-				doReturnFn moqUsual_PassByMap_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassByMap(params moqUsual_PassByMap_params) string {
+func (*moqUsual_PassByMap_adaptor) PrettyParams(params moqUsual_PassByMap_params) string {
 	return fmt.Sprintf("PassByMap(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassByMap(params moqUsual_PassByMap_params, anyParams uint64) moqUsual_PassByMap_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassByMap.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter of the PassByMap function can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqUsual_PassByMap_adaptor) ParamsKey(params moqUsual_PassByMap_params, anyParams uint64) moqUsual_PassByMap_paramsKey {
+	a.moq.moq_PassByMap.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq_PassByMap.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.PassByMap.p, anyParams)
 	return moqUsual_PassByMap_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -16117,199 +9037,88 @@ func (m *moqUsual) paramsKey_PassByMap(params moqUsual_PassByMap_params, anyPara
 	}
 }
 
-func (m *moqUsual_recorder) PassByReference(p *testmoqs.Params) *moqUsual_PassByReference_fnRecorder {
-	return &moqUsual_PassByReference_fnRecorder{
-		params: moqUsual_PassByReference_params{
+func (m *moqUsual_recorder) PassByReference(p *testmoqs.Params) *moqUsual_PassByReference_recorder {
+	return &moqUsual_PassByReference_recorder{
+		recorder: m.moq.moq_PassByReference.OnCall(moqUsual_PassByReference_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) any() *moqUsual_PassByReference_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByReference(r.params))
+func (r *moqUsual_PassByReference_recorder) any() *moqUsual_PassByReference_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassByReference_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassByReference_anyParams) p() *moqUsual_PassByReference_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassByReference_anyParams) p() *moqUsual_PassByReference_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) seq() *moqUsual_PassByReference_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByReference(r.params))
+func (r *moqUsual_PassByReference_recorder) seq() *moqUsual_PassByReference_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) noSeq() *moqUsual_PassByReference_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByReference(r.params))
+func (r *moqUsual_PassByReference_recorder) noSeq() *moqUsual_PassByReference_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) returnResults(result1 *testmoqs.Results) *moqUsual_PassByReference_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 *testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByReference_doFn
-		doReturnFn moqUsual_PassByReference_doReturnFn
-	}{
-		values: &struct {
-			result1 *testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassByReference_recorder) returnResults(result1 *testmoqs.Results) *moqUsual_PassByReference_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassByReference_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) andDo(fn moqUsual_PassByReference_doFn) *moqUsual_PassByReference_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassByReference_recorder) andDo(fn moqUsual_PassByReference_doFn) *moqUsual_PassByReference_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassByReference_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) doReturnResults(fn moqUsual_PassByReference_doReturnFn) *moqUsual_PassByReference_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 *testmoqs.Results
+func (r *moqUsual_PassByReference_recorder) doReturnResults(fn moqUsual_PassByReference_doReturnFn) *moqUsual_PassByReference_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassByReference_params) *moqUsual_PassByReference_results {
+		result1 := fn(params.p)
+		return &moqUsual_PassByReference_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassByReference_doFn
-		doReturnFn moqUsual_PassByReference_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassByReference_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassByReference_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassByReference {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassByReference_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassByReference_paramsKey]*moqUsual_PassByReference_results{},
-		}
-		r.moq.resultsByParams_PassByReference = append(r.moq.resultsByParams_PassByReference, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassByReference) {
-			copy(r.moq.resultsByParams_PassByReference[insertAt+1:], r.moq.resultsByParams_PassByReference[insertAt:0])
-			r.moq.resultsByParams_PassByReference[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassByReference(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassByReference_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassByReference_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByReference_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassByReference_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByReference_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 *testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_PassByReference_doFn
-				doReturnFn moqUsual_PassByReference_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassByReference(params moqUsual_PassByReference_params) string {
+func (*moqUsual_PassByReference_adaptor) PrettyParams(params moqUsual_PassByReference_params) string {
 	return fmt.Sprintf("PassByReference(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassByReference(params moqUsual_PassByReference_params, anyParams uint64) moqUsual_PassByReference_paramsKey {
-	m.scene.T.Helper()
-	var pUsed *testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassByReference.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqUsual_PassByReference_adaptor) ParamsKey(params moqUsual_PassByReference_params, anyParams uint64) moqUsual_PassByReference_paramsKey {
+	a.moq.moq_PassByReference.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.PassByReference.p, anyParams)
 	return moqUsual_PassByReference_paramsKey{
 		params: struct{ p *testmoqs.Params }{
 			p: pUsed,
@@ -16320,197 +9129,88 @@ func (m *moqUsual) paramsKey_PassByReference(params moqUsual_PassByReference_par
 	}
 }
 
-func (m *moqUsual_recorder) PassBySlice(p []testmoqs.Params) *moqUsual_PassBySlice_fnRecorder {
-	return &moqUsual_PassBySlice_fnRecorder{
-		params: moqUsual_PassBySlice_params{
+func (m *moqUsual_recorder) PassBySlice(p []testmoqs.Params) *moqUsual_PassBySlice_recorder {
+	return &moqUsual_PassBySlice_recorder{
+		recorder: m.moq.moq_PassBySlice.OnCall(moqUsual_PassBySlice_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) any() *moqUsual_PassBySlice_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassBySlice(r.params))
+func (r *moqUsual_PassBySlice_recorder) any() *moqUsual_PassBySlice_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassBySlice_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassBySlice_anyParams) p() *moqUsual_PassBySlice_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassBySlice_anyParams) p() *moqUsual_PassBySlice_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) seq() *moqUsual_PassBySlice_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassBySlice(r.params))
+func (r *moqUsual_PassBySlice_recorder) seq() *moqUsual_PassBySlice_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) noSeq() *moqUsual_PassBySlice_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassBySlice(r.params))
+func (r *moqUsual_PassBySlice_recorder) noSeq() *moqUsual_PassBySlice_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) returnResults(result1 []testmoqs.Results) *moqUsual_PassBySlice_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassBySlice_doFn
-		doReturnFn moqUsual_PassBySlice_doReturnFn
-	}{
-		values: &struct {
-			result1 []testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassBySlice_recorder) returnResults(result1 []testmoqs.Results) *moqUsual_PassBySlice_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassBySlice_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) andDo(fn moqUsual_PassBySlice_doFn) *moqUsual_PassBySlice_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassBySlice_recorder) andDo(fn moqUsual_PassBySlice_doFn) *moqUsual_PassBySlice_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassBySlice_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) doReturnResults(fn moqUsual_PassBySlice_doReturnFn) *moqUsual_PassBySlice_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 []testmoqs.Results
+func (r *moqUsual_PassBySlice_recorder) doReturnResults(fn moqUsual_PassBySlice_doReturnFn) *moqUsual_PassBySlice_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassBySlice_params) *moqUsual_PassBySlice_results {
+		result1 := fn(params.p)
+		return &moqUsual_PassBySlice_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassBySlice_doFn
-		doReturnFn moqUsual_PassBySlice_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassBySlice_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassBySlice_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassBySlice {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassBySlice_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassBySlice_paramsKey]*moqUsual_PassBySlice_results{},
-		}
-		r.moq.resultsByParams_PassBySlice = append(r.moq.resultsByParams_PassBySlice, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassBySlice) {
-			copy(r.moq.resultsByParams_PassBySlice[insertAt+1:], r.moq.resultsByParams_PassBySlice[insertAt:0])
-			r.moq.resultsByParams_PassBySlice[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassBySlice(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassBySlice_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassBySlice_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassBySlice_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassBySlice_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassBySlice_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 []testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_PassBySlice_doFn
-				doReturnFn moqUsual_PassBySlice_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassBySlice(params moqUsual_PassBySlice_params) string {
+func (*moqUsual_PassBySlice_adaptor) PrettyParams(params moqUsual_PassBySlice_params) string {
 	return fmt.Sprintf("PassBySlice(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassBySlice(params moqUsual_PassBySlice_params, anyParams uint64) moqUsual_PassBySlice_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassBySlice.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter of the PassBySlice function can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqUsual_PassBySlice_adaptor) ParamsKey(params moqUsual_PassBySlice_params, anyParams uint64) moqUsual_PassBySlice_paramsKey {
+	a.moq.moq_PassBySlice.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq_PassBySlice.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.PassBySlice.p, anyParams)
 	return moqUsual_PassBySlice_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -16519,199 +9219,88 @@ func (m *moqUsual) paramsKey_PassBySlice(params moqUsual_PassBySlice_params, any
 	}
 }
 
-func (m *moqUsual_recorder) PassByValue(p testmoqs.Params) *moqUsual_PassByValue_fnRecorder {
-	return &moqUsual_PassByValue_fnRecorder{
-		params: moqUsual_PassByValue_params{
+func (m *moqUsual_recorder) PassByValue(p testmoqs.Params) *moqUsual_PassByValue_recorder {
+	return &moqUsual_PassByValue_recorder{
+		recorder: m.moq.moq_PassByValue.OnCall(moqUsual_PassByValue_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) any() *moqUsual_PassByValue_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByValue(r.params))
+func (r *moqUsual_PassByValue_recorder) any() *moqUsual_PassByValue_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_PassByValue_anyParams{recorder: r}
 }
 
-func (a *moqUsual_PassByValue_anyParams) p() *moqUsual_PassByValue_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_PassByValue_anyParams) p() *moqUsual_PassByValue_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) seq() *moqUsual_PassByValue_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByValue(r.params))
+func (r *moqUsual_PassByValue_recorder) seq() *moqUsual_PassByValue_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) noSeq() *moqUsual_PassByValue_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_PassByValue(r.params))
+func (r *moqUsual_PassByValue_recorder) noSeq() *moqUsual_PassByValue_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) returnResults(result1 testmoqs.Results) *moqUsual_PassByValue_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 testmoqs.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_PassByValue_doFn
-		doReturnFn moqUsual_PassByValue_doReturnFn
-	}{
-		values: &struct {
-			result1 testmoqs.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_PassByValue_recorder) returnResults(result1 testmoqs.Results) *moqUsual_PassByValue_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_PassByValue_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) andDo(fn moqUsual_PassByValue_doFn) *moqUsual_PassByValue_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_PassByValue_recorder) andDo(fn moqUsual_PassByValue_doFn) *moqUsual_PassByValue_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_PassByValue_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) doReturnResults(fn moqUsual_PassByValue_doReturnFn) *moqUsual_PassByValue_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 testmoqs.Results
+func (r *moqUsual_PassByValue_recorder) doReturnResults(fn moqUsual_PassByValue_doReturnFn) *moqUsual_PassByValue_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_PassByValue_params) *moqUsual_PassByValue_results {
+		result1 := fn(params.p)
+		return &moqUsual_PassByValue_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_PassByValue_doFn
-		doReturnFn moqUsual_PassByValue_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_PassByValue_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_PassByValue_resultsByParams
-	for n, res := range r.moq.resultsByParams_PassByValue {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_PassByValue_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_PassByValue_paramsKey]*moqUsual_PassByValue_results{},
-		}
-		r.moq.resultsByParams_PassByValue = append(r.moq.resultsByParams_PassByValue, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_PassByValue) {
-			copy(r.moq.resultsByParams_PassByValue[insertAt+1:], r.moq.resultsByParams_PassByValue[insertAt:0])
-			r.moq.resultsByParams_PassByValue[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_PassByValue(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_PassByValue_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_PassByValue_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByValue_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_PassByValue_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_PassByValue_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 testmoqs.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_PassByValue_doFn
-				doReturnFn moqUsual_PassByValue_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_PassByValue(params moqUsual_PassByValue_params) string {
+func (*moqUsual_PassByValue_adaptor) PrettyParams(params moqUsual_PassByValue_params) string {
 	return fmt.Sprintf("PassByValue(%#v)", params.p)
 }
 
-func (m *moqUsual) paramsKey_PassByValue(params moqUsual_PassByValue_params, anyParams uint64) moqUsual_PassByValue_paramsKey {
-	m.scene.T.Helper()
-	var pUsed testmoqs.Params
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.PassByValue.p == moq.ParamIndexByValue {
-			pUsed = params.p
-		} else {
-			pUsedHash = hash.DeepHash(params.p)
-		}
-	}
+func (a *moqUsual_PassByValue_adaptor) ParamsKey(params moqUsual_PassByValue_params, anyParams uint64) moqUsual_PassByValue_paramsKey {
+	a.moq.moq_PassByValue.Scene.T.Helper()
+	pUsed, pUsedHash := impl.ParamKey(
+		params.p, 1, a.moq.runtime.parameterIndexing.PassByValue.p, anyParams)
 	return moqUsual_PassByValue_paramsKey{
 		params: struct{ p testmoqs.Params }{
 			p: pUsed,
@@ -16722,204 +9311,90 @@ func (m *moqUsual) paramsKey_PassByValue(params moqUsual_PassByValue_params, any
 	}
 }
 
-func (m *moqUsual_recorder) InterfaceParam(w io.Writer) *moqUsual_InterfaceParam_fnRecorder {
-	return &moqUsual_InterfaceParam_fnRecorder{
-		params: moqUsual_InterfaceParam_params{
+func (m *moqUsual_recorder) InterfaceParam(w io.Writer) *moqUsual_InterfaceParam_recorder {
+	return &moqUsual_InterfaceParam_recorder{
+		recorder: m.moq.moq_InterfaceParam.OnCall(moqUsual_InterfaceParam_params{
 			w: w,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) any() *moqUsual_InterfaceParam_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceParam(r.params))
+func (r *moqUsual_InterfaceParam_recorder) any() *moqUsual_InterfaceParam_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_InterfaceParam_anyParams{recorder: r}
 }
 
-func (a *moqUsual_InterfaceParam_anyParams) w() *moqUsual_InterfaceParam_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_InterfaceParam_anyParams) w() *moqUsual_InterfaceParam_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) seq() *moqUsual_InterfaceParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceParam(r.params))
+func (r *moqUsual_InterfaceParam_recorder) seq() *moqUsual_InterfaceParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) noSeq() *moqUsual_InterfaceParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceParam(r.params))
+func (r *moqUsual_InterfaceParam_recorder) noSeq() *moqUsual_InterfaceParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) returnResults(sResult string, err error) *moqUsual_InterfaceParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqUsual_InterfaceParam_doFn
-		doReturnFn moqUsual_InterfaceParam_doReturnFn
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqUsual_InterfaceParam_recorder) returnResults(sResult string, err error) *moqUsual_InterfaceParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_InterfaceParam_results{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) andDo(fn moqUsual_InterfaceParam_doFn) *moqUsual_InterfaceParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_InterfaceParam_recorder) andDo(fn moqUsual_InterfaceParam_doFn) *moqUsual_InterfaceParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_InterfaceParam_params) {
+		fn(params.w)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) doReturnResults(fn moqUsual_InterfaceParam_doReturnFn) *moqUsual_InterfaceParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqUsual_InterfaceParam_recorder) doReturnResults(fn moqUsual_InterfaceParam_doReturnFn) *moqUsual_InterfaceParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_InterfaceParam_params) *moqUsual_InterfaceParam_results {
+		sResult, err := fn(params.w)
+		return &moqUsual_InterfaceParam_results{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqUsual_InterfaceParam_doFn
-		doReturnFn moqUsual_InterfaceParam_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_InterfaceParam_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_InterfaceParam_resultsByParams
-	for n, res := range r.moq.resultsByParams_InterfaceParam {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_InterfaceParam_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_InterfaceParam_paramsKey]*moqUsual_InterfaceParam_results{},
-		}
-		r.moq.resultsByParams_InterfaceParam = append(r.moq.resultsByParams_InterfaceParam, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_InterfaceParam) {
-			copy(r.moq.resultsByParams_InterfaceParam[insertAt+1:], r.moq.resultsByParams_InterfaceParam[insertAt:0])
-			r.moq.resultsByParams_InterfaceParam[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_InterfaceParam(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_InterfaceParam_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_InterfaceParam_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_InterfaceParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_InterfaceParam_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_InterfaceParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqUsual_InterfaceParam_doFn
-				doReturnFn moqUsual_InterfaceParam_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_InterfaceParam(params moqUsual_InterfaceParam_params) string {
+func (*moqUsual_InterfaceParam_adaptor) PrettyParams(params moqUsual_InterfaceParam_params) string {
 	return fmt.Sprintf("InterfaceParam(%#v)", params.w)
 }
 
-func (m *moqUsual) paramsKey_InterfaceParam(params moqUsual_InterfaceParam_params, anyParams uint64) moqUsual_InterfaceParam_paramsKey {
-	m.scene.T.Helper()
-	var wUsed io.Writer
-	var wUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.InterfaceParam.w == moq.ParamIndexByValue {
-			wUsed = params.w
-		} else {
-			wUsedHash = hash.DeepHash(params.w)
-		}
-	}
+func (a *moqUsual_InterfaceParam_adaptor) ParamsKey(params moqUsual_InterfaceParam_params, anyParams uint64) moqUsual_InterfaceParam_paramsKey {
+	a.moq.moq_InterfaceParam.Scene.T.Helper()
+	wUsed, wUsedHash := impl.ParamKey(
+		params.w, 1, a.moq.runtime.parameterIndexing.InterfaceParam.w, anyParams)
 	return moqUsual_InterfaceParam_paramsKey{
 		params: struct{ w io.Writer }{
 			w: wUsed,
@@ -16930,206 +9405,96 @@ func (m *moqUsual) paramsKey_InterfaceParam(params moqUsual_InterfaceParam_param
 	}
 }
 
-func (m *moqUsual_recorder) InterfaceResult(sParam string, bParam bool) *moqUsual_InterfaceResult_fnRecorder {
-	return &moqUsual_InterfaceResult_fnRecorder{
-		params: moqUsual_InterfaceResult_params{
+func (m *moqUsual_recorder) InterfaceResult(sParam string, bParam bool) *moqUsual_InterfaceResult_recorder {
+	return &moqUsual_InterfaceResult_recorder{
+		recorder: m.moq.moq_InterfaceResult.OnCall(moqUsual_InterfaceResult_params{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) any() *moqUsual_InterfaceResult_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceResult(r.params))
+func (r *moqUsual_InterfaceResult_recorder) any() *moqUsual_InterfaceResult_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_InterfaceResult_anyParams{recorder: r}
 }
 
-func (a *moqUsual_InterfaceResult_anyParams) sParam() *moqUsual_InterfaceResult_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_InterfaceResult_anyParams) sParam() *moqUsual_InterfaceResult_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqUsual_InterfaceResult_anyParams) bParam() *moqUsual_InterfaceResult_fnRecorder {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqUsual_InterfaceResult_anyParams) bParam() *moqUsual_InterfaceResult_recorder {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) seq() *moqUsual_InterfaceResult_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceResult(r.params))
+func (r *moqUsual_InterfaceResult_recorder) seq() *moqUsual_InterfaceResult_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) noSeq() *moqUsual_InterfaceResult_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_InterfaceResult(r.params))
+func (r *moqUsual_InterfaceResult_recorder) noSeq() *moqUsual_InterfaceResult_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) returnResults(result1 io.Reader) *moqUsual_InterfaceResult_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 io.Reader }
-		sequence   uint32
-		doFn       moqUsual_InterfaceResult_doFn
-		doReturnFn moqUsual_InterfaceResult_doReturnFn
-	}{
-		values: &struct{ result1 io.Reader }{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_InterfaceResult_recorder) returnResults(result1 io.Reader) *moqUsual_InterfaceResult_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_InterfaceResult_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) andDo(fn moqUsual_InterfaceResult_doFn) *moqUsual_InterfaceResult_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_InterfaceResult_recorder) andDo(fn moqUsual_InterfaceResult_doFn) *moqUsual_InterfaceResult_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_InterfaceResult_params) {
+		fn(params.sParam, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) doReturnResults(fn moqUsual_InterfaceResult_doReturnFn) *moqUsual_InterfaceResult_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 io.Reader }
-		sequence   uint32
-		doFn       moqUsual_InterfaceResult_doFn
-		doReturnFn moqUsual_InterfaceResult_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+func (r *moqUsual_InterfaceResult_recorder) doReturnResults(fn moqUsual_InterfaceResult_doReturnFn) *moqUsual_InterfaceResult_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_InterfaceResult_params) *moqUsual_InterfaceResult_results {
+		result1 := fn(params.sParam, params.bParam)
+		return &moqUsual_InterfaceResult_results{
+			result1: result1,
+		}
+	})
 	return r
 }
 
-func (r *moqUsual_InterfaceResult_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_InterfaceResult_resultsByParams
-	for n, res := range r.moq.resultsByParams_InterfaceResult {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_InterfaceResult_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_InterfaceResult_paramsKey]*moqUsual_InterfaceResult_results{},
-		}
-		r.moq.resultsByParams_InterfaceResult = append(r.moq.resultsByParams_InterfaceResult, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_InterfaceResult) {
-			copy(r.moq.resultsByParams_InterfaceResult[insertAt+1:], r.moq.resultsByParams_InterfaceResult[insertAt:0])
-			r.moq.resultsByParams_InterfaceResult[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_InterfaceResult(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_InterfaceResult_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_InterfaceResult_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_InterfaceResult_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_InterfaceResult_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_InterfaceResult_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{ result1 io.Reader }
-				sequence   uint32
-				doFn       moqUsual_InterfaceResult_doFn
-				doReturnFn moqUsual_InterfaceResult_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_InterfaceResult(params moqUsual_InterfaceResult_params) string {
+func (*moqUsual_InterfaceResult_adaptor) PrettyParams(params moqUsual_InterfaceResult_params) string {
 	return fmt.Sprintf("InterfaceResult(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqUsual) paramsKey_InterfaceResult(params moqUsual_InterfaceResult_params, anyParams uint64) moqUsual_InterfaceResult_paramsKey {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.InterfaceResult.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.InterfaceResult.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqUsual_InterfaceResult_adaptor) ParamsKey(params moqUsual_InterfaceResult_params, anyParams uint64) moqUsual_InterfaceResult_paramsKey {
+	a.moq.moq_InterfaceResult.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.InterfaceResult.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.InterfaceResult.bParam, anyParams)
 	return moqUsual_InterfaceResult_paramsKey{
 		params: struct {
 			sParam string
@@ -17148,187 +9513,84 @@ func (m *moqUsual) paramsKey_InterfaceResult(params moqUsual_InterfaceResult_par
 	}
 }
 
-func (m *moqUsual_recorder) FnParam(fn func()) *moqUsual_FnParam_fnRecorder {
-	return &moqUsual_FnParam_fnRecorder{
-		params: moqUsual_FnParam_params{
+func (m *moqUsual_recorder) FnParam(fn func()) *moqUsual_FnParam_recorder {
+	return &moqUsual_FnParam_recorder{
+		recorder: m.moq.moq_FnParam.OnCall(moqUsual_FnParam_params{
 			fn: fn,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_FnParam_fnRecorder) any() *moqUsual_FnParam_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FnParam(r.params))
+func (r *moqUsual_FnParam_recorder) any() *moqUsual_FnParam_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_FnParam_anyParams{recorder: r}
 }
 
-func (a *moqUsual_FnParam_anyParams) fn() *moqUsual_FnParam_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_FnParam_anyParams) fn() *moqUsual_FnParam_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_FnParam_fnRecorder) seq() *moqUsual_FnParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FnParam(r.params))
+func (r *moqUsual_FnParam_recorder) seq() *moqUsual_FnParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_FnParam_fnRecorder) noSeq() *moqUsual_FnParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_FnParam(r.params))
+func (r *moqUsual_FnParam_recorder) noSeq() *moqUsual_FnParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_FnParam_fnRecorder) returnResults() *moqUsual_FnParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
+func (r *moqUsual_FnParam_recorder) returnResults() *moqUsual_FnParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_FnParam_results{})
+	return r
+}
 
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
+func (r *moqUsual_FnParam_recorder) andDo(fn moqUsual_FnParam_doFn) *moqUsual_FnParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_FnParam_params) {
+		fn(params.fn)
+	}, false) {
+		return nil
 	}
+	return r
+}
 
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_FnParam_doFn
-		doReturnFn moqUsual_FnParam_doReturnFn
-	}{
-		values:   &struct{}{},
-		sequence: sequence,
+func (r *moqUsual_FnParam_recorder) doReturnResults(fn moqUsual_FnParam_doReturnFn) *moqUsual_FnParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_FnParam_params) *moqUsual_FnParam_results {
+		fn(params.fn)
+		return &moqUsual_FnParam_results{}
 	})
 	return r
 }
 
-func (r *moqUsual_FnParam_fnRecorder) andDo(fn moqUsual_FnParam_doFn) *moqUsual_FnParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_FnParam_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_FnParam_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_FnParam_fnRecorder) doReturnResults(fn moqUsual_FnParam_doReturnFn) *moqUsual_FnParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{}
-		sequence   uint32
-		doFn       moqUsual_FnParam_doFn
-		doReturnFn moqUsual_FnParam_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
-	return r
-}
-
-func (r *moqUsual_FnParam_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_FnParam_resultsByParams
-	for n, res := range r.moq.resultsByParams_FnParam {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_FnParam_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_FnParam_paramsKey]*moqUsual_FnParam_results{},
-		}
-		r.moq.resultsByParams_FnParam = append(r.moq.resultsByParams_FnParam, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_FnParam) {
-			copy(r.moq.resultsByParams_FnParam[insertAt+1:], r.moq.resultsByParams_FnParam[insertAt:0])
-			r.moq.resultsByParams_FnParam[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_FnParam(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_FnParam_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_FnParam_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_FnParam_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
-		return nil
-	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{}
-				sequence   uint32
-				doFn       moqUsual_FnParam_doFn
-				doReturnFn moqUsual_FnParam_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
-	return r
-}
-
-func (m *moqUsual) prettyParams_FnParam(params moqUsual_FnParam_params) string {
+func (*moqUsual_FnParam_adaptor) PrettyParams(params moqUsual_FnParam_params) string {
 	return fmt.Sprintf("FnParam(%#v)", moq.FnString(params.fn))
 }
 
-func (m *moqUsual) paramsKey_FnParam(params moqUsual_FnParam_params, anyParams uint64) moqUsual_FnParam_paramsKey {
-	m.scene.T.Helper()
-	var fnUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.FnParam.fn == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The fn parameter of the FnParam function can't be indexed by value")
-		}
-		fnUsedHash = hash.DeepHash(params.fn)
-	}
+func (a *moqUsual_FnParam_adaptor) ParamsKey(params moqUsual_FnParam_params, anyParams uint64) moqUsual_FnParam_paramsKey {
+	a.moq.moq_FnParam.Scene.T.Helper()
+	fnUsedHash := impl.HashOnlyParamKey(a.moq.moq_FnParam.Scene.T,
+		params.fn, "fn", 1, a.moq.runtime.parameterIndexing.FnParam.fn, anyParams)
 	return moqUsual_FnParam_paramsKey{
 		params: struct{}{},
 		hashes: struct{ fn hash.Hash }{
@@ -17337,199 +9599,88 @@ func (m *moqUsual) paramsKey_FnParam(params moqUsual_FnParam_params, anyParams u
 	}
 }
 
-func (m *moqUsual_recorder) Other(param1 other.Params) *moqUsual_Other_fnRecorder {
-	return &moqUsual_Other_fnRecorder{
-		params: moqUsual_Other_params{
+func (m *moqUsual_recorder) Other(param1 other.Params) *moqUsual_Other_recorder {
+	return &moqUsual_Other_recorder{
+		recorder: m.moq.moq_Other.OnCall(moqUsual_Other_params{
 			param1: param1,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqUsual_Other_fnRecorder) any() *moqUsual_Other_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Other(r.params))
+func (r *moqUsual_Other_recorder) any() *moqUsual_Other_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUsual_Other_anyParams{recorder: r}
 }
 
-func (a *moqUsual_Other_anyParams) param1() *moqUsual_Other_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqUsual_Other_anyParams) param1() *moqUsual_Other_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqUsual_Other_fnRecorder) seq() *moqUsual_Other_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Other(r.params))
+func (r *moqUsual_Other_recorder) seq() *moqUsual_Other_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUsual_Other_fnRecorder) noSeq() *moqUsual_Other_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Other(r.params))
+func (r *moqUsual_Other_recorder) noSeq() *moqUsual_Other_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUsual_Other_fnRecorder) returnResults(result1 other.Results) *moqUsual_Other_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 other.Results
-		}
-		sequence   uint32
-		doFn       moqUsual_Other_doFn
-		doReturnFn moqUsual_Other_doReturnFn
-	}{
-		values: &struct {
-			result1 other.Results
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUsual_Other_recorder) returnResults(result1 other.Results) *moqUsual_Other_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUsual_Other_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUsual_Other_fnRecorder) andDo(fn moqUsual_Other_doFn) *moqUsual_Other_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUsual_Other_recorder) andDo(fn moqUsual_Other_doFn) *moqUsual_Other_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUsual_Other_params) {
+		fn(params.param1)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUsual_Other_fnRecorder) doReturnResults(fn moqUsual_Other_doReturnFn) *moqUsual_Other_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 other.Results
+func (r *moqUsual_Other_recorder) doReturnResults(fn moqUsual_Other_doReturnFn) *moqUsual_Other_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUsual_Other_params) *moqUsual_Other_results {
+		result1 := fn(params.param1)
+		return &moqUsual_Other_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUsual_Other_doFn
-		doReturnFn moqUsual_Other_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUsual_Other_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUsual_Other_resultsByParams
-	for n, res := range r.moq.resultsByParams_Other {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUsual_Other_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUsual_Other_paramsKey]*moqUsual_Other_results{},
-		}
-		r.moq.resultsByParams_Other = append(r.moq.resultsByParams_Other, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Other) {
-			copy(r.moq.resultsByParams_Other[insertAt+1:], r.moq.resultsByParams_Other[insertAt:0])
-			r.moq.resultsByParams_Other[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Other(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUsual_Other_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUsual_Other_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUsual_Other_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUsual_Other_recorder) repeat(repeaters ...moq.Repeater) *moqUsual_Other_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 other.Results
-				}
-				sequence   uint32
-				doFn       moqUsual_Other_doFn
-				doReturnFn moqUsual_Other_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUsual) prettyParams_Other(params moqUsual_Other_params) string {
+func (*moqUsual_Other_adaptor) PrettyParams(params moqUsual_Other_params) string {
 	return fmt.Sprintf("Other(%#v)", params.param1)
 }
 
-func (m *moqUsual) paramsKey_Other(params moqUsual_Other_params, anyParams uint64) moqUsual_Other_paramsKey {
-	m.scene.T.Helper()
-	var param1Used other.Params
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Other.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
+func (a *moqUsual_Other_adaptor) ParamsKey(params moqUsual_Other_params, anyParams uint64) moqUsual_Other_paramsKey {
+	a.moq.moq_Other.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.Other.param1, anyParams)
 	return moqUsual_Other_paramsKey{
 		params: struct{ param1 other.Params }{
 			param1: param1Used,
@@ -17542,200 +9693,53 @@ func (m *moqUsual) paramsKey_Other(params moqUsual_Other_params, anyParams uint6
 
 // Reset resets the state of the moq
 func (m *moqUsual) Reset() {
-	m.resultsByParams_Usual = nil
-	m.resultsByParams_NoNames = nil
-	m.resultsByParams_NoResults = nil
-	m.resultsByParams_NoParams = nil
-	m.resultsByParams_Nothing = nil
-	m.resultsByParams_Variadic = nil
-	m.resultsByParams_RepeatedIds = nil
-	m.resultsByParams_Times = nil
-	m.resultsByParams_DifficultParamNames = nil
-	m.resultsByParams_DifficultResultNames = nil
-	m.resultsByParams_PassByArray = nil
-	m.resultsByParams_PassByChan = nil
-	m.resultsByParams_PassByEllipsis = nil
-	m.resultsByParams_PassByMap = nil
-	m.resultsByParams_PassByReference = nil
-	m.resultsByParams_PassBySlice = nil
-	m.resultsByParams_PassByValue = nil
-	m.resultsByParams_InterfaceParam = nil
-	m.resultsByParams_InterfaceResult = nil
-	m.resultsByParams_FnParam = nil
-	m.resultsByParams_Other = nil
+	m.moq_Usual.Reset()
+	m.moq_NoNames.Reset()
+	m.moq_NoResults.Reset()
+	m.moq_NoParams.Reset()
+	m.moq_Nothing.Reset()
+	m.moq_Variadic.Reset()
+	m.moq_RepeatedIds.Reset()
+	m.moq_Times.Reset()
+	m.moq_DifficultParamNames.Reset()
+	m.moq_DifficultResultNames.Reset()
+	m.moq_PassByArray.Reset()
+	m.moq_PassByChan.Reset()
+	m.moq_PassByEllipsis.Reset()
+	m.moq_PassByMap.Reset()
+	m.moq_PassByReference.Reset()
+	m.moq_PassBySlice.Reset()
+	m.moq_PassByValue.Reset()
+	m.moq_InterfaceParam.Reset()
+	m.moq_InterfaceResult.Reset()
+	m.moq_FnParam.Reset()
+	m.moq_Other.Reset()
 }
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqUsual) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_NoNames {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NoNames(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_NoResults {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NoResults(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_NoParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_NoParams(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_Nothing {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Nothing(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_Variadic {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Variadic(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_RepeatedIds {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_RepeatedIds(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_Times {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Times(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_DifficultParamNames {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_DifficultParamNames(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_DifficultResultNames {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_DifficultResultNames(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassByArray {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByArray(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassByChan {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByChan(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassByEllipsis {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByEllipsis(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassByMap {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByMap(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassByReference {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByReference(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassBySlice {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassBySlice(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_PassByValue {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_PassByValue(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_InterfaceParam {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_InterfaceParam(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_InterfaceResult {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_InterfaceResult(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_FnParam {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_FnParam(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_Other {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Other(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
+	m.moq_NoNames.AssertExpectationsMet()
+	m.moq_NoResults.AssertExpectationsMet()
+	m.moq_NoParams.AssertExpectationsMet()
+	m.moq_Nothing.AssertExpectationsMet()
+	m.moq_Variadic.AssertExpectationsMet()
+	m.moq_RepeatedIds.AssertExpectationsMet()
+	m.moq_Times.AssertExpectationsMet()
+	m.moq_DifficultParamNames.AssertExpectationsMet()
+	m.moq_DifficultResultNames.AssertExpectationsMet()
+	m.moq_PassByArray.AssertExpectationsMet()
+	m.moq_PassByChan.AssertExpectationsMet()
+	m.moq_PassByEllipsis.AssertExpectationsMet()
+	m.moq_PassByMap.AssertExpectationsMet()
+	m.moq_PassByReference.AssertExpectationsMet()
+	m.moq_PassBySlice.AssertExpectationsMet()
+	m.moq_PassByValue.AssertExpectationsMet()
+	m.moq_InterfaceParam.AssertExpectationsMet()
+	m.moq_InterfaceResult.AssertExpectationsMet()
+	m.moq_FnParam.AssertExpectationsMet()
+	m.moq_Other.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.GenericParams is mocked
@@ -17744,23 +9748,18 @@ var _ testmoqs.GenericParams[any, any] = (*moqGenericParams_mock[any, any])(nil)
 
 // moqGenericParams holds the state of a moq of the GenericParams type
 type moqGenericParams[S, B any] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericParams_mock[S, B]
+	moq *moqGenericParams_mock[S, B]
 
-	resultsByParams_Usual []moqGenericParams_Usual_resultsByParams[S, B]
+	moq_Usual *impl.Moq[
+		*moqGenericParams_Usual_adaptor[S, B],
+		moqGenericParams_Usual_params[S, B],
+		moqGenericParams_Usual_paramsKey[S, B],
+		moqGenericParams_Usual_results[S, B]]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}
-	}
-	// moqGenericParams_mock isolates the mock interface of the GenericParams type
+	runtime moqGenericParams_runtime
 }
 
+// moqGenericParams_mock isolates the mock interface of the GenericParams type
 type moqGenericParams_mock[S, B any] struct {
 	moq *moqGenericParams[S, B]
 }
@@ -17768,6 +9767,20 @@ type moqGenericParams_mock[S, B any] struct {
 // moqGenericParams_recorder isolates the recorder interface of the
 // GenericParams type
 type moqGenericParams_recorder[S, B any] struct {
+	moq *moqGenericParams[S, B]
+}
+
+// moqGenericParams_runtime holds runtime configuration for the GenericParams
+// type
+type moqGenericParams_runtime struct {
+	parameterIndexing struct {
+		Usual moqGenericParams_Usual_paramIndexing
+	}
+}
+
+// moqGenericParams_Usual_adaptor adapts moqGenericParams as needed by the
+// runtime
+type moqGenericParams_Usual_adaptor[S, B any] struct {
 	moq *moqGenericParams[S, B]
 }
 
@@ -17787,12 +9800,17 @@ type moqGenericParams_Usual_paramsKey[S, B any] struct {
 	}
 }
 
-// moqGenericParams_Usual_resultsByParams contains the results for a given set
-// of parameters for the GenericParams type
-type moqGenericParams_Usual_resultsByParams[S, B any] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericParams_Usual_paramsKey[S, B]]*moqGenericParams_Usual_results[S, B]
+// moqGenericParams_Usual_results holds the results of the GenericParams type
+type moqGenericParams_Usual_results[S, B any] struct {
+	result1 string
+	result2 error
+}
+
+// moqGenericParams_Usual_paramIndexing holds the parameter indexing runtime
+// configuration for the GenericParams type
+type moqGenericParams_Usual_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqGenericParams_Usual_doFn defines the type of function needed when calling
@@ -17803,71 +9821,46 @@ type moqGenericParams_Usual_doFn[S, B any] func(S, B)
 // calling doReturnResults for the GenericParams type
 type moqGenericParams_Usual_doReturnFn[S, B any] func(S, B) (string, error)
 
-// moqGenericParams_Usual_results holds the results of the GenericParams type
-type moqGenericParams_Usual_results[S, B any] struct {
-	params  moqGenericParams_Usual_params[S, B]
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqGenericParams_Usual_doFn[S, B]
-		doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericParams_Usual_fnRecorder routes recorded function calls to the
+// moqGenericParams_Usual_recorder routes recorded function calls to the
 // moqGenericParams moq
-type moqGenericParams_Usual_fnRecorder[S, B any] struct {
-	params    moqGenericParams_Usual_params[S, B]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericParams_Usual_results[S, B]
-	moq       *moqGenericParams[S, B]
+type moqGenericParams_Usual_recorder[S, B any] struct {
+	recorder *impl.Recorder[
+		*moqGenericParams_Usual_adaptor[S, B],
+		moqGenericParams_Usual_params[S, B],
+		moqGenericParams_Usual_paramsKey[S, B],
+		moqGenericParams_Usual_results[S, B]]
 }
 
 // moqGenericParams_Usual_anyParams isolates the any params functions of the
 // GenericParams type
 type moqGenericParams_Usual_anyParams[S, B any] struct {
-	recorder *moqGenericParams_Usual_fnRecorder[S, B]
+	recorder *moqGenericParams_Usual_recorder[S, B]
 }
 
 // newMoqGenericParams creates a new moq of the GenericParams type
 func newMoqGenericParams[S, B any](scene *moq.Scene, config *moq.Config) *moqGenericParams[S, B] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericParams_Usual_adaptor[S, B]{}
 	m := &moqGenericParams[S, B]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericParams_mock[S, B]{},
+		moq: &moqGenericParams_mock[S, B]{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					param1 moq.ParamIndexing
-					param2 moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqGenericParams_Usual_adaptor[S, B],
+			moqGenericParams_Usual_params[S, B],
+			moqGenericParams_Usual_paramsKey[S, B],
+			moqGenericParams_Usual_results[S, B]](scene, adaptor1, config),
+
+		runtime: moqGenericParams_runtime{parameterIndexing: struct {
+			Usual moqGenericParams_Usual_paramIndexing
 		}{
-			Usual: struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}{
+			Usual: moqGenericParams_Usual_paramIndexing{
 				param1: moq.ParamIndexByHash,
 				param2: moq.ParamIndexByHash,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -17876,59 +9869,20 @@ func newMoqGenericParams[S, B any](scene *moq.Scene, config *moq.Config) *moqGen
 // mock returns the mock implementation of the GenericParams type
 func (m *moqGenericParams[S, B]) mock() *moqGenericParams_mock[S, B] { return m.moq }
 
-func (m *moqGenericParams_mock[S, B]) Usual(param1 S, param2 B) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqGenericParams_mock[S, B]) Usual(param1 S, param2 B) (string, error) {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqGenericParams_Usual_params[S, B]{
 		param1: param1,
 		param2: param2,
 	}
-	var results *moqGenericParams_Usual_results[S, B]
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the GenericParams type
@@ -17938,215 +9892,98 @@ func (m *moqGenericParams[S, B]) onCall() *moqGenericParams_recorder[S, B] {
 	}
 }
 
-func (m *moqGenericParams_recorder[S, B]) Usual(param1 S, param2 B) *moqGenericParams_Usual_fnRecorder[S, B] {
-	return &moqGenericParams_Usual_fnRecorder[S, B]{
-		params: moqGenericParams_Usual_params[S, B]{
+func (m *moqGenericParams_recorder[S, B]) Usual(param1 S, param2 B) *moqGenericParams_Usual_recorder[S, B] {
+	return &moqGenericParams_Usual_recorder[S, B]{
+		recorder: m.moq.moq_Usual.OnCall(moqGenericParams_Usual_params[S, B]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) any() *moqGenericParams_Usual_anyParams[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericParams_Usual_recorder[S, B]) any() *moqGenericParams_Usual_anyParams[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericParams_Usual_anyParams[S, B]{recorder: r}
 }
 
-func (a *moqGenericParams_Usual_anyParams[S, B]) param1() *moqGenericParams_Usual_fnRecorder[S, B] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericParams_Usual_anyParams[S, B]) param1() *moqGenericParams_Usual_recorder[S, B] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqGenericParams_Usual_anyParams[S, B]) param2() *moqGenericParams_Usual_fnRecorder[S, B] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqGenericParams_Usual_anyParams[S, B]) param2() *moqGenericParams_Usual_recorder[S, B] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) seq() *moqGenericParams_Usual_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericParams_Usual_recorder[S, B]) seq() *moqGenericParams_Usual_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) noSeq() *moqGenericParams_Usual_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericParams_Usual_recorder[S, B]) noSeq() *moqGenericParams_Usual_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) returnResults(result1 string, result2 error) *moqGenericParams_Usual_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqGenericParams_Usual_doFn[S, B]
-		doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqGenericParams_Usual_recorder[S, B]) returnResults(result1 string, result2 error) *moqGenericParams_Usual_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericParams_Usual_results[S, B]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) andDo(fn moqGenericParams_Usual_doFn[S, B]) *moqGenericParams_Usual_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericParams_Usual_recorder[S, B]) andDo(fn moqGenericParams_Usual_doFn[S, B]) *moqGenericParams_Usual_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericParams_Usual_params[S, B]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) doReturnResults(fn moqGenericParams_Usual_doReturnFn[S, B]) *moqGenericParams_Usual_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqGenericParams_Usual_recorder[S, B]) doReturnResults(fn moqGenericParams_Usual_doReturnFn[S, B]) *moqGenericParams_Usual_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericParams_Usual_params[S, B]) *moqGenericParams_Usual_results[S, B] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqGenericParams_Usual_results[S, B]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqGenericParams_Usual_doFn[S, B]
-		doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericParams_Usual_resultsByParams[S, B]
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericParams_Usual_resultsByParams[S, B]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericParams_Usual_paramsKey[S, B]]*moqGenericParams_Usual_results[S, B]{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericParams_Usual_results[S, B]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericParams_Usual_fnRecorder[S, B]) repeat(repeaters ...moq.Repeater) *moqGenericParams_Usual_fnRecorder[S, B] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericParams_Usual_recorder[S, B]) repeat(repeaters ...moq.Repeater) *moqGenericParams_Usual_recorder[S, B] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqGenericParams_Usual_doFn[S, B]
-				doReturnFn moqGenericParams_Usual_doReturnFn[S, B]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericParams[S, B]) prettyParams_Usual(params moqGenericParams_Usual_params[S, B]) string {
+func (*moqGenericParams_Usual_adaptor[S, B]) PrettyParams(params moqGenericParams_Usual_params[S, B]) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqGenericParams[S, B]) paramsKey_Usual(params moqGenericParams_Usual_params[S, B], anyParams uint64) moqGenericParams_Usual_paramsKey[S, B] {
-	m.scene.T.Helper()
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The param1 parameter of the Usual function can't be indexed by value")
-		}
-		param1UsedHash = hash.DeepHash(params.param1)
-	}
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The param2 parameter of the Usual function can't be indexed by value")
-		}
-		param2UsedHash = hash.DeepHash(params.param2)
-	}
+func (a *moqGenericParams_Usual_adaptor[S, B]) ParamsKey(params moqGenericParams_Usual_params[S, B], anyParams uint64) moqGenericParams_Usual_paramsKey[S, B] {
+	a.moq.moq_Usual.Scene.T.Helper()
+	param1UsedHash := impl.HashOnlyParamKey(a.moq.moq_Usual.Scene.T,
+		params.param1, "param1", 1, a.moq.runtime.parameterIndexing.Usual.param1, anyParams)
+	param2UsedHash := impl.HashOnlyParamKey(a.moq.moq_Usual.Scene.T,
+		params.param2, "param2", 2, a.moq.runtime.parameterIndexing.Usual.param2, anyParams)
 	return moqGenericParams_Usual_paramsKey[S, B]{
 		params: struct{}{},
 		hashes: struct {
@@ -18160,19 +9997,14 @@ func (m *moqGenericParams[S, B]) paramsKey_Usual(params moqGenericParams_Usual_p
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericParams[S, B]) Reset() { m.resultsByParams_Usual = nil }
+func (m *moqGenericParams[S, B]) Reset() {
+	m.moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericParams[S, B]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.PartialGenericParams is
@@ -18182,23 +10014,18 @@ var _ testmoqs.PartialGenericParams[any] = (*moqPartialGenericParams_mock[any])(
 // moqPartialGenericParams holds the state of a moq of the PartialGenericParams
 // type
 type moqPartialGenericParams[S any] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPartialGenericParams_mock[S]
+	moq *moqPartialGenericParams_mock[S]
 
-	resultsByParams_Usual []moqPartialGenericParams_Usual_resultsByParams[S]
+	moq_Usual *impl.Moq[
+		*moqPartialGenericParams_Usual_adaptor[S],
+		moqPartialGenericParams_Usual_params[S],
+		moqPartialGenericParams_Usual_paramsKey[S],
+		moqPartialGenericParams_Usual_results[S]]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}
-	}
-	// moqPartialGenericParams_mock isolates the mock interface of the
+	runtime moqPartialGenericParams_runtime
 }
 
+// moqPartialGenericParams_mock isolates the mock interface of the
 // PartialGenericParams type
 type moqPartialGenericParams_mock[S any] struct {
 	moq *moqPartialGenericParams[S]
@@ -18207,6 +10034,20 @@ type moqPartialGenericParams_mock[S any] struct {
 // moqPartialGenericParams_recorder isolates the recorder interface of the
 // PartialGenericParams type
 type moqPartialGenericParams_recorder[S any] struct {
+	moq *moqPartialGenericParams[S]
+}
+
+// moqPartialGenericParams_runtime holds runtime configuration for the
+// PartialGenericParams type
+type moqPartialGenericParams_runtime struct {
+	parameterIndexing struct {
+		Usual moqPartialGenericParams_Usual_paramIndexing
+	}
+}
+
+// moqPartialGenericParams_Usual_adaptor adapts moqPartialGenericParams as
+// needed by the runtime
+type moqPartialGenericParams_Usual_adaptor[S any] struct {
 	moq *moqPartialGenericParams[S]
 }
 
@@ -18227,12 +10068,18 @@ type moqPartialGenericParams_Usual_paramsKey[S any] struct {
 	}
 }
 
-// moqPartialGenericParams_Usual_resultsByParams contains the results for a
-// given set of parameters for the PartialGenericParams type
-type moqPartialGenericParams_Usual_resultsByParams[S any] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPartialGenericParams_Usual_paramsKey[S]]*moqPartialGenericParams_Usual_results[S]
+// moqPartialGenericParams_Usual_results holds the results of the
+// PartialGenericParams type
+type moqPartialGenericParams_Usual_results[S any] struct {
+	result1 string
+	result2 error
+}
+
+// moqPartialGenericParams_Usual_paramIndexing holds the parameter indexing
+// runtime configuration for the PartialGenericParams type
+type moqPartialGenericParams_Usual_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqPartialGenericParams_Usual_doFn defines the type of function needed when
@@ -18243,73 +10090,47 @@ type moqPartialGenericParams_Usual_doFn[S any] func(S, bool)
 // when calling doReturnResults for the PartialGenericParams type
 type moqPartialGenericParams_Usual_doReturnFn[S any] func(S, bool) (string, error)
 
-// moqPartialGenericParams_Usual_results holds the results of the
-// PartialGenericParams type
-type moqPartialGenericParams_Usual_results[S any] struct {
-	params  moqPartialGenericParams_Usual_params[S]
-	results []struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericParams_Usual_doFn[S]
-		doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPartialGenericParams_Usual_fnRecorder routes recorded function calls to
-// the moqPartialGenericParams moq
-type moqPartialGenericParams_Usual_fnRecorder[S any] struct {
-	params    moqPartialGenericParams_Usual_params[S]
-	anyParams uint64
-	sequence  bool
-	results   *moqPartialGenericParams_Usual_results[S]
-	moq       *moqPartialGenericParams[S]
+// moqPartialGenericParams_Usual_recorder routes recorded function calls to the
+// moqPartialGenericParams moq
+type moqPartialGenericParams_Usual_recorder[S any] struct {
+	recorder *impl.Recorder[
+		*moqPartialGenericParams_Usual_adaptor[S],
+		moqPartialGenericParams_Usual_params[S],
+		moqPartialGenericParams_Usual_paramsKey[S],
+		moqPartialGenericParams_Usual_results[S]]
 }
 
 // moqPartialGenericParams_Usual_anyParams isolates the any params functions of
 // the PartialGenericParams type
 type moqPartialGenericParams_Usual_anyParams[S any] struct {
-	recorder *moqPartialGenericParams_Usual_fnRecorder[S]
+	recorder *moqPartialGenericParams_Usual_recorder[S]
 }
 
 // newMoqPartialGenericParams creates a new moq of the PartialGenericParams
 // type
 func newMoqPartialGenericParams[S any](scene *moq.Scene, config *moq.Config) *moqPartialGenericParams[S] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPartialGenericParams_Usual_adaptor[S]{}
 	m := &moqPartialGenericParams[S]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPartialGenericParams_mock[S]{},
+		moq: &moqPartialGenericParams_mock[S]{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					param1 moq.ParamIndexing
-					param2 moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqPartialGenericParams_Usual_adaptor[S],
+			moqPartialGenericParams_Usual_params[S],
+			moqPartialGenericParams_Usual_paramsKey[S],
+			moqPartialGenericParams_Usual_results[S]](scene, adaptor1, config),
+
+		runtime: moqPartialGenericParams_runtime{parameterIndexing: struct {
+			Usual moqPartialGenericParams_Usual_paramIndexing
 		}{
-			Usual: struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}{
+			Usual: moqPartialGenericParams_Usual_paramIndexing{
 				param1: moq.ParamIndexByHash,
 				param2: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -18318,59 +10139,20 @@ func newMoqPartialGenericParams[S any](scene *moq.Scene, config *moq.Config) *mo
 // mock returns the mock implementation of the PartialGenericParams type
 func (m *moqPartialGenericParams[S]) mock() *moqPartialGenericParams_mock[S] { return m.moq }
 
-func (m *moqPartialGenericParams_mock[S]) Usual(param1 S, param2 bool) (result1 string, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqPartialGenericParams_mock[S]) Usual(param1 S, param2 bool) (string, error) {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqPartialGenericParams_Usual_params[S]{
 		param1: param1,
 		param2: param2,
 	}
-	var results *moqPartialGenericParams_Usual_results[S]
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the PartialGenericParams type
@@ -18380,217 +10162,98 @@ func (m *moqPartialGenericParams[S]) onCall() *moqPartialGenericParams_recorder[
 	}
 }
 
-func (m *moqPartialGenericParams_recorder[S]) Usual(param1 S, param2 bool) *moqPartialGenericParams_Usual_fnRecorder[S] {
-	return &moqPartialGenericParams_Usual_fnRecorder[S]{
-		params: moqPartialGenericParams_Usual_params[S]{
+func (m *moqPartialGenericParams_recorder[S]) Usual(param1 S, param2 bool) *moqPartialGenericParams_Usual_recorder[S] {
+	return &moqPartialGenericParams_Usual_recorder[S]{
+		recorder: m.moq.moq_Usual.OnCall(moqPartialGenericParams_Usual_params[S]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) any() *moqPartialGenericParams_Usual_anyParams[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqPartialGenericParams_Usual_recorder[S]) any() *moqPartialGenericParams_Usual_anyParams[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPartialGenericParams_Usual_anyParams[S]{recorder: r}
 }
 
-func (a *moqPartialGenericParams_Usual_anyParams[S]) param1() *moqPartialGenericParams_Usual_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPartialGenericParams_Usual_anyParams[S]) param1() *moqPartialGenericParams_Usual_recorder[S] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqPartialGenericParams_Usual_anyParams[S]) param2() *moqPartialGenericParams_Usual_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqPartialGenericParams_Usual_anyParams[S]) param2() *moqPartialGenericParams_Usual_recorder[S] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) seq() *moqPartialGenericParams_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqPartialGenericParams_Usual_recorder[S]) seq() *moqPartialGenericParams_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) noSeq() *moqPartialGenericParams_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqPartialGenericParams_Usual_recorder[S]) noSeq() *moqPartialGenericParams_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) returnResults(result1 string, result2 error) *moqPartialGenericParams_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericParams_Usual_doFn[S]
-		doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
-	}{
-		values: &struct {
-			result1 string
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqPartialGenericParams_Usual_recorder[S]) returnResults(result1 string, result2 error) *moqPartialGenericParams_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPartialGenericParams_Usual_results[S]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) andDo(fn moqPartialGenericParams_Usual_doFn[S]) *moqPartialGenericParams_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPartialGenericParams_Usual_recorder[S]) andDo(fn moqPartialGenericParams_Usual_doFn[S]) *moqPartialGenericParams_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPartialGenericParams_Usual_params[S]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) doReturnResults(fn moqPartialGenericParams_Usual_doReturnFn[S]) *moqPartialGenericParams_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 string
-			result2 error
+func (r *moqPartialGenericParams_Usual_recorder[S]) doReturnResults(fn moqPartialGenericParams_Usual_doReturnFn[S]) *moqPartialGenericParams_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPartialGenericParams_Usual_params[S]) *moqPartialGenericParams_Usual_results[S] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqPartialGenericParams_Usual_results[S]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqPartialGenericParams_Usual_doFn[S]
-		doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPartialGenericParams_Usual_resultsByParams[S]
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPartialGenericParams_Usual_resultsByParams[S]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPartialGenericParams_Usual_paramsKey[S]]*moqPartialGenericParams_Usual_results[S]{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPartialGenericParams_Usual_results[S]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPartialGenericParams_Usual_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericParams_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPartialGenericParams_Usual_recorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericParams_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 string
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqPartialGenericParams_Usual_doFn[S]
-				doReturnFn moqPartialGenericParams_Usual_doReturnFn[S]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPartialGenericParams[S]) prettyParams_Usual(params moqPartialGenericParams_Usual_params[S]) string {
+func (*moqPartialGenericParams_Usual_adaptor[S]) PrettyParams(params moqPartialGenericParams_Usual_params[S]) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqPartialGenericParams[S]) paramsKey_Usual(params moqPartialGenericParams_Usual_params[S], anyParams uint64) moqPartialGenericParams_Usual_paramsKey[S] {
-	m.scene.T.Helper()
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The param1 parameter of the Usual function can't be indexed by value")
-		}
-		param1UsedHash = hash.DeepHash(params.param1)
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqPartialGenericParams_Usual_adaptor[S]) ParamsKey(params moqPartialGenericParams_Usual_params[S], anyParams uint64) moqPartialGenericParams_Usual_paramsKey[S] {
+	a.moq.moq_Usual.Scene.T.Helper()
+	param1UsedHash := impl.HashOnlyParamKey(a.moq.moq_Usual.Scene.T,
+		params.param1, "param1", 1, a.moq.runtime.parameterIndexing.Usual.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.Usual.param2, anyParams)
 	return moqPartialGenericParams_Usual_paramsKey[S]{
 		params: struct{ param2 bool }{
 			param2: param2Used,
@@ -18606,19 +10269,14 @@ func (m *moqPartialGenericParams[S]) paramsKey_Usual(params moqPartialGenericPar
 }
 
 // Reset resets the state of the moq
-func (m *moqPartialGenericParams[S]) Reset() { m.resultsByParams_Usual = nil }
+func (m *moqPartialGenericParams[S]) Reset() {
+	m.moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPartialGenericParams[S]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.GenericResults is mocked
@@ -18627,23 +10285,18 @@ var _ testmoqs.GenericResults[string, error] = (*moqGenericResults_mock[string, 
 
 // moqGenericResults holds the state of a moq of the GenericResults type
 type moqGenericResults[S ~string, E error] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericResults_mock[S, E]
+	moq *moqGenericResults_mock[S, E]
 
-	resultsByParams_Usual []moqGenericResults_Usual_resultsByParams[S, E]
+	moq_Usual *impl.Moq[
+		*moqGenericResults_Usual_adaptor[S, E],
+		moqGenericResults_Usual_params[S, E],
+		moqGenericResults_Usual_paramsKey[S, E],
+		moqGenericResults_Usual_results[S, E]]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}
-	}
-	// moqGenericResults_mock isolates the mock interface of the GenericResults
+	runtime moqGenericResults_runtime
 }
 
+// moqGenericResults_mock isolates the mock interface of the GenericResults
 // type
 type moqGenericResults_mock[S ~string, E error] struct {
 	moq *moqGenericResults[S, E]
@@ -18652,6 +10305,20 @@ type moqGenericResults_mock[S ~string, E error] struct {
 // moqGenericResults_recorder isolates the recorder interface of the
 // GenericResults type
 type moqGenericResults_recorder[S ~string, E error] struct {
+	moq *moqGenericResults[S, E]
+}
+
+// moqGenericResults_runtime holds runtime configuration for the GenericResults
+// type
+type moqGenericResults_runtime struct {
+	parameterIndexing struct {
+		Usual moqGenericResults_Usual_paramIndexing
+	}
+}
+
+// moqGenericResults_Usual_adaptor adapts moqGenericResults as needed by the
+// runtime
+type moqGenericResults_Usual_adaptor[S ~string, E error] struct {
 	moq *moqGenericResults[S, E]
 }
 
@@ -18674,12 +10341,17 @@ type moqGenericResults_Usual_paramsKey[S ~string, E error] struct {
 	}
 }
 
-// moqGenericResults_Usual_resultsByParams contains the results for a given set
-// of parameters for the GenericResults type
-type moqGenericResults_Usual_resultsByParams[S ~string, E error] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericResults_Usual_paramsKey[S, E]]*moqGenericResults_Usual_results[S, E]
+// moqGenericResults_Usual_results holds the results of the GenericResults type
+type moqGenericResults_Usual_results[S ~string, E error] struct {
+	result1 S
+	result2 E
+}
+
+// moqGenericResults_Usual_paramIndexing holds the parameter indexing runtime
+// configuration for the GenericResults type
+type moqGenericResults_Usual_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqGenericResults_Usual_doFn defines the type of function needed when
@@ -18690,71 +10362,46 @@ type moqGenericResults_Usual_doFn[S ~string, E error] func(string, bool)
 // calling doReturnResults for the GenericResults type
 type moqGenericResults_Usual_doReturnFn[S ~string, E error] func(string, bool) (S, E)
 
-// moqGenericResults_Usual_results holds the results of the GenericResults type
-type moqGenericResults_Usual_results[S ~string, E error] struct {
-	params  moqGenericResults_Usual_params[S, E]
-	results []struct {
-		values *struct {
-			result1 S
-			result2 E
-		}
-		sequence   uint32
-		doFn       moqGenericResults_Usual_doFn[S, E]
-		doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericResults_Usual_fnRecorder routes recorded function calls to the
+// moqGenericResults_Usual_recorder routes recorded function calls to the
 // moqGenericResults moq
-type moqGenericResults_Usual_fnRecorder[S ~string, E error] struct {
-	params    moqGenericResults_Usual_params[S, E]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericResults_Usual_results[S, E]
-	moq       *moqGenericResults[S, E]
+type moqGenericResults_Usual_recorder[S ~string, E error] struct {
+	recorder *impl.Recorder[
+		*moqGenericResults_Usual_adaptor[S, E],
+		moqGenericResults_Usual_params[S, E],
+		moqGenericResults_Usual_paramsKey[S, E],
+		moqGenericResults_Usual_results[S, E]]
 }
 
 // moqGenericResults_Usual_anyParams isolates the any params functions of the
 // GenericResults type
 type moqGenericResults_Usual_anyParams[S ~string, E error] struct {
-	recorder *moqGenericResults_Usual_fnRecorder[S, E]
+	recorder *moqGenericResults_Usual_recorder[S, E]
 }
 
 // newMoqGenericResults creates a new moq of the GenericResults type
 func newMoqGenericResults[S ~string, E error](scene *moq.Scene, config *moq.Config) *moqGenericResults[S, E] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericResults_Usual_adaptor[S, E]{}
 	m := &moqGenericResults[S, E]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericResults_mock[S, E]{},
+		moq: &moqGenericResults_mock[S, E]{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					param1 moq.ParamIndexing
-					param2 moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqGenericResults_Usual_adaptor[S, E],
+			moqGenericResults_Usual_params[S, E],
+			moqGenericResults_Usual_paramsKey[S, E],
+			moqGenericResults_Usual_results[S, E]](scene, adaptor1, config),
+
+		runtime: moqGenericResults_runtime{parameterIndexing: struct {
+			Usual moqGenericResults_Usual_paramIndexing
 		}{
-			Usual: struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}{
+			Usual: moqGenericResults_Usual_paramIndexing{
 				param1: moq.ParamIndexByValue,
 				param2: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -18763,59 +10410,20 @@ func newMoqGenericResults[S ~string, E error](scene *moq.Scene, config *moq.Conf
 // mock returns the mock implementation of the GenericResults type
 func (m *moqGenericResults[S, E]) mock() *moqGenericResults_mock[S, E] { return m.moq }
 
-func (m *moqGenericResults_mock[S, E]) Usual(param1 string, param2 bool) (result1 S, result2 E) {
-	m.moq.scene.T.Helper()
+func (m *moqGenericResults_mock[S, E]) Usual(param1 string, param2 bool) (S, E) {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqGenericResults_Usual_params[S, E]{
 		param1: param1,
 		param2: param2,
 	}
-	var results *moqGenericResults_Usual_results[S, E]
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 S
+	var result2 E
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the GenericResults type
@@ -18825,219 +10433,98 @@ func (m *moqGenericResults[S, E]) onCall() *moqGenericResults_recorder[S, E] {
 	}
 }
 
-func (m *moqGenericResults_recorder[S, E]) Usual(param1 string, param2 bool) *moqGenericResults_Usual_fnRecorder[S, E] {
-	return &moqGenericResults_Usual_fnRecorder[S, E]{
-		params: moqGenericResults_Usual_params[S, E]{
+func (m *moqGenericResults_recorder[S, E]) Usual(param1 string, param2 bool) *moqGenericResults_Usual_recorder[S, E] {
+	return &moqGenericResults_Usual_recorder[S, E]{
+		recorder: m.moq.moq_Usual.OnCall(moqGenericResults_Usual_params[S, E]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) any() *moqGenericResults_Usual_anyParams[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericResults_Usual_recorder[S, E]) any() *moqGenericResults_Usual_anyParams[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericResults_Usual_anyParams[S, E]{recorder: r}
 }
 
-func (a *moqGenericResults_Usual_anyParams[S, E]) param1() *moqGenericResults_Usual_fnRecorder[S, E] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericResults_Usual_anyParams[S, E]) param1() *moqGenericResults_Usual_recorder[S, E] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqGenericResults_Usual_anyParams[S, E]) param2() *moqGenericResults_Usual_fnRecorder[S, E] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqGenericResults_Usual_anyParams[S, E]) param2() *moqGenericResults_Usual_recorder[S, E] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) seq() *moqGenericResults_Usual_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericResults_Usual_recorder[S, E]) seq() *moqGenericResults_Usual_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) noSeq() *moqGenericResults_Usual_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericResults_Usual_recorder[S, E]) noSeq() *moqGenericResults_Usual_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) returnResults(result1 S, result2 E) *moqGenericResults_Usual_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 E
-		}
-		sequence   uint32
-		doFn       moqGenericResults_Usual_doFn[S, E]
-		doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
-	}{
-		values: &struct {
-			result1 S
-			result2 E
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqGenericResults_Usual_recorder[S, E]) returnResults(result1 S, result2 E) *moqGenericResults_Usual_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericResults_Usual_results[S, E]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) andDo(fn moqGenericResults_Usual_doFn[S, E]) *moqGenericResults_Usual_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericResults_Usual_recorder[S, E]) andDo(fn moqGenericResults_Usual_doFn[S, E]) *moqGenericResults_Usual_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericResults_Usual_params[S, E]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) doReturnResults(fn moqGenericResults_Usual_doReturnFn[S, E]) *moqGenericResults_Usual_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 E
+func (r *moqGenericResults_Usual_recorder[S, E]) doReturnResults(fn moqGenericResults_Usual_doReturnFn[S, E]) *moqGenericResults_Usual_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericResults_Usual_params[S, E]) *moqGenericResults_Usual_results[S, E] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqGenericResults_Usual_results[S, E]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqGenericResults_Usual_doFn[S, E]
-		doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericResults_Usual_resultsByParams[S, E]
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericResults_Usual_resultsByParams[S, E]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericResults_Usual_paramsKey[S, E]]*moqGenericResults_Usual_results[S, E]{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericResults_Usual_results[S, E]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericResults_Usual_fnRecorder[S, E]) repeat(repeaters ...moq.Repeater) *moqGenericResults_Usual_fnRecorder[S, E] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericResults_Usual_recorder[S, E]) repeat(repeaters ...moq.Repeater) *moqGenericResults_Usual_recorder[S, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 S
-					result2 E
-				}
-				sequence   uint32
-				doFn       moqGenericResults_Usual_doFn[S, E]
-				doReturnFn moqGenericResults_Usual_doReturnFn[S, E]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericResults[S, E]) prettyParams_Usual(params moqGenericResults_Usual_params[S, E]) string {
+func (*moqGenericResults_Usual_adaptor[S, E]) PrettyParams(params moqGenericResults_Usual_params[S, E]) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqGenericResults[S, E]) paramsKey_Usual(params moqGenericResults_Usual_params[S, E], anyParams uint64) moqGenericResults_Usual_paramsKey[S, E] {
-	m.scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqGenericResults_Usual_adaptor[S, E]) ParamsKey(params moqGenericResults_Usual_params[S, E], anyParams uint64) moqGenericResults_Usual_paramsKey[S, E] {
+	a.moq.moq_Usual.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.Usual.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.Usual.param2, anyParams)
 	return moqGenericResults_Usual_paramsKey[S, E]{
 		params: struct {
 			param1 string
@@ -19057,19 +10544,14 @@ func (m *moqGenericResults[S, E]) paramsKey_Usual(params moqGenericResults_Usual
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericResults[S, E]) Reset() { m.resultsByParams_Usual = nil }
+func (m *moqGenericResults[S, E]) Reset() {
+	m.moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericResults[S, E]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.PartialGenericResults is
@@ -19079,23 +10561,18 @@ var _ testmoqs.PartialGenericResults[string] = (*moqPartialGenericResults_mock[s
 // moqPartialGenericResults holds the state of a moq of the
 // PartialGenericResults type
 type moqPartialGenericResults[S ~string] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqPartialGenericResults_mock[S]
+	moq *moqPartialGenericResults_mock[S]
 
-	resultsByParams_Usual []moqPartialGenericResults_Usual_resultsByParams[S]
+	moq_Usual *impl.Moq[
+		*moqPartialGenericResults_Usual_adaptor[S],
+		moqPartialGenericResults_Usual_params[S],
+		moqPartialGenericResults_Usual_paramsKey[S],
+		moqPartialGenericResults_Usual_results[S]]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
-		}
-	}
-	// moqPartialGenericResults_mock isolates the mock interface of the
+	runtime moqPartialGenericResults_runtime
 }
 
+// moqPartialGenericResults_mock isolates the mock interface of the
 // PartialGenericResults type
 type moqPartialGenericResults_mock[S ~string] struct {
 	moq *moqPartialGenericResults[S]
@@ -19104,6 +10581,20 @@ type moqPartialGenericResults_mock[S ~string] struct {
 // moqPartialGenericResults_recorder isolates the recorder interface of the
 // PartialGenericResults type
 type moqPartialGenericResults_recorder[S ~string] struct {
+	moq *moqPartialGenericResults[S]
+}
+
+// moqPartialGenericResults_runtime holds runtime configuration for the
+// PartialGenericResults type
+type moqPartialGenericResults_runtime struct {
+	parameterIndexing struct {
+		Usual moqPartialGenericResults_Usual_paramIndexing
+	}
+}
+
+// moqPartialGenericResults_Usual_adaptor adapts moqPartialGenericResults as
+// needed by the runtime
+type moqPartialGenericResults_Usual_adaptor[S ~string] struct {
 	moq *moqPartialGenericResults[S]
 }
 
@@ -19127,12 +10618,18 @@ type moqPartialGenericResults_Usual_paramsKey[S ~string] struct {
 	}
 }
 
-// moqPartialGenericResults_Usual_resultsByParams contains the results for a
-// given set of parameters for the PartialGenericResults type
-type moqPartialGenericResults_Usual_resultsByParams[S ~string] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqPartialGenericResults_Usual_paramsKey[S]]*moqPartialGenericResults_Usual_results[S]
+// moqPartialGenericResults_Usual_results holds the results of the
+// PartialGenericResults type
+type moqPartialGenericResults_Usual_results[S ~string] struct {
+	result1 S
+	result2 error
+}
+
+// moqPartialGenericResults_Usual_paramIndexing holds the parameter indexing
+// runtime configuration for the PartialGenericResults type
+type moqPartialGenericResults_Usual_paramIndexing struct {
+	param1 moq.ParamIndexing
+	param2 moq.ParamIndexing
 }
 
 // moqPartialGenericResults_Usual_doFn defines the type of function needed when
@@ -19143,73 +10640,47 @@ type moqPartialGenericResults_Usual_doFn[S ~string] func(string, bool)
 // needed when calling doReturnResults for the PartialGenericResults type
 type moqPartialGenericResults_Usual_doReturnFn[S ~string] func(string, bool) (S, error)
 
-// moqPartialGenericResults_Usual_results holds the results of the
-// PartialGenericResults type
-type moqPartialGenericResults_Usual_results[S ~string] struct {
-	params  moqPartialGenericResults_Usual_params[S]
-	results []struct {
-		values *struct {
-			result1 S
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericResults_Usual_doFn[S]
-		doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqPartialGenericResults_Usual_fnRecorder routes recorded function calls to
+// moqPartialGenericResults_Usual_recorder routes recorded function calls to
 // the moqPartialGenericResults moq
-type moqPartialGenericResults_Usual_fnRecorder[S ~string] struct {
-	params    moqPartialGenericResults_Usual_params[S]
-	anyParams uint64
-	sequence  bool
-	results   *moqPartialGenericResults_Usual_results[S]
-	moq       *moqPartialGenericResults[S]
+type moqPartialGenericResults_Usual_recorder[S ~string] struct {
+	recorder *impl.Recorder[
+		*moqPartialGenericResults_Usual_adaptor[S],
+		moqPartialGenericResults_Usual_params[S],
+		moqPartialGenericResults_Usual_paramsKey[S],
+		moqPartialGenericResults_Usual_results[S]]
 }
 
 // moqPartialGenericResults_Usual_anyParams isolates the any params functions
 // of the PartialGenericResults type
 type moqPartialGenericResults_Usual_anyParams[S ~string] struct {
-	recorder *moqPartialGenericResults_Usual_fnRecorder[S]
+	recorder *moqPartialGenericResults_Usual_recorder[S]
 }
 
 // newMoqPartialGenericResults creates a new moq of the PartialGenericResults
 // type
 func newMoqPartialGenericResults[S ~string](scene *moq.Scene, config *moq.Config) *moqPartialGenericResults[S] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqPartialGenericResults_Usual_adaptor[S]{}
 	m := &moqPartialGenericResults[S]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqPartialGenericResults_mock[S]{},
+		moq: &moqPartialGenericResults_mock[S]{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					param1 moq.ParamIndexing
-					param2 moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqPartialGenericResults_Usual_adaptor[S],
+			moqPartialGenericResults_Usual_params[S],
+			moqPartialGenericResults_Usual_paramsKey[S],
+			moqPartialGenericResults_Usual_results[S]](scene, adaptor1, config),
+
+		runtime: moqPartialGenericResults_runtime{parameterIndexing: struct {
+			Usual moqPartialGenericResults_Usual_paramIndexing
 		}{
-			Usual: struct {
-				param1 moq.ParamIndexing
-				param2 moq.ParamIndexing
-			}{
+			Usual: moqPartialGenericResults_Usual_paramIndexing{
 				param1: moq.ParamIndexByValue,
 				param2: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -19218,59 +10689,20 @@ func newMoqPartialGenericResults[S ~string](scene *moq.Scene, config *moq.Config
 // mock returns the mock implementation of the PartialGenericResults type
 func (m *moqPartialGenericResults[S]) mock() *moqPartialGenericResults_mock[S] { return m.moq }
 
-func (m *moqPartialGenericResults_mock[S]) Usual(param1 string, param2 bool) (result1 S, result2 error) {
-	m.moq.scene.T.Helper()
+func (m *moqPartialGenericResults_mock[S]) Usual(param1 string, param2 bool) (S, error) {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqPartialGenericResults_Usual_params[S]{
 		param1: param1,
 		param2: param2,
 	}
-	var results *moqPartialGenericResults_Usual_results[S]
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 S
+	var result2 error
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.result1
+		result2 = result.result2
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(param1, param2)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-		result2 = result.values.result2
-	}
-	if result.doReturnFn != nil {
-		result1, result2 = result.doReturnFn(param1, param2)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the PartialGenericResults type
@@ -19280,219 +10712,98 @@ func (m *moqPartialGenericResults[S]) onCall() *moqPartialGenericResults_recorde
 	}
 }
 
-func (m *moqPartialGenericResults_recorder[S]) Usual(param1 string, param2 bool) *moqPartialGenericResults_Usual_fnRecorder[S] {
-	return &moqPartialGenericResults_Usual_fnRecorder[S]{
-		params: moqPartialGenericResults_Usual_params[S]{
+func (m *moqPartialGenericResults_recorder[S]) Usual(param1 string, param2 bool) *moqPartialGenericResults_Usual_recorder[S] {
+	return &moqPartialGenericResults_Usual_recorder[S]{
+		recorder: m.moq.moq_Usual.OnCall(moqPartialGenericResults_Usual_params[S]{
 			param1: param1,
 			param2: param2,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) any() *moqPartialGenericResults_Usual_anyParams[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqPartialGenericResults_Usual_recorder[S]) any() *moqPartialGenericResults_Usual_anyParams[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqPartialGenericResults_Usual_anyParams[S]{recorder: r}
 }
 
-func (a *moqPartialGenericResults_Usual_anyParams[S]) param1() *moqPartialGenericResults_Usual_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqPartialGenericResults_Usual_anyParams[S]) param1() *moqPartialGenericResults_Usual_recorder[S] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqPartialGenericResults_Usual_anyParams[S]) param2() *moqPartialGenericResults_Usual_fnRecorder[S] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqPartialGenericResults_Usual_anyParams[S]) param2() *moqPartialGenericResults_Usual_recorder[S] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) seq() *moqPartialGenericResults_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqPartialGenericResults_Usual_recorder[S]) seq() *moqPartialGenericResults_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) noSeq() *moqPartialGenericResults_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqPartialGenericResults_Usual_recorder[S]) noSeq() *moqPartialGenericResults_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) returnResults(result1 S, result2 error) *moqPartialGenericResults_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 error
-		}
-		sequence   uint32
-		doFn       moqPartialGenericResults_Usual_doFn[S]
-		doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
-	}{
-		values: &struct {
-			result1 S
-			result2 error
-		}{
-			result1: result1,
-			result2: result2,
-		},
-		sequence: sequence,
+func (r *moqPartialGenericResults_Usual_recorder[S]) returnResults(result1 S, result2 error) *moqPartialGenericResults_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqPartialGenericResults_Usual_results[S]{
+		result1: result1,
+		result2: result2,
 	})
 	return r
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) andDo(fn moqPartialGenericResults_Usual_doFn[S]) *moqPartialGenericResults_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqPartialGenericResults_Usual_recorder[S]) andDo(fn moqPartialGenericResults_Usual_doFn[S]) *moqPartialGenericResults_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqPartialGenericResults_Usual_params[S]) {
+		fn(params.param1, params.param2)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) doReturnResults(fn moqPartialGenericResults_Usual_doReturnFn[S]) *moqPartialGenericResults_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 S
-			result2 error
+func (r *moqPartialGenericResults_Usual_recorder[S]) doReturnResults(fn moqPartialGenericResults_Usual_doReturnFn[S]) *moqPartialGenericResults_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqPartialGenericResults_Usual_params[S]) *moqPartialGenericResults_Usual_results[S] {
+		result1, result2 := fn(params.param1, params.param2)
+		return &moqPartialGenericResults_Usual_results[S]{
+			result1: result1,
+			result2: result2,
 		}
-		sequence   uint32
-		doFn       moqPartialGenericResults_Usual_doFn[S]
-		doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqPartialGenericResults_Usual_resultsByParams[S]
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqPartialGenericResults_Usual_resultsByParams[S]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqPartialGenericResults_Usual_paramsKey[S]]*moqPartialGenericResults_Usual_results[S]{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqPartialGenericResults_Usual_results[S]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqPartialGenericResults_Usual_fnRecorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericResults_Usual_fnRecorder[S] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqPartialGenericResults_Usual_recorder[S]) repeat(repeaters ...moq.Repeater) *moqPartialGenericResults_Usual_recorder[S] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 S
-					result2 error
-				}
-				sequence   uint32
-				doFn       moqPartialGenericResults_Usual_doFn[S]
-				doReturnFn moqPartialGenericResults_Usual_doReturnFn[S]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqPartialGenericResults[S]) prettyParams_Usual(params moqPartialGenericResults_Usual_params[S]) string {
+func (*moqPartialGenericResults_Usual_adaptor[S]) PrettyParams(params moqPartialGenericResults_Usual_params[S]) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.param1, params.param2)
 }
 
-func (m *moqPartialGenericResults[S]) paramsKey_Usual(params moqPartialGenericResults_Usual_params[S], anyParams uint64) moqPartialGenericResults_Usual_paramsKey[S] {
-	m.scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.param1 == moq.ParamIndexByValue {
-			param1Used = params.param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Usual.param2 == moq.ParamIndexByValue {
-			param2Used = params.param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.param2)
-		}
-	}
+func (a *moqPartialGenericResults_Usual_adaptor[S]) ParamsKey(params moqPartialGenericResults_Usual_params[S], anyParams uint64) moqPartialGenericResults_Usual_paramsKey[S] {
+	a.moq.moq_Usual.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.param1, 1, a.moq.runtime.parameterIndexing.Usual.param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.param2, 2, a.moq.runtime.parameterIndexing.Usual.param2, anyParams)
 	return moqPartialGenericResults_Usual_paramsKey[S]{
 		params: struct {
 			param1 string
@@ -19512,19 +10823,14 @@ func (m *moqPartialGenericResults[S]) paramsKey_Usual(params moqPartialGenericRe
 }
 
 // Reset resets the state of the moq
-func (m *moqPartialGenericResults[S]) Reset() { m.resultsByParams_Usual = nil }
+func (m *moqPartialGenericResults[S]) Reset() {
+	m.moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqPartialGenericResults[S]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.GenericInterfaceParam is
@@ -19534,22 +10840,18 @@ var _ testmoqs.GenericInterfaceParam[testmoqs.MyWriter] = (*moqGenericInterfaceP
 // moqGenericInterfaceParam holds the state of a moq of the
 // GenericInterfaceParam type
 type moqGenericInterfaceParam[W testmoqs.MyWriter] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericInterfaceParam_mock[W]
+	moq *moqGenericInterfaceParam_mock[W]
 
-	resultsByParams_Usual []moqGenericInterfaceParam_Usual_resultsByParams[W]
+	moq_Usual *impl.Moq[
+		*moqGenericInterfaceParam_Usual_adaptor[W],
+		moqGenericInterfaceParam_Usual_params[W],
+		moqGenericInterfaceParam_Usual_paramsKey[W],
+		moqGenericInterfaceParam_Usual_results[W]]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				w moq.ParamIndexing
-			}
-		}
-	}
-	// moqGenericInterfaceParam_mock isolates the mock interface of the
+	runtime moqGenericInterfaceParam_runtime
 }
 
+// moqGenericInterfaceParam_mock isolates the mock interface of the
 // GenericInterfaceParam type
 type moqGenericInterfaceParam_mock[W testmoqs.MyWriter] struct {
 	moq *moqGenericInterfaceParam[W]
@@ -19558,6 +10860,20 @@ type moqGenericInterfaceParam_mock[W testmoqs.MyWriter] struct {
 // moqGenericInterfaceParam_recorder isolates the recorder interface of the
 // GenericInterfaceParam type
 type moqGenericInterfaceParam_recorder[W testmoqs.MyWriter] struct {
+	moq *moqGenericInterfaceParam[W]
+}
+
+// moqGenericInterfaceParam_runtime holds runtime configuration for the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_runtime struct {
+	parameterIndexing struct {
+		Usual moqGenericInterfaceParam_Usual_paramIndexing
+	}
+}
+
+// moqGenericInterfaceParam_Usual_adaptor adapts moqGenericInterfaceParam as
+// needed by the runtime
+type moqGenericInterfaceParam_Usual_adaptor[W testmoqs.MyWriter] struct {
 	moq *moqGenericInterfaceParam[W]
 }
 
@@ -19572,12 +10888,17 @@ type moqGenericInterfaceParam_Usual_paramsKey[W testmoqs.MyWriter] struct {
 	hashes struct{ w hash.Hash }
 }
 
-// moqGenericInterfaceParam_Usual_resultsByParams contains the results for a
-// given set of parameters for the GenericInterfaceParam type
-type moqGenericInterfaceParam_Usual_resultsByParams[W testmoqs.MyWriter] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericInterfaceParam_Usual_paramsKey[W]]*moqGenericInterfaceParam_Usual_results[W]
+// moqGenericInterfaceParam_Usual_results holds the results of the
+// GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_results[W testmoqs.MyWriter] struct {
+	sResult string
+	err     error
+}
+
+// moqGenericInterfaceParam_Usual_paramIndexing holds the parameter indexing
+// runtime configuration for the GenericInterfaceParam type
+type moqGenericInterfaceParam_Usual_paramIndexing struct {
+	w moq.ParamIndexing
 }
 
 // moqGenericInterfaceParam_Usual_doFn defines the type of function needed when
@@ -19588,69 +10909,46 @@ type moqGenericInterfaceParam_Usual_doFn[W testmoqs.MyWriter] func(w W)
 // needed when calling doReturnResults for the GenericInterfaceParam type
 type moqGenericInterfaceParam_Usual_doReturnFn[W testmoqs.MyWriter] func(w W) (sResult string, err error)
 
-// moqGenericInterfaceParam_Usual_results holds the results of the
-// GenericInterfaceParam type
-type moqGenericInterfaceParam_Usual_results[W testmoqs.MyWriter] struct {
-	params  moqGenericInterfaceParam_Usual_params[W]
-	results []struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqGenericInterfaceParam_Usual_doFn[W]
-		doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericInterfaceParam_Usual_fnRecorder routes recorded function calls to
+// moqGenericInterfaceParam_Usual_recorder routes recorded function calls to
 // the moqGenericInterfaceParam moq
-type moqGenericInterfaceParam_Usual_fnRecorder[W testmoqs.MyWriter] struct {
-	params    moqGenericInterfaceParam_Usual_params[W]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericInterfaceParam_Usual_results[W]
-	moq       *moqGenericInterfaceParam[W]
+type moqGenericInterfaceParam_Usual_recorder[W testmoqs.MyWriter] struct {
+	recorder *impl.Recorder[
+		*moqGenericInterfaceParam_Usual_adaptor[W],
+		moqGenericInterfaceParam_Usual_params[W],
+		moqGenericInterfaceParam_Usual_paramsKey[W],
+		moqGenericInterfaceParam_Usual_results[W]]
 }
 
 // moqGenericInterfaceParam_Usual_anyParams isolates the any params functions
 // of the GenericInterfaceParam type
 type moqGenericInterfaceParam_Usual_anyParams[W testmoqs.MyWriter] struct {
-	recorder *moqGenericInterfaceParam_Usual_fnRecorder[W]
+	recorder *moqGenericInterfaceParam_Usual_recorder[W]
 }
 
 // newMoqGenericInterfaceParam creates a new moq of the GenericInterfaceParam
 // type
 func newMoqGenericInterfaceParam[W testmoqs.MyWriter](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceParam[W] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericInterfaceParam_Usual_adaptor[W]{}
 	m := &moqGenericInterfaceParam[W]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericInterfaceParam_mock[W]{},
+		moq: &moqGenericInterfaceParam_mock[W]{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					w moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				w moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqGenericInterfaceParam_Usual_adaptor[W],
+			moqGenericInterfaceParam_Usual_params[W],
+			moqGenericInterfaceParam_Usual_paramsKey[W],
+			moqGenericInterfaceParam_Usual_results[W]](scene, adaptor1, config),
+
+		runtime: moqGenericInterfaceParam_runtime{parameterIndexing: struct {
+			Usual moqGenericInterfaceParam_Usual_paramIndexing
 		}{
-			Usual: struct {
-				w moq.ParamIndexing
-			}{
+			Usual: moqGenericInterfaceParam_Usual_paramIndexing{
 				w: moq.ParamIndexByHash,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -19659,58 +10957,19 @@ func newMoqGenericInterfaceParam[W testmoqs.MyWriter](scene *moq.Scene, config *
 // mock returns the mock implementation of the GenericInterfaceParam type
 func (m *moqGenericInterfaceParam[W]) mock() *moqGenericInterfaceParam_mock[W] { return m.moq }
 
-func (m *moqGenericInterfaceParam_mock[W]) Usual(w W) (sResult string, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqGenericInterfaceParam_mock[W]) Usual(w W) (string, error) {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqGenericInterfaceParam_Usual_params[W]{
 		w: w,
 	}
-	var results *moqGenericInterfaceParam_Usual_results[W]
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.sResult
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(w)
-	}
-
-	if result.values != nil {
-		sResult = result.values.sResult
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		sResult, err = result.doReturnFn(w)
-	}
-	return
+	return result1, result2
 }
 
 // onCall returns the recorder implementation of the GenericInterfaceParam type
@@ -19720,202 +10979,90 @@ func (m *moqGenericInterfaceParam[W]) onCall() *moqGenericInterfaceParam_recorde
 	}
 }
 
-func (m *moqGenericInterfaceParam_recorder[W]) Usual(w W) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	return &moqGenericInterfaceParam_Usual_fnRecorder[W]{
-		params: moqGenericInterfaceParam_Usual_params[W]{
+func (m *moqGenericInterfaceParam_recorder[W]) Usual(w W) *moqGenericInterfaceParam_Usual_recorder[W] {
+	return &moqGenericInterfaceParam_Usual_recorder[W]{
+		recorder: m.moq.moq_Usual.OnCall(moqGenericInterfaceParam_Usual_params[W]{
 			w: w,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) any() *moqGenericInterfaceParam_Usual_anyParams[W] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) any() *moqGenericInterfaceParam_Usual_anyParams[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericInterfaceParam_Usual_anyParams[W]{recorder: r}
 }
 
-func (a *moqGenericInterfaceParam_Usual_anyParams[W]) w() *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericInterfaceParam_Usual_anyParams[W]) w() *moqGenericInterfaceParam_Usual_recorder[W] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) seq() *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) seq() *moqGenericInterfaceParam_Usual_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) noSeq() *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) noSeq() *moqGenericInterfaceParam_Usual_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) returnResults(sResult string, err error) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
-		}
-		sequence   uint32
-		doFn       moqGenericInterfaceParam_Usual_doFn[W]
-		doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
-	}{
-		values: &struct {
-			sResult string
-			err     error
-		}{
-			sResult: sResult,
-			err:     err,
-		},
-		sequence: sequence,
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) returnResults(sResult string, err error) *moqGenericInterfaceParam_Usual_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericInterfaceParam_Usual_results[W]{
+		sResult: sResult,
+		err:     err,
 	})
 	return r
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) andDo(fn moqGenericInterfaceParam_Usual_doFn[W]) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) andDo(fn moqGenericInterfaceParam_Usual_doFn[W]) *moqGenericInterfaceParam_Usual_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericInterfaceParam_Usual_params[W]) {
+		fn(params.w)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) doReturnResults(fn moqGenericInterfaceParam_Usual_doReturnFn[W]) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			sResult string
-			err     error
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) doReturnResults(fn moqGenericInterfaceParam_Usual_doReturnFn[W]) *moqGenericInterfaceParam_Usual_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericInterfaceParam_Usual_params[W]) *moqGenericInterfaceParam_Usual_results[W] {
+		sResult, err := fn(params.w)
+		return &moqGenericInterfaceParam_Usual_results[W]{
+			sResult: sResult,
+			err:     err,
 		}
-		sequence   uint32
-		doFn       moqGenericInterfaceParam_Usual_doFn[W]
-		doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericInterfaceParam_Usual_resultsByParams[W]
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericInterfaceParam_Usual_resultsByParams[W]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericInterfaceParam_Usual_paramsKey[W]]*moqGenericInterfaceParam_Usual_results[W]{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericInterfaceParam_Usual_results[W]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericInterfaceParam_Usual_fnRecorder[W]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceParam_Usual_fnRecorder[W] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericInterfaceParam_Usual_recorder[W]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceParam_Usual_recorder[W] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					sResult string
-					err     error
-				}
-				sequence   uint32
-				doFn       moqGenericInterfaceParam_Usual_doFn[W]
-				doReturnFn moqGenericInterfaceParam_Usual_doReturnFn[W]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericInterfaceParam[W]) prettyParams_Usual(params moqGenericInterfaceParam_Usual_params[W]) string {
+func (*moqGenericInterfaceParam_Usual_adaptor[W]) PrettyParams(params moqGenericInterfaceParam_Usual_params[W]) string {
 	return fmt.Sprintf("Usual(%#v)", params.w)
 }
 
-func (m *moqGenericInterfaceParam[W]) paramsKey_Usual(params moqGenericInterfaceParam_Usual_params[W], anyParams uint64) moqGenericInterfaceParam_Usual_paramsKey[W] {
-	m.scene.T.Helper()
-	var wUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.w == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The w parameter of the Usual function can't be indexed by value")
-		}
-		wUsedHash = hash.DeepHash(params.w)
-	}
+func (a *moqGenericInterfaceParam_Usual_adaptor[W]) ParamsKey(params moqGenericInterfaceParam_Usual_params[W], anyParams uint64) moqGenericInterfaceParam_Usual_paramsKey[W] {
+	a.moq.moq_Usual.Scene.T.Helper()
+	wUsedHash := impl.HashOnlyParamKey(a.moq.moq_Usual.Scene.T,
+		params.w, "w", 1, a.moq.runtime.parameterIndexing.Usual.w, anyParams)
 	return moqGenericInterfaceParam_Usual_paramsKey[W]{
 		params: struct{}{},
 		hashes: struct{ w hash.Hash }{
@@ -19925,19 +11072,14 @@ func (m *moqGenericInterfaceParam[W]) paramsKey_Usual(params moqGenericInterface
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericInterfaceParam[W]) Reset() { m.resultsByParams_Usual = nil }
+func (m *moqGenericInterfaceParam[W]) Reset() {
+	m.moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericInterfaceParam[W]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
 }
 
 // The following type assertion assures that testmoqs.GenericInterfaceResult is
@@ -19947,23 +11089,18 @@ var _ testmoqs.GenericInterfaceResult[testmoqs.MyReader] = (*moqGenericInterface
 // moqGenericInterfaceResult holds the state of a moq of the
 // GenericInterfaceResult type
 type moqGenericInterfaceResult[R testmoqs.MyReader] struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqGenericInterfaceResult_mock[R]
+	moq *moqGenericInterfaceResult_mock[R]
 
-	resultsByParams_Usual []moqGenericInterfaceResult_Usual_resultsByParams[R]
+	moq_Usual *impl.Moq[
+		*moqGenericInterfaceResult_Usual_adaptor[R],
+		moqGenericInterfaceResult_Usual_params[R],
+		moqGenericInterfaceResult_Usual_paramsKey[R],
+		moqGenericInterfaceResult_Usual_results[R]]
 
-	runtime struct {
-		parameterIndexing struct {
-			Usual struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
-		}
-	}
-	// moqGenericInterfaceResult_mock isolates the mock interface of the
+	runtime moqGenericInterfaceResult_runtime
 }
 
+// moqGenericInterfaceResult_mock isolates the mock interface of the
 // GenericInterfaceResult type
 type moqGenericInterfaceResult_mock[R testmoqs.MyReader] struct {
 	moq *moqGenericInterfaceResult[R]
@@ -19972,6 +11109,20 @@ type moqGenericInterfaceResult_mock[R testmoqs.MyReader] struct {
 // moqGenericInterfaceResult_recorder isolates the recorder interface of the
 // GenericInterfaceResult type
 type moqGenericInterfaceResult_recorder[R testmoqs.MyReader] struct {
+	moq *moqGenericInterfaceResult[R]
+}
+
+// moqGenericInterfaceResult_runtime holds runtime configuration for the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_runtime struct {
+	parameterIndexing struct {
+		Usual moqGenericInterfaceResult_Usual_paramIndexing
+	}
+}
+
+// moqGenericInterfaceResult_Usual_adaptor adapts moqGenericInterfaceResult as
+// needed by the runtime
+type moqGenericInterfaceResult_Usual_adaptor[R testmoqs.MyReader] struct {
 	moq *moqGenericInterfaceResult[R]
 }
 
@@ -19995,12 +11146,15 @@ type moqGenericInterfaceResult_Usual_paramsKey[R testmoqs.MyReader] struct {
 	}
 }
 
-// moqGenericInterfaceResult_Usual_resultsByParams contains the results for a
-// given set of parameters for the GenericInterfaceResult type
-type moqGenericInterfaceResult_Usual_resultsByParams[R testmoqs.MyReader] struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqGenericInterfaceResult_Usual_paramsKey[R]]*moqGenericInterfaceResult_Usual_results[R]
+// moqGenericInterfaceResult_Usual_results holds the results of the
+// GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_results[R testmoqs.MyReader] struct{ result1 R }
+
+// moqGenericInterfaceResult_Usual_paramIndexing holds the parameter indexing
+// runtime configuration for the GenericInterfaceResult type
+type moqGenericInterfaceResult_Usual_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
 }
 
 // moqGenericInterfaceResult_Usual_doFn defines the type of function needed
@@ -20011,70 +11165,47 @@ type moqGenericInterfaceResult_Usual_doFn[R testmoqs.MyReader] func(sParam strin
 // needed when calling doReturnResults for the GenericInterfaceResult type
 type moqGenericInterfaceResult_Usual_doReturnFn[R testmoqs.MyReader] func(sParam string, bParam bool) (r R)
 
-// moqGenericInterfaceResult_Usual_results holds the results of the
-// GenericInterfaceResult type
-type moqGenericInterfaceResult_Usual_results[R testmoqs.MyReader] struct {
-	params  moqGenericInterfaceResult_Usual_params[R]
-	results []struct {
-		values     *struct{ result1 R }
-		sequence   uint32
-		doFn       moqGenericInterfaceResult_Usual_doFn[R]
-		doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqGenericInterfaceResult_Usual_fnRecorder routes recorded function calls to
+// moqGenericInterfaceResult_Usual_recorder routes recorded function calls to
 // the moqGenericInterfaceResult moq
-type moqGenericInterfaceResult_Usual_fnRecorder[R testmoqs.MyReader] struct {
-	params    moqGenericInterfaceResult_Usual_params[R]
-	anyParams uint64
-	sequence  bool
-	results   *moqGenericInterfaceResult_Usual_results[R]
-	moq       *moqGenericInterfaceResult[R]
+type moqGenericInterfaceResult_Usual_recorder[R testmoqs.MyReader] struct {
+	recorder *impl.Recorder[
+		*moqGenericInterfaceResult_Usual_adaptor[R],
+		moqGenericInterfaceResult_Usual_params[R],
+		moqGenericInterfaceResult_Usual_paramsKey[R],
+		moqGenericInterfaceResult_Usual_results[R]]
 }
 
 // moqGenericInterfaceResult_Usual_anyParams isolates the any params functions
 // of the GenericInterfaceResult type
 type moqGenericInterfaceResult_Usual_anyParams[R testmoqs.MyReader] struct {
-	recorder *moqGenericInterfaceResult_Usual_fnRecorder[R]
+	recorder *moqGenericInterfaceResult_Usual_recorder[R]
 }
 
 // newMoqGenericInterfaceResult creates a new moq of the GenericInterfaceResult
 // type
 func newMoqGenericInterfaceResult[R testmoqs.MyReader](scene *moq.Scene, config *moq.Config) *moqGenericInterfaceResult[R] {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqGenericInterfaceResult_Usual_adaptor[R]{}
 	m := &moqGenericInterfaceResult[R]{
-		scene:  scene,
-		config: *config,
-		moq:    &moqGenericInterfaceResult_mock[R]{},
+		moq: &moqGenericInterfaceResult_mock[R]{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Usual struct {
-					sParam moq.ParamIndexing
-					bParam moq.ParamIndexing
-				}
-			}
-		}{parameterIndexing: struct {
-			Usual struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}
+		moq_Usual: impl.NewMoq[
+			*moqGenericInterfaceResult_Usual_adaptor[R],
+			moqGenericInterfaceResult_Usual_params[R],
+			moqGenericInterfaceResult_Usual_paramsKey[R],
+			moqGenericInterfaceResult_Usual_results[R]](scene, adaptor1, config),
+
+		runtime: moqGenericInterfaceResult_runtime{parameterIndexing: struct {
+			Usual moqGenericInterfaceResult_Usual_paramIndexing
 		}{
-			Usual: struct {
-				sParam moq.ParamIndexing
-				bParam moq.ParamIndexing
-			}{
+			Usual: moqGenericInterfaceResult_Usual_paramIndexing{
 				sParam: moq.ParamIndexByValue,
 				bParam: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -20083,58 +11214,18 @@ func newMoqGenericInterfaceResult[R testmoqs.MyReader](scene *moq.Scene, config 
 // mock returns the mock implementation of the GenericInterfaceResult type
 func (m *moqGenericInterfaceResult[R]) mock() *moqGenericInterfaceResult_mock[R] { return m.moq }
 
-func (m *moqGenericInterfaceResult_mock[R]) Usual(sParam string, bParam bool) (result1 R) {
-	m.moq.scene.T.Helper()
+func (m *moqGenericInterfaceResult_mock[R]) Usual(sParam string, bParam bool) R {
+	m.moq.moq_Usual.Scene.T.Helper()
 	params := moqGenericInterfaceResult_Usual_params[R]{
 		sParam: sParam,
 		bParam: bParam,
 	}
-	var results *moqGenericInterfaceResult_Usual_results[R]
-	for _, resultsByParams := range m.moq.resultsByParams_Usual {
-		paramsKey := m.moq.paramsKey_Usual(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 R
+	if result := m.moq.moq_Usual.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Usual(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(sParam, bParam)
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn(sParam, bParam)
-	}
-	return
+	return result1
 }
 
 // onCall returns the recorder implementation of the GenericInterfaceResult
@@ -20145,206 +11236,96 @@ func (m *moqGenericInterfaceResult[R]) onCall() *moqGenericInterfaceResult_recor
 	}
 }
 
-func (m *moqGenericInterfaceResult_recorder[R]) Usual(sParam string, bParam bool) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	return &moqGenericInterfaceResult_Usual_fnRecorder[R]{
-		params: moqGenericInterfaceResult_Usual_params[R]{
+func (m *moqGenericInterfaceResult_recorder[R]) Usual(sParam string, bParam bool) *moqGenericInterfaceResult_Usual_recorder[R] {
+	return &moqGenericInterfaceResult_Usual_recorder[R]{
+		recorder: m.moq.moq_Usual.OnCall(moqGenericInterfaceResult_Usual_params[R]{
 			sParam: sParam,
 			bParam: bParam,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) any() *moqGenericInterfaceResult_Usual_anyParams[R] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) any() *moqGenericInterfaceResult_Usual_anyParams[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqGenericInterfaceResult_Usual_anyParams[R]{recorder: r}
 }
 
-func (a *moqGenericInterfaceResult_Usual_anyParams[R]) sParam() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqGenericInterfaceResult_Usual_anyParams[R]) sParam() *moqGenericInterfaceResult_Usual_recorder[R] {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (a *moqGenericInterfaceResult_Usual_anyParams[R]) bParam() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	a.recorder.anyParams |= 1 << 1
+func (a *moqGenericInterfaceResult_Usual_anyParams[R]) bParam() *moqGenericInterfaceResult_Usual_recorder[R] {
+	a.recorder.recorder.AnyParam(2)
 	return a.recorder
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) seq() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) seq() *moqGenericInterfaceResult_Usual_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) noSeq() *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Usual(r.params))
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) noSeq() *moqGenericInterfaceResult_Usual_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) returnResults(result1 R) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 R }
-		sequence   uint32
-		doFn       moqGenericInterfaceResult_Usual_doFn[R]
-		doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
-	}{
-		values: &struct{ result1 R }{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) returnResults(result1 R) *moqGenericInterfaceResult_Usual_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericInterfaceResult_Usual_results[R]{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) andDo(fn moqGenericInterfaceResult_Usual_doFn[R]) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) andDo(fn moqGenericInterfaceResult_Usual_doFn[R]) *moqGenericInterfaceResult_Usual_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericInterfaceResult_Usual_params[R]) {
+		fn(params.sParam, params.bParam)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) doReturnResults(fn moqGenericInterfaceResult_Usual_doReturnFn[R]) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values     *struct{ result1 R }
-		sequence   uint32
-		doFn       moqGenericInterfaceResult_Usual_doFn[R]
-		doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
-	}{sequence: sequence, doReturnFn: fn})
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) doReturnResults(fn moqGenericInterfaceResult_Usual_doReturnFn[R]) *moqGenericInterfaceResult_Usual_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericInterfaceResult_Usual_params[R]) *moqGenericInterfaceResult_Usual_results[R] {
+		result1 := fn(params.sParam, params.bParam)
+		return &moqGenericInterfaceResult_Usual_results[R]{
+			result1: result1,
+		}
+	})
 	return r
 }
 
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqGenericInterfaceResult_Usual_resultsByParams[R]
-	for n, res := range r.moq.resultsByParams_Usual {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqGenericInterfaceResult_Usual_resultsByParams[R]{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqGenericInterfaceResult_Usual_paramsKey[R]]*moqGenericInterfaceResult_Usual_results[R]{},
-		}
-		r.moq.resultsByParams_Usual = append(r.moq.resultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Usual) {
-			copy(r.moq.resultsByParams_Usual[insertAt+1:], r.moq.resultsByParams_Usual[insertAt:0])
-			r.moq.resultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Usual(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqGenericInterfaceResult_Usual_results[R]{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqGenericInterfaceResult_Usual_fnRecorder[R]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceResult_Usual_fnRecorder[R] {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqGenericInterfaceResult_Usual_recorder[R]) repeat(repeaters ...moq.Repeater) *moqGenericInterfaceResult_Usual_recorder[R] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values     *struct{ result1 R }
-				sequence   uint32
-				doFn       moqGenericInterfaceResult_Usual_doFn[R]
-				doReturnFn moqGenericInterfaceResult_Usual_doReturnFn[R]
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqGenericInterfaceResult[R]) prettyParams_Usual(params moqGenericInterfaceResult_Usual_params[R]) string {
+func (*moqGenericInterfaceResult_Usual_adaptor[R]) PrettyParams(params moqGenericInterfaceResult_Usual_params[R]) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.sParam, params.bParam)
 }
 
-func (m *moqGenericInterfaceResult[R]) paramsKey_Usual(params moqGenericInterfaceResult_Usual_params[R], anyParams uint64) moqGenericInterfaceResult_Usual_paramsKey[R] {
-	m.scene.T.Helper()
-	var sParamUsed string
-	var sParamUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Usual.sParam == moq.ParamIndexByValue {
-			sParamUsed = params.sParam
-		} else {
-			sParamUsedHash = hash.DeepHash(params.sParam)
-		}
-	}
-	var bParamUsed bool
-	var bParamUsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.runtime.parameterIndexing.Usual.bParam == moq.ParamIndexByValue {
-			bParamUsed = params.bParam
-		} else {
-			bParamUsedHash = hash.DeepHash(params.bParam)
-		}
-	}
+func (a *moqGenericInterfaceResult_Usual_adaptor[R]) ParamsKey(params moqGenericInterfaceResult_Usual_params[R], anyParams uint64) moqGenericInterfaceResult_Usual_paramsKey[R] {
+	a.moq.moq_Usual.Scene.T.Helper()
+	sParamUsed, sParamUsedHash := impl.ParamKey(
+		params.sParam, 1, a.moq.runtime.parameterIndexing.Usual.sParam, anyParams)
+	bParamUsed, bParamUsedHash := impl.ParamKey(
+		params.bParam, 2, a.moq.runtime.parameterIndexing.Usual.bParam, anyParams)
 	return moqGenericInterfaceResult_Usual_paramsKey[R]{
 		params: struct {
 			sParam string
@@ -20364,37 +11345,37 @@ func (m *moqGenericInterfaceResult[R]) paramsKey_Usual(params moqGenericInterfac
 }
 
 // Reset resets the state of the moq
-func (m *moqGenericInterfaceResult[R]) Reset() { m.resultsByParams_Usual = nil }
+func (m *moqGenericInterfaceResult[R]) Reset() {
+	m.moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqGenericInterfaceResult[R]) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Usual {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Usual(results.params))
-			}
-		}
-	}
+	m.moq_Usual.Scene.T.Helper()
+	m.moq_Usual.AssertExpectationsMet()
 }
 
 // moqUnsafePointerFn holds the state of a moq of the UnsafePointerFn type
 type moqUnsafePointerFn struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqUnsafePointerFn_mock
+	moq *impl.Moq[
+		*moqUnsafePointerFn_adaptor,
+		moqUnsafePointerFn_params,
+		moqUnsafePointerFn_paramsKey,
+		moqUnsafePointerFn_results,
+	]
 
-	resultsByParams []moqUnsafePointerFn_resultsByParams
-
-	runtime struct {
-		parameterIndexing struct{}
-	}
+	runtime moqUnsafePointerFn_runtime
 }
 
-// moqUnsafePointerFn_mock isolates the mock interface of the UnsafePointerFn
-// type
-type moqUnsafePointerFn_mock struct {
+// moqUnsafePointerFn_runtime holds runtime configuration for the
+// UnsafePointerFn type
+type moqUnsafePointerFn_runtime struct {
+	parameterIndexing moqUnsafePointerFn_paramIndexing
+}
+
+// moqUnsafePointerFn_adaptor adapts moqUnsafePointerFn as needed by the
+// runtime
+type moqUnsafePointerFn_adaptor struct {
 	moq *moqUnsafePointerFn
 }
 
@@ -20408,13 +11389,14 @@ type moqUnsafePointerFn_paramsKey struct {
 	hashes struct{}
 }
 
-// moqUnsafePointerFn_resultsByParams contains the results for a given set of
-// parameters for the UnsafePointerFn type
-type moqUnsafePointerFn_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqUnsafePointerFn_paramsKey]*moqUnsafePointerFn_results
+// moqUnsafePointerFn_results holds the results of the UnsafePointerFn type
+type moqUnsafePointerFn_results struct {
+	result1 unsafe.Pointer
 }
+
+// moqUnsafePointerFn_paramIndexing holds the parameter indexing runtime
+// configuration for the UnsafePointerFn type
+type moqUnsafePointerFn_paramIndexing struct{}
 
 // moqUnsafePointerFn_doFn defines the type of function needed when calling
 // andDo for the UnsafePointerFn type
@@ -20424,52 +11406,37 @@ type moqUnsafePointerFn_doFn func()
 // calling doReturnResults for the UnsafePointerFn type
 type moqUnsafePointerFn_doReturnFn func() unsafe.Pointer
 
-// moqUnsafePointerFn_results holds the results of the UnsafePointerFn type
-type moqUnsafePointerFn_results struct {
-	params  moqUnsafePointerFn_params
-	results []struct {
-		values *struct {
-			result1 unsafe.Pointer
-		}
-		sequence   uint32
-		doFn       moqUnsafePointerFn_doFn
-		doReturnFn moqUnsafePointerFn_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqUnsafePointerFn_fnRecorder routes recorded function calls to the
+// moqUnsafePointerFn_recorder routes recorded function calls to the
 // moqUnsafePointerFn moq
-type moqUnsafePointerFn_fnRecorder struct {
-	params    moqUnsafePointerFn_params
-	anyParams uint64
-	sequence  bool
-	results   *moqUnsafePointerFn_results
-	moq       *moqUnsafePointerFn
+type moqUnsafePointerFn_recorder struct {
+	recorder *impl.Recorder[
+		*moqUnsafePointerFn_adaptor,
+		moqUnsafePointerFn_params,
+		moqUnsafePointerFn_paramsKey,
+		moqUnsafePointerFn_results,
+	]
 }
 
 // moqUnsafePointerFn_anyParams isolates the any params functions of the
 // UnsafePointerFn type
 type moqUnsafePointerFn_anyParams struct {
-	recorder *moqUnsafePointerFn_fnRecorder
+	recorder *moqUnsafePointerFn_recorder
 }
 
 // newMoqUnsafePointerFn creates a new moq of the UnsafePointerFn type
 func newMoqUnsafePointerFn(scene *moq.Scene, config *moq.Config) *moqUnsafePointerFn {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqUnsafePointerFn_adaptor{}
 	m := &moqUnsafePointerFn{
-		scene:  scene,
-		config: *config,
-		moq:    &moqUnsafePointerFn_mock{},
+		moq: impl.NewMoq[
+			*moqUnsafePointerFn_adaptor,
+			moqUnsafePointerFn_params,
+			moqUnsafePointerFn_paramsKey,
+			moqUnsafePointerFn_results,
+		](scene, adaptor1, config),
 
-		runtime: struct {
-			parameterIndexing struct{}
-		}{parameterIndexing: struct{}{}},
+		runtime: moqUnsafePointerFn_runtime{parameterIndexing: moqUnsafePointerFn_paramIndexing{}},
 	}
-	m.moq.moq = m
+	adaptor1.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -20477,237 +11444,91 @@ func newMoqUnsafePointerFn(scene *moq.Scene, config *moq.Config) *moqUnsafePoint
 
 // mock returns the moq implementation of the UnsafePointerFn type
 func (m *moqUnsafePointerFn) mock() testmoqs.UnsafePointerFn {
-	return func() unsafe.Pointer { m.scene.T.Helper(); moq := &moqUnsafePointerFn_mock{moq: m}; return moq.fn() }
-}
+	return func() unsafe.Pointer {
+		m.moq.Scene.T.Helper()
+		params := moqUnsafePointerFn_params{}
 
-func (m *moqUnsafePointerFn_mock) fn() (result1 unsafe.Pointer) {
-	m.moq.scene.T.Helper()
-	params := moqUnsafePointerFn_params{}
-	var results *moqUnsafePointerFn_results
-	for _, resultsByParams := range m.moq.resultsByParams {
-		paramsKey := m.moq.paramsKey(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
+		var result1 unsafe.Pointer
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.result1
 		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams(params))
-		}
-		return
-	}
-
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
-	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn()
-	}
-	return
-}
-
-func (m *moqUnsafePointerFn) onCall() *moqUnsafePointerFn_fnRecorder {
-	return &moqUnsafePointerFn_fnRecorder{
-		params:   moqUnsafePointerFn_params{},
-		sequence: m.config.Sequence == moq.SeqDefaultOn,
-		moq:      m,
+		return result1
 	}
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) any() *moqUnsafePointerFn_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (m *moqUnsafePointerFn) onCall() *moqUnsafePointerFn_recorder {
+	return &moqUnsafePointerFn_recorder{
+		recorder: m.moq.OnCall(moqUnsafePointerFn_params{}),
+	}
+}
+
+func (r *moqUnsafePointerFn_recorder) any() *moqUnsafePointerFn_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqUnsafePointerFn_anyParams{recorder: r}
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) seq() *moqUnsafePointerFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqUnsafePointerFn_recorder) seq() *moqUnsafePointerFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) noSeq() *moqUnsafePointerFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams(r.params))
+func (r *moqUnsafePointerFn_recorder) noSeq() *moqUnsafePointerFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) returnResults(result1 unsafe.Pointer) *moqUnsafePointerFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 unsafe.Pointer
-		}
-		sequence   uint32
-		doFn       moqUnsafePointerFn_doFn
-		doReturnFn moqUnsafePointerFn_doReturnFn
-	}{
-		values: &struct {
-			result1 unsafe.Pointer
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqUnsafePointerFn_recorder) returnResults(result1 unsafe.Pointer) *moqUnsafePointerFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqUnsafePointerFn_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) andDo(fn moqUnsafePointerFn_doFn) *moqUnsafePointerFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqUnsafePointerFn_recorder) andDo(fn moqUnsafePointerFn_doFn) *moqUnsafePointerFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqUnsafePointerFn_params) {
+		fn()
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) doReturnResults(fn moqUnsafePointerFn_doReturnFn) *moqUnsafePointerFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 unsafe.Pointer
+func (r *moqUnsafePointerFn_recorder) doReturnResults(fn moqUnsafePointerFn_doReturnFn) *moqUnsafePointerFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqUnsafePointerFn_params) *moqUnsafePointerFn_results {
+		result1 := fn()
+		return &moqUnsafePointerFn_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqUnsafePointerFn_doFn
-		doReturnFn moqUnsafePointerFn_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqUnsafePointerFn_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqUnsafePointerFn_resultsByParams
-	for n, res := range r.moq.resultsByParams {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqUnsafePointerFn_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqUnsafePointerFn_paramsKey]*moqUnsafePointerFn_results{},
-		}
-		r.moq.resultsByParams = append(r.moq.resultsByParams, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams) {
-			copy(r.moq.resultsByParams[insertAt+1:], r.moq.resultsByParams[insertAt:0])
-			r.moq.resultsByParams[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqUnsafePointerFn_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqUnsafePointerFn_fnRecorder) repeat(repeaters ...moq.Repeater) *moqUnsafePointerFn_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqUnsafePointerFn_recorder) repeat(repeaters ...moq.Repeater) *moqUnsafePointerFn_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 unsafe.Pointer
-				}
-				sequence   uint32
-				doFn       moqUnsafePointerFn_doFn
-				doReturnFn moqUnsafePointerFn_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqUnsafePointerFn) prettyParams(params moqUnsafePointerFn_params) string {
+func (*moqUnsafePointerFn_adaptor) PrettyParams(params moqUnsafePointerFn_params) string {
 	return fmt.Sprintf("UnsafePointerFn()")
 }
 
-func (m *moqUnsafePointerFn) paramsKey(params moqUnsafePointerFn_params, anyParams uint64) moqUnsafePointerFn_paramsKey {
-	m.scene.T.Helper()
+func (a *moqUnsafePointerFn_adaptor) ParamsKey(params moqUnsafePointerFn_params, anyParams uint64) moqUnsafePointerFn_paramsKey {
+	a.moq.moq.Scene.T.Helper()
 	return moqUnsafePointerFn_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -20715,17 +11536,12 @@ func (m *moqUnsafePointerFn) paramsKey(params moqUnsafePointerFn_params, anyPara
 }
 
 // Reset resets the state of the moq
-func (m *moqUnsafePointerFn) Reset() { m.resultsByParams = nil }
+func (m *moqUnsafePointerFn) Reset() {
+	m.moq.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqUnsafePointerFn) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams(results.params))
-			}
-		}
-	}
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
 }

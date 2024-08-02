@@ -191,14 +191,49 @@ func TestCall(t *testing.T) {
 
 	t.Run("complete", func(t *testing.T) {
 		// ASSEMBLE
+		decs := dst.CallExprDecorations{NodeDecs: dst.NodeDecs{Before: dst.EmptyLine}}
 		expected := &dst.CallExpr{
 			Fun:      id1,
 			Args:     []dst.Expr{id2, id3},
 			Ellipsis: true,
+			Decs:     decs,
 		}
 
 		// ACT
-		actual := ast.Call(id1).Args(id2, id3).Ellipsis(true).Obj
+		actual := ast.Call(id1).Args(id2, id3).Ellipsis(true).Decs(decs).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+
+	t.Run("nil elements are removed", func(t *testing.T) {
+		// ASSEMBLE
+		expected := &dst.CallExpr{
+			Fun:  id1,
+			Args: []dst.Expr{id2, id3},
+		}
+
+		// ACT
+		actual := ast.Call(id1).Args(id2, nil, id3).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
+func TestCallDecs(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.CallExprDecorations{
+			NodeDecs: dst.NodeDecs{Before: dst.EmptyLine},
+		}
+
+		// ACT
+		actual := ast.CallDecs(dst.EmptyLine, dst.None)
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
@@ -232,6 +267,22 @@ func TestComp(t *testing.T) {
 
 		// ACT
 		actual := ast.Comp(id1).Elts(id2, id3).Decs(decs).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+
+	t.Run("nil elements are removed", func(t *testing.T) {
+		// ASSEMBLE
+		expected := &dst.CompositeLit{
+			Type: id1,
+			Elts: []dst.Expr{id2, id3},
+		}
+
+		// ACT
+		actual := ast.Comp(id1).Elts(id2, nil, id3).Obj
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
@@ -476,6 +527,23 @@ func TestFn(t *testing.T) {
 			t.Errorf("got %#v, want %#v", actual, expected)
 		}
 	})
+
+	t.Run("removes nils", func(t *testing.T) {
+		// ASSEMBLE
+		expected := &dst.FuncDecl{
+			Name: dst.NewIdent("fn1"),
+			Type: &dst.FuncType{},
+			Body: &dst.BlockStmt{List: []dst.Stmt{assign1, assign2}},
+		}
+
+		// ACT
+		actual := ast.Fn("fn1").Body(assign1, nil, assign2).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
 }
 
 func TestFnLit(t *testing.T) {
@@ -617,6 +685,41 @@ func TestIdPath(t *testing.T) {
 	})
 }
 
+func TestIdDecs(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		decs := dst.IdentDecorations{
+			NodeDecs: dst.NodeDecs{Before: dst.EmptyLine, After: dst.NewLine},
+		}
+		expected := &dst.Ident{Name: "xyz", Decs: decs}
+
+		// ACT
+		actual := ast.IdDecs(&dst.Ident{Name: "xyz"}, decs)
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
+func TestIdentDecs(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.IdentDecorations{
+			NodeDecs: dst.NodeDecs{Before: dst.EmptyLine, After: dst.NewLine},
+		}
+
+		// ACT
+		actual := ast.IdentDecs(dst.EmptyLine, dst.NewLine)
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
 func TestIncStmt(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
 		// ASSEMBLE
@@ -679,7 +782,9 @@ func TestIf(t *testing.T) {
 		decs := dst.IfStmtDecorations{
 			NodeDecs: dst.NodeDecs{After: dst.EmptyLine},
 		}
+		init := &dst.ExprStmt{X: id1}
 		expected := &dst.IfStmt{
+			Init: init,
 			Cond: id1,
 			Body: &dst.BlockStmt{List: []dst.Stmt{assign1, assign2}},
 			Else: assign3,
@@ -687,7 +792,7 @@ func TestIf(t *testing.T) {
 		}
 
 		// ACT
-		actual := ast.If(id1).Body(assign1, assign2).Else(assign3).Decs(decs).Obj
+		actual := ast.If(id1).Init(init).Body(assign1, assign2).Else(assign3).Decs(decs).Obj
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
@@ -787,6 +892,21 @@ func TestKeyValueDecs(t *testing.T) {
 
 		// ACT
 		actual := ast.KeyValueDecs(dst.EmptyLine).After(dst.NewLine).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
+func TestLitBool(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		expected := &dst.Ident{Name: "true"}
+
+		// ACT
+		actual := ast.LitBool(true)
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
@@ -1042,10 +1162,28 @@ func TestSel(t *testing.T) {
 
 	t.Run("complete", func(t *testing.T) {
 		// ASSEMBLE
-		expected := &dst.SelectorExpr{X: id1, Sel: id2}
+		decs := dst.SelectorExprDecorations{NodeDecs: dst.NodeDecs{Before: dst.NewLine}}
+		expected := &dst.SelectorExpr{X: id1, Sel: id2, Decs: decs}
 
 		// ACT
-		actual := ast.Sel(id1).Dot(id2).Obj
+		actual := ast.Sel(id1).Dot(id2).Decs(decs).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
+func TestSelDecs(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.SelectorExprDecorations{
+			NodeDecs: dst.NodeDecs{Before: dst.EmptyLine, After: dst.NewLine},
+		}
+
+		// ACT
+		actual := ast.SelDecs(dst.EmptyLine, dst.NewLine)
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {
@@ -1103,7 +1241,38 @@ func TestStar(t *testing.T) {
 		expected := &dst.StarExpr{X: id1}
 
 		// ACT
-		actual := ast.Star(id1)
+		actual := ast.Star(id1).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+
+	t.Run("complete", func(t *testing.T) {
+		// ASSEMBLE
+		decs := dst.StarExprDecorations{NodeDecs: dst.NodeDecs{Before: dst.EmptyLine}}
+		expected := &dst.StarExpr{X: id1, Decs: decs}
+
+		// ACT
+		actual := ast.Star(id1).Decs(decs).Obj
+
+		// ASSERT
+		if !reflect.DeepEqual(actual, expected) {
+			t.Errorf("got %#v, want %#v", actual, expected)
+		}
+	})
+}
+
+func TestStarDecs(t *testing.T) {
+	t.Run("simple", func(t *testing.T) {
+		// ASSEMBLE
+		expected := dst.StarExprDecorations{
+			NodeDecs: dst.NodeDecs{Before: dst.EmptyLine, After: dst.NewLine},
+		}
+
+		// ACT
+		actual := ast.StarDecs(dst.EmptyLine, dst.NewLine)
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {

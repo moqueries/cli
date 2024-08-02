@@ -417,12 +417,10 @@ func TestRepeaters(t *testing.T) {
 
 				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
-				msg := fmt.Sprintf("%s or %s must be called before calling %s",
+				tMoq.onCall().Fatalf("%s or %s must be called before calling %s",
 					export("returnResults", entry),
 					export("doReturnResults", entry),
-					export("repeat", entry))
-
-				tMoq.onCall().Fatalf(msg).returnResults()
+					export("repeat", entry)).returnResults()
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 
@@ -626,12 +624,9 @@ func TestAnyValues(t *testing.T) {
 					drrFn = titler.String(drrFn)
 				}
 
-				msg := fmt.Sprintf(
-					"Any functions must be called before %s or %s calls, recording %%s",
-					rrFn, drrFn)
 				bParams := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.onCall().Fatalf(msg, bParams).returnResults()
-				fmtMsg := fmt.Sprintf(msg, bParams)
+				tMoq.onCall().Fatalf("Any functions must be called before %s or %s calls, recording %s",
+					rrFn, drrFn, bParams).returnResults()
 
 				// ACT
 				rec.anySParam()
@@ -643,8 +638,8 @@ func TestAnyValues(t *testing.T) {
 				scene.AssertExpectationsMet()
 				moqScene.AssertExpectationsMet()
 				if !config.noParams && !config.opaqueParams {
-					if !strings.Contains(fmtMsg, "Hi") {
-						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					if !strings.Contains(bParams, "Hi") {
+						t.Errorf("got: %s, want to contain Hi", bParams)
 					}
 				}
 			})
@@ -997,13 +992,12 @@ func TestSequences(t *testing.T) {
 						rec := entry.newRecorder([]string{"Hello", "there"}, false)
 						rec.returnResults(result.sResults, result.err)
 
-						msg := fmt.Sprintf("%s must be called before %s or %s calls, recording %%s",
+						bParams := entry.prettyParams([]string{"Hello", "there"}, false)
+						tMoq.onCall().Fatalf("%s must be called before %s or %s calls, recording %s",
 							export(seqNoSeq, entry),
 							export("returnResults", entry),
-							export("doReturnResults", entry))
-						bParams := entry.prettyParams([]string{"Hello", "there"}, false)
-						tMoq.onCall().Fatalf(msg, bParams).returnResults()
-						fmtMsg := fmt.Sprintf(msg, bParams)
+							export("doReturnResults", entry),
+							bParams).returnResults()
 
 						// ACT
 						switch seqNoSeq {
@@ -1022,8 +1016,8 @@ func TestSequences(t *testing.T) {
 						}
 						config := entry.config()
 						if !config.noParams && !config.opaqueParams {
-							if !strings.Contains(fmtMsg, "Hello") {
-								t.Errorf("got: %s, want to contain Hello", fmtMsg)
+							if !strings.Contains(bParams, "Hello") {
+								t.Errorf("got: %s, want to contain Hello", bParams)
 							}
 						}
 
@@ -1193,9 +1187,9 @@ func TestDoFuncs(t *testing.T) {
 
 				tMoq.onCall().Helper().returnResults().repeat(moq.AnyTimes())
 
-				msg := fmt.Sprintf("%s must be called before calling %s",
-					export("returnResults", entry), export("andDo", entry))
-				tMoq.onCall().Fatalf(msg).returnResults()
+				tMoq.onCall().Fatalf("%s must be called before calling %s",
+					export("returnResults", entry),
+					export("andDo", entry)).returnResults()
 
 				rec := entry.newRecorder([]string{"Hi", "you"}, true)
 

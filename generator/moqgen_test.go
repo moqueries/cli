@@ -559,9 +559,7 @@ func TestMoqGenerator(t *testing.T) {
 				converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 					Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
 				}}, nil)
-				converter1Moq.onCall().IsolationStruct("mock").
-					returnResults(nil, nil)
-				converter1Moq.onCall().IsolationStruct("recorder").
+				converter1Moq.onCall().MockStructs().
 					returnResults(nil, nil)
 				converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 					returnResults(nil, nil)
@@ -602,9 +600,7 @@ func TestMoqGenerator(t *testing.T) {
 					OutPkgPath: tc.outPkgPath,
 				}, tc.request.Export).returnResults(converter2Moq.mock())
 				converter2Moq.onCall().BaseDecls().returnResults(nil, nil)
-				converter2Moq.onCall().IsolationStruct("mock").
-					returnResults(nil, nil)
-				converter2Moq.onCall().IsolationStruct("recorder").
+				converter2Moq.onCall().MockStructs().
 					returnResults(nil, nil)
 				converter2Moq.onCall().MethodStructs(iface2Funcs[0]).
 					returnResults(nil, nil)
@@ -739,9 +735,7 @@ func TestMoqGenerator(t *testing.T) {
 			converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 				Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
 			}}, nil)
-			converter1Moq.onCall().IsolationStruct("mock").
-				returnResults(nil, nil)
-			converter1Moq.onCall().IsolationStruct("recorder").
+			converter1Moq.onCall().MockStructs().
 				returnResults(nil, nil)
 			converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 				returnResults(nil, nil)
@@ -884,7 +878,7 @@ func TestMoqGenerator(t *testing.T) {
 				"func type params":  ast.FnType(fl).Obj,
 				"func type results": ast.FnType(nil).Results(fl).Obj,
 				"interface type":    &dst.InterfaceType{Methods: fl},
-				"star expr":         ast.Star(ast.Id("string")),
+				"star expr":         ast.Star(ast.Id("string")).Obj,
 				"struct type":       ast.Struct(ast.Field(ast.Id("string")).Obj),
 				"map key":           ast.MapType(ast.Id("string")).Value(ast.Id("int")).Obj,
 				"map value":         ast.MapType(ast.Id("int")).Value(ast.Id("string")).Obj,
@@ -957,7 +951,7 @@ func TestMoqGenerator(t *testing.T) {
 				"ellipsis w/ literal":       ast.Ellipsis(ast.LitInt(48)),
 				"func type w/ literal":      ast.FnType(weirdFL).Obj,
 				"interface type w/ literal": &dst.InterfaceType{Methods: weirdFL},
-				"star expr w/ literal":      ast.Star(ast.LitInt(91)),
+				"star expr w/ literal":      ast.Star(ast.LitInt(91)).Obj,
 				"struct type w/ literal":    ast.Struct(ast.Field(ast.LitInt(65)).Obj),
 				"map type w/ literal":       ast.MapType(ast.LitInt(38)).Value(ast.Id("string")).Obj,
 			}
@@ -1155,9 +1149,7 @@ func TestMoqGenerator(t *testing.T) {
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseDecls().returnResults(nil, nil)
-		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil, nil)
-		converter1Moq.onCall().IsolationStruct("recorder").
+		converter1Moq.onCall().MockStructs().
 			returnResults(nil, nil)
 		converter1Moq.onCall().MethodStructs(ifaceFuncs[0]).
 			returnResults(nil, nil)
@@ -1280,7 +1272,7 @@ func TestMoqGenerator(t *testing.T) {
 	})
 
 	t.Run("returns a converter error", func(t *testing.T) {
-		for n := 1; n < 20; n++ {
+		for n := 1; n < 19; n++ {
 			t.Run(fmt.Sprintf("%d calls", n), func(t *testing.T) {
 				// ASSEMBLE
 				beforeEach(t)
@@ -1325,11 +1317,7 @@ func TestMoqGenerator(t *testing.T) {
 					}}, retError())
 				}
 				if !done() {
-					converter1Moq.onCall().IsolationStruct("mock").
-						returnResults(nil, retError())
-				}
-				if !done() {
-					converter1Moq.onCall().IsolationStruct("recorder").
+					converter1Moq.onCall().MockStructs().
 						returnResults(nil, retError())
 				}
 				if !done() {
@@ -1388,7 +1376,7 @@ func TestMoqGenerator(t *testing.T) {
 					}}, retError())
 				}
 				if !done() {
-					converter2Moq.onCall().IsolationStruct("mock").
+					converter2Moq.onCall().MockStructs().
 						returnResults(nil, retError())
 				}
 				if !done() {
@@ -1404,10 +1392,6 @@ func TestMoqGenerator(t *testing.T) {
 						returnResults(nil, retError())
 				}
 				if !done() {
-					converter2Moq.onCall().MockMethod(fnFuncs[0]).
-						returnResults(nil, retError())
-				}
-				if !done() {
 					converter2Moq.onCall().RecorderMethods(fnFuncs[0]).
 						returnResults(nil, retError())
 				}
@@ -1418,6 +1402,9 @@ func TestMoqGenerator(t *testing.T) {
 				if !done() {
 					converter2Moq.onCall().AssertMethod().
 						returnResults(nil, retError())
+				}
+				if !done() {
+					t.Fatalf("got !done(), want to be done! (reduce max n at top of test)")
 				}
 
 				req := generator.GenerateRequest{
@@ -1477,9 +1464,7 @@ func TestMoqGenerator(t *testing.T) {
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter1Moq.mock())
 		converter1Moq.onCall().BaseDecls().returnResults(nil, nil)
-		converter1Moq.onCall().IsolationStruct("mock").
-			returnResults(nil, nil)
-		converter1Moq.onCall().IsolationStruct("recorder").
+		converter1Moq.onCall().MockStructs().
 			returnResults(nil, nil)
 		converter1Moq.onCall().MethodStructs(iface1Funcs[0]).
 			returnResults(nil, nil)
@@ -1508,9 +1493,7 @@ func TestMoqGenerator(t *testing.T) {
 			OutPkgPath: "thispkg_test",
 		}, false).returnResults(converter2Moq.mock())
 		converter2Moq.onCall().BaseDecls().returnResults(nil, nil)
-		converter2Moq.onCall().IsolationStruct("mock").
-			returnResults(nil, nil)
-		converter2Moq.onCall().IsolationStruct("recorder").
+		converter2Moq.onCall().MockStructs().
 			returnResults(nil, nil)
 		converter2Moq.onCall().NewFunc().
 			returnResults(nil, nil)
@@ -1713,15 +1696,13 @@ func TestMoqGenerator(t *testing.T) {
 		converter1Moq.onCall().BaseDecls().returnResults([]dst.Decl{&dst.GenDecl{
 			Specs: []dst.Spec{&dst.TypeSpec{Name: dst.NewIdent("pub-decl")}},
 		}}, nil)
-		converter1Moq.onCall().IsolationStruct("mock").
+		converter1Moq.onCall().MockStructs().
 			returnResults(nil, nil)
 		converter1Moq.onCall().MethodStructs(fnFuncs[0]).
 			returnResults(nil, nil)
 		converter1Moq.onCall().NewFunc().
 			returnResults(nil, nil)
 		converter1Moq.onCall().FuncClosure(fnFuncs[0]).
-			returnResults(nil, nil)
-		converter1Moq.onCall().MockMethod(fnFuncs[0]).
 			returnResults(nil, nil)
 		converter1Moq.onCall().RecorderMethods(fnFuncs[0]).
 			returnResults(nil, nil)

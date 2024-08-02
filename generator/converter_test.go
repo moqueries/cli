@@ -313,8 +313,8 @@ func TestConverter(t *testing.T) {
 				})
 			})
 
-			t.Run("IsolationStruct", func(t *testing.T) {
-				t.Run("creates a struct", func(t *testing.T) {
+			t.Run("MockStructs", func(t *testing.T) {
+				t.Run("create structs", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
 					defer afterEach(t)
@@ -322,21 +322,51 @@ func TestConverter(t *testing.T) {
 					typ := generator.Type{
 						TypeInfo: ast.TypeInfo{Type: &dst.TypeSpec{
 							Name: dst.NewIdent("MyInterface"),
+							Type: &dst.InterfaceType{},
 						}},
 					}
 					converter := generator.NewConverter(typ, isExported, typeCacheMoq.mock())
 
 					// ACT
-					decl, err := converter.IsolationStruct("mock")
+					decls, err := converter.MockStructs()
 					// ASSERT
 					if err != nil {
 						t.Fatalf("got %#v, want no error", err)
 					}
+					if len(decls) != 3 {
+						t.Fatalf("got %#v, want 1 decl", decls)
+					}
+
+					decl := decls[0].(*dst.GenDecl)
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
 					expectedStart := fmt.Sprintf("// %s isolates the mock interface of the MyInterface type",
 						exported("moqMyInterface_mock"))
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+
+					decl = decls[1].(*dst.GenDecl)
+					if len(decl.Decs.Start) < 2 {
+						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+					}
+					expectedStart = fmt.Sprintf("// %s isolates the recorder interface of the MyInterface",
+						exported("moqMyInterface_recorder"))
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+					expectedStart = "// type"
+					if decl.Decs.Start[1] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[1], expectedStart)
+					}
+
+					decl = decls[2].(*dst.GenDecl)
+					if len(decl.Decs.Start) < 1 {
+						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+					}
+					expectedStart = fmt.Sprintf("// %s holds runtime configuration for the MyInterface type",
+						exported("moqMyInterface_runtime"))
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
@@ -416,9 +446,10 @@ func TestConverter(t *testing.T) {
 					if err != nil {
 						t.Errorf("got %#v, wanted nil err", err)
 					}
-					if len(decls) != 8 {
-						t.Errorf("got len %d, wanted 8", len(decls))
+					if len(decls) != 9 {
+						t.Errorf("got len %d, wanted 9", len(decls))
 					}
+
 					decl, ok := decls[0].(*dst.GenDecl)
 					if !ok {
 						t.Errorf("got %#v, wanted GenDecl type", decls[0])
@@ -426,13 +457,27 @@ func TestConverter(t *testing.T) {
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
-					expectedStart := fmt.Sprintf("// %s holds the params of the PublicInterface type",
-						exported("moqPublicInterface_Func1_params"))
+					expectedStart := fmt.Sprintf("// %s adapts %s as needed by the",
+						exported("moqPublicInterface_Func1_adaptor"),
+						exported("moqPublicInterface"))
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
 
 					decl, ok = decls[1].(*dst.GenDecl)
+					if !ok {
+						t.Errorf("got %#v, wanted GenDecl type", decls[0])
+					}
+					if len(decl.Decs.Start) < 1 {
+						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+					}
+					expectedStart = fmt.Sprintf("// %s holds the params of the PublicInterface type",
+						exported("moqPublicInterface_Func1_params"))
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+
+					decl, ok = decls[2].(*dst.GenDecl)
 					if !ok {
 						t.Errorf("got %#v, wanted GenDecl type", decls[1])
 					}
@@ -449,26 +494,43 @@ func TestConverter(t *testing.T) {
 						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
 					}
 
-					decl, ok = decls[2].(*dst.GenDecl)
+					decl, ok = decls[3].(*dst.GenDecl)
 					if !ok {
 						t.Errorf("got %#v, wanted GenDecl type", decls[2])
 					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
-					expectedStart = fmt.Sprintf("// %s contains the results for a given",
-						exported("moqPublicInterface_Func1_resultsByParams"))
+					expectedStart = fmt.Sprintf("// %s holds the results of the PublicInterface",
+						exported("moqPublicInterface_Func1_results"))
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
-					expectedStart = "// set of parameters for the PublicInterface type"
+					expectedStart = "// type"
 					if decl.Decs.Start[1] != expectedStart {
-						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
+						t.Errorf("got %s, want %s", decl.Decs.Start[1], expectedStart)
 					}
 
-					decl, ok = decls[3].(*dst.GenDecl)
+					decl, ok = decls[4].(*dst.GenDecl)
 					if !ok {
 						t.Errorf("got %#v, wanted GenDecl type", decls[3])
+					}
+					if len(decl.Decs.Start) < 1 {
+						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
+					}
+					expectedStart = fmt.Sprintf("// %s holds the parameter indexing runtime",
+						exported("moqPublicInterface_Func1_paramIndexing"))
+					if decl.Decs.Start[0] != expectedStart {
+						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
+					}
+					expectedStart = "// configuration for the PublicInterface type"
+					if decl.Decs.Start[1] != expectedStart {
+						t.Errorf("got %s, want %s", decl.Decs.Start[1], expectedStart)
+					}
+
+					decl, ok = decls[5].(*dst.GenDecl)
+					if !ok {
+						t.Errorf("got %#v, wanted GenDecl type", decls[4])
 					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
@@ -481,12 +543,12 @@ func TestConverter(t *testing.T) {
 					expectedStart = fmt.Sprintf("// calling %s for the PublicInterface type",
 						exported("andDo"))
 					if decl.Decs.Start[1] != expectedStart {
-						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
+						t.Errorf("got %s, want %s", decl.Decs.Start[1], expectedStart)
 					}
 
-					decl, ok = decls[4].(*dst.GenDecl)
+					decl, ok = decls[6].(*dst.GenDecl)
 					if !ok {
-						t.Errorf("got %#v, wanted GenDecl type", decls[4])
+						t.Errorf("got %#v, wanted GenDecl type", decls[5])
 					}
 					if len(decl.Decs.Start) < 1 {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
@@ -499,27 +561,10 @@ func TestConverter(t *testing.T) {
 					expectedStart = fmt.Sprintf("// calling %s for the PublicInterface type",
 						exported("doReturnResults"))
 					if decl.Decs.Start[1] != expectedStart {
-						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
+						t.Errorf("got %s, want %s", decl.Decs.Start[1], expectedStart)
 					}
 
-					decl, ok = decls[5].(*dst.GenDecl)
-					if !ok {
-						t.Errorf("got %#v, wanted GenDecl type", decls[5])
-					}
-					if len(decl.Decs.Start) < 1 {
-						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
-					}
-					expectedStart = fmt.Sprintf("// %s holds the results of the PublicInterface",
-						exported("moqPublicInterface_Func1_results"))
-					if decl.Decs.Start[0] != expectedStart {
-						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
-					}
-					expectedStart = "// type"
-					if decl.Decs.Start[1] != expectedStart {
-						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
-					}
-
-					decl, ok = decls[6].(*dst.GenDecl)
+					decl, ok = decls[7].(*dst.GenDecl)
 					if !ok {
 						t.Errorf("got %#v, wanted GenDecl type", decls[6])
 					}
@@ -527,17 +572,17 @@ func TestConverter(t *testing.T) {
 						t.Errorf("got len %d, wanted < 1", len(decl.Decs.Start))
 					}
 					expectedStart = fmt.Sprintf("// %s routes recorded function calls to the",
-						exported("moqPublicInterface_Func1_fnRecorder"))
+						exported("moqPublicInterface_Func1_recorder"))
 					if decl.Decs.Start[0] != expectedStart {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
 					expectedStart = fmt.Sprintf("// %s moq",
 						exported("moqPublicInterface"))
 					if decl.Decs.Start[1] != expectedStart {
-						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
+						t.Errorf("got %s, want %s", decl.Decs.Start[1], expectedStart)
 					}
 
-					decl, ok = decls[7].(*dst.GenDecl)
+					decl, ok = decls[8].(*dst.GenDecl)
 					if !ok {
 						t.Errorf("got %#v, wanted GenDecl type", decls[7])
 					}
@@ -551,7 +596,7 @@ func TestConverter(t *testing.T) {
 					}
 					expectedStart = "// PublicInterface type"
 					if decl.Decs.Start[1] != expectedStart {
-						t.Errorf("got %s, want %s", decl.Decs.Start[0], expectedStart)
+						t.Errorf("got %s, want %s", decl.Decs.Start[1], expectedStart)
 					}
 				})
 
@@ -710,7 +755,9 @@ func TestConverter(t *testing.T) {
 						t.Errorf("got %s, wanted %s", decl.Decs.Start[0], expectedStart)
 					}
 				})
+			})
 
+			t.Run("FuncClosure", func(t *testing.T) {
 				t.Run("creates a closure function for a function type", func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t)
@@ -749,6 +796,14 @@ func TestConverter(t *testing.T) {
 						returnResults(ast.TypeInfo{
 							Type: &dst.TypeSpec{Name: id},
 						}, nil).repeat(moq.AnyTimes())
+					typeCacheMoq.onCall().IsComparable(func1Param1, typ.TypeInfo).
+						returnResults(true, nil)
+					typeCacheMoq.onCall().IsComparable(func1Param2, typ.TypeInfo).
+						returnResults(true, nil)
+					typeCacheMoq.onCall().IsComparable(func1Param3, typ.TypeInfo).
+						returnResults(true, nil)
+					typeCacheMoq.onCall().IsComparable(func1Param4, typ.TypeInfo).
+						returnResults(true, nil)
 
 					// ACT
 					decl, err := converter.FuncClosure(fnSpecFuncs[0])

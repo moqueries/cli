@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 	"go/token"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -94,8 +95,19 @@ func Call(fun dst.Expr) CallDSL {
 
 // Args specifies the arguments to a call
 func (d CallDSL) Args(args ...dst.Expr) CallDSL {
-	d.Obj.Args = args
+	d.Obj.Args = removeNils(args)
 	return d
+}
+
+// Decs specifies the decorations for a call
+func (d CallDSL) Decs(decs dst.CallExprDecorations) CallDSL {
+	d.Obj.Decs = decs
+	return d
+}
+
+// CallDecs creates a dst.CallExprDecorations
+func CallDecs(before, after dst.SpaceType) dst.CallExprDecorations {
+	return dst.CallExprDecorations{NodeDecs: dst.NodeDecs{Before: before, After: after}}
 }
 
 // Ellipsis specifies if the last argument is variadic
@@ -114,7 +126,7 @@ func Comp(typ dst.Expr) CompDSL {
 
 // Elts defines the elements of a CompDSL
 func (d CompDSL) Elts(elts ...dst.Expr) CompDSL {
-	d.Obj.Elts = elts
+	d.Obj.Elts = removeNils(elts)
 	return d
 }
 
@@ -238,7 +250,7 @@ func (d FnDSL) TypeParams(fieldList *dst.FieldList) FnDSL {
 
 // Body specifies the body for a function
 func (d FnDSL) Body(list ...dst.Stmt) FnDSL {
-	d.Obj.Body = Block(list...).Obj
+	d.Obj.Body = Block(removeNils(list)...).Obj
 	return d
 }
 
@@ -276,7 +288,7 @@ func (d FnTypeDSL) Results(resultFieldList *dst.FieldList) FnTypeDSL {
 	return d
 }
 
-// ForDSL translatesto a dst.ForStmt
+// ForDSL translates to a dst.ForStmt
 type ForDSL struct{ Obj *dst.ForStmt }
 
 // For returns a new ForDSL
@@ -317,12 +329,30 @@ func IdPath(name, path string) *dst.Ident {
 	return &dst.Ident{Name: name, Path: path}
 }
 
+// IdDecs adds decorations to a dst.Ident
+func IdDecs(i *dst.Ident, decs dst.IdentDecorations) *dst.Ident {
+	return &dst.Ident{Name: i.Name, Decs: decs}
+}
+
+// IdentDecs returns a dst.IdentDecorations
+func IdentDecs(before, after dst.SpaceType) dst.IdentDecorations {
+	return dst.IdentDecorations{
+		NodeDecs: dst.NodeDecs{Before: before, After: after},
+	}
+}
+
 // IfDSL translates to a dst.IfStmt
 type IfDSL struct{ Obj *dst.IfStmt }
 
 // If creates a new If
 func If(cond dst.Expr) IfDSL {
 	return IfDSL{Obj: &dst.IfStmt{Cond: cond}}
+}
+
+// Init specifies the initialization statement  of the If
+func (d IfDSL) Init(init dst.Stmt) IfDSL {
+	d.Obj.Init = init
+	return d
 }
 
 // Body specifies the body of the If
@@ -410,6 +440,11 @@ func KeyValueDecs(before dst.SpaceType) KeyValueDecsDSL {
 func (d KeyValueDecsDSL) After(after dst.SpaceType) KeyValueDecsDSL {
 	d.Obj.After = after
 	return d
+}
+
+// LitBool returns a dst.Ident with a literal bool value
+func LitBool(value bool) *dst.Ident {
+	return Id(strconv.FormatBool(value))
 }
 
 // LitInt returns a dst.BasicLit with a literal int value
@@ -533,6 +568,19 @@ func (d SelDSL) Dot(sel *dst.Ident) SelDSL {
 	return d
 }
 
+// Decs add decorations to a SelDSL
+func (d SelDSL) Decs(decs dst.SelectorExprDecorations) SelDSL {
+	d.Obj.Decs = decs
+	return d
+}
+
+// SelDecs returns a dst.SelectorExprDecorations
+func SelDecs(before, after dst.SpaceType) dst.SelectorExprDecorations {
+	return dst.SelectorExprDecorations{
+		NodeDecs: dst.NodeDecs{Before: before, After: after},
+	}
+}
+
 // SliceExprDSL translates to a dst.SliceExpr
 type SliceExprDSL struct{ Obj *dst.SliceExpr }
 
@@ -558,9 +606,27 @@ func SliceType(elt dst.Expr) *dst.ArrayType {
 	return &dst.ArrayType{Elt: elt}
 }
 
-// Star returns a dst.StarExpr
-func Star(x dst.Expr) *dst.StarExpr {
-	return &dst.StarExpr{X: x}
+// StarDSL translates to a dst.StarExpr
+type StarDSL struct{ Obj *dst.StarExpr }
+
+// Star returns a new star expression
+func Star(x dst.Expr) StarDSL {
+	return StarDSL{
+		Obj: &dst.StarExpr{X: x},
+	}
+}
+
+// Decs adds decorations to a StarDSL
+func (d StarDSL) Decs(decs dst.StarExprDecorations) StarDSL {
+	d.Obj.Decs = decs
+	return d
+}
+
+// StarDecs returns a dst.StarExprDecorations
+func StarDecs(before, after dst.SpaceType) dst.StarExprDecorations {
+	return dst.StarExprDecorations{
+		NodeDecs: dst.NodeDecs{Before: before, After: after},
+	}
 }
 
 // Struct returns a dst.StructType
@@ -660,4 +726,11 @@ func (d VarDeclDSL) Decs(decs dst.GenDeclDecorations) VarDeclDSL {
 // new lines)
 func emptyFieldList() *dst.FieldList {
 	return &dst.FieldList{Opening: true, Closing: true}
+}
+
+func removeNils[S ~[]E, E comparable](s S) S {
+	return slices.DeleteFunc(s, func(e E) bool {
+		var nilE E
+		return e == nilE
+	})
 }

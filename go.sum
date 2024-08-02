@@ -22,5 +22,5 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 moqueries.org/deephash v0.26.0 h1:KvMnNvb/N9lId0OOO1X6Yp2BifVuDuJJQH3epAeF178=
 moqueries.org/deephash v0.26.0/go.mod h1:brwHe2Ks78ZEA1xIgUTEy0gtZfO7tJTqXT9haTdIRNE=
-moqueries.org/runtime v0.3.0 h1:f1tDA+y8c60hyTqvlg1g1kyNEewAPF6UHyWgUs9sQMs=
-moqueries.org/runtime v0.3.0/go.mod h1:IXFe0wh6tJnD+dfHM6BCCpBuwjQQ5JIxdhRR3Be+IbQ=
+moqueries.org/runtime v0.4.0 h1:J5azoWrMEo8baBYKoJVlpw0dPjI5ZGJviPwvRJbG6Iw=
+moqueries.org/runtime v0.4.0/go.mod h1:VDwSKhTpm8NBxE23Wp0+zCXiV4hvJZ6zbzh9y4LkGeE=

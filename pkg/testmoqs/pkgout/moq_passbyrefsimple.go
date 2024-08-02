@@ -4,10 +4,9 @@ package pkgout
 
 import (
 	"fmt"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
@@ -25,23 +24,19 @@ type PassByRefSimple_genType interface {
 // MoqPassByRefSimple_genType holds the state of a moq of the
 // PassByRefSimple_genType type
 type MoqPassByRefSimple_genType struct {
-	Scene  *moq.Scene
-	Config moq.Config
-	Moq    *MoqPassByRefSimple_genType_mock
+	Moq *MoqPassByRefSimple_genType_mock
 
-	ResultsByParams_Usual []MoqPassByRefSimple_genType_Usual_resultsByParams
+	Moq_Usual *impl.Moq[
+		*MoqPassByRefSimple_genType_Usual_adaptor,
+		MoqPassByRefSimple_genType_Usual_params,
+		MoqPassByRefSimple_genType_Usual_paramsKey,
+		MoqPassByRefSimple_genType_Usual_results,
+	]
 
-	Runtime struct {
-		ParameterIndexing struct {
-			Usual struct {
-				Param1 moq.ParamIndexing
-				Param2 moq.ParamIndexing
-			}
-		}
-	}
-	// MoqPassByRefSimple_genType_mock isolates the mock interface of the
+	Runtime MoqPassByRefSimple_genType_runtime
 }
 
+// MoqPassByRefSimple_genType_mock isolates the mock interface of the
 // PassByRefSimple_genType type
 type MoqPassByRefSimple_genType_mock struct {
 	Moq *MoqPassByRefSimple_genType
@@ -50,6 +45,20 @@ type MoqPassByRefSimple_genType_mock struct {
 // MoqPassByRefSimple_genType_recorder isolates the recorder interface of the
 // PassByRefSimple_genType type
 type MoqPassByRefSimple_genType_recorder struct {
+	Moq *MoqPassByRefSimple_genType
+}
+
+// MoqPassByRefSimple_genType_runtime holds runtime configuration for the
+// PassByRefSimple_genType type
+type MoqPassByRefSimple_genType_runtime struct {
+	ParameterIndexing struct {
+		Usual MoqPassByRefSimple_genType_Usual_paramIndexing
+	}
+}
+
+// MoqPassByRefSimple_genType_Usual_adaptor adapts MoqPassByRefSimple_genType
+// as needed by the runtime
+type MoqPassByRefSimple_genType_Usual_adaptor struct {
 	Moq *MoqPassByRefSimple_genType
 }
 
@@ -73,12 +82,18 @@ type MoqPassByRefSimple_genType_Usual_paramsKey struct {
 	}
 }
 
-// MoqPassByRefSimple_genType_Usual_resultsByParams contains the results for a
-// given set of parameters for the PassByRefSimple_genType type
-type MoqPassByRefSimple_genType_Usual_resultsByParams struct {
-	AnyCount  int
-	AnyParams uint64
-	Results   map[MoqPassByRefSimple_genType_Usual_paramsKey]*MoqPassByRefSimple_genType_Usual_results
+// MoqPassByRefSimple_genType_Usual_results holds the results of the
+// PassByRefSimple_genType type
+type MoqPassByRefSimple_genType_Usual_results struct {
+	Result1 string
+	Result2 error
+}
+
+// MoqPassByRefSimple_genType_Usual_paramIndexing holds the parameter indexing
+// runtime configuration for the PassByRefSimple_genType type
+type MoqPassByRefSimple_genType_Usual_paramIndexing struct {
+	Param1 moq.ParamIndexing
+	Param2 moq.ParamIndexing
 }
 
 // MoqPassByRefSimple_genType_Usual_doFn defines the type of function needed
@@ -89,73 +104,49 @@ type MoqPassByRefSimple_genType_Usual_doFn func(string, bool)
 // needed when calling DoReturnResults for the PassByRefSimple_genType type
 type MoqPassByRefSimple_genType_Usual_doReturnFn func(string, bool) (string, error)
 
-// MoqPassByRefSimple_genType_Usual_results holds the results of the
-// PassByRefSimple_genType type
-type MoqPassByRefSimple_genType_Usual_results struct {
-	Params  MoqPassByRefSimple_genType_Usual_params
-	Results []struct {
-		Values *struct {
-			Result1 string
-			Result2 error
-		}
-		Sequence   uint32
-		DoFn       MoqPassByRefSimple_genType_Usual_doFn
-		DoReturnFn MoqPassByRefSimple_genType_Usual_doReturnFn
-	}
-	Index  uint32
-	Repeat *moq.RepeatVal
-}
-
-// MoqPassByRefSimple_genType_Usual_fnRecorder routes recorded function calls
-// to the MoqPassByRefSimple_genType moq
-type MoqPassByRefSimple_genType_Usual_fnRecorder struct {
-	Params    MoqPassByRefSimple_genType_Usual_params
-	AnyParams uint64
-	Sequence  bool
-	Results   *MoqPassByRefSimple_genType_Usual_results
-	Moq       *MoqPassByRefSimple_genType
+// MoqPassByRefSimple_genType_Usual_recorder routes recorded function calls to
+// the MoqPassByRefSimple_genType moq
+type MoqPassByRefSimple_genType_Usual_recorder struct {
+	Recorder *impl.Recorder[
+		*MoqPassByRefSimple_genType_Usual_adaptor,
+		MoqPassByRefSimple_genType_Usual_params,
+		MoqPassByRefSimple_genType_Usual_paramsKey,
+		MoqPassByRefSimple_genType_Usual_results,
+	]
 }
 
 // MoqPassByRefSimple_genType_Usual_anyParams isolates the any params functions
 // of the PassByRefSimple_genType type
 type MoqPassByRefSimple_genType_Usual_anyParams struct {
-	Recorder *MoqPassByRefSimple_genType_Usual_fnRecorder
+	Recorder *MoqPassByRefSimple_genType_Usual_recorder
 }
 
 // NewMoqPassByRefSimple_genType creates a new moq of the
 // PassByRefSimple_genType type
 func NewMoqPassByRefSimple_genType(scene *moq.Scene, config *moq.Config) *MoqPassByRefSimple_genType {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &MoqPassByRefSimple_genType_Usual_adaptor{}
 	m := &MoqPassByRefSimple_genType{
-		Scene:  scene,
-		Config: *config,
-		Moq:    &MoqPassByRefSimple_genType_mock{},
+		Moq: &MoqPassByRefSimple_genType_mock{},
 
-		Runtime: struct {
-			ParameterIndexing struct {
-				Usual struct {
-					Param1 moq.ParamIndexing
-					Param2 moq.ParamIndexing
-				}
-			}
-		}{ParameterIndexing: struct {
-			Usual struct {
-				Param1 moq.ParamIndexing
-				Param2 moq.ParamIndexing
-			}
+		Moq_Usual: impl.NewMoq[
+			*MoqPassByRefSimple_genType_Usual_adaptor,
+			MoqPassByRefSimple_genType_Usual_params,
+			MoqPassByRefSimple_genType_Usual_paramsKey,
+			MoqPassByRefSimple_genType_Usual_results,
+		](scene, adaptor1, config),
+
+		Runtime: MoqPassByRefSimple_genType_runtime{ParameterIndexing: struct {
+			Usual MoqPassByRefSimple_genType_Usual_paramIndexing
 		}{
-			Usual: struct {
-				Param1 moq.ParamIndexing
-				Param2 moq.ParamIndexing
-			}{
+			Usual: MoqPassByRefSimple_genType_Usual_paramIndexing{
 				Param1: moq.ParamIndexByValue,
 				Param2: moq.ParamIndexByValue,
 			},
 		}},
 	}
 	m.Moq.Moq = m
+
+	adaptor1.Moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -164,59 +155,20 @@ func NewMoqPassByRefSimple_genType(scene *moq.Scene, config *moq.Config) *MoqPas
 // Mock returns the mock implementation of the PassByRefSimple_genType type
 func (m *MoqPassByRefSimple_genType) Mock() *MoqPassByRefSimple_genType_mock { return m.Moq }
 
-func (m *MoqPassByRefSimple_genType_mock) Usual(param1 string, param2 bool) (result1 string, result2 error) {
-	m.Moq.Scene.T.Helper()
+func (m *MoqPassByRefSimple_genType_mock) Usual(param1 string, param2 bool) (string, error) {
+	m.Moq.Moq_Usual.Scene.T.Helper()
 	params := MoqPassByRefSimple_genType_Usual_params{
 		Param1: param1,
 		Param2: param2,
 	}
-	var results *MoqPassByRefSimple_genType_Usual_results
-	for _, resultsByParams := range m.Moq.ResultsByParams_Usual {
-		paramsKey := m.Moq.ParamsKey_Usual(params, resultsByParams.AnyParams)
-		var ok bool
-		results, ok = resultsByParams.Results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.Moq.Config.Expectation == moq.Strict {
-			m.Moq.Scene.T.Fatalf("Unexpected call to %s", m.Moq.PrettyParams_Usual(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.Index, 1)) - 1
-	if i >= results.Repeat.ResultCount {
-		if !results.Repeat.AnyTimes {
-			if m.Moq.Config.Expectation == moq.Strict {
-				m.Moq.Scene.T.Fatalf("Too many calls to %s", m.Moq.PrettyParams_Usual(params))
-			}
-			return
-		}
-		i = results.Repeat.ResultCount - 1
+	var result1 string
+	var result2 error
+	if result := m.Moq.Moq_Usual.Function(params); result != nil {
+		result1 = result.Result1
+		result2 = result.Result2
 	}
-
-	result := results.Results[i]
-	if result.Sequence != 0 {
-		sequence := m.Moq.Scene.NextMockSequence()
-		if (!results.Repeat.AnyTimes && result.Sequence != sequence) || result.Sequence > sequence {
-			m.Moq.Scene.T.Fatalf("Call sequence does not match call to %s", m.Moq.PrettyParams_Usual(params))
-		}
-	}
-
-	if result.DoFn != nil {
-		result.DoFn(param1, param2)
-	}
-
-	if result.Values != nil {
-		result1 = result.Values.Result1
-		result2 = result.Values.Result2
-	}
-	if result.DoReturnFn != nil {
-		result1, result2 = result.DoReturnFn(param1, param2)
-	}
-	return
+	return result1, result2
 }
 
 // OnCall returns the recorder implementation of the PassByRefSimple_genType
@@ -227,219 +179,98 @@ func (m *MoqPassByRefSimple_genType) OnCall() *MoqPassByRefSimple_genType_record
 	}
 }
 
-func (m *MoqPassByRefSimple_genType_recorder) Usual(param1 string, param2 bool) *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	return &MoqPassByRefSimple_genType_Usual_fnRecorder{
-		Params: MoqPassByRefSimple_genType_Usual_params{
+func (m *MoqPassByRefSimple_genType_recorder) Usual(param1 string, param2 bool) *MoqPassByRefSimple_genType_Usual_recorder {
+	return &MoqPassByRefSimple_genType_Usual_recorder{
+		Recorder: m.Moq.Moq_Usual.OnCall(MoqPassByRefSimple_genType_Usual_params{
 			Param1: param1,
 			Param2: param2,
-		},
-		Sequence: m.Moq.Config.Sequence == moq.SeqDefaultOn,
-		Moq:      m.Moq,
+		}),
 	}
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) Any() *MoqPassByRefSimple_genType_Usual_anyParams {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Any functions must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Usual(r.Params))
+func (r *MoqPassByRefSimple_genType_Usual_recorder) Any() *MoqPassByRefSimple_genType_Usual_anyParams {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.IsAnyPermitted(true) {
 		return nil
 	}
 	return &MoqPassByRefSimple_genType_Usual_anyParams{Recorder: r}
 }
 
-func (a *MoqPassByRefSimple_genType_Usual_anyParams) Param1() *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 0
+func (a *MoqPassByRefSimple_genType_Usual_anyParams) Param1() *MoqPassByRefSimple_genType_Usual_recorder {
+	a.Recorder.Recorder.AnyParam(1)
 	return a.Recorder
 }
 
-func (a *MoqPassByRefSimple_genType_Usual_anyParams) Param2() *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	a.Recorder.AnyParams |= 1 << 1
+func (a *MoqPassByRefSimple_genType_Usual_anyParams) Param2() *MoqPassByRefSimple_genType_Usual_recorder {
+	a.Recorder.Recorder.AnyParam(2)
 	return a.Recorder
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) Seq() *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("Seq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Usual(r.Params))
+func (r *MoqPassByRefSimple_genType_Usual_recorder) Seq() *MoqPassByRefSimple_genType_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(true, "Seq", true) {
 		return nil
 	}
-	r.Sequence = true
 	return r
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) NoSeq() *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Moq.Scene.T.Fatalf("NoSeq must be called before ReturnResults or DoReturnResults calls, recording %s", r.Moq.PrettyParams_Usual(r.Params))
+func (r *MoqPassByRefSimple_genType_Usual_recorder) NoSeq() *MoqPassByRefSimple_genType_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Seq(false, "NoSeq", true) {
 		return nil
 	}
-	r.Sequence = false
 	return r
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) ReturnResults(result1 string, result2 error) *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			Result1 string
-			Result2 error
-		}
-		Sequence   uint32
-		DoFn       MoqPassByRefSimple_genType_Usual_doFn
-		DoReturnFn MoqPassByRefSimple_genType_Usual_doReturnFn
-	}{
-		Values: &struct {
-			Result1 string
-			Result2 error
-		}{
-			Result1: result1,
-			Result2: result2,
-		},
-		Sequence: sequence,
+func (r *MoqPassByRefSimple_genType_Usual_recorder) ReturnResults(result1 string, result2 error) *MoqPassByRefSimple_genType_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.ReturnResults(MoqPassByRefSimple_genType_Usual_results{
+		Result1: result1,
+		Result2: result2,
 	})
 	return r
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) AndDo(fn MoqPassByRefSimple_genType_Usual_doFn) *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults must be called before calling AndDo")
+func (r *MoqPassByRefSimple_genType_Usual_recorder) AndDo(fn MoqPassByRefSimple_genType_Usual_doFn) *MoqPassByRefSimple_genType_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.AndDo(func(params MoqPassByRefSimple_genType_Usual_params) {
+		fn(params.Param1, params.Param2)
+	}, true) {
 		return nil
 	}
-	last := &r.Results.Results[len(r.Results.Results)-1]
-	last.DoFn = fn
 	return r
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) DoReturnResults(fn MoqPassByRefSimple_genType_Usual_doReturnFn) *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	r.FindResults()
-
-	var sequence uint32
-	if r.Sequence {
-		sequence = r.Moq.Scene.NextRecorderSequence()
-	}
-
-	r.Results.Results = append(r.Results.Results, struct {
-		Values *struct {
-			Result1 string
-			Result2 error
+func (r *MoqPassByRefSimple_genType_Usual_recorder) DoReturnResults(fn MoqPassByRefSimple_genType_Usual_doReturnFn) *MoqPassByRefSimple_genType_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	r.Recorder.DoReturnResults(func(params MoqPassByRefSimple_genType_Usual_params) *MoqPassByRefSimple_genType_Usual_results {
+		result1, result2 := fn(params.Param1, params.Param2)
+		return &MoqPassByRefSimple_genType_Usual_results{
+			Result1: result1,
+			Result2: result2,
 		}
-		Sequence   uint32
-		DoFn       MoqPassByRefSimple_genType_Usual_doFn
-		DoReturnFn MoqPassByRefSimple_genType_Usual_doReturnFn
-	}{Sequence: sequence, DoReturnFn: fn})
+	})
 	return r
 }
 
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) FindResults() {
-	r.Moq.Scene.T.Helper()
-	if r.Results != nil {
-		r.Results.Repeat.Increment(r.Moq.Scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.AnyParams)
-	insertAt := -1
-	var results *MoqPassByRefSimple_genType_Usual_resultsByParams
-	for n, res := range r.Moq.ResultsByParams_Usual {
-		if res.AnyParams == r.AnyParams {
-			results = &res
-			break
-		}
-		if res.AnyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &MoqPassByRefSimple_genType_Usual_resultsByParams{
-			AnyCount:  anyCount,
-			AnyParams: r.AnyParams,
-			Results:   map[MoqPassByRefSimple_genType_Usual_paramsKey]*MoqPassByRefSimple_genType_Usual_results{},
-		}
-		r.Moq.ResultsByParams_Usual = append(r.Moq.ResultsByParams_Usual, *results)
-		if insertAt != -1 && insertAt+1 < len(r.Moq.ResultsByParams_Usual) {
-			copy(r.Moq.ResultsByParams_Usual[insertAt+1:], r.Moq.ResultsByParams_Usual[insertAt:0])
-			r.Moq.ResultsByParams_Usual[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.Moq.ParamsKey_Usual(r.Params, r.AnyParams)
-
-	var ok bool
-	r.Results, ok = results.Results[paramsKey]
-	if !ok {
-		r.Results = &MoqPassByRefSimple_genType_Usual_results{
-			Params:  r.Params,
-			Results: nil,
-			Index:   0,
-			Repeat:  &moq.RepeatVal{},
-		}
-		results.Results[paramsKey] = r.Results
-	}
-
-	r.Results.Repeat.Increment(r.Moq.Scene.T)
-}
-
-func (r *MoqPassByRefSimple_genType_Usual_fnRecorder) Repeat(repeaters ...moq.Repeater) *MoqPassByRefSimple_genType_Usual_fnRecorder {
-	r.Moq.Scene.T.Helper()
-	if r.Results == nil {
-		r.Moq.Scene.T.Fatalf("ReturnResults or DoReturnResults must be called before calling Repeat")
+func (r *MoqPassByRefSimple_genType_Usual_recorder) Repeat(repeaters ...moq.Repeater) *MoqPassByRefSimple_genType_Usual_recorder {
+	r.Recorder.Moq.Scene.T.Helper()
+	if !r.Recorder.Repeat(repeaters, true) {
 		return nil
 	}
-	r.Results.Repeat.Repeat(r.Moq.Scene.T, repeaters)
-	last := r.Results.Results[len(r.Results.Results)-1]
-	for n := 0; n < r.Results.Repeat.ResultCount-1; n++ {
-		if r.Sequence {
-			last = struct {
-				Values *struct {
-					Result1 string
-					Result2 error
-				}
-				Sequence   uint32
-				DoFn       MoqPassByRefSimple_genType_Usual_doFn
-				DoReturnFn MoqPassByRefSimple_genType_Usual_doReturnFn
-			}{
-				Values:   last.Values,
-				Sequence: r.Moq.Scene.NextRecorderSequence(),
-			}
-		}
-		r.Results.Results = append(r.Results.Results, last)
-	}
 	return r
 }
 
-func (m *MoqPassByRefSimple_genType) PrettyParams_Usual(params MoqPassByRefSimple_genType_Usual_params) string {
+func (*MoqPassByRefSimple_genType_Usual_adaptor) PrettyParams(params MoqPassByRefSimple_genType_Usual_params) string {
 	return fmt.Sprintf("Usual(%#v, %#v)", params.Param1, params.Param2)
 }
 
-func (m *MoqPassByRefSimple_genType) ParamsKey_Usual(params MoqPassByRefSimple_genType_Usual_params, anyParams uint64) MoqPassByRefSimple_genType_Usual_paramsKey {
-	m.Scene.T.Helper()
-	var param1Used string
-	var param1UsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.Runtime.ParameterIndexing.Usual.Param1 == moq.ParamIndexByValue {
-			param1Used = params.Param1
-		} else {
-			param1UsedHash = hash.DeepHash(params.Param1)
-		}
-	}
-	var param2Used bool
-	var param2UsedHash hash.Hash
-	if anyParams&(1<<1) == 0 {
-		if m.Runtime.ParameterIndexing.Usual.Param2 == moq.ParamIndexByValue {
-			param2Used = params.Param2
-		} else {
-			param2UsedHash = hash.DeepHash(params.Param2)
-		}
-	}
+func (a *MoqPassByRefSimple_genType_Usual_adaptor) ParamsKey(params MoqPassByRefSimple_genType_Usual_params, anyParams uint64) MoqPassByRefSimple_genType_Usual_paramsKey {
+	a.Moq.Moq_Usual.Scene.T.Helper()
+	param1Used, param1UsedHash := impl.ParamKey(
+		params.Param1, 1, a.Moq.Runtime.ParameterIndexing.Usual.Param1, anyParams)
+	param2Used, param2UsedHash := impl.ParamKey(
+		params.Param2, 2, a.Moq.Runtime.ParameterIndexing.Usual.Param2, anyParams)
 	return MoqPassByRefSimple_genType_Usual_paramsKey{
 		Params: struct {
 			Param1 string
@@ -459,17 +290,12 @@ func (m *MoqPassByRefSimple_genType) ParamsKey_Usual(params MoqPassByRefSimple_g
 }
 
 // Reset resets the state of the moq
-func (m *MoqPassByRefSimple_genType) Reset() { m.ResultsByParams_Usual = nil }
+func (m *MoqPassByRefSimple_genType) Reset() {
+	m.Moq_Usual.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *MoqPassByRefSimple_genType) AssertExpectationsMet() {
-	m.Scene.T.Helper()
-	for _, res := range m.ResultsByParams_Usual {
-		for _, results := range res.Results {
-			missing := results.Repeat.MinTimes - int(atomic.LoadUint32(&results.Index))
-			if missing > 0 {
-				m.Scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.PrettyParams_Usual(results.Params))
-			}
-		}
-	}
+	m.Moq_Usual.Scene.T.Helper()
+	m.Moq_Usual.AssertExpectationsMet()
 }

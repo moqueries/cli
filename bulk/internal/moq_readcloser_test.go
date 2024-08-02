@@ -5,10 +5,9 @@ package internal_test
 import (
 	"fmt"
 	"io"
-	"math/bits"
-	"sync/atomic"
 
 	"moqueries.org/runtime/hash"
+	"moqueries.org/runtime/impl"
 	"moqueries.org/runtime/moq"
 )
 
@@ -17,21 +16,22 @@ var _ io.ReadCloser = (*moqReadCloser_mock)(nil)
 
 // moqReadCloser holds the state of a moq of the ReadCloser type
 type moqReadCloser struct {
-	scene  *moq.Scene
-	config moq.Config
-	moq    *moqReadCloser_mock
+	moq *moqReadCloser_mock
 
-	resultsByParams_Read  []moqReadCloser_Read_resultsByParams
-	resultsByParams_Close []moqReadCloser_Close_resultsByParams
+	moq_Read *impl.Moq[
+		*moqReadCloser_Read_adaptor,
+		moqReadCloser_Read_params,
+		moqReadCloser_Read_paramsKey,
+		moqReadCloser_Read_results,
+	]
+	moq_Close *impl.Moq[
+		*moqReadCloser_Close_adaptor,
+		moqReadCloser_Close_params,
+		moqReadCloser_Close_paramsKey,
+		moqReadCloser_Close_results,
+	]
 
-	runtime struct {
-		parameterIndexing struct {
-			Read struct {
-				p moq.ParamIndexing
-			}
-			Close struct{}
-		}
-	}
+	runtime moqReadCloser_runtime
 }
 
 // moqReadCloser_mock isolates the mock interface of the ReadCloser type
@@ -45,6 +45,19 @@ type moqReadCloser_recorder struct {
 	moq *moqReadCloser
 }
 
+// moqReadCloser_runtime holds runtime configuration for the ReadCloser type
+type moqReadCloser_runtime struct {
+	parameterIndexing struct {
+		Read  moqReadCloser_Read_paramIndexing
+		Close moqReadCloser_Close_paramIndexing
+	}
+}
+
+// moqReadCloser_Read_adaptor adapts moqReadCloser as needed by the runtime
+type moqReadCloser_Read_adaptor struct {
+	moq *moqReadCloser
+}
+
 // moqReadCloser_Read_params holds the params of the ReadCloser type
 type moqReadCloser_Read_params struct{ p []byte }
 
@@ -54,12 +67,16 @@ type moqReadCloser_Read_paramsKey struct {
 	hashes struct{ p hash.Hash }
 }
 
-// moqReadCloser_Read_resultsByParams contains the results for a given set of
-// parameters for the ReadCloser type
-type moqReadCloser_Read_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqReadCloser_Read_paramsKey]*moqReadCloser_Read_results
+// moqReadCloser_Read_results holds the results of the ReadCloser type
+type moqReadCloser_Read_results struct {
+	n   int
+	err error
+}
+
+// moqReadCloser_Read_paramIndexing holds the parameter indexing runtime
+// configuration for the ReadCloser type
+type moqReadCloser_Read_paramIndexing struct {
+	p moq.ParamIndexing
 }
 
 // moqReadCloser_Read_doFn defines the type of function needed when calling
@@ -70,36 +87,26 @@ type moqReadCloser_Read_doFn func(p []byte)
 // calling doReturnResults for the ReadCloser type
 type moqReadCloser_Read_doReturnFn func(p []byte) (n int, err error)
 
-// moqReadCloser_Read_results holds the results of the ReadCloser type
-type moqReadCloser_Read_results struct {
-	params  moqReadCloser_Read_params
-	results []struct {
-		values *struct {
-			n   int
-			err error
-		}
-		sequence   uint32
-		doFn       moqReadCloser_Read_doFn
-		doReturnFn moqReadCloser_Read_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqReadCloser_Read_fnRecorder routes recorded function calls to the
+// moqReadCloser_Read_recorder routes recorded function calls to the
 // moqReadCloser moq
-type moqReadCloser_Read_fnRecorder struct {
-	params    moqReadCloser_Read_params
-	anyParams uint64
-	sequence  bool
-	results   *moqReadCloser_Read_results
-	moq       *moqReadCloser
+type moqReadCloser_Read_recorder struct {
+	recorder *impl.Recorder[
+		*moqReadCloser_Read_adaptor,
+		moqReadCloser_Read_params,
+		moqReadCloser_Read_paramsKey,
+		moqReadCloser_Read_results,
+	]
 }
 
 // moqReadCloser_Read_anyParams isolates the any params functions of the
 // ReadCloser type
 type moqReadCloser_Read_anyParams struct {
-	recorder *moqReadCloser_Read_fnRecorder
+	recorder *moqReadCloser_Read_recorder
+}
+
+// moqReadCloser_Close_adaptor adapts moqReadCloser as needed by the runtime
+type moqReadCloser_Close_adaptor struct {
+	moq *moqReadCloser
 }
 
 // moqReadCloser_Close_params holds the params of the ReadCloser type
@@ -112,13 +119,14 @@ type moqReadCloser_Close_paramsKey struct {
 	hashes struct{}
 }
 
-// moqReadCloser_Close_resultsByParams contains the results for a given set of
-// parameters for the ReadCloser type
-type moqReadCloser_Close_resultsByParams struct {
-	anyCount  int
-	anyParams uint64
-	results   map[moqReadCloser_Close_paramsKey]*moqReadCloser_Close_results
+// moqReadCloser_Close_results holds the results of the ReadCloser type
+type moqReadCloser_Close_results struct {
+	result1 error
 }
+
+// moqReadCloser_Close_paramIndexing holds the parameter indexing runtime
+// configuration for the ReadCloser type
+type moqReadCloser_Close_paramIndexing struct{}
 
 // moqReadCloser_Close_doFn defines the type of function needed when calling
 // andDo for the ReadCloser type
@@ -128,69 +136,57 @@ type moqReadCloser_Close_doFn func()
 // calling doReturnResults for the ReadCloser type
 type moqReadCloser_Close_doReturnFn func() error
 
-// moqReadCloser_Close_results holds the results of the ReadCloser type
-type moqReadCloser_Close_results struct {
-	params  moqReadCloser_Close_params
-	results []struct {
-		values *struct {
-			result1 error
-		}
-		sequence   uint32
-		doFn       moqReadCloser_Close_doFn
-		doReturnFn moqReadCloser_Close_doReturnFn
-	}
-	index  uint32
-	repeat *moq.RepeatVal
-}
-
-// moqReadCloser_Close_fnRecorder routes recorded function calls to the
+// moqReadCloser_Close_recorder routes recorded function calls to the
 // moqReadCloser moq
-type moqReadCloser_Close_fnRecorder struct {
-	params    moqReadCloser_Close_params
-	anyParams uint64
-	sequence  bool
-	results   *moqReadCloser_Close_results
-	moq       *moqReadCloser
+type moqReadCloser_Close_recorder struct {
+	recorder *impl.Recorder[
+		*moqReadCloser_Close_adaptor,
+		moqReadCloser_Close_params,
+		moqReadCloser_Close_paramsKey,
+		moqReadCloser_Close_results,
+	]
 }
 
 // moqReadCloser_Close_anyParams isolates the any params functions of the
 // ReadCloser type
 type moqReadCloser_Close_anyParams struct {
-	recorder *moqReadCloser_Close_fnRecorder
+	recorder *moqReadCloser_Close_recorder
 }
 
 // newMoqReadCloser creates a new moq of the ReadCloser type
 func newMoqReadCloser(scene *moq.Scene, config *moq.Config) *moqReadCloser {
-	if config == nil {
-		config = &moq.Config{}
-	}
+	adaptor1 := &moqReadCloser_Read_adaptor{}
+	adaptor2 := &moqReadCloser_Close_adaptor{}
 	m := &moqReadCloser{
-		scene:  scene,
-		config: *config,
-		moq:    &moqReadCloser_mock{},
+		moq: &moqReadCloser_mock{},
 
-		runtime: struct {
-			parameterIndexing struct {
-				Read struct {
-					p moq.ParamIndexing
-				}
-				Close struct{}
-			}
-		}{parameterIndexing: struct {
-			Read struct {
-				p moq.ParamIndexing
-			}
-			Close struct{}
+		moq_Read: impl.NewMoq[
+			*moqReadCloser_Read_adaptor,
+			moqReadCloser_Read_params,
+			moqReadCloser_Read_paramsKey,
+			moqReadCloser_Read_results,
+		](scene, adaptor1, config),
+		moq_Close: impl.NewMoq[
+			*moqReadCloser_Close_adaptor,
+			moqReadCloser_Close_params,
+			moqReadCloser_Close_paramsKey,
+			moqReadCloser_Close_results,
+		](scene, adaptor2, config),
+
+		runtime: moqReadCloser_runtime{parameterIndexing: struct {
+			Read  moqReadCloser_Read_paramIndexing
+			Close moqReadCloser_Close_paramIndexing
 		}{
-			Read: struct {
-				p moq.ParamIndexing
-			}{
+			Read: moqReadCloser_Read_paramIndexing{
 				p: moq.ParamIndexByHash,
 			},
-			Close: struct{}{},
+			Close: moqReadCloser_Close_paramIndexing{},
 		}},
 	}
 	m.moq.moq = m
+
+	adaptor1.moq = m
+	adaptor2.moq = m
 
 	scene.AddMoq(m)
 	return m
@@ -199,109 +195,30 @@ func newMoqReadCloser(scene *moq.Scene, config *moq.Config) *moqReadCloser {
 // mock returns the mock implementation of the ReadCloser type
 func (m *moqReadCloser) mock() *moqReadCloser_mock { return m.moq }
 
-func (m *moqReadCloser_mock) Read(p []byte) (n int, err error) {
-	m.moq.scene.T.Helper()
+func (m *moqReadCloser_mock) Read(p []byte) (int, error) {
+	m.moq.moq_Read.Scene.T.Helper()
 	params := moqReadCloser_Read_params{
 		p: p,
 	}
-	var results *moqReadCloser_Read_results
-	for _, resultsByParams := range m.moq.resultsByParams_Read {
-		paramsKey := m.moq.paramsKey_Read(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Read(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Read(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 int
+	var result2 error
+	if result := m.moq.moq_Read.Function(params); result != nil {
+		result1 = result.n
+		result2 = result.err
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Read(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn(p)
-	}
-
-	if result.values != nil {
-		n = result.values.n
-		err = result.values.err
-	}
-	if result.doReturnFn != nil {
-		n, err = result.doReturnFn(p)
-	}
-	return
+	return result1, result2
 }
 
-func (m *moqReadCloser_mock) Close() (result1 error) {
-	m.moq.scene.T.Helper()
+func (m *moqReadCloser_mock) Close() error {
+	m.moq.moq_Close.Scene.T.Helper()
 	params := moqReadCloser_Close_params{}
-	var results *moqReadCloser_Close_results
-	for _, resultsByParams := range m.moq.resultsByParams_Close {
-		paramsKey := m.moq.paramsKey_Close(params, resultsByParams.anyParams)
-		var ok bool
-		results, ok = resultsByParams.results[paramsKey]
-		if ok {
-			break
-		}
-	}
-	if results == nil {
-		if m.moq.config.Expectation == moq.Strict {
-			m.moq.scene.T.Fatalf("Unexpected call to %s", m.moq.prettyParams_Close(params))
-		}
-		return
-	}
 
-	i := int(atomic.AddUint32(&results.index, 1)) - 1
-	if i >= results.repeat.ResultCount {
-		if !results.repeat.AnyTimes {
-			if m.moq.config.Expectation == moq.Strict {
-				m.moq.scene.T.Fatalf("Too many calls to %s", m.moq.prettyParams_Close(params))
-			}
-			return
-		}
-		i = results.repeat.ResultCount - 1
+	var result1 error
+	if result := m.moq.moq_Close.Function(params); result != nil {
+		result1 = result.result1
 	}
-
-	result := results.results[i]
-	if result.sequence != 0 {
-		sequence := m.moq.scene.NextMockSequence()
-		if (!results.repeat.AnyTimes && result.sequence != sequence) || result.sequence > sequence {
-			m.moq.scene.T.Fatalf("Call sequence does not match call to %s", m.moq.prettyParams_Close(params))
-		}
-	}
-
-	if result.doFn != nil {
-		result.doFn()
-	}
-
-	if result.values != nil {
-		result1 = result.values.result1
-	}
-	if result.doReturnFn != nil {
-		result1 = result.doReturnFn()
-	}
-	return
+	return result1
 }
 
 // onCall returns the recorder implementation of the ReadCloser type
@@ -311,202 +228,90 @@ func (m *moqReadCloser) onCall() *moqReadCloser_recorder {
 	}
 }
 
-func (m *moqReadCloser_recorder) Read(p []byte) *moqReadCloser_Read_fnRecorder {
-	return &moqReadCloser_Read_fnRecorder{
-		params: moqReadCloser_Read_params{
+func (m *moqReadCloser_recorder) Read(p []byte) *moqReadCloser_Read_recorder {
+	return &moqReadCloser_Read_recorder{
+		recorder: m.moq.moq_Read.OnCall(moqReadCloser_Read_params{
 			p: p,
-		},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+		}),
 	}
 }
 
-func (r *moqReadCloser_Read_fnRecorder) any() *moqReadCloser_Read_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Read(r.params))
+func (r *moqReadCloser_Read_recorder) any() *moqReadCloser_Read_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqReadCloser_Read_anyParams{recorder: r}
 }
 
-func (a *moqReadCloser_Read_anyParams) p() *moqReadCloser_Read_fnRecorder {
-	a.recorder.anyParams |= 1 << 0
+func (a *moqReadCloser_Read_anyParams) p() *moqReadCloser_Read_recorder {
+	a.recorder.recorder.AnyParam(1)
 	return a.recorder
 }
 
-func (r *moqReadCloser_Read_fnRecorder) seq() *moqReadCloser_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Read(r.params))
+func (r *moqReadCloser_Read_recorder) seq() *moqReadCloser_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqReadCloser_Read_fnRecorder) noSeq() *moqReadCloser_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Read(r.params))
+func (r *moqReadCloser_Read_recorder) noSeq() *moqReadCloser_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqReadCloser_Read_fnRecorder) returnResults(n int, err error) *moqReadCloser_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			n   int
-			err error
-		}
-		sequence   uint32
-		doFn       moqReadCloser_Read_doFn
-		doReturnFn moqReadCloser_Read_doReturnFn
-	}{
-		values: &struct {
-			n   int
-			err error
-		}{
-			n:   n,
-			err: err,
-		},
-		sequence: sequence,
+func (r *moqReadCloser_Read_recorder) returnResults(n int, err error) *moqReadCloser_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqReadCloser_Read_results{
+		n:   n,
+		err: err,
 	})
 	return r
 }
 
-func (r *moqReadCloser_Read_fnRecorder) andDo(fn moqReadCloser_Read_doFn) *moqReadCloser_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqReadCloser_Read_recorder) andDo(fn moqReadCloser_Read_doFn) *moqReadCloser_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqReadCloser_Read_params) {
+		fn(params.p)
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqReadCloser_Read_fnRecorder) doReturnResults(fn moqReadCloser_Read_doReturnFn) *moqReadCloser_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			n   int
-			err error
+func (r *moqReadCloser_Read_recorder) doReturnResults(fn moqReadCloser_Read_doReturnFn) *moqReadCloser_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqReadCloser_Read_params) *moqReadCloser_Read_results {
+		n, err := fn(params.p)
+		return &moqReadCloser_Read_results{
+			n:   n,
+			err: err,
 		}
-		sequence   uint32
-		doFn       moqReadCloser_Read_doFn
-		doReturnFn moqReadCloser_Read_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqReadCloser_Read_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqReadCloser_Read_resultsByParams
-	for n, res := range r.moq.resultsByParams_Read {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqReadCloser_Read_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqReadCloser_Read_paramsKey]*moqReadCloser_Read_results{},
-		}
-		r.moq.resultsByParams_Read = append(r.moq.resultsByParams_Read, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Read) {
-			copy(r.moq.resultsByParams_Read[insertAt+1:], r.moq.resultsByParams_Read[insertAt:0])
-			r.moq.resultsByParams_Read[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Read(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqReadCloser_Read_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqReadCloser_Read_fnRecorder) repeat(repeaters ...moq.Repeater) *moqReadCloser_Read_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqReadCloser_Read_recorder) repeat(repeaters ...moq.Repeater) *moqReadCloser_Read_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					n   int
-					err error
-				}
-				sequence   uint32
-				doFn       moqReadCloser_Read_doFn
-				doReturnFn moqReadCloser_Read_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqReadCloser) prettyParams_Read(params moqReadCloser_Read_params) string {
+func (*moqReadCloser_Read_adaptor) PrettyParams(params moqReadCloser_Read_params) string {
 	return fmt.Sprintf("Read(%#v)", params.p)
 }
 
-func (m *moqReadCloser) paramsKey_Read(params moqReadCloser_Read_params, anyParams uint64) moqReadCloser_Read_paramsKey {
-	m.scene.T.Helper()
-	var pUsedHash hash.Hash
-	if anyParams&(1<<0) == 0 {
-		if m.runtime.parameterIndexing.Read.p == moq.ParamIndexByValue {
-			m.scene.T.Fatalf("The p parameter of the Read function can't be indexed by value")
-		}
-		pUsedHash = hash.DeepHash(params.p)
-	}
+func (a *moqReadCloser_Read_adaptor) ParamsKey(params moqReadCloser_Read_params, anyParams uint64) moqReadCloser_Read_paramsKey {
+	a.moq.moq_Read.Scene.T.Helper()
+	pUsedHash := impl.HashOnlyParamKey(a.moq.moq_Read.Scene.T,
+		params.p, "p", 1, a.moq.runtime.parameterIndexing.Read.p, anyParams)
 	return moqReadCloser_Read_paramsKey{
 		params: struct{}{},
 		hashes: struct{ p hash.Hash }{
@@ -515,183 +320,79 @@ func (m *moqReadCloser) paramsKey_Read(params moqReadCloser_Read_params, anyPara
 	}
 }
 
-func (m *moqReadCloser_recorder) Close() *moqReadCloser_Close_fnRecorder {
-	return &moqReadCloser_Close_fnRecorder{
-		params:   moqReadCloser_Close_params{},
-		sequence: m.moq.config.Sequence == moq.SeqDefaultOn,
-		moq:      m.moq,
+func (m *moqReadCloser_recorder) Close() *moqReadCloser_Close_recorder {
+	return &moqReadCloser_Close_recorder{
+		recorder: m.moq.moq_Close.OnCall(moqReadCloser_Close_params{}),
 	}
 }
 
-func (r *moqReadCloser_Close_fnRecorder) any() *moqReadCloser_Close_anyParams {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("Any functions must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Close(r.params))
+func (r *moqReadCloser_Close_recorder) any() *moqReadCloser_Close_anyParams {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
 		return nil
 	}
 	return &moqReadCloser_Close_anyParams{recorder: r}
 }
 
-func (r *moqReadCloser_Close_fnRecorder) seq() *moqReadCloser_Close_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("seq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Close(r.params))
+func (r *moqReadCloser_Close_recorder) seq() *moqReadCloser_Close_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
 		return nil
 	}
-	r.sequence = true
 	return r
 }
 
-func (r *moqReadCloser_Close_fnRecorder) noSeq() *moqReadCloser_Close_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.moq.scene.T.Fatalf("noSeq must be called before returnResults or doReturnResults calls, recording %s", r.moq.prettyParams_Close(r.params))
+func (r *moqReadCloser_Close_recorder) noSeq() *moqReadCloser_Close_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
 		return nil
 	}
-	r.sequence = false
 	return r
 }
 
-func (r *moqReadCloser_Close_fnRecorder) returnResults(result1 error) *moqReadCloser_Close_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 error
-		}
-		sequence   uint32
-		doFn       moqReadCloser_Close_doFn
-		doReturnFn moqReadCloser_Close_doReturnFn
-	}{
-		values: &struct {
-			result1 error
-		}{
-			result1: result1,
-		},
-		sequence: sequence,
+func (r *moqReadCloser_Close_recorder) returnResults(result1 error) *moqReadCloser_Close_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqReadCloser_Close_results{
+		result1: result1,
 	})
 	return r
 }
 
-func (r *moqReadCloser_Close_fnRecorder) andDo(fn moqReadCloser_Close_doFn) *moqReadCloser_Close_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults must be called before calling andDo")
+func (r *moqReadCloser_Close_recorder) andDo(fn moqReadCloser_Close_doFn) *moqReadCloser_Close_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqReadCloser_Close_params) {
+		fn()
+	}, false) {
 		return nil
 	}
-	last := &r.results.results[len(r.results.results)-1]
-	last.doFn = fn
 	return r
 }
 
-func (r *moqReadCloser_Close_fnRecorder) doReturnResults(fn moqReadCloser_Close_doReturnFn) *moqReadCloser_Close_fnRecorder {
-	r.moq.scene.T.Helper()
-	r.findResults()
-
-	var sequence uint32
-	if r.sequence {
-		sequence = r.moq.scene.NextRecorderSequence()
-	}
-
-	r.results.results = append(r.results.results, struct {
-		values *struct {
-			result1 error
+func (r *moqReadCloser_Close_recorder) doReturnResults(fn moqReadCloser_Close_doReturnFn) *moqReadCloser_Close_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqReadCloser_Close_params) *moqReadCloser_Close_results {
+		result1 := fn()
+		return &moqReadCloser_Close_results{
+			result1: result1,
 		}
-		sequence   uint32
-		doFn       moqReadCloser_Close_doFn
-		doReturnFn moqReadCloser_Close_doReturnFn
-	}{sequence: sequence, doReturnFn: fn})
+	})
 	return r
 }
 
-func (r *moqReadCloser_Close_fnRecorder) findResults() {
-	r.moq.scene.T.Helper()
-	if r.results != nil {
-		r.results.repeat.Increment(r.moq.scene.T)
-		return
-	}
-
-	anyCount := bits.OnesCount64(r.anyParams)
-	insertAt := -1
-	var results *moqReadCloser_Close_resultsByParams
-	for n, res := range r.moq.resultsByParams_Close {
-		if res.anyParams == r.anyParams {
-			results = &res
-			break
-		}
-		if res.anyCount > anyCount {
-			insertAt = n
-		}
-	}
-	if results == nil {
-		results = &moqReadCloser_Close_resultsByParams{
-			anyCount:  anyCount,
-			anyParams: r.anyParams,
-			results:   map[moqReadCloser_Close_paramsKey]*moqReadCloser_Close_results{},
-		}
-		r.moq.resultsByParams_Close = append(r.moq.resultsByParams_Close, *results)
-		if insertAt != -1 && insertAt+1 < len(r.moq.resultsByParams_Close) {
-			copy(r.moq.resultsByParams_Close[insertAt+1:], r.moq.resultsByParams_Close[insertAt:0])
-			r.moq.resultsByParams_Close[insertAt] = *results
-		}
-	}
-
-	paramsKey := r.moq.paramsKey_Close(r.params, r.anyParams)
-
-	var ok bool
-	r.results, ok = results.results[paramsKey]
-	if !ok {
-		r.results = &moqReadCloser_Close_results{
-			params:  r.params,
-			results: nil,
-			index:   0,
-			repeat:  &moq.RepeatVal{},
-		}
-		results.results[paramsKey] = r.results
-	}
-
-	r.results.repeat.Increment(r.moq.scene.T)
-}
-
-func (r *moqReadCloser_Close_fnRecorder) repeat(repeaters ...moq.Repeater) *moqReadCloser_Close_fnRecorder {
-	r.moq.scene.T.Helper()
-	if r.results == nil {
-		r.moq.scene.T.Fatalf("returnResults or doReturnResults must be called before calling repeat")
+func (r *moqReadCloser_Close_recorder) repeat(repeaters ...moq.Repeater) *moqReadCloser_Close_recorder {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
 		return nil
 	}
-	r.results.repeat.Repeat(r.moq.scene.T, repeaters)
-	last := r.results.results[len(r.results.results)-1]
-	for n := 0; n < r.results.repeat.ResultCount-1; n++ {
-		if r.sequence {
-			last = struct {
-				values *struct {
-					result1 error
-				}
-				sequence   uint32
-				doFn       moqReadCloser_Close_doFn
-				doReturnFn moqReadCloser_Close_doReturnFn
-			}{
-				values:   last.values,
-				sequence: r.moq.scene.NextRecorderSequence(),
-			}
-		}
-		r.results.results = append(r.results.results, last)
-	}
 	return r
 }
 
-func (m *moqReadCloser) prettyParams_Close(params moqReadCloser_Close_params) string {
+func (*moqReadCloser_Close_adaptor) PrettyParams(params moqReadCloser_Close_params) string {
 	return fmt.Sprintf("Close()")
 }
 
-func (m *moqReadCloser) paramsKey_Close(params moqReadCloser_Close_params, anyParams uint64) moqReadCloser_Close_paramsKey {
-	m.scene.T.Helper()
+func (a *moqReadCloser_Close_adaptor) ParamsKey(params moqReadCloser_Close_params, anyParams uint64) moqReadCloser_Close_paramsKey {
+	a.moq.moq_Close.Scene.T.Helper()
 	return moqReadCloser_Close_paramsKey{
 		params: struct{}{},
 		hashes: struct{}{},
@@ -699,25 +400,14 @@ func (m *moqReadCloser) paramsKey_Close(params moqReadCloser_Close_params, anyPa
 }
 
 // Reset resets the state of the moq
-func (m *moqReadCloser) Reset() { m.resultsByParams_Read = nil; m.resultsByParams_Close = nil }
+func (m *moqReadCloser) Reset() {
+	m.moq_Read.Reset()
+	m.moq_Close.Reset()
+}
 
 // AssertExpectationsMet asserts that all expectations have been met
 func (m *moqReadCloser) AssertExpectationsMet() {
-	m.scene.T.Helper()
-	for _, res := range m.resultsByParams_Read {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Read(results.params))
-			}
-		}
-	}
-	for _, res := range m.resultsByParams_Close {
-		for _, results := range res.results {
-			missing := results.repeat.MinTimes - int(atomic.LoadUint32(&results.index))
-			if missing > 0 {
-				m.scene.T.Errorf("Expected %d additional call(s) to %s", missing, m.prettyParams_Close(results.params))
-			}
-		}
-	}
+	m.moq_Read.Scene.T.Helper()
+	m.moq_Read.AssertExpectationsMet()
+	m.moq_Close.AssertExpectationsMet()
 }
