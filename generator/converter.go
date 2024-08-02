@@ -390,7 +390,8 @@ func (c *Converter) MockMethod(fn Func) (*dst.FuncDecl, error) {
 	}
 
 	decl := Fn(fnName).
-		Recv(Field(Star(c.genericExpr(Id(fmt.Sprintf(double, mName, mockIdent)), clone)).Obj).Names(Id(moqReceiverIdent)).Obj).
+		Recv(Field(Star(c.genericExpr(Id(fmt.Sprintf(double, mName, mockIdent)), clone)).Obj).
+			Names(Id(moqReceiverIdent)).Obj).
 		ParamList(c.cloneAndNameUnnamed(paramPrefix, fn.FuncType.Params, fn.ParentType)).
 		ResultList(c.cloneFieldList(fn.FuncType.Results, true, fn.ParentType)).
 		Body(c.mockFunc(typePrefix, fn)...).
@@ -1357,16 +1358,6 @@ func (c *Converter) genericExpr(in dst.Expr, mode genericExprMode) dst.Expr {
 	return Index(in).Sub(subs...).Obj
 }
 
-func (c *Converter) callPrettyParams(fn Func, moqExpr, paramsExpr dst.Expr) *dst.CallExpr {
-	prettyParamsFn := prettyParamsFnName
-	if fn.Name != "" {
-		prettyParamsFn = fmt.Sprintf(double, prettyParamsFnName, fn.Name)
-	}
-
-	return Call(c.selExport(moqExpr, prettyParamsFn)).
-		Args(c.selExport(paramsExpr, paramsIdent)).Obj
-}
-
 func (c *Converter) passthroughKeyValues(fl *dst.FieldList, label, valSuffix string, parentType TypeInfo) []dst.Expr {
 	if fl == nil {
 		return nil
@@ -1681,11 +1672,6 @@ func cloneSelect(sel *dst.SelectorExpr) dst.Expr {
 func cloneExpr(expr dst.Expr) dst.Expr {
 	//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 	return dst.Clone(expr).(dst.Expr)
-}
-
-func cloneStmt(stmt dst.Stmt) dst.Stmt {
-	//nolint:forcetypeassert // if dst.Clone returns a different type, panic
-	return dst.Clone(stmt).(dst.Stmt)
 }
 
 func genDeclDecf(format string, a ...interface{}) dst.GenDeclDecorations {

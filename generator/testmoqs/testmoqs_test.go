@@ -625,8 +625,8 @@ func TestAnyValues(t *testing.T) {
 				}
 
 				bParams := entry.prettyParams([]string{"Hi", "you"}, true)
-				tMoq.onCall().Fatalf("Any functions must be called before %s or %s calls, recording %s", rrFn, drrFn, bParams).returnResults()
-				fmtMsg := fmt.Sprintf("%s", bParams)
+				tMoq.onCall().Fatalf("Any functions must be called before %s or %s calls, recording %s",
+					rrFn, drrFn, bParams).returnResults()
 
 				// ACT
 				rec.anySParam()
@@ -638,8 +638,8 @@ func TestAnyValues(t *testing.T) {
 				scene.AssertExpectationsMet()
 				moqScene.AssertExpectationsMet()
 				if !config.noParams && !config.opaqueParams {
-					if !strings.Contains(fmtMsg, "Hi") {
-						t.Errorf("got: %s, want to contain Hi", fmtMsg)
+					if !strings.Contains(bParams, "Hi") {
+						t.Errorf("got: %s, want to contain Hi", bParams)
 					}
 				}
 			})
@@ -998,7 +998,6 @@ func TestSequences(t *testing.T) {
 							export("returnResults", entry),
 							export("doReturnResults", entry),
 							bParams).returnResults()
-						fmtMsg := fmt.Sprintf("%s", bParams)
 
 						// ACT
 						switch seqNoSeq {
@@ -1017,8 +1016,8 @@ func TestSequences(t *testing.T) {
 						}
 						config := entry.config()
 						if !config.noParams && !config.opaqueParams {
-							if !strings.Contains(fmtMsg, "Hello") {
-								t.Errorf("got: %s, want to contain Hello", fmtMsg)
+							if !strings.Contains(bParams, "Hello") {
+								t.Errorf("got: %s, want to contain Hello", bParams)
 							}
 						}
 
