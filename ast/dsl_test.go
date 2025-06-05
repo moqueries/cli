@@ -1056,7 +1056,7 @@ func TestNodeDecsf(t *testing.T) {
 		}
 
 		// ACT
-		actual := ast.NodeDecsf("// " + lWord + " more stuff here " + lWord)
+		actual := ast.NodeDecsf("// %s more stuff here %s", lWord, lWord)
 
 		// ASSERT
 		if !reflect.DeepEqual(actual, expected) {

@@ -1452,7 +1452,7 @@ func (c *Converter) cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList,
 		count := 1
 		for _, f := range fieldList.List {
 			for n, name := range f.Names {
-				f.Names[n] = Idf(validName(name.Name, prefix, count))
+				f.Names[n] = Id(validName(name.Name, prefix, count))
 				count++
 			}
 			if len(f.Names) == 0 {

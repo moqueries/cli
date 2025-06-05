@@ -1006,7 +1006,7 @@ func TestSequences(t *testing.T) {
 						case "noSeq":
 							rec.noSeq()
 						default:
-							t.Fatalf(seqNoSeq)
+							t.Fatal(seqNoSeq)
 						}
 
 						// ASSERT

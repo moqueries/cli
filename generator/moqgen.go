@@ -331,7 +331,7 @@ func (g *MoqGenerator) findFuncs(tInfo ast.TypeInfo, fInfo *funcInfo) error {
 	case *dst.Ident:
 		return g.loadTypeEquivalent(typ, tInfo, fInfo)
 	default:
-		logs.Panicf("Unknown type: %v", tInfo.Type.Type)
+		logs.Panicf("Unknown type: %#v", tInfo.Type.Type)
 		panic("unreachable")
 	}
 }
@@ -373,7 +373,7 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, tInfo ast.
 				return err
 			}
 		default:
-			logs.Panicf("Unknown type in interface method list: %v", method.Type)
+			logs.Panicf("Unknown type in interface method list: %#v", method.Type)
 		}
 		finalFuncs = append(finalFuncs, method)
 	}
@@ -557,7 +557,7 @@ func (g *MoqGenerator) methods(
 		}
 		decls = append(decls, meths...)
 	default:
-		logs.Panicf("Unknown type: %v", typ.TypeInfo.Type.Type)
+		logs.Panicf("Unknown type: %#v", typ.TypeInfo.Type.Type)
 	}
 
 	return decls, nil
