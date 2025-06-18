@@ -34,14 +34,14 @@ func TestAtomicSequences(t *testing.T) {
 	done := sync.WaitGroup{}
 	mockFn := usualMoq.mock()
 
-	for n := 0; n < routines; n++ {
+	for range routines {
 		done.Add(1)
 		go func() {
 			defer done.Done()
 
 			<-start
 
-			for m := 0; m < callsPerRoutine; m++ {
+			for range callsPerRoutine {
 				res, err := mockFn("Hi", false)
 				if err != nil {
 					t.Errorf("wanted no err, got %#v", err)

@@ -1421,7 +1421,7 @@ func TestMoqGenerator(t *testing.T) {
 				resp, err := gen.Generate(req)
 
 				// ASSERT
-				if err != expectedErr {
+				if !errors.Is(err, expectedErr) {
 					t.Errorf("got %#v, wanted %#v", err, expectedErr)
 				}
 				if resp.File != nil {
@@ -1549,7 +1549,7 @@ func TestMoqGenerator(t *testing.T) {
 		resp, err := gen.Generate(req)
 
 		// ASSERT
-		if err != expectedErr {
+		if !errors.Is(err, expectedErr) {
 			t.Errorf("got %#v, wanted %#v", err, expectedErr)
 		}
 		if resp.File != nil {
@@ -1597,7 +1597,7 @@ func TestMoqGenerator(t *testing.T) {
 		resp, err := gen.Generate(req)
 
 		// ASSERT
-		if err != expectedErr {
+		if !errors.Is(err, expectedErr) {
 			t.Errorf("got %#v, wanted %#v", err, expectedErr)
 		}
 		if resp.File != nil {
@@ -1654,7 +1654,7 @@ func TestMoqGenerator(t *testing.T) {
 		resp, err := gen.Generate(req)
 
 		// ASSERT
-		if err != expectedErr {
+		if !errors.Is(err, expectedErr) {
 			t.Errorf("got %#v, wanted %#v", err, expectedErr)
 		}
 		if resp.File != nil {

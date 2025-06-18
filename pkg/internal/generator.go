@@ -114,7 +114,7 @@ func Generate(
 
 func skipDirs(pkgPath string, skipDirs int) (string, error) {
 	orig := pkgPath
-	for n := 0; n < skipDirs; n++ {
+	for range skipDirs {
 		if pkgPath == "." {
 			return "", fmt.Errorf("%w: skipping %d directories on package %s",
 				ErrSkipTooManyPackageDirs, skipDirs, orig)

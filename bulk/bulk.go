@@ -13,7 +13,6 @@ import (
 // file
 func Initialize(stateFile, rootDir string) error {
 	createFn := func(name string) (io.WriteCloser, error) {
-		//nolint:gosec // Users can use any file for bulk operations
 		return os.Create(name)
 	}
 
@@ -23,7 +22,6 @@ func Initialize(stateFile, rootDir string) error {
 // Append appends a mock generate request to the bulk state
 func Append(stateFile string, request generator.GenerateRequest) error {
 	openFileFn := func(name string, flag int, perm os.FileMode) (internal.ReadWriteSeekCloser, error) {
-		//nolint:gosec // Users can use any file for bulk operations
 		return os.OpenFile(name, flag, perm)
 	}
 
@@ -33,7 +31,6 @@ func Append(stateFile string, request generator.GenerateRequest) error {
 // Finalize complete bulk processing by generating all the requested mocks
 func Finalize(stateFile, rootDir string) error {
 	openFn := func(name string) (io.ReadCloser, error) {
-		//nolint:gosec // Users can use any file for bulk operations
 		return os.Open(name)
 	}
 

@@ -1,6 +1,7 @@
 package testmoqs_test
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -339,7 +340,7 @@ func TestRepeaters(t *testing.T) {
 					entry.invokeMockAndExpectResults(t, []string{"Hello", "there"}, false,
 						results{sResults: []string{"red", "yellow"}, err: io.EOF})
 				}
-				for n := 0; n < 4; n++ {
+				for range 4 {
 					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 						results{sResults: []string{"blue", "orange"}, err: nil})
 				}
@@ -396,7 +397,7 @@ func TestRepeaters(t *testing.T) {
 				}
 
 				// ACT
-				for n := 0; n < 20; n++ {
+				for range 20 {
 					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 						results{sResults: []string{"green", "purple"}, err: nil})
 				}
@@ -1314,7 +1315,7 @@ func TestOptionalInvocations(t *testing.T) {
 					rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
 
 					// ACT
-					for n := 0; n < invocations; n++ {
+					for range invocations {
 						entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 							results{sResults: []string{"blue", "orange"}, err: nil})
 					}
@@ -1382,7 +1383,7 @@ func TestOptionalInvocations(t *testing.T) {
 				rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
 
 				// ACT
-				for n := 0; n < 4; n++ {
+				for range 4 {
 					entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 						results{sResults: []string{"blue", "orange"}, err: nil})
 				}
@@ -1412,7 +1413,7 @@ func TestOptionalInvocations(t *testing.T) {
 					rec.returnResults([]string{"blue", "orange"}, nil)
 					rec.repeat(moq.MinTimes(2), moq.MaxTimes(4))
 
-					for n := 0; n < 3; n++ {
+					for range 3 {
 						entry.invokeMockAndExpectResults(t, []string{"Hi", "you"}, true,
 							results{sResults: []string{"blue", "orange"}, err: nil})
 					}
@@ -1491,7 +1492,7 @@ func (a *passByReferenceFnParamIndexingAdaptor) invokeMockAndExpectResults(
 	if sResult != r.SResult {
 		t.Errorf("got %s, wanted %s", r.SResult, sResult)
 	}
-	if err != r.Err {
+	if !errors.Is(err, r.Err) {
 		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
@@ -1527,7 +1528,7 @@ func (a *exportedPassByReferenceParamIndexingFnAdaptor) invokeMockAndExpectResul
 	if sResult != r.SResult {
 		t.Errorf("got %s, wanted %s", r.SResult, sResult)
 	}
-	if err != r.Err {
+	if !errors.Is(err, r.Err) {
 		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
@@ -1565,7 +1566,7 @@ func (a *passByReferenceParamIndexingAdaptor) invokeMockAndExpectResults(
 	if sResult != r.SResult {
 		t.Errorf("got %s, wanted %s", r.SResult, sResult)
 	}
-	if err != r.Err {
+	if !errors.Is(err, r.Err) {
 		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
@@ -1601,7 +1602,7 @@ func (a *exportedPassByReferenceParamIndexingAdaptor) invokeMockAndExpectResults
 	if sResult != r.SResult {
 		t.Errorf("got %s, wanted %s", r.SResult, sResult)
 	}
-	if err != r.Err {
+	if !errors.Is(err, r.Err) {
 		t.Errorf("got %#v, wanted %#v", r.Err, err)
 	}
 }
