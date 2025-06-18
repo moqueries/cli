@@ -24,5 +24,6 @@ moq_*_dst.txt
 .DS_Store
 
 # other
+/go.work
 .envrc
 /.idea

@@ -632,7 +632,7 @@ func TestConverter(t *testing.T) {
 					decls, err := converter.MethodStructs(fn)
 
 					// ASSERT
-					if err != expectedErr {
+					if !errors.Is(err, expectedErr) {
 						t.Errorf("got %#v, wanted %#v", err, expectedErr)
 					}
 					if decls != nil {
@@ -718,7 +718,7 @@ func TestConverter(t *testing.T) {
 					decl, err := converter.NewFunc()
 
 					// ASSERT
-					if err != expectedErr {
+					if !errors.Is(err, expectedErr) {
 						t.Errorf("got %#v, wanted %#v", err, expectedErr)
 					}
 					if decl != nil {

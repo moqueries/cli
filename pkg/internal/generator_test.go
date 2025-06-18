@@ -190,7 +190,7 @@ func TestGenerate(t *testing.T) {
 				PkgPatterns:    []string{"pkg1", "pkg2"},
 			})
 		// ASSERT
-		if err != expectedErr {
+		if !errors.Is(err, expectedErr) {
 			t.Fatalf("got no error, want %#v", expectedErr)
 		}
 	})
@@ -240,7 +240,7 @@ func TestGenerate(t *testing.T) {
 						PkgPatterns:    []string{"pkg1", "pkg2"},
 					})
 				// ASSERT
-				if err != expectedErr {
+				if !errors.Is(err, expectedErr) {
 					t.Fatalf("got %#v, want %#v", err, expectedErr)
 				}
 			})

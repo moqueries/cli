@@ -1,6 +1,8 @@
 // Package other contains multiple test types for use in unit testing
 package other
 
+// Other is used for testing embedded interfaces
+//nolint: iface // redundant for testing
 type Other interface {
 	Another
 }
@@ -17,6 +19,8 @@ type Results struct {
 	Err     error
 }
 
+// Another is used for testing embedded interfaces
+//nolint: iface // redundant for testing
 type Another interface {
 	Other(Params) Results
 }

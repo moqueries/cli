@@ -453,7 +453,6 @@ func TestCache(t *testing.T) {
 			}
 
 			for name, tc := range testCases {
-				tc := tc
 				t.Run(name, func(t *testing.T) {
 					// ASSEMBLE
 					beforeEach(t, tc.testImport)
@@ -633,7 +632,7 @@ func TestCache(t *testing.T) {
 			actualType, actualErr := cache.Type(*id, ".", true)
 
 			// ASSERT
-			if actualErr != err {
+			if !errors.Is(actualErr, err) {
 				t.Errorf("got %#v, want %#v", actualErr, err)
 			}
 
@@ -1070,16 +1069,7 @@ func TestCache(t *testing.T) {
 
 		loadPackages := func(t *testing.T, code map[string]string) []*packages.Package {
 			t.Helper()
-			dir, err := os.MkdirTemp("", "cache-test-*")
-			if err != nil {
-				t.Fatalf("got os.MkdirTemp err: %#v, want no error", err)
-			}
-			defer func() {
-				err := os.RemoveAll(dir)
-				if err != nil {
-					t.Errorf("got os.RemoveAll err: %#v, want no error", err)
-				}
-			}()
+			dir := t.TempDir()
 
 			for srcPath, src := range code {
 				fPath := filepath.Join(dir, srcPath)
@@ -1130,19 +1120,9 @@ func b(c %s) {}
 		parseASTPackage := func(t *testing.T, code, pkgPath string) []*packages.Package {
 			t.Helper()
 
-			dir, err := os.MkdirTemp("", "moq-ast-cache-*")
-			if err != nil {
-				t.Fatalf("got %#v, want no error", err)
-			}
-			defer func() {
-				err = os.RemoveAll(dir)
-				if err != nil {
-					t.Fatalf("got %#v, want no error", err)
-				}
-			}()
+			dir := t.TempDir()
 			file := filepath.Join(dir, "code.go")
-			err = os.WriteFile(file, []byte(code), 0o600)
-			if err != nil {
+			if err := os.WriteFile(file, []byte(code), 0o600); err != nil {
 				t.Fatalf("got %#v, want no error", err)
 			}
 
@@ -1798,7 +1778,7 @@ func d%s(U) {}
 			// ACT
 			actualErr := cache.LoadPackage(".")
 			// ASSERT
-			if actualErr != err {
+			if !errors.Is(actualErr, err) {
 				t.Errorf("got %#v, want %#v", actualErr, err)
 			}
 		})
@@ -1957,7 +1937,8 @@ func d%s(U) {}
 			beforeEach(t, false)
 			defer afterEach(t)
 
-			pkgs := append(exportPkgs, pkg("vendor/other-pkgs"))
+			pkgs := exportPkgs
+			pkgs = append(pkgs, pkg("vendor/other-pkgs"))
 
 			metricsMoq.OnCall().ASTPkgCacheMissesInc().ReturnResults()
 			loadFnMoq.onCall(loadCfg, exportPkg).returnResults(pkgs, nil)
@@ -1983,7 +1964,8 @@ func d%s(U) {}
 			beforeEach(t, false)
 			defer afterEach(t)
 
-			pkgs := append(exportPkgs,
+			pkgs := exportPkgs
+			pkgs = append(pkgs,
 				pkg("elsewhere/internal"),
 				pkg("elsewhere/internal/again"),
 				pkg("internal"))

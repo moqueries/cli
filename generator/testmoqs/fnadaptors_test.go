@@ -1,6 +1,7 @@
 package testmoqs_test
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -28,7 +29,7 @@ func (a *usualFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, b
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -127,7 +128,7 @@ func (a *exportedUsualFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []s
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -224,7 +225,7 @@ func (a *noNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string,
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -323,7 +324,7 @@ func (a *exportedNoNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams [
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -604,7 +605,7 @@ func (a *noParamsFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []string, _ bo
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -679,7 +680,7 @@ func (a *exportedNoParamsFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []stri
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -888,7 +889,7 @@ func (a *variadicFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -989,7 +990,7 @@ func (a *exportedVariadicFnAdaptor) invokeMockAndExpectResults(
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -1089,7 +1090,7 @@ func (a *repeatedIdsFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []str
 	if sResult2 != res.sResults[1] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult2)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -1199,7 +1200,7 @@ func (a *exportedRepeatedIdsFnAdaptor) invokeMockAndExpectResults(
 	if sResult2 != res.sResults[1] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult2)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -1302,7 +1303,7 @@ func (a *timesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []string, b
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -1401,7 +1402,7 @@ func (a *exportedTimesFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []s
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -1691,7 +1692,7 @@ func (a *difficultResultNamesFnAdaptor) invokeMockAndExpectResults(t moq.T, _ []
 	if r != res.sResults[1] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[1], m)
 	}
-	if sequence != res.err {
+	if !errors.Is(sequence, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, sequence)
 	}
 }
@@ -1733,7 +1734,7 @@ func (r *difficultResultNamesFnRecorder) andDo(_ moq.T, fn func(), _ []string, _
 func (r *difficultResultNamesFnRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
-	//nolint:stylecheck // doReturnFn functions may have error in middle of params
+	//nolint:staticcheck // doReturnFn functions may have error in middle of params
 	r.r = r.r.doReturnResults(func() (string, string, error, int, int, int, float32, float32, float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0, 0.0, 0.0, 0.0
@@ -1770,7 +1771,7 @@ func (a *exportedDifficultResultNamesFnAdaptor) invokeMockAndExpectResults(t moq
 	if r != res.sResults[1] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[1], m)
 	}
-	if sequence != res.err {
+	if !errors.Is(sequence, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, sequence)
 	}
 }
@@ -1812,7 +1813,7 @@ func (r *exportedDifficultResultNamesFnRecorder) andDo(_ moq.T, fn func(), _ []s
 func (r *exportedDifficultResultNamesFnRecorder) doReturnResults(
 	_ moq.T, fn func(), _ []string, _ bool, sResults []string, err error,
 ) {
-	//nolint:stylecheck // doReturnFn functions may have error in middle of params
+	//nolint:staticcheck // doReturnFn functions may have error in middle of params
 	r.r = r.r.DoReturnResults(func() (string, string, error, int, int, int, float32, float32, float32) {
 		fn()
 		return sResults[0], sResults[1], err, 0, 0, 0, 0.0, 0.0, 0.0
@@ -1860,7 +1861,7 @@ func (a *passByReferenceFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams [
 	if r.SResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], r.SResult)
 	}
-	if r.Err != res.err {
+	if !errors.Is(r.Err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, r.Err)
 	}
 }
@@ -1979,7 +1980,7 @@ func (a *exportedPassByReferenceFnAdaptor) invokeMockAndExpectResults(
 	if r.SResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], r.SResult)
 	}
-	if r.Err != res.err {
+	if !errors.Is(r.Err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, r.Err)
 	}
 }
@@ -2089,7 +2090,7 @@ func (a *interfaceParamFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams []
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -2210,7 +2211,7 @@ func (a *exportedInterfaceParamFnAdaptor) invokeMockAndExpectResults(
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -2332,7 +2333,7 @@ func (a *interfaceResultFnAdaptor) invokeMockAndExpectResults(t moq.T, sParams [
 	if irr.SResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], irr)
 	}
-	if irr.Err != res.err {
+	if !errors.Is(irr.Err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, irr)
 	}
 }
@@ -2452,7 +2453,7 @@ func (a *exportedInterfaceResultFnAdaptor) invokeMockAndExpectResults(
 	if irr.SResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], irr)
 	}
-	if irr.Err != res.err {
+	if !errors.Is(irr.Err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, irr)
 	}
 }
@@ -2555,7 +2556,7 @@ func (a *genericParamsFnAdaptor[S, B]) invokeMockAndExpectResults(t moq.T, sPara
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -2656,7 +2657,7 @@ func (a *exportedGenericParamsFnAdaptor[S, B]) invokeMockAndExpectResults(
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -2757,7 +2758,7 @@ func (a *partialGenericParamsFnAdaptor[S]) invokeMockAndExpectResults(
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }
@@ -2858,7 +2859,7 @@ func (a *exportedPartialGenericParamsFnAdaptor[S]) invokeMockAndExpectResults(
 	if sResult != res.sResults[0] {
 		t.Errorf("wanted %#v, got %#v", res.sResults[0], sResult)
 	}
-	if err != res.err {
+	if !errors.Is(err, res.err) {
 		t.Errorf("wanted %#v, got %#v", res.err, err)
 	}
 }

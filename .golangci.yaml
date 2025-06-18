@@ -1,28 +1,25 @@
+version: "2"
 linters:
-  enable-all: true
+  default: all
   disable:
   - cyclop
   - depguard
   - dogsled
   - errorlint
-  - exhaustivestruct
   - exhaustruct
   - funlen
   - importas
-  - interfacer
   - ireturn
   - gochecknoglobals
   - gochecknoinits
   - gocognit
+  - goconst
   - godot
   - maintidx
-  - maligned
   - nlreturn
-  - nosnakecase
   - paralleltest
   - prealloc
   - predeclared
-  - scopelint
   - tagliatelle
   - varnamelen
   - wsl
@@ -31,59 +28,66 @@ linters:
   - gocyclo
   - wrapcheck
 
-  # Usually disabled but useful for checking everything has godoc
-  - golint
+  settings:
+    revive:
+      rules:
+      - name: var-naming
+        disabled: true
+    stylecheck:
+      dot-import-whitelist:
+      - "moqueries.org/cli/ast"
+      initialisms:
+      - "-ID"
 
-run:
-  skip-dirs:
-  - ^testit.*
-
-linters-settings:
-  gci:
-    sections:
-    - standard
-    - default
-    - prefix(moqueries.org/cli)
-  revive:
+  exclusions:
+    paths:
+    - ^testit.*
+    - ^wordler.*
+    presets:
+    - comments
+    - common-false-positives
+    - legacy
+    - std-error-handling
     rules:
-    - name: var-naming
-      disabled: true
-  stylecheck:
-    dot-import-whitelist:
-    - "moqueries.org/cli/ast"
-    initialisms:
-    - "-ID"
+    - path: '(.+)_test.go'
+      linters:
+      - err113
+      - forcetypeassert
+      - goconst
+      - gocritic
+      - goerr113
+      - nestif
+    # No easy way to break up go:generate lines
+    - linters:
+      - lll
+      source: "^//go:generate "
+    - path: 'testpkg'
+      linters:
+      - deadcode
+      - revive
+      - stylecheck
+      - unused
+    - linters:
+      - unused
+      path: generator/testmoqs/fnadaptors_test.go
+    - linters:
+      - unused
+      path: generator/testmoqs/usualadaptors_test.go
+    - linters:
+      - inamedparam
+      path: .*/testmoqs/.*
+    - linters:
+      - err113
+      text: do not define dynamic errors
+    - linters:
+      - staticcheck
+      text: "ST1001:"
 
-issues:
-  exclude-use-default: false
-  exclude-rules:
-  - path: '(.+)_test.go'
-    linters:
-    - err113
-    - forcetypeassert
-    - goconst
-    - gocritic
-    - goerr113
-    - nestif
-  # No easy way to break up go:generate lines
-  - linters:
-    - lll
-    source: "^//go:generate "
-  - path: 'testpkg'
-    linters:
-    - deadcode
-    - revive
-    - stylecheck
-    - unused
-  - linters:
-    - unused
-    path: generator/testmoqs/fnadaptors_test.go
-  - linters:
-    - unused
-    path: generator/testmoqs/usualadaptors_test.go
-  - linters:
-    - inamedparam
-    path: .*/testmoqs/.*
-  include:
-  # disable excluding of issues about comments from golint.
-  - EXC0002
+formatters:
+  settings:
+    gci:
+      sections:
+      - standard
+      - default
+      - prefix(moqueries.org/cli)
+

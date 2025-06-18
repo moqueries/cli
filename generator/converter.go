@@ -1452,7 +1452,7 @@ func (c *Converter) cloneAndNameUnnamed(prefix string, fieldList *dst.FieldList,
 		count := 1
 		for _, f := range fieldList.List {
 			for n, name := range f.Names {
-				f.Names[n] = Idf(validName(name.Name, prefix, count))
+				f.Names[n] = Id(validName(name.Name, prefix, count))
 				count++
 			}
 			if len(f.Names) == 0 {
@@ -1643,6 +1643,9 @@ func (c *Converter) resolveExpr(expr dst.Expr, parentType TypeInfo) dst.Expr {
 			return nil
 		}
 		return IdPath(typ.Type.Name.Name, typ.PkgPath)
+	case *dst.IndexExpr:
+		e.X = c.resolveExpr(e.X, parentType)
+		e.Index = c.resolveExpr(e.Index, parentType)
 	case *dst.InterfaceType:
 		for _, method := range e.Methods.List {
 			method.Type = c.resolveExpr(method.Type, parentType)
