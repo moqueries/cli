@@ -62,6 +62,7 @@ func TestGenerating(t *testing.T) {
 			"PartialGenericResultsFn",
 			"GenericInterfaceParamFn",
 			"GenericInterfaceResultFn",
+			"GenericParamsResultsFn",
 			"Usual",
 			"GenericParams",
 			"PartialGenericParams",

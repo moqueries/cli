@@ -11,8 +11,8 @@ import (
 
 // NB: Keep in sync with ../generator_test.go TestGenerating
 
-//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult UnsafePointerFn
-//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult UnsafePointerFn
+//go:generate moqueries --destination moq_testmoqs_test.go UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn GenericParamsResultsFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult UnsafePointerFn
+//go:generate moqueries --destination exported/moq_exported_testmoqs.go --export UsualFn NoNamesFn NoResultsFn NoParamsFn NothingFn VariadicFn RepeatedIdsFn TimesFn DifficultParamNamesFn DifficultResultNamesFn PassByArrayFn PassByChanFn PassByEllipsisFn PassByMapFn PassByReferenceFn PassBySliceFn PassByValueFn InterfaceParamFn InterfaceResultFn GenericParamsFn PartialGenericParamsFn GenericResultsFn PartialGenericResultsFn GenericInterfaceParamFn GenericInterfaceResultFn GenericParamsResultsFn Usual GenericParams PartialGenericParams GenericResults PartialGenericResults GenericInterfaceParam GenericInterfaceResult UnsafePointerFn
 
 // UsualFn is a typical function type
 type UsualFn func(sParam string, bParam bool) (sResult string, err error)
@@ -125,6 +125,15 @@ type MyReader io.Reader
 
 // GenericInterfaceResultFn tests returning generic interface results
 type GenericInterfaceResultFn[R MyReader] func(sParam string, bParam bool) (r R)
+
+// Container tests parameterized params and results
+type Container[T any] struct{ Inner T }
+
+// GenericParamsResultsFn tests parameterized params and results
+type GenericParamsResultsFn[S, B any, E error] func(
+	sParam Container[S],
+	bParam Container[B],
+) (sResult Container[S], err Container[E])
 
 // Usual combines all the above function types into an interface
 //

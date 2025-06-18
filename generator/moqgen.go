@@ -465,6 +465,8 @@ func (g *MoqGenerator) isExprFullyExported(expr dst.Expr, contextPkg string) (bo
 		}
 
 		return subType.Exported, nil
+	case *dst.IndexExpr:
+		return g.isExprFullyExported(typ.X, contextPkg)
 	case *dst.InterfaceType:
 		return g.isFieldListFullyExported(typ.Methods, contextPkg)
 	case *dst.MapType:

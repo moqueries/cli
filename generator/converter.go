@@ -1643,6 +1643,9 @@ func (c *Converter) resolveExpr(expr dst.Expr, parentType TypeInfo) dst.Expr {
 			return nil
 		}
 		return IdPath(typ.Type.Name.Name, typ.PkgPath)
+	case *dst.IndexExpr:
+		e.X = c.resolveExpr(e.X, parentType)
+		e.Index = c.resolveExpr(e.Index, parentType)
 	case *dst.InterfaceType:
 		for _, method := range e.Methods.List {
 			method.Type = c.resolveExpr(method.Type, parentType)

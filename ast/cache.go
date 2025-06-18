@@ -499,6 +499,13 @@ func (c *Cache) isDefaultComparable(
 		}
 
 		return true, nil
+	case *dst.IndexExpr:
+		comp, err := c.isDefaultComparable(e.X, parentType, interfacePointerDefault, genericType)
+		if err != nil || !comp {
+			return comp, err
+		}
+
+		return c.isDefaultComparable(e.Index, parentType, interfacePointerDefault, true)
 	case *dst.MapType:
 		return false, nil
 	case *dst.SelectorExpr:

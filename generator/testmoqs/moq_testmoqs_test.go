@@ -5688,6 +5688,253 @@ func (m *moqGenericInterfaceResultFn[R]) AssertExpectationsMet() {
 	m.moq.AssertExpectationsMet()
 }
 
+// moqGenericParamsResultsFn holds the state of a moq of the
+// GenericParamsResultsFn type
+type moqGenericParamsResultsFn[S, B any, E error] struct {
+	moq *impl.Moq[
+		*moqGenericParamsResultsFn_adaptor[S, B, E],
+		moqGenericParamsResultsFn_params[S, B, E],
+		moqGenericParamsResultsFn_paramsKey[S, B, E],
+		moqGenericParamsResultsFn_results[S, B, E]]
+
+	runtime moqGenericParamsResultsFn_runtime
+}
+
+// moqGenericParamsResultsFn_runtime holds runtime configuration for the
+// GenericParamsResultsFn type
+type moqGenericParamsResultsFn_runtime struct {
+	parameterIndexing moqGenericParamsResultsFn_paramIndexing
+}
+
+// moqGenericParamsResultsFn_adaptor adapts moqGenericParamsResultsFn as needed
+// by the runtime
+type moqGenericParamsResultsFn_adaptor[S, B any, E error] struct {
+	moq *moqGenericParamsResultsFn[S, B, E]
+}
+
+// moqGenericParamsResultsFn_params holds the params of the
+// GenericParamsResultsFn type
+type moqGenericParamsResultsFn_params[S, B any, E error] struct {
+	sParam testmoqs.Container[S]
+	bParam testmoqs.Container[B]
+}
+
+// moqGenericParamsResultsFn_paramsKey holds the map key params of the
+// GenericParamsResultsFn type
+type moqGenericParamsResultsFn_paramsKey[S, B any, E error] struct {
+	params struct{}
+	hashes struct {
+		sParam hash.Hash
+		bParam hash.Hash
+	}
+}
+
+// moqGenericParamsResultsFn_results holds the results of the
+// GenericParamsResultsFn type
+type moqGenericParamsResultsFn_results[S, B any, E error] struct {
+	sResult testmoqs.Container[S]
+	err     testmoqs.Container[E]
+}
+
+// moqGenericParamsResultsFn_paramIndexing holds the parameter indexing runtime
+// configuration for the GenericParamsResultsFn type
+type moqGenericParamsResultsFn_paramIndexing struct {
+	sParam moq.ParamIndexing
+	bParam moq.ParamIndexing
+}
+
+// moqGenericParamsResultsFn_doFn defines the type of function needed when
+// calling andDo for the GenericParamsResultsFn type
+type moqGenericParamsResultsFn_doFn[S, B any, E error] func(
+	sParam testmoqs.Container[S],
+	bParam testmoqs.Container[B],
+)
+
+// moqGenericParamsResultsFn_doReturnFn defines the type of function needed
+// when calling doReturnResults for the GenericParamsResultsFn type
+type moqGenericParamsResultsFn_doReturnFn[S, B any, E error] func(
+	sParam testmoqs.Container[S],
+	bParam testmoqs.Container[B],
+) (sResult testmoqs.Container[S], err testmoqs.Container[E])
+
+// moqGenericParamsResultsFn_recorder routes recorded function calls to the
+// moqGenericParamsResultsFn moq
+type moqGenericParamsResultsFn_recorder[S, B any, E error] struct {
+	recorder *impl.Recorder[
+		*moqGenericParamsResultsFn_adaptor[S, B, E],
+		moqGenericParamsResultsFn_params[S, B, E],
+		moqGenericParamsResultsFn_paramsKey[S, B, E],
+		moqGenericParamsResultsFn_results[S, B, E]]
+}
+
+// moqGenericParamsResultsFn_anyParams isolates the any params functions of the
+// GenericParamsResultsFn type
+type moqGenericParamsResultsFn_anyParams[S, B any, E error] struct {
+	recorder *moqGenericParamsResultsFn_recorder[S, B, E]
+}
+
+// newMoqGenericParamsResultsFn creates a new moq of the GenericParamsResultsFn
+// type
+func newMoqGenericParamsResultsFn[S, B any, E error](scene *moq.Scene, config *moq.Config) *moqGenericParamsResultsFn[S, B, E] {
+	adaptor1 := &moqGenericParamsResultsFn_adaptor[S, B, E]{}
+	m := &moqGenericParamsResultsFn[S, B, E]{
+		moq: impl.NewMoq[
+			*moqGenericParamsResultsFn_adaptor[S, B, E],
+			moqGenericParamsResultsFn_params[S, B, E],
+			moqGenericParamsResultsFn_paramsKey[S, B, E],
+			moqGenericParamsResultsFn_results[S, B, E]](scene, adaptor1, config),
+
+		runtime: moqGenericParamsResultsFn_runtime{parameterIndexing: moqGenericParamsResultsFn_paramIndexing{
+			sParam: moq.ParamIndexByHash,
+			bParam: moq.ParamIndexByHash,
+		}},
+	}
+	adaptor1.moq = m
+
+	scene.AddMoq(m)
+	return m
+}
+
+// mock returns the moq implementation of the GenericParamsResultsFn type
+func (m *moqGenericParamsResultsFn[S, B, E]) mock() testmoqs.GenericParamsResultsFn[S, B, E] {
+	return func(
+		sParam testmoqs.Container[S],
+		bParam testmoqs.Container[B],
+	) (testmoqs.Container[S], testmoqs.Container[E]) {
+		m.moq.Scene.T.Helper()
+		params := moqGenericParamsResultsFn_params[S, B, E]{
+			sParam: sParam,
+			bParam: bParam,
+		}
+
+		var result1 testmoqs.Container[S]
+		var result2 testmoqs.Container[E]
+		if result := m.moq.Function(params); result != nil {
+			result1 = result.sResult
+			result2 = result.err
+		}
+		return result1, result2
+	}
+}
+
+func (m *moqGenericParamsResultsFn[S, B, E]) onCall(
+	sParam testmoqs.Container[S],
+	bParam testmoqs.Container[B],
+) *moqGenericParamsResultsFn_recorder[S, B, E] {
+	return &moqGenericParamsResultsFn_recorder[S, B, E]{
+		recorder: m.moq.OnCall(moqGenericParamsResultsFn_params[S, B, E]{
+			sParam: sParam,
+			bParam: bParam,
+		}),
+	}
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) any() *moqGenericParamsResultsFn_anyParams[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.IsAnyPermitted(false) {
+		return nil
+	}
+	return &moqGenericParamsResultsFn_anyParams[S, B, E]{recorder: r}
+}
+
+func (a *moqGenericParamsResultsFn_anyParams[S, B, E]) sParam() *moqGenericParamsResultsFn_recorder[S, B, E] {
+	a.recorder.recorder.AnyParam(1)
+	return a.recorder
+}
+
+func (a *moqGenericParamsResultsFn_anyParams[S, B, E]) bParam() *moqGenericParamsResultsFn_recorder[S, B, E] {
+	a.recorder.recorder.AnyParam(2)
+	return a.recorder
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) seq() *moqGenericParamsResultsFn_recorder[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(true, "seq", false) {
+		return nil
+	}
+	return r
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) noSeq() *moqGenericParamsResultsFn_recorder[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Seq(false, "noSeq", false) {
+		return nil
+	}
+	return r
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) returnResults(sResult testmoqs.Container[S], err testmoqs.Container[E]) *moqGenericParamsResultsFn_recorder[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.ReturnResults(moqGenericParamsResultsFn_results[S, B, E]{
+		sResult: sResult,
+		err:     err,
+	})
+	return r
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) andDo(fn moqGenericParamsResultsFn_doFn[S, B, E]) *moqGenericParamsResultsFn_recorder[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.AndDo(func(params moqGenericParamsResultsFn_params[S, B, E]) {
+		fn(params.sParam, params.bParam)
+	}, false) {
+		return nil
+	}
+	return r
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) doReturnResults(fn moqGenericParamsResultsFn_doReturnFn[S, B, E]) *moqGenericParamsResultsFn_recorder[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	r.recorder.DoReturnResults(func(params moqGenericParamsResultsFn_params[S, B, E]) *moqGenericParamsResultsFn_results[S, B, E] {
+		sResult, err := fn(params.sParam, params.bParam)
+		return &moqGenericParamsResultsFn_results[S, B, E]{
+			sResult: sResult,
+			err:     err,
+		}
+	})
+	return r
+}
+
+func (r *moqGenericParamsResultsFn_recorder[S, B, E]) repeat(repeaters ...moq.Repeater) *moqGenericParamsResultsFn_recorder[S, B, E] {
+	r.recorder.Moq.Scene.T.Helper()
+	if !r.recorder.Repeat(repeaters, false) {
+		return nil
+	}
+	return r
+}
+
+func (*moqGenericParamsResultsFn_adaptor[S, B, E]) PrettyParams(params moqGenericParamsResultsFn_params[S, B, E]) string {
+	return fmt.Sprintf("GenericParamsResultsFn(%#v, %#v)", params.sParam, params.bParam)
+}
+
+func (a *moqGenericParamsResultsFn_adaptor[S, B, E]) ParamsKey(params moqGenericParamsResultsFn_params[S, B, E], anyParams uint64) moqGenericParamsResultsFn_paramsKey[S, B, E] {
+	a.moq.moq.Scene.T.Helper()
+	sParamUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.sParam, "sParam", 1, a.moq.runtime.parameterIndexing.sParam, anyParams)
+	bParamUsedHash := impl.HashOnlyParamKey(a.moq.moq.Scene.T,
+		params.bParam, "bParam", 2, a.moq.runtime.parameterIndexing.bParam, anyParams)
+	return moqGenericParamsResultsFn_paramsKey[S, B, E]{
+		params: struct{}{},
+		hashes: struct {
+			sParam hash.Hash
+			bParam hash.Hash
+		}{
+			sParam: sParamUsedHash,
+			bParam: bParamUsedHash,
+		},
+	}
+}
+
+// Reset resets the state of the moq
+func (m *moqGenericParamsResultsFn[S, B, E]) Reset() {
+	m.moq.Reset()
+}
+
+// AssertExpectationsMet asserts that all expectations have been met
+func (m *moqGenericParamsResultsFn[S, B, E]) AssertExpectationsMet() {
+	m.moq.Scene.T.Helper()
+	m.moq.AssertExpectationsMet()
+}
+
 // The following type assertion assures that testmoqs.Usual is mocked
 // completely
 var _ testmoqs.Usual = (*moqUsual_mock)(nil)
