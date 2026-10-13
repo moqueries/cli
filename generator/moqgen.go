@@ -278,14 +278,11 @@ func destinationPath(req GenerateRequest, relPath string) (string, error) {
 
 	destPath := req.Destination
 	if destPath == "" {
-		destPath = "moq_"
-		for n, typ := range req.Types {
-			typ = strings.TrimSuffix(typ, ast.GenTypeSuffix)
-			destPath += strings.ToLower(typ)
-			if n+1 < len(req.Types) {
-				destPath += "_"
-			}
+		names := make([]string, 0, len(req.Types))
+		for _, typ := range req.Types {
+			names = append(names, strings.ToLower(strings.TrimSuffix(typ, ast.GenTypeSuffix)))
 		}
+		destPath = "moq_" + strings.Join(names, "_")
 		if !req.Export || (req.Package != "" && strings.HasSuffix(req.Package, testPkgSuffix)) {
 			destPath += testPkgSuffix
 		}

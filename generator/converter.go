@@ -1169,17 +1169,18 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 	mName := c.moqName()
 	rType := fmt.Sprintf(double, mName, adaptorIdent)
 	params := fmt.Sprintf(double, mName, paramsIdent)
-	sfmt := c.typeName() + "("
+	name := c.typeName()
 	if c.isInterface() {
 		rType = fmt.Sprintf(triple, mName, fn.Name, adaptorIdent)
 		params = fmt.Sprintf(triple, mName, fn.Name, paramsIdent)
-		sfmt = fn.Name + "("
+		name = fn.Name
 	}
+	var verbs []string
 	var pExprs []dst.Expr
 	count := 1
 	for _, param := range fn.FuncType.Params.List {
 		for _, name := range param.Names {
-			sfmt += "%#v, "
+			verbs = append(verbs, "%#v")
 			vName := validName(name.Name, paramPrefix, count)
 			pExpr := Sel(Id(paramsIdent)).Dot(c.exportId(vName)).Obj
 			pExprs = append(pExprs, c.prettyParam(param, pExpr))
@@ -1187,17 +1188,14 @@ func (c *Converter) prettyParamsFn(fn Func) *dst.FuncDecl {
 		}
 
 		if len(param.Names) == 0 {
-			sfmt += "%#v, "
+			verbs = append(verbs, "%#v")
 			pExpr := Sel(Id(paramsIdent)).
 				Dot(c.exportId(fmt.Sprintf(unnamed, paramPrefix, count))).Obj
 			pExprs = append(pExprs, c.prettyParam(param, pExpr))
 			count++
 		}
 	}
-	if count > 1 {
-		sfmt = sfmt[0 : len(sfmt)-2]
-	}
-	sfmt += ")"
+	sfmt := name + "(" + strings.Join(verbs, ", ") + ")"
 	pExprs = append([]dst.Expr{LitString(sfmt)}, pExprs...)
 	return Fn(titler.String(prettyParamsFnName)).
 		Recv(Field(Star(c.genericExpr(Id(rType), clone)).Obj).Obj).
@@ -1677,13 +1675,13 @@ func cloneExpr(expr dst.Expr) dst.Expr {
 	return dst.Clone(expr).(dst.Expr)
 }
 
-func genDeclDecf(format string, a ...interface{}) dst.GenDeclDecorations {
+func genDeclDecf(format string, a ...any) dst.GenDeclDecorations {
 	return dst.GenDeclDecorations{
 		NodeDecs: NodeDecsf(format, a...),
 	}
 }
 
-func fnDeclDecf(format string, a ...interface{}) dst.FuncDeclDecorations {
+func fnDeclDecf(format string, a ...any) dst.FuncDeclDecorations {
 	return dst.FuncDeclDecorations{
 		NodeDecs: NodeDecsf(format, a...),
 	}

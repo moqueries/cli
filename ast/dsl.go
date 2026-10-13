@@ -320,7 +320,7 @@ func Id(name string) *dst.Ident {
 }
 
 // Idf returns a formatted dst.Ident
-func Idf(format string, a ...interface{}) *dst.Ident {
+func Idf(format string, a ...any) *dst.Ident {
 	return Id(fmt.Sprintf(format, a...))
 }
 
@@ -458,7 +458,7 @@ func LitString(value string) *dst.BasicLit {
 }
 
 // LitStringf returns a formatted dst.BasicLit with a literal string value
-func LitStringf(format string, a ...interface{}) *dst.BasicLit {
+func LitStringf(format string, a ...any) *dst.BasicLit {
 	return &dst.BasicLit{
 		Kind:  token.STRING,
 		Value: fmt.Sprintf("\""+format+"\"", a...),
@@ -483,7 +483,7 @@ func (d MapTypeDSL) Value(value dst.Expr) MapTypeDSL {
 // the line as necessary. The format param should be a single long line
 // starting with a line comment (//). The format line is broken into multiple
 // lines each with at least one word.
-func NodeDecsf(format string, a ...interface{}) dst.NodeDecs {
+func NodeDecsf(format string, a ...any) dst.NodeDecs {
 	const (
 		sep     = " "
 		maxLine = 79

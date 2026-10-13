@@ -85,7 +85,7 @@ func GenerateWithTypeCache(cache TypeCache, req GenerateRequest) error {
 
 	destDir := filepath.Dir(resp.DestPath)
 	if _, err = os.Stat(destDir); os.IsNotExist(err) {
-		//nolint: mnd, gomnd // Unix file permissions are wellknown numbers
+		//nolint: mnd // Unix file permissions are wellknown numbers
 		err = os.MkdirAll(destDir, 0o750)
 		if err != nil {
 			logs.Errorf(

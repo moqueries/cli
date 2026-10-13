@@ -74,7 +74,7 @@ type IsLoggingFn func() bool
 //go:generate moqueries LoggingfFn
 
 // LoggingfFn is the logging function to output finalized metrics
-type LoggingfFn func(format string, args ...interface{})
+type LoggingfFn func(format string, args ...any)
 
 // NewMetrics returns a new system for gathering metrics
 func NewMetrics(isLoggingFn IsLoggingFn, loggingfFn LoggingfFn) *Processor {
