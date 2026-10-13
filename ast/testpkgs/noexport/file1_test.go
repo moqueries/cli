@@ -1,3 +1,4 @@
 package noexport_test
 
-type test_type1 any
+//nolint:modernize // the AST tests require an interface type, not the any alias
+type test_type1 interface{}
