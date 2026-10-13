@@ -69,10 +69,10 @@ func TestMetrics(t *testing.T) {
 				defer afterEach()
 
 				isLoggingFnMoq.onCall().returnResults(true)
-				var data interface{}
+				var data any
 				loggingfFnMoq.onCall("Type cache metrics %s", nil).
 					any().args().
-					doReturnResults(func(_ string, args ...interface{}) {
+					doReturnResults(func(_ string, args ...any) {
 						if len(args) != 1 {
 							t.Fatalf("got %d args, wanted 1", len(args))
 						}
@@ -88,7 +88,7 @@ func TestMetrics(t *testing.T) {
 				if !ok {
 					t.Fatalf("got %#v, wanted []byte", data)
 				}
-				msi := map[string]interface{}{}
+				msi := map[string]any{}
 				err := json.Unmarshal(buf, &msi)
 				if err != nil {
 					t.Fatalf("got %#v, wanted no err", err)
@@ -144,10 +144,10 @@ func TestMetrics(t *testing.T) {
 				defer afterEach()
 
 				isLoggingFnMoq.onCall().returnResults(true)
-				var data interface{}
+				var data any
 				loggingfFnMoq.onCall("Type cache metrics %s", nil).
 					any().args().
-					doReturnResults(func(_ string, args ...interface{}) {
+					doReturnResults(func(_ string, args ...any) {
 						if len(args) != 1 {
 							t.Fatalf("got %d args, wanted 1", len(args))
 						}
@@ -163,7 +163,7 @@ func TestMetrics(t *testing.T) {
 				if !ok {
 					t.Fatalf("got %#v, wanted []byte", data)
 				}
-				msi := map[string]interface{}{}
+				msi := map[string]any{}
 				err := json.Unmarshal(buf, &msi)
 				if err != nil {
 					t.Fatalf("got %#v, wanted no err", err)

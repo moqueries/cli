@@ -7,6 +7,7 @@ linters:
   - dogsled
   - errorlint
   - exhaustruct
+  - exhaustruct_v5
   - funlen
   - importas
   - ireturn
@@ -17,12 +18,14 @@ linters:
   - godot
   - maintidx
   - nlreturn
+  - noinlineerr
   - paralleltest
   - prealloc
   - predeclared
   - tagliatelle
   - varnamelen
   - wsl
+  - wsl_v5
 
   # Consider enabling
   - gocyclo
@@ -55,7 +58,6 @@ linters:
       - forcetypeassert
       - goconst
       - gocritic
-      - goerr113
       - nestif
     # No easy way to break up go:generate lines
     - linters:

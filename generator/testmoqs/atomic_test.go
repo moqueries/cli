@@ -35,10 +35,7 @@ func TestAtomicSequences(t *testing.T) {
 	mockFn := usualMoq.mock()
 
 	for range routines {
-		done.Add(1)
-		go func() {
-			defer done.Done()
-
+		done.Go(func() {
 			<-start
 
 			for range callsPerRoutine {
@@ -50,7 +47,7 @@ func TestAtomicSequences(t *testing.T) {
 					t.Errorf("wanted Bye, got %s", res)
 				}
 			}
-		}()
+		})
 	}
 
 	// ACT

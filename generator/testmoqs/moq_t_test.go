@@ -66,7 +66,7 @@ type moqT_Errorf_adaptor struct {
 // moqT_Errorf_params holds the params of the T type
 type moqT_Errorf_params struct {
 	format string
-	args   []interface{}
+	args   []any
 }
 
 // moqT_Errorf_paramsKey holds the map key params of the T type
@@ -90,11 +90,11 @@ type moqT_Errorf_paramIndexing struct {
 
 // moqT_Errorf_doFn defines the type of function needed when calling andDo for
 // the T type
-type moqT_Errorf_doFn func(format string, args ...interface{})
+type moqT_Errorf_doFn func(format string, args ...any)
 
 // moqT_Errorf_doReturnFn defines the type of function needed when calling
 // doReturnResults for the T type
-type moqT_Errorf_doReturnFn func(format string, args ...interface{})
+type moqT_Errorf_doReturnFn func(format string, args ...any)
 
 // moqT_Errorf_recorder routes recorded function calls to the moqT moq
 type moqT_Errorf_recorder struct {
@@ -119,7 +119,7 @@ type moqT_Fatalf_adaptor struct {
 // moqT_Fatalf_params holds the params of the T type
 type moqT_Fatalf_params struct {
 	format string
-	args   []interface{}
+	args   []any
 }
 
 // moqT_Fatalf_paramsKey holds the map key params of the T type
@@ -143,11 +143,11 @@ type moqT_Fatalf_paramIndexing struct {
 
 // moqT_Fatalf_doFn defines the type of function needed when calling andDo for
 // the T type
-type moqT_Fatalf_doFn func(format string, args ...interface{})
+type moqT_Fatalf_doFn func(format string, args ...any)
 
 // moqT_Fatalf_doReturnFn defines the type of function needed when calling
 // doReturnResults for the T type
-type moqT_Fatalf_doReturnFn func(format string, args ...interface{})
+type moqT_Fatalf_doReturnFn func(format string, args ...any)
 
 // moqT_Fatalf_recorder routes recorded function calls to the moqT moq
 type moqT_Fatalf_recorder struct {
@@ -264,7 +264,7 @@ func newMoqT(scene *moq.Scene, config *moq.Config) *moqT {
 // mock returns the mock implementation of the T type
 func (m *moqT) mock() *moqT_mock { return m.moq }
 
-func (m *moqT_mock) Errorf(format string, args ...interface{}) {
+func (m *moqT_mock) Errorf(format string, args ...any) {
 	m.moq.moq_Errorf.Scene.T.Helper()
 	params := moqT_Errorf_params{
 		format: format,
@@ -274,7 +274,7 @@ func (m *moqT_mock) Errorf(format string, args ...interface{}) {
 	m.moq.moq_Errorf.Function(params)
 }
 
-func (m *moqT_mock) Fatalf(format string, args ...interface{}) {
+func (m *moqT_mock) Fatalf(format string, args ...any) {
 	m.moq.moq_Fatalf.Scene.T.Helper()
 	params := moqT_Fatalf_params{
 		format: format,
@@ -298,7 +298,7 @@ func (m *moqT) onCall() *moqT_recorder {
 	}
 }
 
-func (m *moqT_recorder) Errorf(format string, args ...interface{}) *moqT_Errorf_recorder {
+func (m *moqT_recorder) Errorf(format string, args ...any) *moqT_Errorf_recorder {
 	return &moqT_Errorf_recorder{
 		recorder: m.moq.moq_Errorf.OnCall(moqT_Errorf_params{
 			format: format,
@@ -398,7 +398,7 @@ func (a *moqT_Errorf_adaptor) ParamsKey(params moqT_Errorf_params, anyParams uin
 	}
 }
 
-func (m *moqT_recorder) Fatalf(format string, args ...interface{}) *moqT_Fatalf_recorder {
+func (m *moqT_recorder) Fatalf(format string, args ...any) *moqT_Fatalf_recorder {
 	return &moqT_Fatalf_recorder{
 		recorder: m.moq.moq_Fatalf.OnCall(moqT_Fatalf_params{
 			format: format,

@@ -113,8 +113,7 @@ func TestGenerating(t *testing.T) {
 				checked[typ] = struct{}{}
 			}
 
-			genTypes := strings.Split(line[len(prefix)+1:], " ")
-			for _, genType := range genTypes {
+			for genType := range strings.SplitSeq(line[len(prefix)+1:], " ") {
 				if strings.HasPrefix(genType, "--") || strings.HasSuffix(genType, ".go") {
 					continue
 				}

@@ -15,13 +15,13 @@ func TestSummarize(t *testing.T) {
 	type testCase struct {
 		lines         []string
 		expectedRuns  int
-		expectedState map[string]interface{}
+		expectedState map[string]any
 	}
 	testCases := map[string]testCase{
 		"nothing to summarize": {
 			lines:        []string{"Hello 1", "Hello 2", "Hello 3"},
 			expectedRuns: 0,
-			expectedState: map[string]interface{}{
+			expectedState: map[string]any{
 				"ast-pkg-cache-hits":            0.0,
 				"ast-pkg-cache-misses":          0.0,
 				"ast-type-cache-hits":           0.0,
@@ -53,7 +53,7 @@ func TestSummarize(t *testing.T) {
 					"\"ast-total-decoration-time-str\":\"ignored\"}",
 			},
 			expectedRuns: 5,
-			expectedState: map[string]interface{}{
+			expectedState: map[string]any{
 				"ast-pkg-cache-hits":            1.0,
 				"ast-pkg-cache-misses":          2.0,
 				"ast-type-cache-hits":           0.0,
@@ -91,10 +91,10 @@ func TestSummarize(t *testing.T) {
 				doReturnResults(func(p []byte) (int, error) {
 					return 0, io.EOF
 				})
-			var actualArgs []interface{}
+			var actualArgs []any
 			loggingfFnMoq.onCall("Scanned %d runs, summary: %s", nil).
 				any().args().
-				doReturnResults(func(format string, args ...interface{}) {
+				doReturnResults(func(format string, args ...any) {
 					actualArgs = args
 				})
 
@@ -118,7 +118,7 @@ func TestSummarize(t *testing.T) {
 			if !ok {
 				t.Errorf("got %#v, wanted []byte", buf)
 			}
-			msi := map[string]interface{}{}
+			msi := map[string]any{}
 			err = json.Unmarshal(buf, &msi)
 			if err != nil {
 				t.Fatalf("got %#v, wanted no err", err)

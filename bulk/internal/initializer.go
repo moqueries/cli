@@ -53,7 +53,7 @@ func Initialize(stateFile, rootDir string, createFn CreateFn) error {
 	return nil
 }
 
-func compact(v interface{}) []byte {
+func compact(v any) []byte {
 	b, err := json.Marshal(v)
 	if err != nil {
 		logs.Panic("error marshalling state info", err)

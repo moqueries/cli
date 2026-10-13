@@ -36,7 +36,7 @@ type moqLoggingfFn_adaptor struct {
 // moqLoggingfFn_params holds the params of the LoggingfFn type
 type moqLoggingfFn_params struct {
 	format string
-	args   []interface{}
+	args   []any
 }
 
 // moqLoggingfFn_paramsKey holds the map key params of the LoggingfFn type
@@ -60,11 +60,11 @@ type moqLoggingfFn_paramIndexing struct {
 
 // moqLoggingfFn_doFn defines the type of function needed when calling andDo
 // for the LoggingfFn type
-type moqLoggingfFn_doFn func(format string, args ...interface{})
+type moqLoggingfFn_doFn func(format string, args ...any)
 
 // moqLoggingfFn_doReturnFn defines the type of function needed when calling
 // doReturnResults for the LoggingfFn type
-type moqLoggingfFn_doReturnFn func(format string, args ...interface{})
+type moqLoggingfFn_doReturnFn func(format string, args ...any)
 
 // moqLoggingfFn_recorder routes recorded function calls to the moqLoggingfFn
 // moq
@@ -107,7 +107,7 @@ func newMoqLoggingfFn(scene *moq.Scene, config *moq.Config) *moqLoggingfFn {
 
 // mock returns the moq implementation of the LoggingfFn type
 func (m *moqLoggingfFn) mock() metrics.LoggingfFn {
-	return func(format string, args ...interface{}) {
+	return func(format string, args ...any) {
 		m.moq.Scene.T.Helper()
 		params := moqLoggingfFn_params{
 			format: format,
@@ -118,7 +118,7 @@ func (m *moqLoggingfFn) mock() metrics.LoggingfFn {
 	}
 }
 
-func (m *moqLoggingfFn) onCall(format string, args ...interface{}) *moqLoggingfFn_recorder {
+func (m *moqLoggingfFn) onCall(format string, args ...any) *moqLoggingfFn_recorder {
 	return &moqLoggingfFn_recorder{
 		recorder: m.moq.OnCall(moqLoggingfFn_params{
 			format: format,

@@ -18,7 +18,7 @@ type usualAdaptor struct {
 
 func (a *usualAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *usualAdaptor) mock() interface{} { return a.m.mock() }
+func (a *usualAdaptor) mock() any { return a.m.mock() }
 
 func (a *usualAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &usualRecorder{r: a.m.onCall().Usual(sParams[0], bParam)}
@@ -117,7 +117,7 @@ func (a *exportedUsualAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedUsualAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedUsualAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedUsualAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedUsualRecorder{r: a.m.OnCall().Usual(sParams[0], bParam)}
@@ -214,7 +214,7 @@ type noNamesAdaptor struct {
 
 func (a *noNamesAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *noNamesAdaptor) mock() interface{} { return a.m.mock() }
+func (a *noNamesAdaptor) mock() any { return a.m.mock() }
 
 func (a *noNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &noNamesRecorder{r: a.m.onCall().NoNames(sParams[0], bParam)}
@@ -313,7 +313,7 @@ func (a *exportedNoNamesAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedNoNamesAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedNoNamesAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedNoNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedNoNamesRecorder{r: a.m.OnCall().NoNames(sParams[0], bParam)}
@@ -410,7 +410,7 @@ type noResultsAdaptor struct {
 
 func (a *noResultsAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *noResultsAdaptor) mock() interface{} { return a.m.mock() }
+func (a *noResultsAdaptor) mock() any { return a.m.mock() }
 
 func (a *noResultsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &noResultsRecorder{r: a.m.onCall().NoResults(sParams[0], bParam)}
@@ -502,7 +502,7 @@ func (a *exportedNoResultsAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedNoResultsAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedNoResultsAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedNoResultsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedNoResultsRecorder{r: a.m.OnCall().NoResults(sParams[0], bParam)}
@@ -594,7 +594,7 @@ func (a *noParamsAdaptor) config() adaptorConfig {
 	return adaptorConfig{noParams: true}
 }
 
-func (a *noParamsAdaptor) mock() interface{} { return a.m.mock() }
+func (a *noParamsAdaptor) mock() any { return a.m.mock() }
 
 func (a *noParamsAdaptor) newRecorder([]string, bool) recorder {
 	return &noParamsRecorder{r: a.m.onCall().NoParams()}
@@ -669,7 +669,7 @@ func (a *exportedNoParamsAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true, noParams: true}
 }
 
-func (a *exportedNoParamsAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedNoParamsAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedNoParamsAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedNoParamsRecorder{r: a.m.OnCall().NoParams()}
@@ -744,7 +744,7 @@ func (a *nothingAdaptor) config() adaptorConfig {
 	return adaptorConfig{noParams: true}
 }
 
-func (a *nothingAdaptor) mock() interface{} { return a.m.mock() }
+func (a *nothingAdaptor) mock() any { return a.m.mock() }
 
 func (a *nothingAdaptor) newRecorder([]string, bool) recorder {
 	return &nothingRecorder{r: a.m.onCall().Nothing()}
@@ -812,7 +812,7 @@ func (a *exportedNothingAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true, noParams: true}
 }
 
-func (a *exportedNothingAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedNothingAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedNothingAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedNothingRecorder{r: a.m.OnCall().Nothing()}
@@ -878,7 +878,7 @@ type variadicAdaptor struct {
 
 func (a *variadicAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *variadicAdaptor) mock() interface{} { return a.m.mock() }
+func (a *variadicAdaptor) mock() any { return a.m.mock() }
 
 func (a *variadicAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &variadicRecorder{r: a.m.onCall().Variadic(bParam, sParams...)}
@@ -977,7 +977,7 @@ func (a *exportedVariadicAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedVariadicAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedVariadicAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedVariadicAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedVariadicRecorder{r: a.m.OnCall().Variadic(bParam, sParams...)}
@@ -1076,7 +1076,7 @@ type repeatedIdsAdaptor struct {
 
 func (a *repeatedIdsAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *repeatedIdsAdaptor) mock() interface{} { return a.m.mock() }
+func (a *repeatedIdsAdaptor) mock() any { return a.m.mock() }
 
 func (a *repeatedIdsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &repeatedIdsRecorder{r: a.m.onCall().RepeatedIds(sParams[0], sParams[1], bParam)}
@@ -1184,7 +1184,7 @@ func (a *exportedRepeatedIdsAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedRepeatedIdsAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedRepeatedIdsAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedRepeatedIdsAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedRepeatedIdsRecorder{r: a.m.OnCall().RepeatedIds(sParams[0], sParams[1], bParam)}
@@ -1290,7 +1290,7 @@ type timesAdaptor struct {
 
 func (a *timesAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *timesAdaptor) mock() interface{} { return a.m.mock() }
+func (a *timesAdaptor) mock() any { return a.m.mock() }
 
 func (a *timesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &timesRecorder{r: a.m.onCall().Times(sParams[0], bParam)}
@@ -1389,7 +1389,7 @@ func (a *exportedTimesAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedTimesAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedTimesAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedTimesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedTimesRecorder{r: a.m.OnCall().Times(sParams[0], bParam)}
@@ -1486,7 +1486,7 @@ type difficultParamNamesAdaptor struct {
 
 func (a *difficultParamNamesAdaptor) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *difficultParamNamesAdaptor) mock() interface{} { return a.m.mock() }
+func (a *difficultParamNamesAdaptor) mock() any { return a.m.mock() }
 
 func (a *difficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &difficultParamNamesRecorder{r: a.m.onCall().DifficultParamNames(
@@ -1579,7 +1579,7 @@ func (a *exportedDifficultParamNamesAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedDifficultParamNamesAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedDifficultParamNamesAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedDifficultParamNamesAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedDifficultParamNamesRecorder{
@@ -1677,7 +1677,7 @@ func (a *difficultResultNamesAdaptor) config() adaptorConfig {
 	return adaptorConfig{noParams: true}
 }
 
-func (a *difficultResultNamesAdaptor) mock() interface{} { return a.m.mock() }
+func (a *difficultResultNamesAdaptor) mock() any { return a.m.mock() }
 
 func (a *difficultResultNamesAdaptor) newRecorder([]string, bool) recorder {
 	return &difficultResultNamesRecorder{r: a.m.onCall().DifficultResultNames()}
@@ -1756,7 +1756,7 @@ func (a *exportedDifficultResultNamesAdaptor) config() adaptorConfig {
 	return adaptorConfig{exported: true, noParams: true}
 }
 
-func (a *exportedDifficultResultNamesAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedDifficultResultNamesAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedDifficultResultNamesAdaptor) newRecorder([]string, bool) recorder {
 	return &exportedDifficultResultNamesRecorder{r: a.m.OnCall().DifficultResultNames()}
@@ -1837,7 +1837,7 @@ func (a *passByReferenceAdaptor) config() adaptorConfig {
 	}
 }
 
-func (a *passByReferenceAdaptor) mock() interface{} { return a.m.mock() }
+func (a *passByReferenceAdaptor) mock() any { return a.m.mock() }
 
 func (a *passByReferenceAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &passByReferenceRecorder{r: a.m.onCall().PassByReference(&testmoqs.Params{
@@ -1954,7 +1954,7 @@ func (a *exportedPassByReferenceAdaptor) config() adaptorConfig {
 	}
 }
 
-func (a *exportedPassByReferenceAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedPassByReferenceAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedPassByReferenceAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedPassByReferenceRecorder{r: a.m.OnCall().PassByReference(&testmoqs.Params{
@@ -2072,7 +2072,7 @@ func (a *interfaceParamAdaptor) config() adaptorConfig {
 	}
 }
 
-func (a *interfaceParamAdaptor) mock() interface{} { return a.m.mock() }
+func (a *interfaceParamAdaptor) mock() any { return a.m.mock() }
 
 func (a *interfaceParamAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &interfaceParamRecorder{r: a.m.onCall().InterfaceParam(&testmoqs.InterfaceParamWriter{
@@ -2191,7 +2191,7 @@ func (a *exportedInterfaceParamAdaptor) config() adaptorConfig {
 	}
 }
 
-func (a *exportedInterfaceParamAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedInterfaceParamAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedInterfaceParamAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedInterfaceParamRecorder{r: a.m.OnCall().InterfaceParam(&testmoqs.InterfaceParamWriter{
@@ -2311,7 +2311,7 @@ func (a *interfaceResultAdaptor) config() adaptorConfig {
 	}
 }
 
-func (a *interfaceResultAdaptor) mock() interface{} { return a.m.mock() }
+func (a *interfaceResultAdaptor) mock() any { return a.m.mock() }
 
 func (a *interfaceResultAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &interfaceResultRecorder{r: a.m.onCall().InterfaceResult(sParams[0], bParam)}
@@ -2429,7 +2429,7 @@ func (a *exportedInterfaceResultAdaptor) config() adaptorConfig {
 	}
 }
 
-func (a *exportedInterfaceResultAdaptor) mock() interface{} { return a.m.Mock() }
+func (a *exportedInterfaceResultAdaptor) mock() any { return a.m.Mock() }
 
 func (a *exportedInterfaceResultAdaptor) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedInterfaceResultRecorder{r: a.m.OnCall().InterfaceResult(sParams[0], bParam)}
@@ -2544,7 +2544,7 @@ type genericParamsAdaptor[S, B any] struct {
 
 func (a *genericParamsAdaptor[S, B]) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *genericParamsAdaptor[S, B]) mock() interface{} { return a.m.mock() }
+func (a *genericParamsAdaptor[S, B]) mock() any { return a.m.mock() }
 
 func (a *genericParamsAdaptor[S, B]) newRecorder(sParams []S, bParam B) recorder {
 	return &genericParamsRecorder[S, B]{r: a.m.onCall().Usual(sParams[0], bParam)}
@@ -2643,7 +2643,7 @@ func (a *exportedGenericParamsAdaptor[S, B]) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedGenericParamsAdaptor[S, B]) mock() interface{} { return a.m.Mock() }
+func (a *exportedGenericParamsAdaptor[S, B]) mock() any { return a.m.Mock() }
 
 func (a *exportedGenericParamsAdaptor[S, B]) newRecorder(sParams []S, bParam B) recorder {
 	return &exportedGenericParamsRecorder[S, B]{r: a.m.OnCall().Usual(sParams[0], bParam)}
@@ -2742,7 +2742,7 @@ type partialGenericParamsAdaptor[S any] struct {
 
 func (a *partialGenericParamsAdaptor[S]) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *partialGenericParamsAdaptor[S]) mock() interface{} { return a.m.mock() }
+func (a *partialGenericParamsAdaptor[S]) mock() any { return a.m.mock() }
 
 func (a *partialGenericParamsAdaptor[S]) newRecorder(sParams []S, bParam bool) recorder {
 	return &partialGenericParamsRecorder[S]{r: a.m.onCall().Usual(sParams[0], bParam)}
@@ -2841,7 +2841,7 @@ func (a *exportedPartialGenericParamsAdaptor[S]) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedPartialGenericParamsAdaptor[S]) mock() interface{} { return a.m.Mock() }
+func (a *exportedPartialGenericParamsAdaptor[S]) mock() any { return a.m.Mock() }
 
 func (a *exportedPartialGenericParamsAdaptor[S]) newRecorder(sParams []S, bParam bool) recorder {
 	return &exportedPartialGenericParamsRecorder[S]{r: a.m.OnCall().Usual(sParams[0], bParam)}
@@ -2942,7 +2942,7 @@ type genericResultsAdaptor[S ~string, E error] struct {
 
 func (a *genericResultsAdaptor[S, E]) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *genericResultsAdaptor[S, E]) mock() interface{} { return a.m.mock() }
+func (a *genericResultsAdaptor[S, E]) mock() any { return a.m.mock() }
 
 func (a *genericResultsAdaptor[S, E]) newRecorder(sParams []string, bParam bool) recorder {
 	return &genericResultsRecorder[S, E]{r: a.m.onCall().Usual(sParams[0], bParam)}
@@ -3051,7 +3051,7 @@ func (a *exportedGenericResultsAdaptor[S, E]) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedGenericResultsAdaptor[S, E]) mock() interface{} { return a.m.Mock() }
+func (a *exportedGenericResultsAdaptor[S, E]) mock() any { return a.m.Mock() }
 
 func (a *exportedGenericResultsAdaptor[S, E]) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedGenericResultsRecorder[S, E]{r: a.m.OnCall().Usual(sParams[0], bParam)}
@@ -3160,7 +3160,7 @@ type partialGenericResultsAdaptor[S ~string] struct {
 
 func (a *partialGenericResultsAdaptor[S]) config() adaptorConfig { return adaptorConfig{} }
 
-func (a *partialGenericResultsAdaptor[S]) mock() interface{} { return a.m.mock() }
+func (a *partialGenericResultsAdaptor[S]) mock() any { return a.m.mock() }
 
 func (a *partialGenericResultsAdaptor[S]) newRecorder(sParams []string, bParam bool) recorder {
 	return &partialGenericResultsRecorder[S]{r: a.m.onCall().Usual(sParams[0], bParam)}
@@ -3261,7 +3261,7 @@ func (a *exportedPartialGenericResultsAdaptor[S]) config() adaptorConfig {
 	return adaptorConfig{exported: true}
 }
 
-func (a *exportedPartialGenericResultsAdaptor[S]) mock() interface{} { return a.m.Mock() }
+func (a *exportedPartialGenericResultsAdaptor[S]) mock() any { return a.m.Mock() }
 
 func (a *exportedPartialGenericResultsAdaptor[S]) newRecorder(sParams []string, bParam bool) recorder {
 	return &exportedPartialGenericResultsRecorder[S]{r: a.m.OnCall().Usual(sParams[0], bParam)}

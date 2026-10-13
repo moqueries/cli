@@ -1,12 +1,12 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@3.2.2
+  codecov: codecov/codecov@3.2.4
 
 executors:
   go:
     docker:
-    - image: cimg/go:1.21
+    - image: cimg/go:1.26
 
 jobs:
   build:
@@ -40,8 +40,8 @@ jobs:
           PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
           gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- \
             -v -race -covermode=atomic -coverprofile=coverage.out $PACKAGE_NAMES
-          # go install golang.org/x/vuln/cmd/govulncheck@latest
-          # govulncheck ./...
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
 
     - run:
         name: Check generated code
@@ -66,8 +66,7 @@ jobs:
           set -ux
           # Installs the latest version each time. This may impact build
           # repeatability but only mildly.
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
-            sh -s -- -b $(go env GOPATH)/bin
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
           golangci-lint run
 
     - run:

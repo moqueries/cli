@@ -35,7 +35,7 @@ type adaptorConfig struct {
 
 type adaptor interface {
 	config() adaptorConfig
-	mock() interface{}
+	mock() any
 	newRecorder(sParams []string, bParam bool) recorder
 	invokeMockAndExpectResults(t moq.T, sParams []string, bParam bool, res results)
 	prettyParams(sParams []string, bParam bool) string
@@ -1707,7 +1707,7 @@ func TestParamIndexing(t *testing.T) {
 
 	t.Run("panics if an interface parameter that can't be indexed by value gets indexed by value", func(t *testing.T) {
 		// ASSEMBLE
-		var r interface{}
+		var r any
 		{
 			defer func() {
 				r = recover()

@@ -129,10 +129,10 @@ func (c *Cache) Type(id dst.Ident, contextPkg string, testImport bool) (TypeInfo
 	if loadPkg == "" {
 		loadPkg = contextPkg
 	}
-	if strings.HasSuffix(loadPkg, testPkgSuffix) {
+	if before, ok := strings.CutSuffix(loadPkg, testPkgSuffix); ok {
 		// Strip the _test suffix when loading a package but set testImport so
 		// we know to add it back later
-		loadPkg = strings.TrimSuffix(loadPkg, testPkgSuffix)
+		loadPkg = before
 		testImport = true
 	}
 
@@ -751,7 +751,6 @@ func findAbsPath(pkg *packages.Package) (string, error) {
 		return absPath, nil
 	}
 
-	//nolint:goerr113 // Internal error swallowed above
 	return "", fmt.Errorf("could not find absolute path for %s package", pkg.PkgPath)
 }
 
