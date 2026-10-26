@@ -122,7 +122,11 @@ func (g *MoqGenerator) Generate(req GenerateRequest) (MoqResponse, error) {
 			return MoqResponse{}, fmt.Errorf("%w: %s mocked type is not exported", ErrNonExported, id.String())
 		}
 
-		fInfo := &funcInfo{excludeNonExported: req.ExcludeNonExported, fabricated: typeInfo.Fabricated}
+		fInfo := &funcInfo{
+			excludeNonExported: req.ExcludeNonExported,
+			seenNames:          make(map[string]struct{}),
+			fabricated:         typeInfo.Fabricated,
+		}
 		// Clone the type because findFuncs may reduce the interface
 		//nolint:forcetypeassert // if dst.Clone returns a different type, panic
 		typeInfo.Type = dst.Clone(typeInfo.Type).(*dst.TypeSpec)
@@ -303,8 +307,16 @@ func destinationPath(req GenerateRequest, relPath string) (string, error) {
 type funcInfo struct {
 	excludeNonExported bool
 	funcs              []Func
+	seenNames          map[string]struct{}
 	reduced            bool
 	fabricated         bool
+}
+
+func (i *funcInfo) add(fn Func) {
+	if _, ok := i.seenNames[fn.Name]; !ok {
+		i.seenNames[fn.Name] = struct{}{}
+		i.funcs = append(i.funcs, fn)
+	}
 }
 
 func (g *MoqGenerator) findFuncs(tInfo ast.TypeInfo, fInfo *funcInfo) error {
@@ -323,7 +335,8 @@ func (g *MoqGenerator) findFuncs(tInfo ast.TypeInfo, fInfo *funcInfo) error {
 				ErrNonExported, tInfo.Type.Name.String(), tInfo.PkgPath)
 		}
 
-		fInfo.funcs = append(fInfo.funcs, fn)
+		fInfo.add(fn)
+
 		return nil
 	case *dst.Ident:
 		return g.loadTypeEquivalent(typ, tInfo, fInfo)
@@ -362,7 +375,7 @@ func (g *MoqGenerator) loadNestedInterfaces(iType *dst.InterfaceType, tInfo ast.
 				}
 			}
 
-			fInfo.funcs = append(fInfo.funcs, fn)
+			fInfo.add(fn)
 		case *dst.Ident:
 			var err error
 			err = g.loadTypeEquivalent(typ, tInfo, fInfo)
