@@ -26,6 +26,8 @@ var rootCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize()
 
+	rootCmd.Version = version()
+
 	rootCmd.PersistentFlags().Bool(debugFlag, false,
 		"If true, debugging output will be logged")
 
